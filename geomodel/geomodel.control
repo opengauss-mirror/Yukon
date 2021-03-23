@@ -1,5 +1,0 @@
-# Yukon geomodel extension
-comment = 'Yukon GeoModel Types and Functions'
-default_version = '1.0'
-module_pathname = '$libdir/geomodel'
-relocatable = true
