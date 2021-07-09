@@ -7,7 +7,7 @@ geomfromgeojson_06|MULTIPOLYGON(((0 0,1 1,1 0,0 0)))
 #1434: Next two errors
 ERROR:  Unable to find 'coordinates' in GeoJSON string
 ERROR:  unexpected character (at offset 0)
-ERROR:  unexpected end of data (at offset 0)
+#1434.3|
 ERROR:  invalid GeoJSON representation
 ERROR:  Too few ordinates in GeoJSON
 ERROR:  Too few ordinates in GeoJSON
