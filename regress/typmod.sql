@@ -278,6 +278,7 @@ DECLARE
 BEGIN
 
 	tmpfile := tmpfile_prefix;
+	raise warning '%', tmpfile;
 
 	FOR rec2 IN SELECT * from tm.types ORDER BY id
 	LOOP
@@ -287,26 +288,27 @@ BEGIN
 			|| ' WITH BINARY ';
 		EXECUTE sql;
 	END LOOP;
+--取types的136行数据 copy到136个文件里
 
-	FOR rec IN SELECT * from geometry_columns
+	FOR rec IN SELECT * from public.geometry_columns
 		WHERE f_table_name != 'types' ORDER BY 3
 	LOOP
 		out_where := rec.f_table_name;
 
-		hasgeog := rec.type NOT LIKE '%CURVE%'
-  			AND rec.type NOT LIKE '%CIRCULAR%'
-  			AND rec.type NOT LIKE '%SURFACE%'
-  			AND rec.type NOT LIKE 'TRIANGLE%'
-  			AND rec.type NOT LIKE 'TIN%';
+		hasgeog := rec."type" NOT LIKE '%CURVE%'
+  			AND rec."type" NOT LIKE '%CIRCULAR%'
+  			AND rec."type" NOT LIKE '%SURFACE%'
+  			AND rec."type" NOT LIKE 'TRIANGLE%'
+  			AND rec."type" NOT LIKE 'TIN%';
 
 		FOR rec2 IN SELECT * from tm.types ORDER BY id
 		LOOP
-			out_srid := ST_Srid(rec2.g);
-			out_type := substr(ST_GeometryType(rec2.g), 4);
-			IF NOT ST_IsEmpty(rec2.g) THEN
+			out_srid := public.ST_Srid(rec2.g);
+			out_type := substr(public.ST_GeometryType(rec2.g), 4);
+			IF NOT public.ST_IsEmpty(rec2.g) THEN
 				out_type := out_type || 'NE';
 			END IF;
-			out_flags := ST_zmflag(rec2.g);
+			out_flags := public.ST_zmflag(rec2.g);
 			BEGIN
 				sql := 'INSERT INTO '
 					|| quote_ident(rec.f_table_schema)

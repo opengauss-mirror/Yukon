@@ -27,6 +27,7 @@ HAVE_SFCGAL=@HAVE_SFCGAL@
 HAVE_BRIN=@HAVE_BRIN@
 MINGWBUILD=@MINGWBUILD@
 INTERRUPTTESTS=@INTERRUPTTESTS@
+RUNTESTFLAGS = '--extension'
 
 # MingW hack: rather than use PGSQL_BINDIR directly, we change
 # to the directory and then use "pwd" to return the path. This
@@ -48,6 +49,13 @@ REGRESS_INSTALLDIR=$(srcdir)/00-regress-install
 PATH := $(PGSQL_BINDIR):$(PATH)
 export PATH
 
+#	loader/Latin1 \
+#	loader/Latin1-implicit \
+#	cluster \
+#	estimatedextent \
+#	long_xact \
+#	regress_index \
+#	typmod \
 
 TESTS = \
 	loader/Point \
@@ -71,8 +79,6 @@ TESTS = \
 	loader/MultiToSinglePoint \
 	loader/ReprojectPts \
 	loader/ReprojectPtsGeog \
-	loader/Latin1 \
-	loader/Latin1-implicit \
 	loader/mfile \
 	dumper/literalsrid \
 	dumper/realtable \
@@ -80,7 +86,6 @@ TESTS = \
 	bestsrid \
 	binary \
 	boundary \
-	cluster \
 	concave_hull\
 	ctors \
 	curvetoline \
@@ -97,7 +102,6 @@ TESTS = \
 	in_encodedpolyline \
 	iscollection \
 	legacy \
-	long_xact \
 	lwgeom_regress \
 	measures \
 	minimum_bounding_circle \
@@ -142,10 +146,9 @@ TESTS = \
 	temporal \
 	tickets \
 	twkb \
-	typmod \
 	wkb \
 	wkt \
-	wmsservers
+	wmsservers 
 
 ifeq ($(shell expr $(POSTGIS_PGSQL_VERSION) "<"  95),1)
 	# Index supported KNN only available in PostgreSQL 9.1 and higher
@@ -278,6 +281,8 @@ ifeq ($(HAVE_SFCGAL),yes)
 endif
 
 
+
+
 all install uninstall:
 
 distclean: clean
@@ -300,8 +305,8 @@ staged-install: staged-install-raster staged-install-topology
 	#$(MAKE) -C ../loader REGRESS=1 DESTDIR=$(REGRESS_INSTALLDIR) install
 
 test check: staged-install
-	$(PERL) run_test.pl $(RUNTESTFLAGS) $(SFCGALTESTFLAGS) $(TESTS) && \
-	$(PERL) run_test.pl --upgrade $(RUNTESTFLAGS) $(SFCGALTESTFLAGS) $(TESTS)
+	$(PERL) run_test.pl $(RUNTESTFLAGS) $(SFCGALTESTFLAGS) $(TESTS)
+
 
 garden:
 	createdb postgis_garden
