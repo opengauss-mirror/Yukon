@@ -37,7 +37,7 @@ ifeq ($(PG91),yes)
 	
 all: sql/$(EXTENSION)--$(EXTVERSION).sql sql/$(EXTENSION)--unpackaged--$(EXTVERSION).sql sql/$(EXTENSION)--$(EXTVERSION)--$(EXTVERSION)next.sql sql/$(EXTENSION)--$(EXTVERSION)next--$(EXTVERSION).sql sql_minor_upgrade
 
-sql/$(EXTENSION).sql: sql_bits/postgis.sql sql_bits/postgis_comments.sql sql_bits/rtpostgis.sql sql_bits/spatial_ref_sys_config_dump.sql sql_bits/raster_comments.sql sql_bits/spatial_ref_sys.sql
+sql/$(EXTENSION).sql: sql_bits/postgis.sql  sql_bits/spatial_ref_sys_config_dump.sql  sql_bits/spatial_ref_sys.sql
 	mkdir -p sql
 	printf '\\echo Use "CREATE EXTENSION $(EXTENSION)" to load this file. \\quit\n' > $@
 	cat $^ >> $@
