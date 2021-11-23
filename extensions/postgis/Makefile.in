@@ -35,7 +35,7 @@ CURV_big=@POSTGIS_MAJOR_VERSION@@POSTGIS_MINOR_VERSION@
 
 ifeq ($(PG91),yes)
 	
-all: sql/$(EXTENSION)--$(EXTVERSION).sql sql/$(EXTENSION)--unpackaged--$(EXTVERSION).sql sql/$(EXTENSION)--$(EXTVERSION)--$(EXTVERSION)next.sql sql/$(EXTENSION)--$(EXTVERSION)next--$(EXTVERSION).sql sql_minor_upgrade
+all: sql/$(EXTENSION)--$(EXTVERSION).sql  
 
 sql/$(EXTENSION).sql: sql_bits/postgis.sql  sql_bits/spatial_ref_sys_config_dump.sql  sql_bits/spatial_ref_sys.sql
 	mkdir -p sql

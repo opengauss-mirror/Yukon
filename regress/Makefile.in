@@ -281,7 +281,7 @@ ifeq ($(HAVE_SFCGAL),yes)
 endif
 
 
-
+TESTS += geomodel
 
 all install uninstall:
 

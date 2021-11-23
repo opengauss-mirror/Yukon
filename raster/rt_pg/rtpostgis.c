@@ -252,23 +252,24 @@ rt_pg_debug(const char *fmt, va_list ap)
 /*  PostGIS raster GUCs                                             */
 /* ---------------------------------------------------------------- */
 
-//static char *gdal_datapath = NULL;
+static char *gdal_datapath = NULL;
 extern THR_LOCAL char *gdal_enabled_drivers;
 extern THR_LOCAL bool enable_outdb_rasters;
+MemoryContext gdal_shared_context;
 
 /* ---------------------------------------------------------------- */
 /*  Useful variables                                                */
 /* ---------------------------------------------------------------- */
 
-//static char *env_postgis_gdal_enabled_drivers = NULL;
-//static char *boot_postgis_gdal_enabled_drivers = NULL;
-//static char *env_postgis_enable_outdb_rasters = NULL;
+static char *env_postgis_gdal_enabled_drivers = NULL;
+static char *boot_postgis_gdal_enabled_drivers = NULL;
+static char *env_postgis_enable_outdb_rasters = NULL;
 
 /* postgis.gdal_datapath */
 static void
 rtpg_assignHookGDALDataPath(const char *newpath, void *extra) {
 	POSTGIS_RT_DEBUGF(4, "newpath = %s", newpath);
-	//POSTGIS_RT_DEBUGF(4, "gdaldatapath = %s", gdal_datapath);
+	POSTGIS_RT_DEBUGF(4, "gdaldatapath = %s", gdal_datapath);
 
 	/* clear finder cache */
 	CPLFinderClean();
@@ -430,19 +431,21 @@ _PG_init_gdal(void) {
 
 	bool boot_postgis_enable_outdb_rasters = false;
 	MemoryContext old_context;
+	MemoryContext gdal_shared_context;
 	void *extra = NULL;
 
 	/*
 	 * Change to context for memory allocation calls like palloc() in the
 	 * extension initialization routine
 	 */
-	old_context = MemoryContextSwitchTo(TopMemoryContext);
+	gdal_shared_context = AllocSetContextCreate(g_instance.instance_context,"gdal_shared_memory",0,1024*1024,1024*1024*2,SHARED_CONTEXT);
+	old_context = MemoryContextSwitchTo(gdal_shared_context);
 
 	/*
 	 use POSTGIS_GDAL_ENABLED_DRIVERS to set the bootValue
 	 of GUC postgis.gdal_enabled_drivers
 	*/
-	#if 0
+	
 	env_postgis_gdal_enabled_drivers = getenv("POSTGIS_GDAL_ENABLED_DRIVERS");
 	if (env_postgis_gdal_enabled_drivers == NULL) {
 		boot_postgis_gdal_enabled_drivers = palloc(
@@ -460,10 +463,9 @@ _PG_init_gdal(void) {
 		"boot_postgis_gdal_enabled_drivers = %s",
 		boot_postgis_gdal_enabled_drivers
 	);
-	#endif
+
 	
 
-	#if 0
 	/*
 	 use POSTGIS_ENABLE_OUTDB_RASTERS to set the bootValue
 	 of GUC postgis.enable_outdb_rasters
@@ -488,7 +490,7 @@ _PG_init_gdal(void) {
 		"boot_postgis_enable_outdb_rasters = %s",
 		boot_postgis_enable_outdb_rasters ? "TRUE" : "FALSE"
 	);
-	#endif
+	
 
 	/* Install liblwgeom handlers */
 	pg_install_lwgeom_handlers();
@@ -496,14 +498,14 @@ _PG_init_gdal(void) {
 	/* Install rtcore handlers */
 	rt_set_handlers(rt_pg_alloc, rt_pg_realloc, rt_pg_free, rt_pg_error, rt_pg_debug, rt_pg_notice);
 
-	#if 0
+
 	/* Define custom GUC variables. */
 	if ( postgis_guc_find_option("postgis.gdal_datapath") )
 	{
 		/* In this narrow case the previously installed GUC is tied to the callback in */
 		/* the previously loaded library. Probably this is happening during an */
 		/* upgrade, so the old library is where the callback ties to. */
-		elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.gdal_datapath");
+		//elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.gdal_datapath");
 	}
 	else
 	{
@@ -520,15 +522,15 @@ _PG_init_gdal(void) {
 			NULL  /* GucShowHook show_hook */
 		);
 	}
-	#endif
-	#if 0
+
+
 
 	if ( postgis_guc_find_option("postgis.gdal_enabled_drivers") )
 	{
 		/* In this narrow case the previously installed GUC is tied to the callback in */
 		/* the previously loaded library. Probably this is happening during an */
 		/* upgrade, so the old library is where the callback ties to. */
-		elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.gdal_enabled_drivers");
+		//elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.gdal_enabled_drivers");
 	}
 	else
 	{
@@ -551,7 +553,7 @@ _PG_init_gdal(void) {
 		/* In this narrow case the previously installed GUC is tied to the callback in */
 		/* the previously loaded library. Probably this is happening during an */
 		/* upgrade, so the old library is where the callback ties to. */
-		elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.enable_outdb_rasters");
+		//elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.enable_outdb_rasters");
 	}
 	else
 	{
@@ -568,7 +570,7 @@ _PG_init_gdal(void) {
 			NULL  /* GucShowHook show_hook */
 		);
 	}
-	#endif
+
 	/* postgis.gdal_enabled_drivers is alway GDAL_ENABLE_ALL  */
 	gdal_enabled_drivers = palloc(sizeof(char) * (strlen(GDAL_ENABLE_ALL) + 1));
 	sprintf(gdal_enabled_drivers, "%s", GDAL_ENABLE_ALL);
@@ -597,16 +599,16 @@ _PG_fini(void) {
 
 	MemoryContext old_context;
 
-	old_context = MemoryContextSwitchTo(TopMemoryContext);
+	old_context = MemoryContextSwitchTo(gdal_shared_context);
 
 	/* Clean up */
-	//pfree(env_postgis_gdal_enabled_drivers);
-	//pfree(boot_postgis_gdal_enabled_drivers);
-	//pfree(env_postgis_enable_outdb_rasters);
+	pfree(env_postgis_gdal_enabled_drivers);
+	pfree(boot_postgis_gdal_enabled_drivers);
+	pfree(env_postgis_enable_outdb_rasters);
 
-	//env_postgis_gdal_enabled_drivers = NULL;
-	//boot_postgis_gdal_enabled_drivers = NULL;
-	//env_postgis_enable_outdb_rasters = NULL;
+	env_postgis_gdal_enabled_drivers = NULL;
+	boot_postgis_gdal_enabled_drivers = NULL;
+	env_postgis_enable_outdb_rasters = NULL;
 
 	pfree(gdal_enabled_drivers);
 	gdal_enabled_drivers = NULL;

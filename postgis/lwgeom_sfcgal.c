@@ -31,7 +31,7 @@
 #include "../postgis_config.h"
 
 
-extern "C" Datu postgis_sfcgal_version(PG_FUNCTION_ARGS);
+extern "C" Datum postgis_sfcgal_version(PG_FUNCTION_ARGS);
 
 extern "C" Datum sfcgal_from_ewkt(PG_FUNCTION_ARGS);
 extern "C" Datum sfcgal_distance(PG_FUNCTION_ARGS);

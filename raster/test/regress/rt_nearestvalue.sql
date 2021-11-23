@@ -20,7 +20,7 @@ CREATE OR REPLACE FUNCTION make_test_raster()
 		valset := array_fill(0., ARRAY[height, width]);
 		FOR y IN 1..height LOOP
 			FOR x IN 1..width LOOP
-				valset[y][x] := 2 * x + (1/3) * y;
+				valset[y][x] := 2 * x + (floor(1/3)) * y;
 			END LOOP;
 		END LOOP;
 		rast := ST_SetValues(rast, 1, 1, 1, valset);

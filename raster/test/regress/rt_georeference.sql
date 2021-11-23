@@ -225,7 +225,7 @@ VALUES ( 5, '1x1, ip:7.5,2.5 scale:5,5 skew:3,7, srid:-1, width:1, height:1',
 SELECT 
     replace(st_georeference(rast)::text, E'\n', E'EOL'), 
     replace(st_georeference(rast)::text, E'\n', E'EOL') =
-    '2.0000000000EOL0.0000000000EOL0.0000000000EOL3.0000000000EOL0.5000000000EOL0.5000000000EOL'
+    '2.0000000000EOL0.0000000000EOL0.0000000000EOL3.0000000000EOL.5000000000EOL.5000000000EOL'
 FROM rt_properties_test 
 WHERE id = 0;
 
@@ -272,7 +272,7 @@ WHERE id = 5;
 SELECT
     replace(st_georeference(rast,'GDAL')::text, E'\n', E'EOL'),
     replace(st_georeference(rast,'GDAL')::text, E'\n', E'EOL') = 
-    '2.0000000000EOL0.0000000000EOL0.0000000000EOL3.0000000000EOL0.5000000000EOL0.5000000000EOL'
+    '2.0000000000EOL0.0000000000EOL0.0000000000EOL3.0000000000EOL.5000000000EOL.5000000000EOL'
 FROM rt_properties_test 
 WHERE id = 0;
 

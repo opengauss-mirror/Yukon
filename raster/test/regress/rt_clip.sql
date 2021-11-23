@@ -12,7 +12,7 @@ CREATE TABLE geom_clip (
 );
 DROP TABLE IF EXISTS raster_clip_out;
 CREATE TABLE raster_clip_out (
-	tid integer,
+	_tid integer,
 	rid integer,
 	gid integer,
 	rast raster
@@ -97,7 +97,7 @@ FROM raster_clip, geom_clip;
 
 -- Display the metadata of the resulting rasters
 SELECT
-	tid,
+	_tid,
 	rid,
 	gid,
 	round(upperleftx::numeric, 3) AS upperleftx,
@@ -113,7 +113,7 @@ SELECT
 	pixeltype,
 	round(nodatavalue::numeric, 3) AS nodatavalue
 FROM (
-	SELECT  tid,
+	SELECT  _tid,
 	        rid,
 		gid,
 		(ST_Metadata(rast)).*,
@@ -123,14 +123,14 @@ FROM (
 
 -- Display the pixels and the values of the resulting rasters (raster 1)
 SELECT
-	tid,
+	_tid,
 	rid,
 	gid,
 	(gvxy).x,
 	(gvxy).y,
 	(gvxy).val,
 	ST_AsText((gvxy).geom) geom
-FROM (SELECT tid, rid, gid, ST_PixelAsPolygons(rast) gvxy
+FROM (SELECT _tid, rid, gid, ST_PixelAsPolygons(rast) gvxy
       FROM raster_clip_out
       WHERE rid = 1
 ) foo
@@ -138,7 +138,7 @@ ORDER BY 1, 2, 3, 4, 5, 7;
 
 -- Display the pixels and the values of the resulting rasters (raster 2, 3 bands)
 SELECT
-	tid,
+	_tid,
 	rid,
 	gid,
 	band,
@@ -146,7 +146,7 @@ SELECT
 	(gvxy).y,
 	(gvxy).val,
 	ST_AsText((gvxy).geom) geom
-FROM (SELECT tid, rid, gid, band, ST_PixelAsPolygons(rast, band) gvxy
+FROM (SELECT _tid, rid, gid, band, ST_PixelAsPolygons(rast, band) gvxy
       FROM raster_clip_out, generate_series(1, 3) band
       WHERE rid = 2
 ) foo

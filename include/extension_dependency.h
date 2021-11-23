@@ -49,6 +49,8 @@
 #include "utils/hsearch.h"
 #include "utils/palloc.h"
 #include "utils/syscache.h"
+#include "utils/memutils.h"
+#include "knl/knl_variable.h"
 
 typedef int Buffer;
 typedef uint16 StrategyNumber;

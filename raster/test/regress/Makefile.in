@@ -41,6 +41,8 @@ REGRESS_INSTALLDIR=$(POSTGIS_SRC)/regress/00-regress-install
 PATH := $(PGSQL_BINDIR):$(PATH)
 export PATH
 
+RUNTESTFLAGS = '--extension'
+
 TEST_FIRST = \
 	check_gdal \
 	load_outdb
