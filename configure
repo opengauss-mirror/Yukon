@@ -762,6 +762,9 @@ LIBLWGEOM_CURRENT
 POSTGIS_MICRO_VERSION
 POSTGIS_MINOR_VERSION
 POSTGIS_MAJOR_VERSION
+YUKON_MICRO_VERSION
+YUKON_MINOR_VERSION
+YUKON_MAJOR_VERSION
 EXESUFFIX
 EXCLUDELIBS_LDFLAGS
 NUMERICFLAGS
@@ -12483,6 +12486,10 @@ POSTGIS_MAJOR_VERSION=`cat Version.config | grep ^POSTGIS_MAJOR_VERSION | sed 's
 POSTGIS_MINOR_VERSION=`cat Version.config | grep ^POSTGIS_MINOR_VERSION | sed 's/[^=]*=\([0-9]\)/\1/g'`
 POSTGIS_MICRO_VERSION=`cat Version.config | grep ^POSTGIS_MICRO_VERSION | sed 's/[^=]*=\([0-9]\)/\1/g'`
 
+YUKON_MAJOR_VERSION=`cat Version.config | grep ^YUKON_MAJOR_VERSION | sed 's/[^=]*=\([0-9]\)/\1/g'`
+YUKON_MINOR_VERSION=`cat Version.config | grep ^YUKON_MINOR_VERSION | sed 's/[^=]*=\([0-9]\)/\1/g'`
+YUKON_MICRO_VERSION=`cat Version.config | grep ^YUKON_MICRO_VERSION | sed 's/[^=]*=\([0-9]\)/\1/g'`
+
 
 cat >>confdefs.h <<_ACEOF
 #define POSTGIS_MAJOR_VERSION "$POSTGIS_MAJOR_VERSION"
@@ -17239,6 +17246,13 @@ if test "$HAVE_LIBXML2" = "1"; then
 	POSTGIS_VERSION="$POSTGIS_VERSION USE_LIBXML2=1"
 fi
 
+YUKON_VERSION="$YUKON_MAJOR_VERSION.$YUKON_MINOR_VERSION USE_GEOS=1 USE_PROJ=1 USE_STATS=1"
+if test "$HAVE_LIBXML2" = "1"; then
+	YUKON_VERSION="$YUKON_VERSION USE_LIBXML2=1"
+fi
+
+YUKON_LIB_VERSION="$YUKON_MAJOR_VERSION.$YUKON_MINOR_VERSION"
+
 POSTGIS_LIB_VERSION="$POSTGIS_MAJOR_VERSION.$POSTGIS_MINOR_VERSION.$POSTGIS_MICRO_VERSION"
 POSTGIS_BUILD_DATE=`date -u "+%Y-%m-%d %H:%M:%S"`
 POSTGIS_SCRIPTS_VERSION="$POSTGIS_LIB_VERSION"
@@ -17246,6 +17260,14 @@ POSTGIS_SCRIPTS_VERSION="$POSTGIS_LIB_VERSION"
 
 cat >>confdefs.h <<_ACEOF
 #define POSTGIS_VERSION "$POSTGIS_VERSION"
+_ACEOF
+
+cat >>confdefs.h <<_ACEOF
+#define YUKON_VERSION "$YUKON_VERSION"
+_ACEOF
+
+cat >>confdefs.h <<_ACEOF
+#define YUKON_LIB_VERSION "$YUKON_LIB_VERSION"
 _ACEOF
 
 
@@ -17838,7 +17860,11 @@ $as_echo "RASTER: Raster support disabled" >&6; }
 	RT_MAKEFILE_LIST="raster/Makefile"
 fi
 
-
+GM_MAKEFILE_LIST="
+ geomodel/Makefile \
+ geomodel/src/Makefile \
+ geomodel/libUGC/Makefile
+"
 
 
 
@@ -17859,7 +17885,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files GNUmakefile extensions/Makefile extensions/postgis/Makefile extensions/postgis/postgis.control extensions/postgis_sfcgal/Makefile extensions/postgis_sfcgal/postgis_sfcgal.control extensions/postgis_topology/Makefile extensions/postgis_topology/postgis_topology.control extensions/postgis_tiger_geocoder/Makefile extensions/postgis_tiger_geocoder/postgis_tiger_geocoder.control extensions/address_standardizer/Makefile extensions/address_standardizer/address_standardizer.control extensions/address_standardizer/address_standardizer_data_us.control liblwgeom/Makefile liblwgeom/cunit/Makefile liblwgeom/liblwgeom.h libpgcommon/Makefile libpgcommon/cunit/Makefile postgis/Makefile postgis/sqldefines.h loader/Makefile loader/cunit/Makefile topology/Makefile topology/test/Makefile regress/Makefile doc/Makefile doc/Makefile.comments doc/html/image_src/Makefile utils/Makefile $RT_MAKEFILE_LIST"
+ac_config_files="$ac_config_files GNUmakefile extensions/Makefile extensions/postgis/Makefile extensions/postgis/postgis.control extensions/postgis_raster/Makefile extensions/postgis_raster/postgis_raster.control extensions/postgis_sfcgal/Makefile extensions/postgis_sfcgal/postgis_sfcgal.control extensions/postgis_topology/Makefile extensions/postgis_topology/postgis_topology.control extensions/postgis_tiger_geocoder/Makefile extensions/postgis_tiger_geocoder/postgis_tiger_geocoder.control extensions/address_standardizer/Makefile extensions/address_standardizer/address_standardizer.control extensions/address_standardizer/address_standardizer_data_us.control liblwgeom/Makefile liblwgeom/cunit/Makefile liblwgeom/liblwgeom.h libpgcommon/Makefile libpgcommon/cunit/Makefile postgis/Makefile  postgis/sqldefines.h loader/Makefile loader/cunit/Makefile topology/Makefile topology/test/Makefile regress/Makefile doc/Makefile doc/Makefile.comments doc/html/image_src/Makefile utils/Makefile $RT_MAKEFILE_LIST $GM_MAKEFILE_LIST"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
