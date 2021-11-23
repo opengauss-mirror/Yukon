@@ -61,9 +61,9 @@ SELECT ST_Count(
 		, 1, 5, 5, 3.14159
 	)
 );
-BEGIN;
-CREATE TEMP TABLE test
-	ON COMMIT DROP AS
+--BEGIN;
+CREATE  TABLE test
+	AS
 	SELECT
 		rast.rast
 	FROM (
@@ -100,14 +100,16 @@ SELECT ST_CountAgg(rast, 1, FALSE) FROM test;
 SELECT ST_CountAgg(rast, TRUE) FROM test;
 SELECT ST_CountAgg(rast, FALSE) FROM test;
 
-SAVEPOINT test;
+--SAVEPOINT test;
 SELECT ST_CountAgg(rast, 2, TRUE) FROM test;
-ROLLBACK TO SAVEPOINT test;
-RELEASE SAVEPOINT test;
+--ROLLBACK TO SAVEPOINT test;
+--RELEASE SAVEPOINT test;
 
-SAVEPOINT test;
+--SAVEPOINT test;
 SELECT ST_CountAgg(rast, 1, TRUE, 2) FROM test;
-ROLLBACK TO SAVEPOINT test;
-RELEASE SAVEPOINT test;
+--ROLLBACK TO SAVEPOINT test;
+--RELEASE SAVEPOINT test;
 
-ROLLBACK;
+--ROLLBACK;
+
+DROP TABLE test cascade;

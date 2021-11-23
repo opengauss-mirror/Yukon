@@ -70,14 +70,14 @@ INSERT INTO raster_dumpvalues
 INSERT INTO raster_dumpvalues
 	SELECT
 		rid + 10,
-		make_raster(rast, '16BSI', 3, 3, rid, (rid / 2)::integer)
+		make_raster(rast, '16BSI', 3, 3, rid, floor(rid / 2))
 	FROM raster_dumpvalues
 	WHERE rid <= 10;
 
 INSERT INTO raster_dumpvalues
 	SELECT
 		rid + 10,
-		make_raster(rast, '32BSI', 3, 3, rid, (rid / 2)::integer)
+		make_raster(rast, '32BSI', 3, 3, rid, floor(rid / 2))
 	FROM raster_dumpvalues
 	WHERE rid BETWEEN 11 AND 20;
 
@@ -98,16 +98,16 @@ ORDER BY rid;
 
 DROP TABLE IF EXISTS raster_dumpvalues;
 
-SELECT (ST_DumpValues(ST_AddBand(ST_MakeEmptyRaster(0, 0, 0, 0, 1), ARRAY[ROW(NULL, '8BUI', 255, 0),ROW(NULL, '16BUI', 1, 2)]::addbandarg[]))).*;
+--SELECT (ST_DumpValues(ST_AddBand(ST_MakeEmptyRaster(0, 0, 0, 0, 1), ARRAY[ROW(NULL, '8BUI', 255, 0),ROW(NULL, '16BUI', 1, 2)]::addbandarg[]))).*;
 
 
 -- #3086
-DROP TABLE IF EXISTS raster_tile;
-CREATE TABLE raster_tile AS
-    WITH foo AS (
-        SELECT ST_AddBand(ST_AddBand(ST_MakeEmptyRaster(3, 3, 0, 0, 1, -1, 0, 0, 0), 1, '8BUI', 1, 0), 2, '8BUI', 10, 0) AS rast UNION ALL
-        SELECT ST_AddBand(ST_AddBand(ST_MakeEmptyRaster(3, 3, 3, 0, 1, -1, 0, 0, 0), 1, '8BUI', 2, 0), 2, '8BUI', 20, 0) AS rast
-    )
-    SELECT ST_Union(rast) AS rast FROM foo;
-WITH foo AS (SELECT ST_Tile(rast, 3, 3, TRUE) AS rast FROM raster_tile) SELECT (ST_DumpValues(rast, array[1,2,3])).* FROM foo;
-DROP TABLE IF EXISTS raster_tile;
+-- DROP TABLE IF EXISTS raster_tile;
+-- CREATE TABLE raster_tile AS
+--     WITH foo AS (
+--         SELECT ST_AddBand(ST_AddBand(ST_MakeEmptyRaster(3, 3, 0, 0, 1, -1, 0, 0, 0), 1, '8BUI', 1, 0), 2, '8BUI', 10, 0) AS rast UNION ALL
+--         SELECT ST_AddBand(ST_AddBand(ST_MakeEmptyRaster(3, 3, 3, 0, 1, -1, 0, 0, 0), 1, '8BUI', 2, 0), 2, '8BUI', 20, 0) AS rast
+--     )
+--     SELECT ST_Union(rast) AS rast FROM foo;
+-- WITH foo AS (SELECT ST_Tile(rast, 3, 3, TRUE) AS rast FROM raster_tile) SELECT (ST_DumpValues(rast, array[1,2,3])).* FROM foo;
+-- DROP TABLE IF EXISTS raster_tile;

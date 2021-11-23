@@ -191,6 +191,12 @@
 /* PostGIS version */
 #undef POSTGIS_VERSION
 
+/* Yukon version */
+#undef YUKON_VERSION
+
+/* Yukon Library version */
+#undef YUKON_LIB_VERSION
+
 /* Define command to determine the current directory during regression */
 #undef PWDREGRESS
 

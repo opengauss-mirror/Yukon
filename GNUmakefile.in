@@ -6,7 +6,7 @@
 
 SUBDIRS = liblwgeom
 ifeq (@LIBLWGEOM_ONLY@,no)
-SUBDIRS += libpgcommon postgis @RASTER@ @TOPOLOGY@ utils loader doc @EXTENSIONS@
+SUBDIRS += libpgcommon postgis @RASTER@ @TOPOLOGY@ utils loader doc @EXTENSIONS@ geomodel 
 endif
 
 PERL = @PERL@

@@ -1643,10 +1643,6 @@ DECLARE
 	gc_is_valid boolean;
 	inserted    integer;
 	constraint_successful boolean := false;
-	sql text;
-	coltype text;
-	new_srid integer;
-	count integer;
 
 BEGIN
 	inserted := 0;
@@ -1668,41 +1664,28 @@ BEGIN
 		AND c.oid = tbl_oid
 	LOOP
 
+        RAISE DEBUG 'Processing column %.%.%', gcs.nspname, gcs.relname, gcs.attname;
+
         gc_is_valid := true;
         -- Find the srid, coord_dimension, and type of current geometry
         -- in geometry_columns -- which is now a view
 
-		sql := 'SELECT type FROM geometry_columns WHERE f_table_schema = ' || quote_literal(gcs.nspname) ||
-			' AND f_table_name = '|| quote_literal(gcs.relname) ||' AND f_geometry_column = '|| quote_literal(gcs.attname);
-		EXECUTE sql INTO coltype;
+        SELECT type, srid, coord_dimension INTO gc_old
+            FROM geometry_columns
+            WHERE f_table_schema = gcs.nspname AND f_table_name = gcs.relname AND f_geometry_column = gcs.attname;
 
-        IF upper(coltype) = 'GEOMETRY' THEN
+        IF upper(gc_old.type) = 'GEOMETRY' THEN
         -- This is an unconstrained geometry we need to do something
         -- We need to figure out what to set the type by inspecting the data
-            sql := 'SELECT COUNT(*) from '|| quote_ident(gcs.nspname)||'.'||quote_ident(gcs.relname);
-			EXECUTE sql INTO count;
-			
-			IF(count) THEN
-				EXECUTE 'SELECT ST_srid(' || quote_ident(gcs.attname) || ') As srid FROM ONLY ' || quote_ident(gcs.nspname) || '.' || quote_ident(gcs.relname) ||
-						 ' WHERE ' || quote_ident(gcs.attname) || ' IS NOT NULL LIMIT 1;'
-					INTO gsrid;
-					
-				EXECUTE 'SELECT GeometryType(' || quote_ident(gcs.attname) || ') As type FROM ONLY ' || quote_ident(gcs.nspname) || '.' || quote_ident(gcs.relname) ||
-						 ' WHERE ' || quote_ident(gcs.attname) || ' IS NOT NULL LIMIT 1;'
-					INTO gtype;	
-				
-				EXECUTE 'SELECT ST_NDims(' || quote_ident(gcs.attname) || ') As dims FROM ONLY ' || quote_ident(gcs.nspname) || '.' || quote_ident(gcs.relname) ||
-						 ' WHERE ' || quote_ident(gcs.attname) || ' IS NOT NULL LIMIT 1;'
-					INTO gndims;	
-			
-			   IF gtype IS NULL THEN -- there is no data so we can not determine geometry type
-				RAISE WARNING 'No geometrytype in table %.%', gcs.nspname, gcs.relname;
-				RETURN 0;
-			   END IF;
-			ELSE
+            EXECUTE 'SELECT @extschema@.ST_srid(' || quote_ident(gcs.attname) || ') As srid, GeometryType(' || quote_ident(gcs.attname) || ') As type, @extschema@.ST_NDims(' || quote_ident(gcs.attname) || ') As dims ' ||
+                     ' FROM ONLY ' || quote_ident(gcs.nspname) || '.' || quote_ident(gcs.relname) ||
+                     ' WHERE ' || quote_ident(gcs.attname) || ' IS NOT NULL LIMIT 1;'
+                INTO gc;
+            IF gc IS NULL THEN -- there is no data so we can not determine geometry type
             	RAISE WARNING 'No data in table %.%, so no information to determine geometry type and srid', gcs.nspname, gcs.relname;
             	RETURN 0;
             END IF;
+            gsrid := gc.srid; gtype := gc.type; gndims := gc.dims;
 
             IF use_typmod THEN
                 BEGIN
@@ -2010,7 +1993,7 @@ BEGIN
 
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE;
+LANGUAGE 'plpgsql' VOLATILE STRICT;
 CREATE OR REPLACE FUNCTION DropGeometryColumn(schema_name varchar, table_name varchar,column_name varchar)
 	RETURNS text
 	AS
@@ -2022,7 +2005,7 @@ BEGIN
 	RETURN ret;
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE ;
+LANGUAGE 'plpgsql' VOLATILE STRICT;
 CREATE OR REPLACE FUNCTION DropGeometryColumn(table_name varchar, column_name varchar)
 	RETURNS text
 	AS
@@ -2034,18 +2017,17 @@ BEGIN
 	RETURN ret;
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE ;
+LANGUAGE 'plpgsql' VOLATILE STRICT;
 CREATE OR REPLACE FUNCTION DropGeometryTable(catalog_name varchar, schema_name varchar, table_name varchar)
 	RETURNS text
 	AS
 $$
 DECLARE
 	real_schema name;
-	sqlstr text;
 
 BEGIN
 
-	IF ( schema_name IS NULL ) THEN
+	IF ( schema_name = '' ) THEN
 		SELECT current_schema() into real_schema;
 	ELSE
 		real_schema = schema_name;
@@ -2053,7 +2035,9 @@ BEGIN
 
 	-- TODO: Should we warn if table doesn't exist probably instead just saying dropped
 	-- Remove table
-	EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(real_schema) || '.' || quote_ident(table_name) || ' RESTRICT';
+	EXECUTE 'DROP TABLE IF EXISTS '
+		|| quote_ident(real_schema) || '.' ||
+		quote_ident(table_name) || ' RESTRICT';
 
 	RETURN
 		real_schema || '.' ||
@@ -2061,10 +2045,10 @@ BEGIN
 
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE ;
+LANGUAGE 'plpgsql' VOLATILE STRICT;
 CREATE OR REPLACE FUNCTION DropGeometryTable(schema_name varchar, table_name varchar) RETURNS text AS
 $$ SELECT @extschema@.DropGeometryTable('',$1,$2) $$
-LANGUAGE 'sql' VOLATILE ;
+LANGUAGE 'sql' VOLATILE STRICT;
 CREATE OR REPLACE FUNCTION DropGeometryTable(table_name varchar) RETURNS text AS
 $$ SELECT @extschema@.DropGeometryTable('','',$1) $$
 LANGUAGE 'sql' VOLATILE STRICT;
@@ -2079,16 +2063,12 @@ DECLARE
 	real_schema name;
 	unknown_srid integer;
 	new_srid integer := new_srid_in;
-	gtype varchar;
-	gcoord_dimension  integer;
-	sql text;
-	count integer;
 
 BEGIN
 
 
 	-- Find, check or fix schema_name
-	IF ( schema_name IS NOT NULL ) THEN
+	IF ( schema_name != '' ) THEN
 		okay = false;
 
 		FOR myrec IN SELECT nspname FROM pg_namespace WHERE text(nspname) = schema_name LOOP
@@ -2106,25 +2086,9 @@ BEGIN
 
 	-- Ensure that column_name is in geometry_columns
 	okay = false;
-
-	EXECUTE 'SELECT count(*) FROM geometry_columns WHERE f_table_schema ='|| quote_literal(real_schema) ||
-	' and f_table_name = '|| quote_literal(table_name) ||'  and f_geometry_column = '|| quote_literal(column_name)||';'
-	INTO count;
-	
-	if(count) then
-		EXECUTE 'SELECT type FROM geometry_columns WHERE f_table_schema ='|| quote_literal(real_schema) ||
-		' and f_table_name = '|| quote_literal(table_name) ||'  and f_geometry_column = '|| quote_literal(column_name)||';'
-		INTO gtype;
-		
-		EXECUTE 'SELECT coord_dimension FROM geometry_columns WHERE f_table_schema ='|| quote_literal(real_schema) ||
-		' and f_table_name = '|| quote_literal(table_name) ||'  and f_geometry_column = '|| quote_literal(column_name)||';'
-		INTO gcoord_dimension;
+	FOR myrec IN SELECT type, coord_dimension FROM @extschema@.geometry_columns WHERE f_table_schema = text(real_schema) and f_table_name = table_name and f_geometry_column = column_name LOOP
 		okay := true;
-	else
-		okay := false;
-	END IF;
-	
-
+	END LOOP;
 	IF (NOT okay) THEN
 		RAISE EXCEPTION 'column not found in geometry_columns table';
 		RETURN false;
@@ -2137,7 +2101,7 @@ BEGIN
 			RETURN false;
 		END IF;
 	ELSE
-		unknown_srid := ST_SRID('POINT EMPTY'::geometry);
+		unknown_srid := @extschema@.ST_SRID('POINT EMPTY'::@extschema@.geometry);
 		IF ( new_srid != unknown_srid ) THEN
 			new_srid := unknown_srid;
 			RAISE NOTICE 'SRID value % converted to the officially unknown SRID value %', new_srid_in, new_srid;
@@ -2158,7 +2122,7 @@ BEGIN
         EXECUTE 'UPDATE ' || quote_ident(real_schema) ||
             '.' || quote_ident(table_name) ||
             ' SET ' || quote_ident(column_name) ||
-            ' = ST_SetSRID(' || quote_ident(column_name) ||
+            ' = @extschema@.ST_SetSRID(' || quote_ident(column_name) ||
             ', ' || new_srid::text || ')';
 
         -- Reset enforce_srid constraint
@@ -2172,14 +2136,14 @@ BEGIN
         -- We are using postgis_type_name to lookup the new name
         -- (in case Paul changes his mind and flips geometry_columns to return old upper case name)
         EXECUTE 'ALTER TABLE ' || quote_ident(real_schema) || '.' || quote_ident(table_name) ||
-        ' ALTER COLUMN ' || quote_ident(column_name) || ' TYPE  geometry(' || postgis_type_name(gtype, gcoord_dimension, true) || ', ' || new_srid::text || ') USING ST_SetSRID(' || quote_ident(column_name) || ',' || new_srid::text || ');' ;
+        ' ALTER COLUMN ' || quote_ident(column_name) || ' TYPE  geometry(' || @extschema@.postgis_type_name(myrec.type, myrec.coord_dimension, true) || ', ' || new_srid::text || ') USING @extschema@.ST_SetSRID(' || quote_ident(column_name) || ',' || new_srid::text || ');' ;
     END IF;
 
 	RETURN real_schema || '.' || table_name || '.' || column_name ||' SRID changed to ' || new_srid::text;
 
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE;
+LANGUAGE 'plpgsql' VOLATILE STRICT;
 CREATE OR REPLACE FUNCTION UpdateGeometrySRID(varchar,varchar,varchar,integer)
 	RETURNS text
 	AS $$
@@ -2217,14 +2181,14 @@ BEGIN
 	 tabl = substr(tabl,length(schem)+2);
 	END IF;
 
-	select SRID into sr from @extschema@.geometry_columns where (f_table_schema = schem or schem IS NULL) and f_table_name = tabl and f_geometry_column = $3;
+	select SRID into sr from @extschema@.geometry_columns where (f_table_schema = schem or schem = '') and f_table_name = tabl and f_geometry_column = $3;
 	IF NOT FOUND THEN
 	   RAISE EXCEPTION 'find_srid() - could not find the corresponding SRID - is the geometry registered in the GEOMETRY_COLUMNS table?  Is there an uppercase/lowercase mismatch?';
 	END IF;
 	return sr;
 END;
 $$
-LANGUAGE 'plpgsql' IMMUTABLE ;
+LANGUAGE 'plpgsql' IMMUTABLE STRICT ;
 CREATE OR REPLACE FUNCTION get_proj4_from_srid(integer) RETURNS text AS
 $$
 BEGIN
@@ -2293,7 +2257,7 @@ CREATE OR REPLACE FUNCTION postgis_libxml_version() RETURNS text
 	AS '$libdir/postgis-2.4'
 	LANGUAGE 'c' IMMUTABLE;
 CREATE OR REPLACE FUNCTION postgis_scripts_build_date() RETURNS text
-	AS 'SELECT ''2021-06-28 11:02:39''::text AS version'
+	AS 'SELECT ''2021-04-15 12:22:47''::text AS version'
 	LANGUAGE 'sql' IMMUTABLE;
 CREATE OR REPLACE FUNCTION postgis_lib_build_date() RETURNS text
 	AS '$libdir/postgis-2.4'
@@ -2687,25 +2651,11 @@ CREATE OR REPLACE FUNCTION ST_MinimumBoundingCircle(inputgeom geometry, segs_per
     RETURNS geometry
     AS '$libdir/postgis-2.4', 'ST_MinimumBoundingCircle'
     LANGUAGE 'c' IMMUTABLE STRICT ;
-CREATE OR REPLACE FUNCTION ST_OffsetCurve_C(line geometry, distance float8, params text)
-       RETURNS geometry
-       AS '$libdir/postgis-2.4','ST_OffsetCurve'
-       LANGUAGE 'c' NOT FENCED IMMUTABLE STRICT
-       COST 1; -- reset cost, see #3675
 CREATE OR REPLACE FUNCTION ST_OffsetCurve(line geometry, distance float8, params text DEFAULT '')
        RETURNS geometry
-       AS $$
-DECLARE
-	ret geometry;
-BEGIN
-		IF(params IS NULL) THEN
-			params :=' ';
-		END IF;
-		SELECT ST_OffsetCurve_C(line, distance , params ) into ret;
-		return ret;
-END
-$$
-LANGUAGE 'plpgsql' STABLE;
+       AS '$libdir/postgis-2.4','ST_OffsetCurve'
+       LANGUAGE 'c' IMMUTABLE STRICT 
+       COST 1; -- reset cost, see #3675
 CREATE OR REPLACE FUNCTION ST_GeneratePoints(area geometry, npoints numeric)
        RETURNS geometry
        AS '$libdir/postgis-2.4','ST_GeneratePoints'
@@ -3350,23 +3300,23 @@ CREATE OR REPLACE FUNCTION _ST_GeomFromGML(text, int4)
 CREATE OR REPLACE FUNCTION ST_GeomFromGML(text, int4)
         RETURNS geometry
         AS '$libdir/postgis-2.4','geom_from_gml'
-        LANGUAGE 'c' IMMUTABLE  ;
+        LANGUAGE 'c' IMMUTABLE STRICT ;
 CREATE OR REPLACE FUNCTION ST_GeomFromGML(text)
         RETURNS geometry
         AS 'SELECT @extschema@._ST_GeomFromGML($1, 0)'
-        LANGUAGE 'sql' IMMUTABLE  ;
+        LANGUAGE 'sql' IMMUTABLE STRICT ;
 CREATE OR REPLACE FUNCTION ST_GMLToSQL(text)
         RETURNS geometry
         AS 'SELECT @extschema@._ST_GeomFromGML($1, 0)'
-        LANGUAGE 'sql' IMMUTABLE  ;
+        LANGUAGE 'sql' IMMUTABLE STRICT ;
 CREATE OR REPLACE FUNCTION ST_GMLToSQL(text, int4)
         RETURNS geometry
         AS '$libdir/postgis-2.4','geom_from_gml'
-        LANGUAGE 'c' IMMUTABLE  ;
+        LANGUAGE 'c' IMMUTABLE STRICT ;
 CREATE OR REPLACE FUNCTION ST_GeomFromKML(text)
 	RETURNS geometry
 	AS '$libdir/postgis-2.4','geom_from_kml'
-	LANGUAGE 'c' IMMUTABLE  ;
+	LANGUAGE 'c' IMMUTABLE STRICT ;
 CREATE OR REPLACE FUNCTION ST_GeomFromGeoJson(text)
 	RETURNS geometry
 	AS '$libdir/postgis-2.4','geom_from_geojson'

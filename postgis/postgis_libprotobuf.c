@@ -7,6 +7,8 @@
 #endif
 
 PG_FUNCTION_INFO_V1(postgis_libprotobuf_version);
+extern "C" Datum postgis_libprotobuf_version(PG_FUNCTION_ARGS);
+
 Datum postgis_libprotobuf_version(PG_FUNCTION_ARGS)
 {
 #ifndef HAVE_LIBPROTOBUF

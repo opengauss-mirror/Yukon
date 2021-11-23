@@ -1280,7 +1280,7 @@ sub prepare_spatial_extensions
 	my $cmd = "psql $psql_opts -c \"". $sql . "\" $DB >> $REGRESS_LOG 2>&1";
 	my $rv = system($cmd);
 
-  if ( $rv ) {
+    if ( $rv ) {
   	fail "Error encountered creating EXTENSION POSTGIS", $REGRESS_LOG;
   	die;
 	}
@@ -1299,6 +1299,20 @@ sub prepare_spatial_extensions
 		}
  	}
 
+	if ( $OPT_WITH_RASTER )
+	{
+		my $sql = "CREATE EXTENSION postgis_raster";
+		if ( $OPT_UPGRADE_FROM ) {
+			$sql .= " VERSION '" . $OPT_UPGRADE_FROM . "'";
+		}
+ 		$cmd = "psql $psql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+		$rv = system($cmd);
+  	if ( $rv ) {
+  		fail "Error encountered creating EXTENSION postgis_raster", $REGRESS_LOG;
+  		die;
+		}
+ 	}
+
 	if ( $OPT_WITH_SFCGAL )
 	{
 		my $sql = "CREATE EXTENSION postgis_sfcgal";
@@ -1312,6 +1326,14 @@ sub prepare_spatial_extensions
 		  die;
 		}
 	}
+
+	$sql = "CREATE EXTENSION yukon_geomodel";
+    $cmd = "psql $psql_opts -c \"". $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+    my $rv = system($cmd);
+    if ( $rv ) {
+        fail "Error encountered creating EXTENSION YUKON_GEOMODEL", $REGRESS_LOG;
+        die;
+        }
 
  	return 1;
 }
@@ -1482,7 +1504,18 @@ sub drop_spatial_extensions
         $ok = 0 if $rv;
     }
 
-	    $cmd = "psql $psql_opts -c \"DROP EXTENSION postgis CASCADE\" $DB >> $REGRESS_LOG 2>&1";
+	 if ( $OPT_WITH_RASTER )
+    {
+        $cmd = "psql $psql_opts -c \"DROP EXTENSION rtpostgis;\" $DB >> $REGRESS_LOG 2>&1";
+        $rv = system($cmd);
+        $ok = 0 if $rv;
+    }
+
+	my $sql = "drop EXTENSION yukon_geomodel";
+    $cmd = "psql $psql_opts -c \"". $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+    $rv = system($cmd);
+
+    $cmd = "psql $psql_opts -c \"DROP EXTENSION postgis CASCADE\" $DB >> $REGRESS_LOG 2>&1";
     $rv = system($cmd);
   	die "\nError encountered dropping EXTENSION POSTGIS, see $REGRESS_LOG for details\n\n"
   	    if $rv;
@@ -1512,6 +1545,7 @@ sub uninstall_spatial
 		return 1;
 		if ( $OBJ_COUNT_POST != $OBJ_COUNT_PRE )
 		{
+
 			fail("Object count pre-install ($OBJ_COUNT_PRE) != post-uninstall ($OBJ_COUNT_POST)");
 			return 0;
 		}

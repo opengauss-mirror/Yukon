@@ -2801,6 +2801,10 @@ CREATE OR REPLACE FUNCTION postgis_geos_version() RETURNS text
 	AS 'MODULE_PATHNAME'
 	LANGUAGE 'c' IMMUTABLE;
 
+CREATE OR REPLACE FUNCTION postgis_libprotobuf_version() RETURNS text
+AS 'MODULE_PATHNAME'
+LANGUAGE 'c' IMMUTABLE;
+
 CREATE OR REPLACE FUNCTION postgis_svn_version() RETURNS text
 	AS 'MODULE_PATHNAME'
 	LANGUAGE 'c' IMMUTABLE;
@@ -2860,7 +2864,7 @@ BEGIN
 	SELECT @extschema@._postgis_scripts_pgsql_version() INTO pgsql_scr_ver;
 	SELECT @extschema@._postgis_pgsql_version() INTO pgsql_ver;
 	BEGIN
-		SELECT @extschema@.postgis_gdal_version() INTO gdalver;
+--		SELECT @extschema@.postgis_gdal_version() INTO gdalver;
 	EXCEPTION
 		WHEN undefined_function THEN
 			gdalver := NULL;
@@ -2896,7 +2900,7 @@ BEGIN
 	END;
 
 	BEGIN
-		SELECT postgis_raster_scripts_installed() INTO rast_scr_ver;
+--		SELECT postgis_raster_scripts_installed() INTO rast_scr_ver;
 	EXCEPTION
 		WHEN undefined_function THEN
 			rast_scr_ver := NULL;
@@ -2904,7 +2908,7 @@ BEGIN
 	END;
 
 	BEGIN
-		SELECT @extschema@.postgis_raster_lib_version() INTO rast_lib_ver;
+--		SELECT @extschema@.postgis_raster_lib_version() INTO rast_lib_ver;
 	EXCEPTION
 		WHEN undefined_function THEN
 			rast_lib_ver := NULL;
