@@ -1,35 +1,18 @@
-﻿/*
- *
- * TestGeomodel.cpp
- *
- * Copyright (C) 2021 SuperMap Software Co., Ltd.
- *
- * Yukon is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; If not, see <http://www.gnu.org/licenses/>. *
- */
-
+#include <CUnit/Basic.h>
+#include "cu_tester.h"
 #include <cfloat>
 #include "Geometry3D/YkGeoModel.h"
 #include "Geometry3D/YkWrapCGeoModel.h"
 #include "Stream/YkFileStream.h"
+// 包含其他需要测试函数的头文件
 
 using namespace std;
 using namespace Yk;
 
-YkGeoModel* m_pGeoModelPro = NULL;
-YkModelSkeleton* m_pSkeleton = NULL;
-YkModelMaterial* m_pMaterial = NULL;
-YkModelTexture* m_pTexture = NULL;
+YkGeoModel *m_pGeoModelPro = NULL;
+YkModelSkeleton *m_pSkeleton = NULL;
+YkModelMaterial *m_pMaterial = NULL;
+YkModelTexture *m_pTexture = NULL;
 
 void InitGeoModel(YkString strFilePath)
 {
@@ -37,9 +20,9 @@ void InitGeoModel(YkString strFilePath)
 	YkBool bSuccessful = fileStreamLoad.Open(strFilePath, YkStreamLoad);
 
 	m_pGeoModelPro = LoadShellFromStream(fileStreamLoad);
-	m_pSkeleton = (YkModelSkeleton*)LoadElementFromStream(fileStreamLoad);
-	m_pMaterial = (YkModelMaterial*)LoadElementFromStream(fileStreamLoad);
-	m_pTexture = (YkModelTexture*)LoadElementFromStream(fileStreamLoad);
+	m_pSkeleton = (YkModelSkeleton *)LoadElementFromStream(fileStreamLoad);
+	m_pMaterial = (YkModelMaterial *)LoadElementFromStream(fileStreamLoad);
+	m_pTexture = (YkModelTexture *)LoadElementFromStream(fileStreamLoad);
 
 	fileStreamLoad.Close();
 }
@@ -103,36 +86,36 @@ void TestBoundingBox()
 
 void TestShells()
 {
-	std::vector<YkModelPagedLOD*>& vecLOD = m_pGeoModelPro->GetModelNode()->GetPagedLODs();
+	std::vector<YkModelPagedLOD *> &vecLOD = m_pGeoModelPro->GetModelNode()->GetPagedLODs();
 	YKASSERT(vecLOD.size() == 0);
 
 	YkInt nPatchCount = m_pGeoModelPro->GetModelNode()->GetDataPatcheCount();
 	YKASSERT(nPatchCount == 1);
-	
-	YkModelPagedPatch* pPatch = m_pGeoModelPro->GetModelNode()->GetDataPatche(0);
+
+	YkModelPagedPatch *pPatch = m_pGeoModelPro->GetModelNode()->GetDataPatche(0);
 	YKASSERT(pPatch->GetLODDistance() == 0.0);
 	YKASSERT(pPatch->GetIndex() == 0);
 	YKASSERT(pPatch->GetParentPatch() == NULL);
 	YKASSERT(pPatch->GetChildCount() == 0);
-	std::vector<YkModelGeode*>& vecGeode = pPatch->GetGeodes();
+	std::vector<YkModelGeode *> &vecGeode = pPatch->GetGeodes();
 	YKASSERT(vecGeode.size() == 1);
 
-	YkModelGeode* pGeode = vecGeode[0];
+	YkModelGeode *pGeode = vecGeode[0];
 	YkMatrix4d matrix = pGeode->GetPosition();
-	YkMatrix4d compMatrix(0.99999998537855272, -6.4608273761961331e-05, 0.00015833087655516470, 0.0, 
-						  6.4572604387708315e-05, 0.99999997253998485, 0.00022527851263107101, 0.0, 
-						  -0.00015834542706345912, -0.00022526828549999334, 0.99999996209046194, 0.0, 
+	YkMatrix4d compMatrix(0.99999998537855272, -6.4608273761961331e-05, 0.00015833087655516470, 0.0,
+						  6.4572604387708315e-05, 0.99999997253998485, 0.00022527851263107101, 0.0,
+						  -0.00015834542706345912, -0.00022526828549999334, 0.99999996209046194, 0.0,
 						  881.45830563039840, -1114.1009192422357, 43.165065308010199, 1.0);
 	//YKASSERT(matrix == compMatrix);
-	std::vector<YkString>& vecSkeletonName = pGeode->GetElementNames(YkModelElement::etSkeleton);
+	std::vector<YkString> vecSkeletonName = pGeode->GetElementNames(YkModelElement::etSkeleton);
 	YKASSERT(vecSkeletonName.size() == 1);
 	YKASSERT(vecSkeletonName[0].Compare(_U("Building_HK51_BU_BB_074_LOD2-1_0")) == 0);
 
-	std::vector<YkString>& vecMaterialName = pGeode->GetElementNames(YkModelElement::etMaterial);
+	std::vector<YkString> vecMaterialName = pGeode->GetElementNames(YkModelElement::etMaterial);
 	YKASSERT(vecMaterialName.size() == 1);
 	YKASSERT(vecMaterialName[0].Compare(_U("HK51_BU_CC_020.jpgffffffff_ffffffff_0_0.000000_")) == 0);
 
-	std::vector<YkString>& vecTextureName = pGeode->GetElementNames(YkModelElement::etTexture);
+	std::vector<YkString> vecTextureName = pGeode->GetElementNames(YkModelElement::etTexture);
 	YKASSERT(vecTextureName.size() == 1);
 	YKASSERT(vecTextureName[0].Compare(_U("HK51_BU_CC_020.jpg")) == 0);
 }
@@ -141,7 +124,7 @@ void TestSkeleton()
 {
 	YkString strName = m_pSkeleton->GetName();
 	YKASSERT(strName.Compare(_U("Building_HK51_BU_BB_074_LOD2-1_0")) == 0);
-	std::vector<YkString>& vecMaterialName = m_pSkeleton->GetAtt();
+	std::vector<YkString> vecMaterialName = m_pSkeleton->GetAtt();
 	YKASSERT(vecMaterialName.size() == 1);
 	YKASSERT(vecMaterialName[0].Compare(_U("HK51_BU_CC_020.jpgffffffff_ffffffff_0_0.000000_")) == 0);
 	YkBoundingBox boundingBox = m_pSkeleton->GetBoundingBox();
@@ -150,9 +133,9 @@ void TestSkeleton()
 	YkBoundingBox compBoundingBox(vMin, vMax);
 	//YKASSERT(boundingBox == compBoundingBox);
 	YkMatrix4d matrix = m_pSkeleton->m_matLocalView;
-	YkMatrix4d compMatrix(1.0, 0.0, 0.0, 0.0, 
-						  0.0, 1.0, 0.0, 0.0, 
-						  0.0, 0.0, 1.0, 0.0, 
+	YkMatrix4d compMatrix(1.0, 0.0, 0.0, 0.0,
+						  0.0, 1.0, 0.0, 0.0,
+						  0.0, 0.0, 1.0, 0.0,
 						  0.0, 0.0, 0.0, 1.0);
 	YKASSERT(matrix == compMatrix);
 	YKASSERT(m_pSkeleton->GetVertexCount() == 8);
@@ -164,14 +147,14 @@ void TestMaterial()
 	YKASSERT(YKEQUAL(dVersion, 1.2));
 	YkString strName = m_pMaterial->GetName();
 	YKASSERT(strName.Compare(_U("HK51_BU_CC_020.jpgffffffff_ffffffff_0_0.000000_")) == 0);
-	std::vector<YkTechnique*>& vecTechnique = m_pMaterial->mTechniques;
+	std::vector<YkTechnique *> &vecTechnique = m_pMaterial->mTechniques;
 	YKASSERT(vecTechnique.size() == 1);
 
-	YkTechnique* pTechnique = vecTechnique[0];
+	YkTechnique *pTechnique = vecTechnique[0];
 	YKASSERT(pTechnique != NULL);
 	YKASSERT(pTechnique->getNumPasses() == 1);
 
-	YkPass* pPass = pTechnique->getPass(0);
+	YkPass *pPass = pTechnique->getPass(0);
 	YKASSERT(pPass != NULL);
 	YkString strPassName = pPass->m_strName;
 	YKASSERT(strPassName.Compare(_U("HK51_BU_CC_020.jpgffffffff_ffffffff_0_0.000000_")) == 0);
@@ -229,8 +212,8 @@ void TestMaterial()
 	YKASSERT(pPass->m_strShadowReceiverFragmentProgram.IsEmpty());
 	YKASSERT(pPass->GetTextureUnitStatesSize() == 1);
 	YKASSERT(pPass->m_nTextureZType[0] == 0);
-	
-	YkTextureUnitState* pUnitState = pPass->GetTextureUnitState(0);
+
+	YkTextureUnitState *pUnitState = pPass->GetTextureUnitState(0);
 	YKASSERT(pUnitState != NULL);
 	YkString strUnitStateName = pUnitState->m_strName;
 	YKASSERT(strUnitStateName.Compare(_U("0")) == 0);
@@ -252,9 +235,9 @@ void TestMaterial()
 	YKASSERT(pUnitState->m_bEnvironmentMapEnabled == FALSE);
 	YKASSERT(pUnitState->m_EnvironmentMap == YkTextureUnitState::ENV_PLANAR);
 	YkMatrix4d matrix = pUnitState->m_TexModMatrix;
-	YkMatrix4d compMatrix(1.0, 0.0, 0.0, 0.0, 
-						  0.0, 1.0, 0.0, 0.0, 
-						  0.0, 0.0, 1.0, 0.0, 
+	YkMatrix4d compMatrix(1.0, 0.0, 0.0, 0.0,
+						  0.0, 1.0, 0.0, 0.0,
+						  0.0, 0.0, 1.0, 0.0,
 						  0.0, 0.0, 0.0, 1.0);
 	YKASSERT(matrix == compMatrix);
 }
@@ -267,7 +250,7 @@ void TestTexture()
 	YKASSERT(m_pTexture->m_nLevel == 9);
 	YKASSERT(m_pTexture->m_pTextureData != NULL);
 
-	YkTextureData* pTextureData = m_pTexture->m_pTextureData;
+	YkTextureData *pTextureData = m_pTexture->m_pTextureData;
 	YKASSERT(pTextureData->m_CompressType == 14);
 	YKASSERT(pTextureData->m_nWidth == 512);
 	YKASSERT(pTextureData->m_nHeight == 512);
@@ -295,29 +278,59 @@ void TestSaveGeoModel(YkString strResultFilePath)
 	YKASSERT(YkFile::IsExist(strResultFilePath));
 }
 
-int main()
-{	
-	YkString strAppPath = YkFile::GetAppPath();
-	YkString strFilePath = strAppPath + _U("../../../TestData/testStream.txt");
-	YkString strResultFilePath = strAppPath + _U("../../../TestData/resultStream.txt");
-	InitGeoModel(strFilePath);
+/**
+ * @brief 开始测试前需要准备的环境
+ * 
+ * @return int 
+ */
+static int init_example_suite(void)
+{
 
+	return 0;
+}
+
+/**
+ * @brief 测试结束后，需要清理环境
+ * 
+ * @return int 
+ */
+static int clean_example_suite(void)
+{
+	return 0;
+}
+
+/**
+ * @brief 测试示例函数
+ * 
+ * @param a 
+ * @param b 
+ * @return int 
+ */
+static int _max(int a, int b)
+{
+	return a > b ? a : b;
+}
+
+static void test_max(void)
+{
+	YkString strAppPath = _U("./");
+	YkString strFilePath = strAppPath + _U("TestData/testStream.txt");
+	YkString strResultFilePath = strAppPath + _U("TestData/resultStream.txt");
+
+	InitGeoModel(strFilePath);
 	TestVersion();
 	TestSpherePlaced();
 	TestPosition();
 	TestScale();
 	TestRotation();
 	TestBoundingBox();
-	// TestShells();
-
-	// TestSkeleton();
-	// TestMaterial();
-	// TestTexture();
-
+	TestShells();
+	TestSkeleton();
+	TestMaterial();
+	TestTexture();
 	TestSaveGeoModel(strResultFilePath);
 	ReleaseGeoModel();
 
-	//测试结果模型的正确性
 	InitGeoModel(strResultFilePath);
 	TestVersion();
 	TestSpherePlaced();
@@ -325,11 +338,17 @@ int main()
 	TestScale();
 	TestRotation();
 	TestBoundingBox();
-	// TestShells();
+	TestShells();
 
-	// TestSkeleton();
-	// TestMaterial();
-	// TestTexture();
+	TestSkeleton();
+	TestMaterial();
+	TestTexture();
 	ReleaseGeoModel();
-	return 1;
+}
+
+void example_suite_setup(void);
+void example_suite_setup(void)
+{
+	CU_pSuite suite = CU_add_suite("example_test", init_example_suite, clean_example_suite);
+	YK_ADD_TEST(suite, test_max);
 }
