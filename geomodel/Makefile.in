@@ -8,7 +8,7 @@ libugc:
 	$(MAKE) -C libUGC
 
 
-geomodel: libUGC
+geomodel: libugc
 	$(MAKE) -C src
 
 clean:
