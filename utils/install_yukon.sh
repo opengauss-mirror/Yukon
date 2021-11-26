@@ -24,6 +24,8 @@ function install() {
         echo /opt/yukon_dep/jsonc/lib >>/etc/ld.so.conf
         echo /opt/yukon_dep/libxml2/lib >>/etc/ld.so.conf
         echo /opt/yukon_dep/ugc >>/etc/ld.so.conf
+        echo /opt/yukon_dep/sfcgal/lib64 >>/etc/ld.so.conf
+        echo /opt/yukon_dep/cgal/lib >>/etc/ld.so.conf
     fi
 
     ldconfig

@@ -14,7 +14,7 @@ Yukon（禹贡），基于openGauss数据库扩展地理空间数据的存储和
 
 ![模块依赖图](https://images.gitee.com/uploads/images/2021/1123/154741_6f7258fb_8511228.png "Yukon模块依赖图.png")
 
-postgis 相关模块的详细文档，请查看 [PostGIS 文档](http://postgis.net/docs/manual-2.4/)，其中尚未适配的部分见[附录](releasenote.md)。
+帮助文档参见 [Yukon在线文档](https://yukon.supermap.io/)。
 
 ## 许可说明
 参见[LICENSE.TXT](https://gitee.com/opengauss/Yukon/blob/master/LICENSE.TXT)
