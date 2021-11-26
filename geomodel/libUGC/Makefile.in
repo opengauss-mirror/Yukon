@@ -15,7 +15,7 @@ base3d:	toolkit
 geometry3d: base3d
 	$(MAKE) -C Src/Geometry3D
 
-check:
+check: geometry3d
 	$(MAKE) -C cunit $@
 
 clean:
