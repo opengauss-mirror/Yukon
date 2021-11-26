@@ -33,9 +33,9 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <assert.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/cursorfont.h>
+// #include <X11/Xlib.h>
+// #include <X11/Xutil.h>
+// #include <X11/cursorfont.h>
 #include <signal.h>
 #if defined (__linux__)
 #include <execinfo.h> //for backtrace

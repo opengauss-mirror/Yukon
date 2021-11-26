@@ -5,7 +5,7 @@
 
 extern void example_suite_setup();
 
-UGC_SuiteSetup setupfuncs[] =
+YK_SuiteSetup setupfuncs[] =
 {
         example_suite_setup,
         NULL
@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        UGC_SuiteSetup *setupfunc = setupfuncs;
+        YK_SuiteSetup *setupfunc = setupfuncs;
         while (*setupfunc)
         {
             (*setupfunc)();

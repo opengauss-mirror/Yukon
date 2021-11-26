@@ -32,9 +32,9 @@
 #include <sys/time.h>
 #include <assert.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/cursorfont.h>
+// #include <X11/Xlib.h>
+// #include <X11/Xutil.h>
+// #include <X11/cursorfont.h>
 
 #include <pthread.h>
 #include <semaphore.h>

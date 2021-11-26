@@ -6,7 +6,7 @@ CUNIT_LDFLAGS= -lcunit
 
 
 cu_tester: 
-	g++ $(SRC) -lcunit -o $@
+	g++ $(SRC) -lcunit -I../Include -L../Builds/MakeProject/Bin64_Linux -lYkBase3D -lYkBase   -lYkGeometry3D -lYkStream -lYkToolkit -D_UGUNICODE -D_UGQSTRING -g -fshort-wchar -o $@
 
 
 check: cu_tester

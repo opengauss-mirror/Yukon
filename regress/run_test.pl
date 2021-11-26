@@ -1313,7 +1313,7 @@ sub prepare_spatial_extensions
 		}
  	}
 
-	if ( $OPT_WITH_SFCGAL )
+	# if ( $OPT_WITH_SFCGAL )
 	{
 		my $sql = "CREATE EXTENSION postgis_sfcgal";
 		if ( $OPT_UPGRADE_FROM ) {
