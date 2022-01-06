@@ -7,12 +7,12 @@ TARGET = libYkBase3D.so
 LD_FLAGS.x86_64 = ../../Builds/MakeProject/Bin64_Linux
 LD_FLAGS.aarch64 = ../../Builds/MakeProject/Binaarch64_Linux
 
-CFLAGS.x86_64 = -m64 -ljson_linux-gcc-4.2.0_libmt
-CFLAGS.aarch64 = -ljson_linux-gcc-4.8.5_libmt
+CFLAGS.x86_64 = -m64 
+CFLAGS.aarch64 = 
 
 CFLAGS = -I../../Include -Wall -DSYSTEM_WCHAR_SIZE=4 -D_UGUNICODE -D_UGQSTRING -D_UGLICENSE -fshort-wchar \
 		 -DSTATIC_LIBMONGOCLIENT -fstack-protector-all -fPIE -pie -fPIC -c  -fopenmp -std=c++11  \
-		 -I../../LibShared/JSON/include -I../../LibShared/Spatialite/Include -D_FORTIFY_SOURCE=2 $(CFLAGS.$(uname_m))
+		 -I../../LibShared/Spatialite/Include -D_FORTIFY_SOURCE=2 $(CFLAGS.$(uname_m))
 
 LD_FLAGS += $(LD_FLAGS.$(uname_m)) 
 
