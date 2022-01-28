@@ -1,34 +1,46 @@
+# 适配openGauss 2.1 + PostGIS 3.2
 
-| **GitHub** | **GitLab** | **Drone.io** ||
-| :---: | :---: | :---: | :---: |
-| [![CI](https://github.com/postgis/postgis/workflows/CI/badge.svg?branch=master)](https://github.com/postgis/postgis/actions?query=branch%3Amaster) |  [![Gitlab-CI](https://gitlab.com/postgis/postgis/badges/master/pipeline.svg)](https://gitlab.com/postgis/postgis/commits/master) |  [![Build Status](https://cloud.drone.io/api/badges/postgis/postgis/status.svg?branch=master)](https://cloud.drone.io/postgis/postgis?branch=master) ||
-| **Debbie** | **Winnie** | **Dronie** ||
-| [![Build Status](https://debbie.postgis.net/buildStatus/icon?job=PostGIS_trunk)](https://debbie.postgis.net/view/PostGIS/job/PostGIS_trunk/) | [![Build Status](https://winnie.postgis.net/buildStatus/icon?job=PostGIS_trunk)](https://winnie.postgis.net/view/PostGIS/job/PostGIS_trunk/) | [![Build Status](https://dronie.osgeo.org/api/badges/postgis/postgis/status.svg?branch=master)](https://dronie.osgeo.org/postgis/postgis?branch=master) ||
-| **Bessie** | **Bessie32** | **Cirrus-ci** |  |
-|  [![Build Status](https://debbie.postgis.net/buildStatus/icon?job=PostGIS_Worker_Run%2Flabel%3Dbessie)](https://debbie.postgis.net/view/PostGIS/job/PostGIS_Worker_Run/label=bessie/) |  [![Build Status](https://debbie.postgis.net/buildStatus/icon?job=PostGIS_Worker_Run%2Flabel%3Dbessie32)](https://debbie.postgis.net/view/PostGIS/job/PostGIS_Worker_Run/label=bessie32/) |  [![Build Status](https://api.cirrus-ci.com/github/postgis/postgis.svg?branch=master)](http://cirrus-ci.com/github/postgis/postgis) |  |
-| **Berrie** | **Berrie64** | | |
-|  [![Build Status](https://debbie.postgis.net/buildStatus/icon?job=PostGIS_Worker_Run/label=berrie&build=last:${params.reference=refs/heads/master})](https://debbie.postgis.net/view/PostGIS/job/PostGIS_Worker_Run/label=berrie/) |  [![Build Status](https://debbie.postgis.net/buildStatus/icon?job=PostGIS_Worker_Run/label=berrie64&build=last:${params.reference=refs/heads/master})](https://debbie.postgis.net/view/PostGIS/job/PostGIS_Worker_Run/label=berrie64/) | | |
+## 当前进展
+postgis模块已适配；其它模块暂未适配
 
-This file is here to play nicely with modern code repository facilities.
-Actual readme is [here](README.postgis).
+### 遗留的问题：
 
-## Official code repository, issue tracker and wiki:
-https://trac.osgeo.org/postgis/
+1）内存管理相关
 
-## Official chat room:
+libpgcommon/lwgeom_transform.c
+Line 117 
+CacheMemoryContext
+ALLOCSET_SMALL_SIZES
 
-Official chat room is the [#postgis:osgeo.org](https://matrix.to/#/#postgis:osgeo.org)
-Matrix room, also bridged to the irc://irc.libera.chat/#postgis
-[IRC](https://en.wikipedia.org/wiki/Comparison_of_Internet_Relay_Chat_clients) channel
-([web client](https://web.libera.chat/#postgis) may be useful)
 
-## Official source tarball releases
+libpgcommon/lwgeom_pg.c
+Line 83
+F_OIDEQ
 
-http://postgis.net/source
+static postgisConstants *
+getPostgisConstants()
+Line 151
+CacheMemoryContext
+ALLOCSET_SMALL_SIZES
 
-If you would like to contribute to this project, please refer to our
-[contributing guidelines](CONTRIBUTING.md).
+postgis/lwgeom_geos_prepared.c
+lwgeom_geos_prepared.c:241:3: error: ‘MemoryContextCallback’ was not declared in this scope    MemoryContextCallback *callback;
 
-## Project Home Page and Manuals
-Project homepage: http://postgis.net/
-PostGIS Manuals: http://postgis.net/documentation
+lwgeom_geos_prepared.c:252:3: error: ‘MemoryContextRegisterResetCallback’ was not declared in this scope
+   MemoryContextRegisterResetCallback(prepcache->context_callback, callback);
+
+2）Geometry brin 相关未编译
+缺少  #include "access/brin_tuple.h"
+postgis/postgis_brin.sql.in
+postgis/brin_2d.c 等未编译；从makefile中移除
+    brin_2d.o \
+    brin_nd.o \
+    brin_common.o \
+
+3） GeoJson 相关未编译
+
+postgis/lwgeom_out_geojson.c
+从makefile中移除：
+lwgeom_out_geojson.o \
+
+4）postgis--3.2.sql文件暂未处理完成，可临时用2.4.2版本的sql文件替换
