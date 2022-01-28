@@ -1,0 +1,36 @@
+.build_definition: &build_definition
+  except:
+    - main
+  before_script:
+    - apt-get update -qq && apt-get install -y
+        bison flex
+        postgresql-11 postgresql-server-dev-11
+        build-essential autoconf libtool libcunit1-dev
+        xsltproc docbook-xsl docbook-mathml dblatex
+        libproj-dev libgdal-dev libgeos-dev libjson-c-dev
+        libprotobuf-c1 libprotobuf-c-dev protobuf-c-compiler
+    - lsb_release -a
+    - uname -a
+    - echo "LONG INT is "`getconf LONG_BIT`"bit"
+    - service postgresql start
+    - su -l postgres -c "createuser -s `whoami`"
+  script:
+    - ./autogen.sh
+    - ./configure
+    - make maintainer-clean
+    - ./autogen.sh
+    - ./configure CFLAGS="-Wall -fno-omit-frame-pointer -Werror"
+    - make
+    - RUNTESTFLAGS=-v make check
+    - RUNTESTFLAGS="-v --dumprestore" make check-regress
+    - make install
+    - RUNTESTFLAGS=-v make installcheck
+    - RUNTESTFLAGS="-v --dumprestore" make installcheck
+
+test:
+  image: debian:buster
+  <<: *build_definition
+
+test32:
+  image: i386/debian:buster
+  <<: *build_definition

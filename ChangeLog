@@ -1,0 +1,193 @@
+2021-12-17  Regina Obe <lr@pcorp.us>
+
+	* NEWS, README.postgis: Update dates
+
+2021-12-17  Regina Obe <lr@pcorp.us>
+
+	* NEWS, Version.config, doc/po/de/faq.xml.po,
+	doc/po/de/reference_editor.xml.po,
+	doc/po/de/reference_output.xml.po,
+	doc/po/de/reference_processing.xml.po,
+	doc/po/de/release_notes.xml.po,
+	doc/po/de/using_raster_dataman.xml.po,
+	doc/po/es/release_notes.xml.po, doc/po/fr/reference_editor.xml.po,
+	doc/po/fr/reference_input.xml.po, doc/po/fr/release_notes.xml.po,
+	doc/po/it_IT/reference_editor.xml.po,
+	doc/po/it_IT/reference_input.xml.po,
+	doc/po/it_IT/release_notes.xml.po, doc/po/ja/release_notes.xml.po,
+	doc/po/ko_KR/reference_editor.xml.po,
+	doc/po/ko_KR/reference_input.xml.po,
+	doc/po/ko_KR/release_notes.xml.po,
+	doc/po/pl/reference_editor.xml.po,
+	doc/po/pl/reference_input.xml.po, doc/po/pl/release_notes.xml.po,
+	doc/po/pt_BR/reference_editor.xml.po,
+	doc/po/pt_BR/reference_input.xml.po,
+	doc/po/templates/release_notes.xml.pot, doc/release_notes.xml: 
+	Prepping for 3.2.0 release
+
+2021-12-15  Sandro Santilli <strk@kbt.io>
+
+	* regress/run_test.pl: Fix help string from run_test.pl
+
+2021-12-13  Sandro Santilli <strk@kbt.io>
+
+	* regress/run_test.pl: Fix `-` handling of run_test.pl
+
+2021-12-13  Sandro Santilli <strk@kbt.io>
+
+	* regress/run_test.pl: run_test.pl support for interative shell (use
+	`-` as testname)
+
+2021-12-11  Regina Obe <lr@pcorp.us>
+
+	* .github/workflows/ci.yml: Change github actions 14 branch to test
+	against newer GDAL
+
+2021-12-11  Regina Obe <lr@pcorp.us>
+
+	* Version.config, extensions/upgradeable_versions.mk: Flip back to
+	dev mode [skip ci]
+
+2021-12-11  Regina Obe <lr@pcorp.us>
+
+	* NEWS: Prep for release 3.2.0rc1
+
+2021-12-11  Regina Obe <lr@pcorp.us>
+
+	* doc/po/de/reference_raster.xml.po,
+	doc/po/de/release_notes.xml.po, doc/po/es/reference_raster.xml.po,
+	doc/po/es/release_notes.xml.po, doc/po/fr/reference_raster.xml.po,
+	doc/po/fr/release_notes.xml.po,
+	doc/po/it_IT/reference_raster.xml.po,
+	doc/po/it_IT/release_notes.xml.po, doc/po/ja/release_notes.xml.po,
+	doc/po/ko_KR/reference_raster.xml.po,
+	doc/po/ko_KR/release_notes.xml.po,
+	doc/po/pl/reference_raster.xml.po, doc/po/pl/release_notes.xml.po,
+	doc/po/pt_BR/reference_raster.xml.po,
+	doc/po/pt_BR/release_notes.xml.po,
+	doc/po/templates/reference_editor.xml.pot,
+	doc/po/templates/reference_raster.xml.pot,
+	doc/po/templates/release_notes.xml.pot: Update pos and pots from
+	transifex
+
+2021-12-11  Regina Obe <lr@pcorp.us>
+
+	* NEWS, README.postgis, Version.config, doc/reference_editor.xml,
+	doc/release_notes.xml, extensions/upgradeable_versions.mk: Prepping
+	for 3.2.0rc1
+
+2021-12-10  sunhm89 <93200340+sunhm89@users.noreply.github.com>
+
+	* : Merge 45077e7b0ad1bc944f4f5b0d5a23f56b4fd6db70 into
+	705d3a3c78f595da0a26b6033ef29d9ae502f719
+
+2021-12-06  sunhm89 <93200340+sunhm89@users.noreply.github.com>
+
+	* liblwgeom/lwgeom_geos_cluster.c: fix typo in lwgeom_geos_cluster.c
+
+2021-12-04  Regina Obe <lr@pcorp.us>
+
+	* extensions/upgradeable_versions.mk: Oops get rid of 3.2.0dev in
+	upgrade set
+
+2021-12-04  Regina Obe <lr@pcorp.us>
+
+	* Version.config, extensions/upgradeable_versions.mk: Flip back to
+	dev mode
+
+2021-12-04  Regina Obe <lr@pcorp.us>
+
+	* doc/po/de/extras_topology.xml.po, doc/po/de/faq.xml.po,
+	doc/po/de/reference_editor.xml.po,
+	doc/po/de/reference_output.xml.po,
+	doc/po/de/reference_processing.xml.po,
+	doc/po/de/release_notes.xml.po,
+	doc/po/de/using_postgis_dataman.xml.po,
+	doc/po/de/using_raster_dataman.xml.po,
+	doc/po/es/extras_topology.xml.po, doc/po/es/faq.xml.po,
+	doc/po/es/reference_editor.xml.po,
+	doc/po/es/reference_input.xml.po,
+	doc/po/es/reference_output.xml.po,
+	doc/po/es/reference_processing.xml.po,
+	doc/po/es/release_notes.xml.po,
+	doc/po/es/using_postgis_dataman.xml.po,
+	doc/po/es/using_raster_dataman.xml.po,
+	doc/po/fr/extras_topology.xml.po, doc/po/fr/faq.xml.po,
+	doc/po/fr/reference_editor.xml.po,
+	doc/po/fr/reference_input.xml.po,
+	doc/po/fr/reference_output.xml.po,
+	doc/po/fr/reference_processing.xml.po,
+	doc/po/fr/release_notes.xml.po,
+	doc/po/fr/using_postgis_dataman.xml.po,
+	doc/po/fr/using_raster_dataman.xml.po,
+	doc/po/it_IT/extras_topology.xml.po, doc/po/it_IT/faq.xml.po,
+	doc/po/it_IT/reference_editor.xml.po,
+	doc/po/it_IT/reference_input.xml.po,
+	doc/po/it_IT/reference_output.xml.po,
+	doc/po/it_IT/reference_processing.xml.po,
+	doc/po/it_IT/release_notes.xml.po,
+	doc/po/it_IT/using_raster_dataman.xml.po,
+	doc/po/ja/extras_topology.xml.po, doc/po/ja/faq.xml.po,
+	doc/po/ja/reference_editor.xml.po,
+	doc/po/ja/reference_input.xml.po,
+	doc/po/ja/reference_output.xml.po,
+	doc/po/ja/reference_processing.xml.po,
+	doc/po/ja/reference_raster.xml.po, doc/po/ja/release_notes.xml.po,
+	doc/po/ja/using_raster_dataman.xml.po,
+	doc/po/ko_KR/extras_topology.xml.po, doc/po/ko_KR/faq.xml.po,
+	doc/po/ko_KR/reference_editor.xml.po,
+	doc/po/ko_KR/reference_input.xml.po,
+	doc/po/ko_KR/reference_output.xml.po,
+	doc/po/ko_KR/reference_processing.xml.po,
+	doc/po/ko_KR/release_notes.xml.po,
+	doc/po/ko_KR/using_raster_dataman.xml.po, doc/po/pl/faq.xml.po,
+	doc/po/pl/reference_editor.xml.po,
+	doc/po/pl/reference_input.xml.po,
+	doc/po/pl/reference_output.xml.po,
+	doc/po/pl/reference_processing.xml.po,
+	doc/po/pl/release_notes.xml.po,
+	doc/po/pl/using_raster_dataman.xml.po,
+	doc/po/pt_BR/extras_topology.xml.po, doc/po/pt_BR/faq.xml.po,
+	doc/po/pt_BR/reference_editor.xml.po,
+	doc/po/pt_BR/reference_input.xml.po,
+	doc/po/pt_BR/reference_output.xml.po,
+	doc/po/pt_BR/reference_processing.xml.po,
+	doc/po/pt_BR/release_notes.xml.po,
+	doc/po/pt_BR/using_raster_dataman.xml.po,
+	doc/po/templates/release_notes.xml.pot: Update pos and pots.  [skip
+	ci]
+
+2021-12-03  Regina Obe <lr@pcorp.us>
+
+	* NEWS, README.postgis, Version.config, doc/release_notes.xml: 
+	Prepping for PostGIS 3.2.0beta3
+
+2021-12-03  Paul Ramsey <pramsey@cleverelephant.ca>
+
+	* postgis/postgis.sql.in: Remove geometry_gist_sortsupport_2d from
+	the default operator class for geometry. Sort support for the GIST
+	2D geometry index will allow much faster index building (5x), but at
+	the expense of query efficiency (0-50%).  To enable sort support, create the extension as usual, then:    alter operator family gist_geometry_ops_2d using gist      add function 11 (geometry)      geometry_gist_sortsupport_2d (internal); To remove sort support:    alter operator family gist_geometry_ops_2d using gist      drop function 11 (geometry);
+
+2021-12-03  Regina Obe <lr@pcorp.us>
+
+	* README.md: Changed winnie's jenkins to use default port
+
+2021-12-01  Björn Harrtell <bjorn@wololo.org>
+
+	* doc/po/de/reference_input.xml.po,
+	doc/po/es/reference_input.xml.po, doc/po/fr/reference_input.xml.po,
+	doc/po/it_IT/reference_input.xml.po,
+	doc/po/ja/reference_input.xml.po,
+	doc/po/ko_KR/reference_input.xml.po,
+	doc/po/pl/reference_input.xml.po,
+	doc/po/pt_BR/reference_input.xml.po,
+	doc/po/templates/reference_input.xml.pot, doc/reference_input.xml,
+	postgis/postgis.sql.in, regress/core/flatgeobuf.sql,
+	regress/core/in_flatgeobuf.sql: Rename ST_TableFromFlatGeobuf to
+	ST_FromFlatGeobufToTable
+
+2021-11-25  Sandro Santilli <strk@kbt.io>
+
+	* Allow droppping TopoGeometry columns in presence of UPDATE triggers References #5026 in main branch Includes regression test
+
