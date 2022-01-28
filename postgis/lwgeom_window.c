@@ -28,7 +28,7 @@
 /* PostgreSQL */
 #include "postgres.h"
 #include "funcapi.h"
-#include "windowapi.h"
+//#include "windowapi.h"
 
 /* PostGIS */
 #include "liblwgeom.h"

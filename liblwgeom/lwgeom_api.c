@@ -50,7 +50,7 @@ lwgeom_version()
 }
 
 
-inline float
+float
 next_float_down(double d)
 {
 	float result;
@@ -71,7 +71,7 @@ next_float_down(double d)
  * Returns the float that's very close to the input, but >=.
  * handles the funny differences in float4 and float8 reps.
  */
-inline float
+float
 next_float_up(double d)
 {
 	float result;

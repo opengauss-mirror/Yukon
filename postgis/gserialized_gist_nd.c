@@ -36,10 +36,10 @@
 **     Proceedings of the ACM SIGMOD Conference. June 1990.
 */
 
-#include "postgres.h"
-#include "access/gist.h" /* For GiST */
-#include "access/itup.h"
-#include "access/skey.h"
+// #include "postgres.h"
+// #include "access/gist.h" /* For GiST */
+// #include "access/itup.h"
+// #include "access/skey.h"
 
 #include "../postgis_config.h"
 
@@ -139,7 +139,7 @@ gidx_validate(GIDX *b)
 /* An "unknown" GIDX is used to represent the bounds of an EMPTY
    geometry or other-wise unindexable geometry (like one with NaN
    or Inf bounds) */
-inline bool
+bool
 gidx_is_unknown(const GIDX *a)
 {
 	size_t size = VARSIZE_ANY_EXHDR(a);

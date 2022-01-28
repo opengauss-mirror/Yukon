@@ -9,10 +9,10 @@
  **********************************************************************/
 
 
-#include "postgres.h"
-#include "access/gist.h"    /* For GiST */
-#include "access/itup.h"
-#include "access/skey.h"
+// #include "postgres.h"
+// #include "access/gist.h"    /* For GiST */
+// #include "access/itup.h"
+// #include "access/skey.h"
 
 #include "../postgis_config.h"
 

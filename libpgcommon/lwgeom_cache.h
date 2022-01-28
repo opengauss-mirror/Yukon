@@ -13,8 +13,9 @@
 #ifndef LWGEOM_CACHE_H_
 #define LWGEOM_CACHE_H_ 1
 
-#include "postgres.h"
-#include "fmgr.h"
+#include "extension_dependency.h"
+// #include "postgres.h"
+// #include "fmgr.h"
 
 #include "liblwgeom.h"
 #include "lwgeodetic_tree.h"

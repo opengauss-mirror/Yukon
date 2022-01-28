@@ -59,58 +59,58 @@ dimensionality cases. (2D geometry) &&& (3D column), etc.
 
 **********************************************************************/
 
-#include "postgres.h"
+// #include "postgres.h"
 
-#include "access/genam.h"
-#include "access/gin.h"
-#include "access/gist.h"
-#include "access/gist_private.h"
-#include "access/gistscan.h"
-#if PG_VERSION_NUM < 130000
-#include "access/tuptoaster.h" /* For toast_raw_datum_size */
-#else
-#include "access/detoast.h" /* For toast_raw_datum_size */
-#endif
-#include "utils/datum.h"
-#include "access/heapam.h"
-#include "catalog/index.h"
-#include "catalog/pg_am.h"
-#include "miscadmin.h"
-#include "storage/lmgr.h"
-#include "catalog/namespace.h"
-#include "catalog/indexing.h"
-#if PG_VERSION_NUM >= 100000
-#include "utils/regproc.h"
-#include "utils/varlena.h"
-#endif
-#include "utils/builtins.h"
-#include "utils/datum.h"
-#include "utils/snapmgr.h"
-#include "utils/fmgroids.h"
-#include "funcapi.h"
-#include "access/heapam.h"
-#include "catalog/pg_type.h"
-#include "access/relscan.h"
+// #include "access/genam.h"
+// #include "access/gin.h"
+// #include "access/gist.h"
+// #include "access/gist_private.h"
+// #include "access/gistscan.h"
+// #if PG_VERSION_NUM < 130000
+// #include "access/tuptoaster.h" /* For toast_raw_datum_size */
+// #else
+// #include "access/detoast.h" /* For toast_raw_datum_size */
+// #endif
+// #include "utils/datum.h"
+// #include "access/heapam.h"
+// #include "catalog/index.h"
+// #include "catalog/pg_am.h"
+// #include "miscadmin.h"
+// #include "storage/lmgr.h"
+// #include "catalog/namespace.h"
+// #include "catalog/indexing.h"
+// #if PG_VERSION_NUM >= 100000
+// #include "utils/regproc.h"
+// #include "utils/varlena.h"
+// #endif
+// #include "utils/builtins.h"
+// #include "utils/datum.h"
+// #include "utils/snapmgr.h"
+// #include "utils/fmgroids.h"
+// #include "funcapi.h"
+// #include "access/heapam.h"
+// #include "catalog/pg_type.h"
+// #include "access/relscan.h"
 
-#include "executor/spi.h"
-#include "fmgr.h"
-#include "commands/vacuum.h"
-#if PG_VERSION_NUM < 120000
-#include "nodes/relation.h"
-#else
-#include "nodes/pathnodes.h"
-#endif
-#include "parser/parsetree.h"
-#include "utils/array.h"
-#include "utils/lsyscache.h"
-#include "utils/builtins.h"
-#include "utils/syscache.h"
-#include "utils/rel.h"
-#include "utils/selfuncs.h"
-
+// #include "executor/spi.h"
+// #include "fmgr.h"
+// #include "commands/vacuum.h"
+// #if PG_VERSION_NUM < 120000
+// #include "nodes/relation.h"
+// #else
+// #include "nodes/pathnodes.h"
+// #endif
+// #include "parser/parsetree.h"
+// #include "utils/array.h"
+// #include "utils/lsyscache.h"
+// #include "utils/builtins.h"
+// #include "utils/syscache.h"
+// #include "utils/rel.h"
+// #include "utils/selfuncs.h"
+#include "extension_dependency.h"
 #include "../postgis_config.h"
 
-#include "access/htup_details.h"
+// #include "access/htup_details.h"
 
 #include "stringbuffer.h"
 #include "liblwgeom.h"
@@ -1528,7 +1528,7 @@ compute_gserialized_stats_mode(VacAttrStats *stats, AnalyzeAttrFetchFunc fetchfu
 	 * we have an average of 5 features for each cell so the histogram isn't
 	 * so sparse.
 	 */
-	histo_cells_target = (int)pow((double)(stats->attr->attstattarget), (double)ndims);
+	histo_cells_target = (int)pow((double)(stats->attrs[0]->attstattarget), (double)ndims);
 	histo_cells_target = Min(histo_cells_target, ndims * 10000);
 	histo_cells_target = Min(histo_cells_target, (int)(total_rows/5));
 	POSTGIS_DEBUGF(3, " stats->attr->attstattarget: %d", stats->attr->attstattarget);

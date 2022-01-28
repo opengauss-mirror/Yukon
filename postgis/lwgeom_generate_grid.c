@@ -22,10 +22,10 @@
  *
  **********************************************************************/
 
-#include "postgres.h"
-#include "fmgr.h"
-#include "funcapi.h"
-#include "access/htup_details.h"
+// #include "postgres.h"
+// #include "fmgr.h"
+// #include "funcapi.h"
+// #include "access/htup_details.h"
 
 #include "../postgis_config.h"
 #include "lwgeom_pg.h"

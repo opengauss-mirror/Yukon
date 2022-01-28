@@ -33,7 +33,7 @@
 #include "lwgeom_rtree.h"
 #include "lwgeom_functions_analytic.h"
 
-#include "access/htup_details.h"
+// #include "access/htup_details.h"
 
 /* Prototypes */
 Datum LWGEOM_simplify2d(PG_FUNCTION_ARGS);

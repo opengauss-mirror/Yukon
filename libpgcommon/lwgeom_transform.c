@@ -12,13 +12,13 @@
 
 
 /* PostgreSQL headers */
-#include "postgres.h"
-#include "fmgr.h"
-#include "miscadmin.h"
-#include "utils/memutils.h"
-#include "executor/spi.h"
-#include "access/hash.h"
-#include "utils/hsearch.h"
+//#include "postgres.h"
+//#include "fmgr.h"
+//#include "miscadmin.h"
+//#include "utils/memutils.h"
+//#include "executor/spi.h"
+//#include "access/hash.h"
+//#include "utils/hsearch.h"
 
 /* PostGIS headers */
 #include "../postgis_config.h"
@@ -115,27 +115,27 @@ GetPROJSRSCache()
 	if (!cache)
 	{
 		/* Put proj cache in a child of the CacheContext */
-		MemoryContext context = AllocSetContextCreate(
-		    CacheMemoryContext,
-		    "Proj Context",
-		    ALLOCSET_SMALL_SIZES);
+		// MemoryContext context = AllocSetContextCreate(
+		//     CacheMemoryContext,
+		//     "Proj Context",
+		//     ALLOCSET_SMALL_SIZES);
 
-		/* Allocate in the upper context */
-		cache = MemoryContextAllocZero(context, sizeof(PROJSRSCache));
+		// /* Allocate in the upper context */
+		// cache = MemoryContextAllocZero(context, sizeof(PROJSRSCache));
 
-		if (!cache)
-			elog(ERROR, "Unable to allocate space for PROJSRSCache in context %p", context);
+		// if (!cache)
+		// 	elog(ERROR, "Unable to allocate space for PROJSRSCache in context %p", context);
 
-		cache->PROJSRSCacheCount = 0;
-		cache->PROJSRSCacheContext = context;
+		// cache->PROJSRSCacheCount = 0;
+		// cache->PROJSRSCacheContext = context;
 
-		/* Use this to clean up PROJSRSCache in event of MemoryContext reset */
-		MemoryContextCallback* callback = MemoryContextAlloc(context, sizeof(MemoryContextCallback));
-		callback->func = PROJSRSDestroyPortalCache;
-		callback->arg = (void *)cache;
-		MemoryContextRegisterResetCallback(context, callback);
+		// /* Use this to clean up PROJSRSCache in event of MemoryContext reset */
+		// MemoryContextCallback* callback = MemoryContextAlloc(context, sizeof(MemoryContextCallback));
+		// callback->func = PROJSRSDestroyPortalCache;
+		// callback->arg = (void *)cache;
+		// MemoryContextRegisterResetCallback(context, callback);
 
-		PROJ_CACHE = cache;
+		// PROJ_CACHE = cache;
 	}
 	return cache;
 }

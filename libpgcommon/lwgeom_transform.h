@@ -9,7 +9,8 @@
  *
  **********************************************************************/
 
-#include "postgres.h"
+//#include "postgres.h"
+#include "extension_dependency.h"
 #include "lwgeom_log.h"
 #include "liblwgeom.h"
 #include "lwgeom_pg.h"

@@ -235,27 +235,27 @@ PrepGeomCacheBuilder(const LWGEOM *lwgeom, GeomCache *cache)
 	/*
 	* No callback entry for this statement context yet? Set it up
 	*/
-	if ( ! prepcache->context_callback )
-	{
-		PrepGeomHashEntry pghe;
-		MemoryContextCallback *callback;
-		prepcache->context_callback = AllocSetContextCreate(prepcache->context_statement,
-	                                   "PostGIS Prepared Geometry Context",
-	                                   ALLOCSET_SMALL_SIZES);
+	// if ( ! prepcache->context_callback )
+	// {
+	// 	PrepGeomHashEntry pghe;
+	// 	MemoryContextCallback *callback;
+	// 	prepcache->context_callback = AllocSetContextCreate(prepcache->context_statement,
+	//                                    "PostGIS Prepared Geometry Context",
+	//                                    ALLOCSET_SMALL_SIZES);
 
-		/* PgSQL comments suggest allocating callback in the context */
-		/* being managed, so that the callback object gets cleaned along with */
-		/* the context */
-		callback = MemoryContextAlloc(prepcache->context_callback, sizeof(MemoryContextCallback));
-		callback->arg = (void*)(prepcache->context_callback);
-		callback->func = PreparedCacheDelete;
-		MemoryContextRegisterResetCallback(prepcache->context_callback, callback);
+	// 	/* PgSQL comments suggest allocating callback in the context */
+	// 	/* being managed, so that the callback object gets cleaned along with */
+	// 	/* the context */
+	// 	callback = MemoryContextAlloc(prepcache->context_callback, sizeof(MemoryContextCallback));
+	// 	callback->arg = (void*)(prepcache->context_callback);
+	// 	callback->func = PreparedCacheDelete;
+	// 	MemoryContextRegisterResetCallback(prepcache->context_callback, callback);
 
-		pghe.context = prepcache->context_callback;
-		pghe.geom = 0;
-		pghe.prepared_geom = 0;
-		AddPrepGeomHashEntry( pghe );
-	}
+	// 	pghe.context = prepcache->context_callback;
+	// 	pghe.geom = 0;
+	// 	pghe.prepared_geom = 0;
+	// 	AddPrepGeomHashEntry( pghe );
+	// }
 
 	/*
 	* Hum, we shouldn't be asked to build a new cache on top of

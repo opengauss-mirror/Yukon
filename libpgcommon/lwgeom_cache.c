@@ -10,12 +10,12 @@
  *
  **********************************************************************/
 
-#include "postgres.h"
+// #include "postgres.h"
 
-#include "catalog/pg_type.h" /* for CSTRINGOID */
-#include "executor/spi.h"
-#include "fmgr.h"
-#include "utils/memutils.h"
+// #include "catalog/pg_type.h" /* for CSTRINGOID */
+// #include "executor/spi.h"
+// #include "fmgr.h"
+// #include "utils/memutils.h"
 
 #include "../postgis_config.h"
 
@@ -397,7 +397,7 @@ getSRIDbySRS(FunctionCallInfo fcinfo, const char *srs)
 		return 0;
 	}
 
-	err = SPI_execute_with_args(query, 1, argtypes, values, NULL, true, 1);
+	err = SPI_execute_with_args(query, 1, argtypes, values, NULL, true, 1, NULL);
 	if (err < 0)
 	{
 		elog(NOTICE, "getSRIDbySRS: error executing query %d", err);
@@ -416,7 +416,7 @@ getSRIDbySRS(FunctionCallInfo fcinfo, const char *srs)
 			 "WHERE re[1] ILIKE auth_name AND int4(re[2]) = auth_srid",
 			 postgis_spatial_ref_sys());
 
-		err = SPI_execute_with_args(query, 1, argtypes, values, NULL, true, 1);
+		err = SPI_execute_with_args(query, 1, argtypes, values, NULL, true, 1, NULL);
 		if (err < 0)
 		{
 			elog(NOTICE, "getSRIDbySRS: error executing query %d", err);

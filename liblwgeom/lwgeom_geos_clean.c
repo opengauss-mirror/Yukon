@@ -127,12 +127,12 @@ ptarray_strip_nan_coords_in_place(POINTARRAY *pa)
 	int ndims = FLAGS_NDIMS(pa->flags);
 	for ( i = 0; i < pa->npoints; i++ )
 	{
-		int isnan = 0;
+		int isnanValue = 0;
 		p = (POINT4D *)(getPoint_internal(pa, i));
-		if ( isnan(p->x) || isnan(p->y) ) isnan = 1;
-		else if (ndims > 2 && isnan(p->z) ) isnan = 1;
-		else if (ndims > 3 && isnan(p->m) ) isnan = 1;
-		if ( isnan ) continue;
+		if ( isnan(p->x) || isnan(p->y) ) isnanValue = 1;
+		else if (ndims > 2 && isnan(p->z) ) isnanValue = 1;
+		else if (ndims > 3 && isnan(p->m) ) isnanValue = 1;
+		if ( isnanValue ) continue;
 
 		np = (POINT4D *)(getPoint_internal(pa, j++));
 		if ( np != p ) {

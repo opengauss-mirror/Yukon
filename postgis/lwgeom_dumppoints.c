@@ -22,19 +22,19 @@
  *
  **********************************************************************/
 
-#include "postgres.h"
-#include "fmgr.h"
-#include "utils/elog.h"
-#include "utils/array.h"
-#include "utils/geo_decls.h"
-#include "utils/lsyscache.h"
-#include "catalog/pg_type.h"
-#include "funcapi.h"
+// #include "postgres.h"
+// #include "fmgr.h"
+// #include "utils/elog.h"
+// #include "utils/array.h"
+// #include "utils/geo_decls.h"
+// #include "utils/lsyscache.h"
+// #include "catalog/pg_type.h"
+// #include "funcapi.h"
 
 #include "../postgis_config.h"
 #include "lwgeom_pg.h"
 
-#include "access/htup_details.h"
+//#include "access/htup_details.h"
 
 
 #include "liblwgeom.h"

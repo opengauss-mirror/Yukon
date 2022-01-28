@@ -25,13 +25,13 @@
 
 #include <assert.h>
 
-#include "postgres.h"
+// #include "postgres.h"
 
 #include "../postgis_config.h"
 #include "lwgeom_pg.h"
 #include "liblwgeom.h"
 #include "lwgeom_cache.h"
-#include "funcapi.h"
+// #include "funcapi.h"
 #include <executor/spi.h>
 #include <utils/builtins.h>
 #include "flatgeobuf.h"

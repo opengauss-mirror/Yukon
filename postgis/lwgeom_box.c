@@ -24,12 +24,12 @@
  **********************************************************************/
 
 
-#include "postgres.h"
-#include "access/gist.h"
-#include "access/itup.h"
-#include "fmgr.h"
-#include "utils/elog.h"
-#include "utils/geo_decls.h"
+// #include "postgres.h"
+// #include "access/gist.h"
+// #include "access/itup.h"
+// #include "fmgr.h"
+// #include "utils/elog.h"
+// #include "utils/geo_decls.h"
 
 #include "../postgis_config.h"
 #include "lwgeom_pg.h"

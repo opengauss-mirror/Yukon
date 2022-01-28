@@ -86,7 +86,7 @@ GIDX *gidx_copy(GIDX *b);
 void gidx_merge(GIDX **b_union, GIDX *b_new);
 
 /* Note empty BOX2DF */
-bool box2df_is_empty(const BOX2DF *a);
+extern "C" bool box2df_is_empty(const BOX2DF *a);
 
 /* Fill in a gbox from a GIDX */
 void gbox_from_gidx(GIDX *a, GBOX *gbox, int flags);

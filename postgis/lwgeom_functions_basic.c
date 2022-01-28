@@ -1321,7 +1321,7 @@ Datum LWGEOM_collect_garray(PG_FUNCTION_ARGS)
 	count = 0;
 	outtype = 0;
 
-	iterator = array_create_iterator(array, 0, NULL);
+	iterator = array_create_iterator(array, 0);
 
 	while (array_iterate(iterator, &value, &isnull))
 	{
@@ -1489,7 +1489,7 @@ Datum LWGEOM_makeline_garray(PG_FUNCTION_ARGS)
 	geoms = palloc(sizeof(LWGEOM *) * nelems);
 	ngeoms = 0;
 
-	iterator = array_create_iterator(array, 0, NULL);
+	iterator = array_create_iterator(array, 0);
 
 	while (array_iterate(iterator, &value, &isnull))
 	{

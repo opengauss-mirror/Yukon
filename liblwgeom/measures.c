@@ -2394,7 +2394,7 @@ lw_dist2d_pt_pt(const POINT2D *thep1, const POINT2D *thep2, DISTPTS *dl)
 End of Functions in common for Brute force and new calculation
 --------------------------------------------------------------------------------------------------------------*/
 
-inline double
+double
 distance2d_pt_pt(const POINT2D *p1, const POINT2D *p2)
 {
 	double hside = p2->x - p1->x;

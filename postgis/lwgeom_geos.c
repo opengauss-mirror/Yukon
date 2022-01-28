@@ -34,7 +34,7 @@
 #include "utils/builtins.h"
 #include "utils/lsyscache.h"
 #include "utils/numeric.h"
-#include "access/htup_details.h"
+// #include "access/htup_details.h"
 
 /* PostGIS */
 #include "lwgeom_functions_analytic.h" /* for point_in_polygon */
@@ -497,7 +497,7 @@ Datum pgis_union_geometry_array(PG_FUNCTION_ARGS)
 	if ( nelems == 0 ) PG_RETURN_NULL();
 
 	/* Quick scan for nulls */
-	iterator = array_create_iterator(array, 0, NULL);
+	iterator = array_create_iterator(array, 0);
 	while (array_iterate(iterator, &value, &isnull))
 	{
 		/* Skip null array items */
@@ -537,7 +537,7 @@ Datum pgis_union_geometry_array(PG_FUNCTION_ARGS)
 	** We need to convert the array of GSERIALIZED into a GEOS collection.
 	** First make an array of GEOS geometries.
 	*/
-	iterator = array_create_iterator(array, 0, NULL);
+	iterator = array_create_iterator(array, 0);
 	while (array_iterate(iterator, &value, &isnull))
 	{
 		GSERIALIZED *gser_in;
@@ -2753,7 +2753,7 @@ uint32_t array_nelems_not_null(ArrayType* array) {
     Datum value;
     bool isnull;
     uint32_t nelems_not_null = 0;
-	iterator = array_create_iterator(array, 0, NULL);
+	iterator = array_create_iterator(array, 0);
 	while(array_iterate(iterator, &value, &isnull) )
         if (!isnull)
             nelems_not_null++;
@@ -2774,7 +2774,7 @@ LWGEOM** ARRAY2LWGEOM(ArrayType* array, uint32_t nelems,  int* is3d, int* srid)
 
 	LWGEOM** lw_geoms = palloc(nelems * sizeof(LWGEOM*));
 
-    iterator = array_create_iterator(array, 0, NULL);
+    iterator = array_create_iterator(array, 0);
 
     while (array_iterate(iterator, &value, &isnull))
     {
@@ -2816,7 +2816,7 @@ GEOSGeometry** ARRAY2GEOS(ArrayType* array, uint32_t nelems, int* is3d, int* sri
 
 	GEOSGeometry** geos_geoms = palloc(nelems * sizeof(GEOSGeometry*));
 
-    iterator = array_create_iterator(array, 0, NULL);
+    iterator = array_create_iterator(array, 0);
 
     while(array_iterate(iterator, &value, &isnull))
 	{

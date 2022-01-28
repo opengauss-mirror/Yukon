@@ -23,7 +23,7 @@
  **********************************************************************/
 
 
-#include "postgres.h"
+// #include "postgres.h"
 
 
 #include <math.h>
@@ -31,11 +31,11 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "access/gist.h"
-#include "access/itup.h"
+// #include "access/gist.h"
+// #include "access/itup.h"
 
-#include "fmgr.h"
-#include "utils/elog.h"
+// #include "fmgr.h"
+// #include "utils/elog.h"
 
 #include "../postgis_config.h"
 #include "liblwgeom.h"

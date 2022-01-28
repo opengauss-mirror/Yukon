@@ -24,15 +24,15 @@
 
 #include <math.h>
 #include "flatgeobuf.h"
-#include "pgsql_compat.h"
-#include "funcapi.h"
-#include "parser/parse_type.h"
-#include "pgtime.h"
-#include "utils/timestamp.h"
-#include "miscadmin.h"
-#include "utils/date.h"
-#include "utils/datetime.h"
-#include "utils/jsonb.h"
+// #include "pgsql_compat.h"
+// #include "funcapi.h"
+//#include "parser/parse_type.h"
+// #include "pgtime.h"
+// #include "utils/timestamp.h"
+// #include "miscadmin.h"
+// #include "utils/date.h"
+// #include "utils/datetime.h"
+// #include "utils/jsonb.h"
 
 static uint8_t get_column_type(Oid typoid) {
 	switch (typoid)

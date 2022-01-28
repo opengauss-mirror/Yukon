@@ -8,10 +8,10 @@ MODULEPATH    = $$libdir/$(EXTENSION)-3
 ifeq (no,yes)
 MODULEPATH=$$libdir/$(EXTENSION)-$(MINORVERSION)
 endif
-GREP = /bin/grep
+GREP = /usr/bin/grep
 
 # SQL preprocessor
-SQLPP = /usr/bin/cpp -traditional-cpp -w -P
+SQLPP = /opt/dep/gcc8.2/gcc/bin/cpp -traditional-cpp -w -P
 
 MICRO_NUMBER  = $(shell echo $(EXTVERSION) | \
 						$(PERL) -pe 's/\d.\d.(\d+)[a-zA-Z]*\d*/$1/'
@@ -125,7 +125,7 @@ include ../upgrade-paths-rules.mk
 distclean: clean
 	rm -f Makefile
 
-PG_CONFIG := /var/lib/jenkins/workspace/pg/rel/pg9.6w64/bin/pg_config
-PGXS := /var/lib/jenkins/workspace/pg/rel/pg9.6w64/lib/postgresql/pgxs/src/makefiles/pgxs.mk
+PG_CONFIG := /opt/huawei/install/app/bin/pg_config
+PGXS := /opt/huawei/install/app/lib/postgresql/pgxs/src/makefiles/pgxs.mk
 include $(PGXS)
 PERL = /usr/bin/perl

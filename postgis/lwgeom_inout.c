@@ -22,7 +22,7 @@
  *
  **********************************************************************/
 
-#include "postgres.h"
+// #include "postgres.h"
 
 #include "../postgis_config.h"
 
@@ -32,17 +32,17 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "access/gist.h"
-#include "access/itup.h"
+// #include "access/gist.h"
+// #include "access/itup.h"
 
-#include "fmgr.h"
-#include "utils/elog.h"
-#include "mb/pg_wchar.h"
-#include "lib/stringinfo.h" /* for binary input */
-#include "utils/array.h"
-#include "utils/builtins.h"
-#include "utils/lsyscache.h"
-#include "funcapi.h"
+// #include "fmgr.h"
+// #include "utils/elog.h"
+// #include "mb/pg_wchar.h"
+// #include "lib/stringinfo.h" /* for binary input */
+// #include "utils/array.h"
+// #include "utils/builtins.h"
+// #include "utils/lsyscache.h"
+// #include "funcapi.h"
 
 #include "liblwgeom.h"
 #include "lwgeom_cache.h"
@@ -51,7 +51,7 @@
 #include "lwgeom_transform.h"
 
 
-#include "access/htup_details.h"
+// #include "access/htup_details.h"
 
 
 void elog_ERROR(const char* string);
@@ -508,8 +508,8 @@ Datum TWKBFromLWGEOMArray(PG_FUNCTION_ARGS)
 	/* Loop through array and build a collection of geometry and */
 	/* a simple array of ids. If either side is NULL, skip it */
 
-	iter_geoms = array_create_iterator(arr_geoms, 0, NULL);
-	iter_ids = array_create_iterator(arr_ids, 0, NULL);
+	iter_geoms = array_create_iterator(arr_geoms, 0);
+	iter_ids = array_create_iterator(arr_ids, 0);
 
 	while( array_iterate(iter_geoms, &val_geom, &null_geom) &&
 	       array_iterate(iter_ids, &val_id, &null_id) )

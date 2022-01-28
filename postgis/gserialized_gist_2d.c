@@ -38,11 +38,11 @@
 **     http://syrcose.ispras.ru/2011/files/SYRCoSE2011_Proceedings.pdf#page=36
 */
 
-#include "postgres.h"
-#include "access/gist.h"    /* For GiST */
-#include "access/itup.h"
-#include "access/skey.h"
-#include "utils/sortsupport.h"    /* For index building sort support */
+// #include "postgres.h"
+// #include "access/gist.h"    /* For GiST */
+// #include "access/itup.h"
+// #include "access/skey.h"
+// #include "utils/sortsupport.h"    /* For index building sort support */
 
 #include "../postgis_config.h"
 
@@ -148,7 +148,7 @@ BOX2DF* box2df_copy(BOX2DF *b)
 	return c;
 }
 
-inline bool box2df_is_empty(const BOX2DF *a)
+bool box2df_is_empty(const BOX2DF *a)
 {
 	if (isnan(a->xmin))
 		return true;
@@ -156,13 +156,13 @@ inline bool box2df_is_empty(const BOX2DF *a)
 		return false;
 }
 
-inline void box2df_set_empty(BOX2DF *a)
+void box2df_set_empty(BOX2DF *a)
 {
 	a->xmin = a->xmax = a->ymin = a->ymax = NAN;
 	return;
 }
 
-inline void box2df_set_finite(BOX2DF *a)
+void box2df_set_finite(BOX2DF *a)
 {
 	if ( ! isfinite(a->xmax) )
 		a->xmax = FLT_MAX;

@@ -15,19 +15,20 @@
 #ifndef _LWGEOM_PG_H
 #define _LWGEOM_PG_H 1
 
-#include "postgres.h"
-#include "fmgr.h"
-#include "catalog/namespace.h" /* For TypenameGetTypid */
-#if POSTGIS_PGSQL_VERSION > 100
-#include "catalog/pg_type_d.h" /* For TypenameGetTypid */
-#endif
-#include "utils/geo_decls.h"
-#include "utils/lsyscache.h"
-#include "utils/memutils.h"
-#include "utils/syscache.h"
+#include "extension_dependency.h"
+// #include "postgres.h"
+// #include "fmgr.h"
+// #include "catalog/namespace.h" /* For TypenameGetTypid */
+// #if POSTGIS_PGSQL_VERSION > 100
+// #include "catalog/pg_type_d.h" /* For TypenameGetTypid */
+// #endif
+// #include "utils/geo_decls.h"
+// #include "utils/lsyscache.h"
+// #include "utils/memutils.h"
+// #include "utils/syscache.h"
 
 #include "liblwgeom.h"
-#include "pgsql_compat.h"
+// #include "pgsql_compat.h"
 
 
 /****************************************************************************************/

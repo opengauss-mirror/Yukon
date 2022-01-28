@@ -356,7 +356,7 @@ clamp_srid(int32_t srid)
 /* Structure for the type array */
 struct geomtype_struct
 {
-	char *typename;
+	char *typename_C;
 	int type;
 	int z;
 	int m;
@@ -534,7 +534,7 @@ int geometry_type_from_string(const char *str, uint8_t *type, int *z, int *m)
 	/* Now check for the type */
 	for (i = 0; i < GEOMTYPE_STRUCT_ARRAY_LEN; i++)
 	{
-		if (!strcmp(tmpstr, geomtype_struct_array[i].typename))
+		if (!strcmp(tmpstr, geomtype_struct_array[i].typename_C))
 		{
 			*type = geomtype_struct_array[i].type;
 			*z = geomtype_struct_array[i].z;

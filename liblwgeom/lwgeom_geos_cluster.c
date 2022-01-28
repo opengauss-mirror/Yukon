@@ -162,9 +162,9 @@ union_intersecting_pairs(GEOSGeometry** geoms, uint32_t num_geoms, UNIONFIND* uf
 	struct STRTree tree;
 	struct QueryContext cxt =
 	{
-		.items_found = NULL,
-		.num_items_found = 0,
-		.items_found_size = 0
+		NULL,
+		0,
+		0
 	};
 	int success = LW_SUCCESS;
 
@@ -321,9 +321,9 @@ union_dbscan_minpoints_1(LWGEOM** geoms, uint32_t num_geoms, UNIONFIND* uf, doub
 	struct STRTree tree;
 	struct QueryContext cxt =
 	{
-		.items_found = NULL,
-		.num_items_found = 0,
-		.items_found_size = 0
+		NULL,
+		0,
+		0
 	};
 	int success = LW_SUCCESS;
 
@@ -385,9 +385,9 @@ union_dbscan_general(LWGEOM** geoms, uint32_t num_geoms, UNIONFIND* uf, double e
 	struct STRTree tree;
 	struct QueryContext cxt =
 	{
-		.items_found = NULL,
-		.num_items_found = 0,
-		.items_found_size = 0
+		NULL,
+		0,
+		0
 	};
 	int success = LW_SUCCESS;
 	uint32_t* neighbors;

@@ -13,25 +13,24 @@
  * the terms of the GNU General Public Licence. See the COPYING file.
  *
  **********************************************************************/
-
-#include <postgres.h>
-#include <fmgr.h>
-#include <miscadmin.h>
-#include <access/heapam.h>
-#include <access/htup.h>
-#include <access/htup_details.h>
-#include <access/skey.h>
-#include <access/genam.h>
-#include <access/sysattr.h>
-#include <catalog/indexing.h>
-#include <executor/spi.h>
-#include <utils/builtins.h>
-#include <utils/guc.h>
-#include <utils/guc_tables.h>
-#include <utils/fmgroids.h>
-#include <catalog/namespace.h>
-#include <catalog/pg_extension.h>
-#include <commands/extension.h>
+// #include <postgres.h>
+// #include <fmgr.h>
+// #include <miscadmin.h>
+// #include <access/heapam.h>
+// #include <access/htup.h>
+// #include <access/htup_details.h>
+// #include <access/skey.h>
+// #include <access/genam.h>
+// #include <access/sysattr.h>
+// #include <catalog/indexing.h>
+// #include <executor/spi.h>
+// #include <utils/builtins.h>
+// #include <utils/guc.h>
+// #include <utils/guc_tables.h>
+// #include <utils/fmgroids.h>
+// #include <catalog/namespace.h>
+// #include <catalog/pg_extension.h>
+// #include <commands/extension.h>
 
 #include "../postgis_config.h"
 
@@ -79,10 +78,10 @@ postgis_get_extension_schema(Oid ext_oid)
 
 #if POSTGIS_PGSQL_VERSION < 120
     Relation rel = heap_open(ExtensionRelationId, AccessShareLock);
-    ScanKeyInit(&entry[0],
-	    ObjectIdAttributeNumber,
-        BTEqualStrategyNumber, F_OIDEQ,
-        ObjectIdGetDatum(ext_oid));
+    // ScanKeyInit(&entry[0],
+	//     ObjectIdAttributeNumber,
+    //     BTEqualStrategyNumber, F_OIDEQ,
+    //     ObjectIdGetDatum(ext_oid));
 #else
     Relation rel = table_open(ExtensionRelationId, AccessShareLock);
     ScanKeyInit(&entry[0],
@@ -150,35 +149,36 @@ getPostgisConstants()
 		elog(ERROR, "Unable to determine 'postgis' install schema");
 
 	/* Put constants cache in a child of the CacheContext */
-	MemoryContext context = AllocSetContextCreate(
-	    CacheMemoryContext,
-	    "PostGIS Constants Context",
-	    ALLOCSET_SMALL_SIZES);
+	// MemoryContext context = AllocSetContextCreate(
+	//     CacheMemoryContext,
+	//     "PostGIS Constants Context",
+	//     ALLOCSET_SMALL_SIZES);
 
-	/* Allocate in the CacheContext so we don't lose this at the end of the statement */
-	postgisConstants* constants = MemoryContextAlloc(context, sizeof(postgisConstants));
+	// /* Allocate in the CacheContext so we don't lose this at the end of the statement */
+	// postgisConstants* constants = MemoryContextAlloc(context, sizeof(postgisConstants));
 
-	/* Calculate fully qualified name of 'spatial_ref_sys' */
-	char *nsp_name = get_namespace_name(nsp_oid);
-	constants->install_nsp_oid = nsp_oid;
-	constants->install_nsp = MemoryContextStrdup(CacheMemoryContext, nsp_name);
+	// /* Calculate fully qualified name of 'spatial_ref_sys' */
+	// char *nsp_name = get_namespace_name(nsp_oid);
+	// constants->install_nsp_oid = nsp_oid;
+	// constants->install_nsp = MemoryContextStrdup(CacheMemoryContext, nsp_name);
 
-	char *spatial_ref_sys_fullpath = quote_qualified_identifier(nsp_name, "spatial_ref_sys");
-	constants->spatial_ref_sys = MemoryContextStrdup(CacheMemoryContext, spatial_ref_sys_fullpath);
-	elog(DEBUG4, "%s: Spatial ref sys qualified as %s", __func__, spatial_ref_sys_fullpath);
-	pfree(nsp_name);
-	pfree(spatial_ref_sys_fullpath);
+	// char *spatial_ref_sys_fullpath = quote_qualified_identifier(nsp_name, "spatial_ref_sys");
+	// constants->spatial_ref_sys = MemoryContextStrdup(CacheMemoryContext, spatial_ref_sys_fullpath);
+	// elog(DEBUG4, "%s: Spatial ref sys qualified as %s", __func__, spatial_ref_sys_fullpath);
+	// pfree(nsp_name);
+	// pfree(spatial_ref_sys_fullpath);
 
-	/* Lookup all the type names in the context of the install schema */
-	constants->geometry_oid = TypenameNspGetTypid("geometry", nsp_oid);
-	constants->geography_oid = TypenameNspGetTypid("geography", nsp_oid);
-	constants->box2df_oid = TypenameNspGetTypid("box2df", nsp_oid);
-	constants->box3d_oid = TypenameNspGetTypid("box3d", nsp_oid);
-	constants->gidx_oid = TypenameNspGetTypid("gidx", nsp_oid);
-	constants->raster_oid = TypenameNspGetTypid("raster", nsp_oid);
+	// /* Lookup all the type names in the context of the install schema */
+	// constants->geometry_oid = TypenameNspGetTypid("geometry", nsp_oid);
+	// constants->geography_oid = TypenameNspGetTypid("geography", nsp_oid);
+	// constants->box2df_oid = TypenameNspGetTypid("box2df", nsp_oid);
+	// constants->box3d_oid = TypenameNspGetTypid("box3d", nsp_oid);
+	// constants->gidx_oid = TypenameNspGetTypid("gidx", nsp_oid);
+	// constants->raster_oid = TypenameNspGetTypid("raster", nsp_oid);
 
 	/* Done */
-	return constants;
+	//return constants;
+	return NULL;
 }
 
 Oid

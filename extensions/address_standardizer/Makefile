@@ -28,8 +28,8 @@ OBJS_test_main = \
 
 POSTGIS_PGSQL_VERSION=96
 # SQL preprocessor
-SQLPP = /usr/bin/cpp -traditional-cpp -w -P
-GREP=/bin/grep
+SQLPP = /opt/dep/gcc8.2/gcc/bin/cpp -traditional-cpp -w -P
+GREP=/usr/bin/grep
 EXTVERSION = 3.2.0
 MODULE_big = address_standardizer-3
 MODULEPATH    = $$libdir/address_standardizer-3
@@ -55,9 +55,9 @@ EXTRA_CLEAN = sql/
 
 
 DOCS = README.address_standardizer
-PG_CPPFLAGS = -std=gnu99 -g -O2 -fno-math-errno -fno-signed-zeros -Wall  -I/var/lib/jenkins/workspace/geos/rel-3.6w64/include   -I/usr/include/libxml2 -I/usr/include -I/usr/include/json-c  -DNDEBUG  -DPCRE_VERSION=0
+PG_CPPFLAGS = -O2  -fpermissive -DPGXC  -pthread -D_THREAD_SAFE -D__STDC_FORMAT_MACROS -DMEMORY_CONTEXT_CHECKING -fPIC -I../include  -fno-math-errno -fno-signed-zeros -Wall  -I/opt/dep/geos/include -I/opt/dep/proj4/include  -I/opt/dep/libxml2/include/libxml2 -I/opt/dep/sfcgal/include   -DNDEBUG  -DPCRE_VERSION=
 
-SHLIB_LINK =  -L/var/lib/jenkins/workspace/geos/rel-3.6w64/lib -lgeos_c -lproj -ljson-c -lprotobuf-c -lxml2 -L/usr/lib/x86_64-linux-gnu -lSFCGAL -lgmpxx -Wl,--exclude-libs,ALL  -lm 
+SHLIB_LINK =  -L/opt/dep/geos/lib -lgeos_c -L/opt/dep/proj4/lib -lproj   -L/opt/dep/libxml2/lib -lxml2 -lm -L/opt/dep/sfcgal/lib64 -lSFCGAL -Wl,--exclude-libs,ALL  -lm 
 EXTRA_CLEAN = usps-st-city-name.txt mk-st-regexp mk-city-regex test_main
 REGRESS = test-init-extensions test-parseaddress test-standardize_address_1 test-standardize_address_2
 
@@ -204,7 +204,7 @@ EXTRA_CLEAN += sql/$(EXTENSION)--$(EXTVERSION).sql sql/$(EXTENSION)--unpackaged-
 distclean: clean
 	rm Makefile
 
-PG_CONFIG := /var/lib/jenkins/workspace/pg/rel/pg9.6w64/bin/pg_config
-PGXS := /var/lib/jenkins/workspace/pg/rel/pg9.6w64/lib/postgresql/pgxs/src/makefiles/pgxs.mk
+PG_CONFIG := /opt/huawei/install/app/bin/pg_config
+PGXS := /opt/huawei/install/app/lib/postgresql/pgxs/src/makefiles/pgxs.mk
 include $(PGXS)
 PERL = /usr/bin/perl

@@ -4,7 +4,7 @@
 #include <math.h>
 
 #include <access/spgist.h>
-#include <access/stratnum.h>
+//#include <access/stratnum.h>
 #include <catalog/namespace.h>
 #include <catalog/pg_type.h>
 #include <utils/builtins.h>
