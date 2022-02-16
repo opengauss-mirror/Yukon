@@ -45,50 +45,50 @@
 
 
 /* ---- SRID(geometry) */
-Datum LWGEOM_get_srid(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_get_srid(PG_FUNCTION_ARGS);
 /* ---- SetSRID(geometry, integer) */
-Datum LWGEOM_set_srid(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_set_srid(PG_FUNCTION_ARGS);
 /* ---- GeometryType(geometry) */
-Datum LWGEOM_getTYPE(PG_FUNCTION_ARGS);
-Datum geometry_geometrytype(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_getTYPE(PG_FUNCTION_ARGS);
+extern "C" Datum geometry_geometrytype(PG_FUNCTION_ARGS);
 /* ---- NumPoints(geometry) */
-Datum LWGEOM_numpoints_linestring(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_numpoints_linestring(PG_FUNCTION_ARGS);
 /* ---- NumGeometries(geometry) */
-Datum LWGEOM_numgeometries_collection(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_numgeometries_collection(PG_FUNCTION_ARGS);
 /* ---- GeometryN(geometry, integer) */
-Datum LWGEOM_geometryn_collection(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_geometryn_collection(PG_FUNCTION_ARGS);
 /* ---- Dimension(geometry) */
-Datum LWGEOM_dimension(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_dimension(PG_FUNCTION_ARGS);
 /* ---- ExteriorRing(geometry) */
-Datum LWGEOM_exteriorring_polygon(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_exteriorring_polygon(PG_FUNCTION_ARGS);
 /* ---- InteriorRingN(geometry, integer) */
-Datum LWGEOM_interiorringn_polygon(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_interiorringn_polygon(PG_FUNCTION_ARGS);
 /* ---- NumInteriorRings(geometry) */
-Datum LWGEOM_numinteriorrings_polygon(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_numinteriorrings_polygon(PG_FUNCTION_ARGS);
 /* ---- PointN(geometry, integer) */
-Datum LWGEOM_pointn_linestring(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_pointn_linestring(PG_FUNCTION_ARGS);
 /* ---- X(geometry) */
-Datum LWGEOM_x_point(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_x_point(PG_FUNCTION_ARGS);
 /* ---- Y(geometry) */
-Datum LWGEOM_y_point(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_y_point(PG_FUNCTION_ARGS);
 /* ---- Z(geometry) */
-Datum LWGEOM_z_point(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_z_point(PG_FUNCTION_ARGS);
 /* ---- M(geometry) */
-Datum LWGEOM_m_point(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_m_point(PG_FUNCTION_ARGS);
 /* ---- StartPoint(geometry) */
-Datum LWGEOM_startpoint_linestring(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_startpoint_linestring(PG_FUNCTION_ARGS);
 /* ---- EndPoint(geometry) */
-Datum LWGEOM_endpoint_linestring(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_endpoint_linestring(PG_FUNCTION_ARGS);
 /* ---- AsText(geometry) */
-Datum LWGEOM_asText(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_asText(PG_FUNCTION_ARGS);
 /* ---- AsBinary(geometry, [XDR|NDR]) */
-Datum LWGEOM_asBinary(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_asBinary(PG_FUNCTION_ARGS);
 /* ---- GeometryFromText(text, integer) */
-Datum LWGEOM_from_text(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_from_text(PG_FUNCTION_ARGS);
 /* ---- GeomFromWKB(bytea, integer) */
-Datum LWGEOM_from_WKB(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_from_WKB(PG_FUNCTION_ARGS);
 /* ---- IsClosed(geometry) */
-Datum LWGEOM_isclosed(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_isclosed(PG_FUNCTION_ARGS);
 
 /*------------------------------------------------------------------*/
 

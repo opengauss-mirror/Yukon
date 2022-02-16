@@ -37,10 +37,10 @@
 #include "lwgeom_pg.h"
 
 
-Datum LWGEOM_has_arc(PG_FUNCTION_ARGS);
-Datum LWGEOM_curve_segmentize(PG_FUNCTION_ARGS);
-Datum LWGEOM_line_desegmentize(PG_FUNCTION_ARGS);
-
+extern "C" Datum LWGEOM_has_arc(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_curve_segmentize(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_line_desegmentize(PG_FUNCTION_ARGS);
+extern "C" Datum ST_CurveToLine(PG_FUNCTION_ARGS);
 
 
 /*******************************************************************************

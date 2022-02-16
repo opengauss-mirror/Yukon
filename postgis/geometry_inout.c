@@ -31,12 +31,12 @@
 #include "lwgeom_pg.h"       /* For debugging macros. */
 
 
-Datum geometry_to_point(PG_FUNCTION_ARGS);
-Datum point_to_geometry(PG_FUNCTION_ARGS);
-Datum geometry_to_path(PG_FUNCTION_ARGS);
-Datum path_to_geometry(PG_FUNCTION_ARGS);
-Datum geometry_to_polygon(PG_FUNCTION_ARGS);
-Datum polygon_to_geometry(PG_FUNCTION_ARGS);
+extern "C" Datum  geometry_to_point(PG_FUNCTION_ARGS);
+extern "C" Datum  point_to_geometry(PG_FUNCTION_ARGS);
+extern "C" Datum  geometry_to_path(PG_FUNCTION_ARGS);
+extern "C" Datum  path_to_geometry(PG_FUNCTION_ARGS);
+extern "C" Datum  geometry_to_polygon(PG_FUNCTION_ARGS);
+extern "C" Datum  polygon_to_geometry(PG_FUNCTION_ARGS);
 
 /**
 * Cast a PostgreSQL Point to a PostGIS geometry

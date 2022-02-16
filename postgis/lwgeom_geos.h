@@ -39,13 +39,13 @@ GEOSGeometry *POSTGIS2GEOS(const GSERIALIZED *g);
 GEOSGeometry** ARRAY2GEOS(ArrayType* array, uint32_t nelems, int* is3d, int* srid);
 LWGEOM** ARRAY2LWGEOM(ArrayType* array, uint32_t nelems, int* is3d, int* srid);
 
-Datum geos_intersects(PG_FUNCTION_ARGS);
-Datum geos_intersection(PG_FUNCTION_ARGS);
-Datum geos_difference(PG_FUNCTION_ARGS);
-Datum geos_geomunion(PG_FUNCTION_ARGS);
-Datum LWGEOM_area_polygon(PG_FUNCTION_ARGS);
-Datum LWGEOM_mindistance2d(PG_FUNCTION_ARGS);
-Datum ST_3DDistance(PG_FUNCTION_ARGS);
+extern "C" Datum geos_intersects(PG_FUNCTION_ARGS);
+extern "C" Datum geos_intersection(PG_FUNCTION_ARGS);
+extern "C" Datum geos_difference(PG_FUNCTION_ARGS);
+extern "C" Datum geos_geomunion(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_area_polygon(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_mindistance2d(PG_FUNCTION_ARGS);
+extern "C" Datum ST_3DDistance(PG_FUNCTION_ARGS);
 
 uint32_t array_nelems_not_null(ArrayType* array);
 

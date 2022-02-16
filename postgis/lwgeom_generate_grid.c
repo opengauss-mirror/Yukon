@@ -37,9 +37,9 @@
 #include <stdio.h>
 
 
-Datum ST_Hexagon(PG_FUNCTION_ARGS);
-Datum ST_Square(PG_FUNCTION_ARGS);
-Datum ST_ShapeGrid(PG_FUNCTION_ARGS);
+extern "C" Datum ST_Hexagon(PG_FUNCTION_ARGS);
+extern "C" Datum ST_Square(PG_FUNCTION_ARGS);
+extern "C" Datum ST_ShapeGrid(PG_FUNCTION_ARGS);
 
 /* ********* ********* ********* ********* ********* ********* ********* ********* */
 

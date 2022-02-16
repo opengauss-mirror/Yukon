@@ -44,14 +44,14 @@
 #include "lwgeom_transform.h" /* for srid_is_latlon */
 
 
-Datum geography_typmod_in(PG_FUNCTION_ARGS);
-Datum geometry_typmod_in(PG_FUNCTION_ARGS);
-Datum postgis_typmod_out(PG_FUNCTION_ARGS);
-Datum postgis_typmod_dims(PG_FUNCTION_ARGS);
-Datum postgis_typmod_srid(PG_FUNCTION_ARGS);
-Datum postgis_typmod_type(PG_FUNCTION_ARGS);
-Datum geography_enforce_typmod(PG_FUNCTION_ARGS);
-Datum geometry_enforce_typmod(PG_FUNCTION_ARGS);
+extern "C" Datum geography_typmod_in(PG_FUNCTION_ARGS);
+extern "C" Datum geometry_typmod_in(PG_FUNCTION_ARGS);
+extern "C" Datum postgis_typmod_out(PG_FUNCTION_ARGS);
+extern "C" Datum postgis_typmod_dims(PG_FUNCTION_ARGS);
+extern "C" Datum postgis_typmod_srid(PG_FUNCTION_ARGS);
+extern "C" Datum postgis_typmod_type(PG_FUNCTION_ARGS);
+extern "C" Datum geography_enforce_typmod(PG_FUNCTION_ARGS);
+extern "C" Datum geometry_enforce_typmod(PG_FUNCTION_ARGS);
 
 
 /*

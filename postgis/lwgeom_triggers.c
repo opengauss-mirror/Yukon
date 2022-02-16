@@ -31,7 +31,7 @@
 #include "lwgeom_pg.h"
 #include "utils/rel.h"
 
-Datum cache_bbox(PG_FUNCTION_ARGS);
+extern "C" Datum cache_bbox(PG_FUNCTION_ARGS);
 
 /** @file
  * 	The intended use for this trigger function is making

@@ -68,38 +68,38 @@ static int geog_counter_internal = 0;
 /*
 ** ND Index key type stub prototypes
 */
-Datum gidx_out(PG_FUNCTION_ARGS);
-Datum gidx_in(PG_FUNCTION_ARGS);
+extern "C" Datum gidx_out(PG_FUNCTION_ARGS);
+extern "C" Datum gidx_in(PG_FUNCTION_ARGS);
 
 /*
 ** ND GiST prototypes
 */
-Datum gserialized_gist_consistent(PG_FUNCTION_ARGS);
-Datum gserialized_gist_compress(PG_FUNCTION_ARGS);
-Datum gserialized_gist_decompress(PG_FUNCTION_ARGS);
-Datum gserialized_gist_penalty(PG_FUNCTION_ARGS);
-Datum gserialized_gist_picksplit(PG_FUNCTION_ARGS);
-Datum gserialized_gist_union(PG_FUNCTION_ARGS);
-Datum gserialized_gist_same(PG_FUNCTION_ARGS);
-Datum gserialized_gist_distance(PG_FUNCTION_ARGS);
-Datum gserialized_gist_geog_distance(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_consistent(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_compress(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_decompress(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_penalty(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_picksplit(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_union(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_same(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_distance(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_geog_distance(PG_FUNCTION_ARGS);
 
 /*
 ** ND Operator prototypes
 */
-Datum gserialized_overlaps(PG_FUNCTION_ARGS);
-Datum gserialized_gidx_geom_overlaps(PG_FUNCTION_ARGS);
-Datum gserialized_gidx_gidx_overlaps(PG_FUNCTION_ARGS);
-Datum gserialized_contains(PG_FUNCTION_ARGS);
-Datum gserialized_gidx_geom_contains(PG_FUNCTION_ARGS);
-Datum gserialized_gidx_gidx_contains(PG_FUNCTION_ARGS);
-Datum gserialized_within(PG_FUNCTION_ARGS);
-Datum gserialized_gidx_geom_within(PG_FUNCTION_ARGS);
-Datum gserialized_gidx_gidx_within(PG_FUNCTION_ARGS);
-Datum gserialized_same(PG_FUNCTION_ARGS);
-Datum gserialized_gidx_geom_same(PG_FUNCTION_ARGS);
-Datum gserialized_gidx_gidx_same(PG_FUNCTION_ARGS);
-Datum gserialized_distance_nd(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_overlaps(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gidx_geom_overlaps(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gidx_gidx_overlaps(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_contains(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gidx_geom_contains(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gidx_gidx_contains(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_within(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gidx_geom_within(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gidx_gidx_within(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_same(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gidx_geom_same(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gidx_gidx_same(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_distance_nd(PG_FUNCTION_ARGS);
 
 /*
 ** GIDX true/false test function type

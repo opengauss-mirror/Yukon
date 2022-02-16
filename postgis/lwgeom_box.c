@@ -42,15 +42,15 @@
 #include <stdio.h>
 
 /* forward defs */
-Datum BOX2D_in(PG_FUNCTION_ARGS);
-Datum BOX2D_out(PG_FUNCTION_ARGS);
-Datum LWGEOM_to_BOX2D(PG_FUNCTION_ARGS);
-Datum LWGEOM_to_BOX2DF(PG_FUNCTION_ARGS);
-Datum BOX2D_expand(PG_FUNCTION_ARGS);
-Datum BOX2D_to_BOX3D(PG_FUNCTION_ARGS);
-Datum BOX2D_combine(PG_FUNCTION_ARGS);
-Datum BOX2D_to_LWGEOM(PG_FUNCTION_ARGS);
-Datum BOX2D_construct(PG_FUNCTION_ARGS);
+extern "C" Datum BOX2D_in(PG_FUNCTION_ARGS);
+extern "C" Datum BOX2D_out(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_to_BOX2D(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_to_BOX2DF(PG_FUNCTION_ARGS);
+extern "C" Datum BOX2D_expand(PG_FUNCTION_ARGS);
+extern "C" Datum BOX2D_to_BOX3D(PG_FUNCTION_ARGS);
+extern "C" Datum BOX2D_combine(PG_FUNCTION_ARGS);
+extern "C" Datum BOX2D_to_LWGEOM(PG_FUNCTION_ARGS);
+extern "C" Datum BOX2D_construct(PG_FUNCTION_ARGS);
 
 /* parser - "BOX(xmin ymin,xmax ymax)" */
 PG_FUNCTION_INFO_V1(BOX2D_in);

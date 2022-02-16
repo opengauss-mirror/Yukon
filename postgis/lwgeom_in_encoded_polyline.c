@@ -32,7 +32,7 @@
 #include "lwgeom_pg.h"
 #include "liblwgeom.h"
 
-Datum line_from_encoded_polyline(PG_FUNCTION_ARGS);
+extern "C" Datum line_from_encoded_polyline(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(line_from_encoded_polyline);
 Datum line_from_encoded_polyline(PG_FUNCTION_ARGS)

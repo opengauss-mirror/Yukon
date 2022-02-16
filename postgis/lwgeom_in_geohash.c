@@ -33,8 +33,8 @@
 #include "liblwgeom.h"
 #include "liblwgeom_internal.h"/* for decode_geohash_bbox */
 
-Datum box2d_from_geohash(PG_FUNCTION_ARGS);
-Datum point_from_geohash(PG_FUNCTION_ARGS);
+extern "C" Datum box2d_from_geohash(PG_FUNCTION_ARGS);
+extern "C" Datum point_from_geohash(PG_FUNCTION_ARGS);
 
 static void geohash_lwpgerror(char *msg, __attribute__((__unused__)) int error_code)
 {

@@ -34,12 +34,12 @@
 #include "gserialized_gist.h"
 #include "geography.h"	     /* For utility functions. */
 
-Datum geography_lt(PG_FUNCTION_ARGS);
-Datum geography_le(PG_FUNCTION_ARGS);
-Datum geography_eq(PG_FUNCTION_ARGS);
-Datum geography_ge(PG_FUNCTION_ARGS);
-Datum geography_gt(PG_FUNCTION_ARGS);
-Datum geography_cmp(PG_FUNCTION_ARGS);
+extern "C" Datum geography_lt(PG_FUNCTION_ARGS);
+extern "C" Datum geography_le(PG_FUNCTION_ARGS);
+extern "C" Datum geography_eq(PG_FUNCTION_ARGS);
+extern "C" Datum geography_ge(PG_FUNCTION_ARGS);
+extern "C" Datum geography_gt(PG_FUNCTION_ARGS);
+extern "C" Datum geography_cmp(PG_FUNCTION_ARGS);
 
 /*
 ** BTree support function. Based on two geographies return true if

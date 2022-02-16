@@ -42,7 +42,7 @@
  * Return the measure at which interpolated points on the two
  * input lines are at the smallest distance.
  */
-Datum ST_ClosestPointOfApproach(PG_FUNCTION_ARGS);
+extern "C" Datum ST_ClosestPointOfApproach(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_ClosestPointOfApproach);
 Datum ST_ClosestPointOfApproach(PG_FUNCTION_ARGS)
 {
@@ -64,7 +64,7 @@ Datum ST_ClosestPointOfApproach(PG_FUNCTION_ARGS)
  * Does the object correctly model a trajectory ?
  * Must be a LINESTRINGM with growing measures
  */
-Datum ST_IsValidTrajectory(PG_FUNCTION_ARGS);
+extern "C" Datum ST_IsValidTrajectory(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_IsValidTrajectory);
 Datum ST_IsValidTrajectory(PG_FUNCTION_ARGS)
 {
@@ -80,7 +80,7 @@ Datum ST_IsValidTrajectory(PG_FUNCTION_ARGS)
  * Return the distance between two trajectories at their
  * closest point of approach.
  */
-Datum ST_DistanceCPA(PG_FUNCTION_ARGS);
+extern "C" Datum ST_DistanceCPA(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_DistanceCPA);
 Datum ST_DistanceCPA(PG_FUNCTION_ARGS)
 {
@@ -103,7 +103,7 @@ Datum ST_DistanceCPA(PG_FUNCTION_ARGS)
  * Return true if the distance between two trajectories at their
  * closest point of approach is within the given max.
  */
-Datum ST_CPAWithin(PG_FUNCTION_ARGS);
+extern "C" Datum ST_CPAWithin(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_CPAWithin);
 Datum ST_CPAWithin(PG_FUNCTION_ARGS)
 {

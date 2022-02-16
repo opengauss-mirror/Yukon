@@ -71,45 +71,45 @@ static int g2d_counter_internal = 0;
 /*
 ** GiST 2D key stubs
 */
-Datum box2df_out(PG_FUNCTION_ARGS);
-Datum box2df_in(PG_FUNCTION_ARGS);
+extern "C" Datum box2df_out(PG_FUNCTION_ARGS);
+extern "C" Datum box2df_in(PG_FUNCTION_ARGS);
 
 /*
 ** GiST 2D index function prototypes
 */
-Datum gserialized_gist_consistent_2d(PG_FUNCTION_ARGS);
-Datum gserialized_gist_compress_2d(PG_FUNCTION_ARGS);
-Datum gserialized_gist_decompress_2d(PG_FUNCTION_ARGS);
-Datum gserialized_gist_penalty_2d(PG_FUNCTION_ARGS);
-Datum gserialized_gist_picksplit_2d(PG_FUNCTION_ARGS);
-Datum gserialized_gist_union_2d(PG_FUNCTION_ARGS);
-Datum gserialized_gist_same_2d(PG_FUNCTION_ARGS);
-Datum gserialized_gist_distance_2d(PG_FUNCTION_ARGS);
-Datum gserialized_gist_sortsupport_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_consistent_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_compress_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_decompress_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_penalty_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_picksplit_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_union_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_same_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_distance_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_sortsupport_2d(PG_FUNCTION_ARGS);
 
 /*
 ** GiST 2D operator prototypes
 */
-Datum gserialized_same_2d(PG_FUNCTION_ARGS);
-Datum gserialized_within_2d(PG_FUNCTION_ARGS);
-Datum gserialized_contains_2d(PG_FUNCTION_ARGS);
-Datum gserialized_overlaps_2d(PG_FUNCTION_ARGS);
-Datum gserialized_left_2d(PG_FUNCTION_ARGS);
-Datum gserialized_right_2d(PG_FUNCTION_ARGS);
-Datum gserialized_above_2d(PG_FUNCTION_ARGS);
-Datum gserialized_below_2d(PG_FUNCTION_ARGS);
-Datum gserialized_overleft_2d(PG_FUNCTION_ARGS);
-Datum gserialized_overright_2d(PG_FUNCTION_ARGS);
-Datum gserialized_overabove_2d(PG_FUNCTION_ARGS);
-Datum gserialized_overbelow_2d(PG_FUNCTION_ARGS);
-Datum gserialized_distance_box_2d(PG_FUNCTION_ARGS);
-Datum gserialized_distance_centroid_2d(PG_FUNCTION_ARGS);
-Datum gserialized_contains_box2df_geom_2d(PG_FUNCTION_ARGS);
-Datum gserialized_contains_box2df_box2df_2d(PG_FUNCTION_ARGS);
-Datum gserialized_within_box2df_geom_2d(PG_FUNCTION_ARGS);
-Datum gserialized_within_box2df_box2df_2d(PG_FUNCTION_ARGS);
-Datum gserialized_overlaps_box2df_geom_2d(PG_FUNCTION_ARGS);
-Datum gserialized_overlaps_box2df_box2df_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_same_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_within_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_contains_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_overlaps_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_left_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_right_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_above_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_below_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_overleft_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_overright_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_overabove_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_overbelow_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_distance_box_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_distance_centroid_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_contains_box2df_geom_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_contains_box2df_box2df_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_within_box2df_geom_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_within_box2df_box2df_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_overlaps_box2df_geom_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_overlaps_box2df_box2df_2d(PG_FUNCTION_ARGS);
 
 /*
 ** true/false test function type

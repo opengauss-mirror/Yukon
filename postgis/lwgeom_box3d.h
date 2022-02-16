@@ -25,21 +25,21 @@
  **********************************************************************/
 
 /* forward defs */
-Datum BOX3D_in(PG_FUNCTION_ARGS);
-Datum BOX3D_out(PG_FUNCTION_ARGS);
-Datum LWGEOM_to_BOX3D(PG_FUNCTION_ARGS);
-Datum BOX3D_to_LWGEOM(PG_FUNCTION_ARGS);
-Datum BOX3D_expand(PG_FUNCTION_ARGS);
-Datum BOX3D_to_BOX2D(PG_FUNCTION_ARGS);
-Datum BOX3D_to_BOX(PG_FUNCTION_ARGS);
-Datum BOX3D_xmin(PG_FUNCTION_ARGS);
-Datum BOX3D_ymin(PG_FUNCTION_ARGS);
-Datum BOX3D_zmin(PG_FUNCTION_ARGS);
-Datum BOX3D_xmax(PG_FUNCTION_ARGS);
-Datum BOX3D_ymax(PG_FUNCTION_ARGS);
-Datum BOX3D_zmax(PG_FUNCTION_ARGS);
-Datum BOX3D_combine(PG_FUNCTION_ARGS);
-Datum BOX3D_combine_BOX3D(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_in(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_out(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_to_BOX3D(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_to_LWGEOM(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_expand(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_to_BOX2D(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_to_BOX(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_xmin(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_ymin(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_zmin(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_xmax(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_ymax(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_zmax(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_combine(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_combine_BOX3D(PG_FUNCTION_ARGS);
 
 /*****************************************************************************
  * BOX3D operators
@@ -65,21 +65,21 @@ double BOX3D_distance_internal(BOX3D *box1, BOX3D *box2);
 
 /** needed for sp-gist support PostgreSQL 11+ **/
 #if POSTGIS_PGSQL_VERSION > 100
-Datum BOX3D_contains(PG_FUNCTION_ARGS);
-Datum BOX3D_contained(PG_FUNCTION_ARGS);
-Datum BOX3D_overlaps(PG_FUNCTION_ARGS);
-Datum BOX3D_same(PG_FUNCTION_ARGS);
-Datum BOX3D_left(PG_FUNCTION_ARGS);
-Datum BOX3D_overleft(PG_FUNCTION_ARGS);
-Datum BOX3D_right(PG_FUNCTION_ARGS);
-Datum BOX3D_overright(PG_FUNCTION_ARGS);
-Datum BOX3D_below(PG_FUNCTION_ARGS);
-Datum BOX3D_overbelow(PG_FUNCTION_ARGS);
-Datum BOX3D_above(PG_FUNCTION_ARGS);
-Datum BOX3D_overabove(PG_FUNCTION_ARGS);
-Datum BOX3D_front(PG_FUNCTION_ARGS);
-Datum BOX3D_overfront(PG_FUNCTION_ARGS);
-Datum BOX3D_back(PG_FUNCTION_ARGS);
-Datum BOX3D_overback(PG_FUNCTION_ARGS);
-Datum BOX3D_distance(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_contains(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_contained(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_overlaps(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_same(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_left(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_overleft(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_right(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_overright(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_below(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_overbelow(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_above(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_overabove(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_front(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_overfront(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_back(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_overback(PG_FUNCTION_ARGS);
+extern "C" Datum BOX3D_distance(PG_FUNCTION_ARGS);
 #endif

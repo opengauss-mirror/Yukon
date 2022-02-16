@@ -34,8 +34,8 @@
 
 #define ABORT_ON_AUTH_FAILURE 1
 
-Datum check_authorization(PG_FUNCTION_ARGS);
-Datum getTransactionID(PG_FUNCTION_ARGS);
+extern "C" Datum check_authorization(PG_FUNCTION_ARGS);
+extern "C" Datum getTransactionID(PG_FUNCTION_ARGS);
 
 /*
  * This trigger will check for authorization before

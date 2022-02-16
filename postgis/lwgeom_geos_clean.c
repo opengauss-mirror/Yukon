@@ -39,7 +39,7 @@
 #include <string.h>
 #include <assert.h>
 
-Datum ST_MakeValid(PG_FUNCTION_ARGS);
+extern "C" Datum ST_MakeValid(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_MakeValid);
 Datum ST_MakeValid(PG_FUNCTION_ARGS)
 {
@@ -133,7 +133,7 @@ lwgeom_clean(LWGEOM* lwgeom_in)
 }
 
 
-Datum ST_CleanGeometry(PG_FUNCTION_ARGS);
+extern "C" Datum ST_CleanGeometry(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_CleanGeometry);
 Datum ST_CleanGeometry(PG_FUNCTION_ARGS)
 {

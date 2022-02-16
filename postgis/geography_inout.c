@@ -45,20 +45,20 @@
 #include "geography.h"	     /* For utility functions. */
 #include "lwgeom_transform.h"
 
-Datum geography_in(PG_FUNCTION_ARGS);
-Datum geography_out(PG_FUNCTION_ARGS);
+extern "C" Datum geography_in(PG_FUNCTION_ARGS);
+extern "C" Datum geography_out(PG_FUNCTION_ARGS);
 
-Datum geography_as_text(PG_FUNCTION_ARGS);
-Datum geography_from_text(PG_FUNCTION_ARGS);
-Datum geography_as_geojson(PG_FUNCTION_ARGS);
-Datum geography_as_gml(PG_FUNCTION_ARGS);
-Datum geography_as_kml(PG_FUNCTION_ARGS);
-Datum geography_as_svg(PG_FUNCTION_ARGS);
-Datum geography_from_binary(PG_FUNCTION_ARGS);
-Datum geography_from_geometry(PG_FUNCTION_ARGS);
-Datum geometry_from_geography(PG_FUNCTION_ARGS);
-Datum geography_send(PG_FUNCTION_ARGS);
-Datum geography_recv(PG_FUNCTION_ARGS);
+extern "C" Datum geography_as_text(PG_FUNCTION_ARGS);
+extern "C" Datum geography_from_text(PG_FUNCTION_ARGS);
+extern "C" Datum geography_as_geojson(PG_FUNCTION_ARGS);
+extern "C" Datum geography_as_gml(PG_FUNCTION_ARGS);
+extern "C" Datum geography_as_kml(PG_FUNCTION_ARGS);
+extern "C" Datum geography_as_svg(PG_FUNCTION_ARGS);
+extern "C" Datum geography_from_binary(PG_FUNCTION_ARGS);
+extern "C" Datum geography_from_geometry(PG_FUNCTION_ARGS);
+extern "C" Datum geometry_from_geography(PG_FUNCTION_ARGS);
+extern "C" Datum geography_send(PG_FUNCTION_ARGS);
+extern "C" Datum geography_recv(PG_FUNCTION_ARGS);
 
 GSERIALIZED* gserialized_geography_from_lwgeom(LWGEOM *lwgeom, int32 geog_typmod);
 

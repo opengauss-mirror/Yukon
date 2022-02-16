@@ -81,12 +81,12 @@
  * ND SP-GiST prototypes
  */
 
-Datum gserialized_spgist_config_nd(PG_FUNCTION_ARGS);
-Datum gserialized_spgist_choose_nd(PG_FUNCTION_ARGS);
-Datum gserialized_spgist_picksplit_nd(PG_FUNCTION_ARGS);
-Datum gserialized_spgist_inner_consistent_nd(PG_FUNCTION_ARGS);
-Datum gserialized_spgist_leaf_consistent_nd(PG_FUNCTION_ARGS);
-Datum gserialized_spgist_compress_nd(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_spgist_config_nd(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_spgist_choose_nd(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_spgist_picksplit_nd(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_spgist_inner_consistent_nd(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_spgist_leaf_consistent_nd(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_spgist_compress_nd(PG_FUNCTION_ARGS);
 
 /* Structure storing the n-dimensional bounding box */
 

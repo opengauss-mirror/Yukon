@@ -58,7 +58,7 @@ TODO:
 */
 
 
-Datum geom_from_kml(PG_FUNCTION_ARGS);
+extern "C" Datum geom_from_kml(PG_FUNCTION_ARGS);
 static LWGEOM* parse_kml(xmlNodePtr xnode, bool *hasz);
 
 #define KML_NS		((char *) "http://www.opengis.net/kml/2.2")

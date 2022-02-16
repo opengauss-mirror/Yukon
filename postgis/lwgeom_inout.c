@@ -56,20 +56,20 @@
 
 void elog_ERROR(const char* string);
 
-Datum LWGEOM_in(PG_FUNCTION_ARGS);
-Datum LWGEOM_out(PG_FUNCTION_ARGS);
-Datum LWGEOM_to_text(PG_FUNCTION_ARGS);
-Datum LWGEOM_to_bytea(PG_FUNCTION_ARGS);
-Datum LWGEOM_from_bytea(PG_FUNCTION_ARGS);
-Datum LWGEOM_asHEXEWKB(PG_FUNCTION_ARGS);
-Datum parse_WKT_lwgeom(PG_FUNCTION_ARGS);
-Datum LWGEOM_recv(PG_FUNCTION_ARGS);
-Datum LWGEOM_send(PG_FUNCTION_ARGS);
-Datum LWGEOM_to_latlon(PG_FUNCTION_ARGS);
-Datum WKBFromLWGEOM(PG_FUNCTION_ARGS);
-Datum TWKBFromLWGEOM(PG_FUNCTION_ARGS);
-Datum TWKBFromLWGEOMArray(PG_FUNCTION_ARGS);
-Datum LWGEOMFromTWKB(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_in(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_out(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_to_text(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_to_bytea(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_from_bytea(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_asHEXEWKB(PG_FUNCTION_ARGS);
+extern "C" Datum parse_WKT_lwgeom(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_recv(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_send(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_to_latlon(PG_FUNCTION_ARGS);
+extern "C" Datum WKBFromLWGEOM(PG_FUNCTION_ARGS);
+extern "C" Datum TWKBFromLWGEOM(PG_FUNCTION_ARGS);
+extern "C" Datum TWKBFromLWGEOMArray(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOMFromTWKB(PG_FUNCTION_ARGS);
 
 /*
  * LWGEOM_in(cstring)

@@ -131,18 +131,18 @@ dimensionality cases. (2D geometry) &&& (3D column), etc.
 
 
 /* Prototypes */
-Datum gserialized_gist_joinsel(PG_FUNCTION_ARGS);
-Datum gserialized_gist_joinsel_2d(PG_FUNCTION_ARGS);
-Datum gserialized_gist_joinsel_nd(PG_FUNCTION_ARGS);
-Datum gserialized_gist_sel(PG_FUNCTION_ARGS);
-Datum gserialized_gist_sel_2d(PG_FUNCTION_ARGS);
-Datum gserialized_gist_sel_nd(PG_FUNCTION_ARGS);
-Datum gserialized_analyze_nd(PG_FUNCTION_ARGS);
-Datum gserialized_estimated_extent(PG_FUNCTION_ARGS);
-Datum _postgis_gserialized_index_extent(PG_FUNCTION_ARGS);
-Datum _postgis_gserialized_sel(PG_FUNCTION_ARGS);
-Datum _postgis_gserialized_joinsel(PG_FUNCTION_ARGS);
-Datum _postgis_gserialized_stats(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_joinsel(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_joinsel_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_joinsel_nd(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_sel(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_sel_2d(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gist_sel_nd(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_analyze_nd(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_estimated_extent(PG_FUNCTION_ARGS);
+extern "C" Datum _postgis_gserialized_index_extent(PG_FUNCTION_ARGS);
+extern "C" Datum _postgis_gserialized_sel(PG_FUNCTION_ARGS);
+extern "C" Datum _postgis_gserialized_joinsel(PG_FUNCTION_ARGS);
+extern "C" Datum _postgis_gserialized_stats(PG_FUNCTION_ARGS);
 
 /* Local prototypes */
 static Oid table_get_spatial_index(Oid tbl_oid, text *col, int *key_type);

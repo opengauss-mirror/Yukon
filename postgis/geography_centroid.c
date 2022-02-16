@@ -32,7 +32,7 @@
 #include "lwgeom_pg.h"       /* For pg macros. */
 #include "lwgeom_transform.h" /* For SRID functions */
 
-Datum geography_centroid(PG_FUNCTION_ARGS);
+extern "C" Datum geography_centroid(PG_FUNCTION_ARGS);
 
 /* internal functions */
 LWPOINT *geography_centroid_from_wpoints(const int32_t srid, const POINT3DM *points, const uint32_t size);

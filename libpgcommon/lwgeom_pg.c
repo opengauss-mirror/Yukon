@@ -535,7 +535,7 @@ postgis_guc_find_option(const char *name)
 }
 
 
-#if POSTGIS_PGSQL_VERSION < 100
+//#if POSTGIS_PGSQL_VERSION < 100
 Datum
 CallerFInfoFunctionCall1(PGFunction func, FmgrInfo *flinfo, Oid collation, Datum arg1)
 {
@@ -578,7 +578,7 @@ CallerFInfoFunctionCall2(PGFunction func, FmgrInfo *flinfo, Oid collation, Datum
 	return result;
 }
 
-#else
+//#else
 
 #if POSTGIS_PGSQL_VERSION < 120
 Datum
@@ -631,4 +631,4 @@ CallerFInfoFunctionCall3(PGFunction func, FmgrInfo *flinfo, Oid collation, Datum
 }
 #endif
 
-#endif
+//#endif

@@ -40,22 +40,22 @@
 #include "lwgeom_accum.h"
 
 /* Local prototypes */
-Datum PGISDirectFunctionCall1(PGFunction func, Datum arg1);
-Datum PGISDirectFunctionCall2(PGFunction func, Datum arg1, Datum arg2);
-Datum pgis_geometry_accum_transfn(PG_FUNCTION_ARGS);
-Datum pgis_geometry_collect_finalfn(PG_FUNCTION_ARGS);
-Datum pgis_geometry_polygonize_finalfn(PG_FUNCTION_ARGS);
-Datum pgis_geometry_makeline_finalfn(PG_FUNCTION_ARGS);
-Datum pgis_geometry_clusterintersecting_finalfn(PG_FUNCTION_ARGS);
-Datum pgis_geometry_clusterwithin_finalfn(PG_FUNCTION_ARGS);
+extern "C" Datum PGISDirectFunctionCall1(PGFunction func, Datum arg1);
+extern "C" Datum PGISDirectFunctionCall2(PGFunction func, Datum arg1, Datum arg2);
+extern "C" Datum pgis_geometry_accum_transfn(PG_FUNCTION_ARGS);
+extern "C" Datum pgis_geometry_collect_finalfn(PG_FUNCTION_ARGS);
+extern "C" Datum pgis_geometry_polygonize_finalfn(PG_FUNCTION_ARGS);
+extern "C" Datum pgis_geometry_makeline_finalfn(PG_FUNCTION_ARGS);
+extern "C" Datum pgis_geometry_clusterintersecting_finalfn(PG_FUNCTION_ARGS);
+extern "C" Datum pgis_geometry_clusterwithin_finalfn(PG_FUNCTION_ARGS);
 
 /* External prototypes */
-Datum pgis_union_geometry_array(PG_FUNCTION_ARGS);
-Datum LWGEOM_collect_garray(PG_FUNCTION_ARGS);
-Datum polygonize_garray(PG_FUNCTION_ARGS);
-Datum clusterintersecting_garray(PG_FUNCTION_ARGS);
-Datum cluster_within_distance_garray(PG_FUNCTION_ARGS);
-Datum LWGEOM_makeline_garray(PG_FUNCTION_ARGS);
+extern "C" Datum pgis_union_geometry_array(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_collect_garray(PG_FUNCTION_ARGS);
+extern "C" Datum polygonize_garray(PG_FUNCTION_ARGS);
+extern "C" Datum clusterintersecting_garray(PG_FUNCTION_ARGS);
+extern "C" Datum cluster_within_distance_garray(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_makeline_garray(PG_FUNCTION_ARGS);
 
 
 /**

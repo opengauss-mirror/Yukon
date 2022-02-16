@@ -37,7 +37,7 @@
 * start value to the end value.
 * ST_AddMeasure(Geometry, StartMeasure, EndMeasure) returns Geometry
 */
-Datum ST_AddMeasure(PG_FUNCTION_ARGS);
+extern "C" Datum ST_AddMeasure(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_AddMeasure);
 Datum ST_AddMeasure(PG_FUNCTION_ARGS)
 {
@@ -77,7 +77,7 @@ Datum ST_AddMeasure(PG_FUNCTION_ARGS)
 * Locate a point along a feature based on a measure value.
 * ST_LocateAlong(Geometry, Measure, [Offset]) returns Geometry
 */
-Datum ST_LocateAlong(PG_FUNCTION_ARGS);
+extern "C" Datum ST_LocateAlong(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_LocateAlong);
 Datum ST_LocateAlong(PG_FUNCTION_ARGS)
 {
@@ -105,7 +105,7 @@ Datum ST_LocateAlong(PG_FUNCTION_ARGS)
 /*
 * Locate the portion of a line between the specified measures
 */
-Datum ST_LocateBetween(PG_FUNCTION_ARGS);
+extern "C" Datum ST_LocateBetween(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_LocateBetween);
 Datum ST_LocateBetween(PG_FUNCTION_ARGS)
 {
@@ -146,7 +146,7 @@ Datum ST_LocateBetween(PG_FUNCTION_ARGS)
 /*
 * Locate the portion of a line between the specified elevations
 */
-Datum ST_LocateBetweenElevations(PG_FUNCTION_ARGS);
+extern "C" Datum ST_LocateBetweenElevations(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_LocateBetweenElevations);
 Datum ST_LocateBetweenElevations(PG_FUNCTION_ARGS)
 {
@@ -179,7 +179,7 @@ Datum ST_LocateBetweenElevations(PG_FUNCTION_ARGS)
 }
 
 
-Datum ST_InterpolatePoint(PG_FUNCTION_ARGS);
+extern "C" Datum ST_InterpolatePoint(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_InterpolatePoint);
 Datum ST_InterpolatePoint(PG_FUNCTION_ARGS)
 {
@@ -214,7 +214,7 @@ Datum ST_InterpolatePoint(PG_FUNCTION_ARGS)
 }
 
 
-Datum LWGEOM_line_locate_point(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_line_locate_point(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(LWGEOM_line_locate_point);
 Datum LWGEOM_line_locate_point(PG_FUNCTION_ARGS)
 {

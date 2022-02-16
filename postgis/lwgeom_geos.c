@@ -64,51 +64,61 @@
 /*
 ** Prototypes for SQL-bound functions
 */
-Datum relate_full(PG_FUNCTION_ARGS);
-Datum relate_pattern(PG_FUNCTION_ARGS);
-Datum disjoint(PG_FUNCTION_ARGS);
-Datum touches(PG_FUNCTION_ARGS);
-Datum ST_Intersects(PG_FUNCTION_ARGS);
-Datum crosses(PG_FUNCTION_ARGS);
-Datum contains(PG_FUNCTION_ARGS);
-Datum within(PG_FUNCTION_ARGS);
-Datum containsproperly(PG_FUNCTION_ARGS);
-Datum covers(PG_FUNCTION_ARGS);
-Datum overlaps(PG_FUNCTION_ARGS);
-Datum isvalid(PG_FUNCTION_ARGS);
-Datum isvalidreason(PG_FUNCTION_ARGS);
-Datum isvaliddetail(PG_FUNCTION_ARGS);
-Datum buffer(PG_FUNCTION_ARGS);
-Datum ST_Intersection(PG_FUNCTION_ARGS);
-Datum convexhull(PG_FUNCTION_ARGS);
-Datum topologypreservesimplify(PG_FUNCTION_ARGS);
-Datum ST_Difference(PG_FUNCTION_ARGS);
-Datum boundary(PG_FUNCTION_ARGS);
-Datum ST_SymDifference(PG_FUNCTION_ARGS);
-Datum ST_Union(PG_FUNCTION_ARGS);
-Datum issimple(PG_FUNCTION_ARGS);
-Datum isring(PG_FUNCTION_ARGS);
-Datum pointonsurface(PG_FUNCTION_ARGS);
-Datum GEOSnoop(PG_FUNCTION_ARGS);
-Datum postgis_geos_version(PG_FUNCTION_ARGS);
-Datum centroid(PG_FUNCTION_ARGS);
-Datum polygonize_garray(PG_FUNCTION_ARGS);
-Datum clusterintersecting_garray(PG_FUNCTION_ARGS);
-Datum cluster_within_distance_garray(PG_FUNCTION_ARGS);
-Datum linemerge(PG_FUNCTION_ARGS);
-Datum coveredby(PG_FUNCTION_ARGS);
-Datum hausdorffdistance(PG_FUNCTION_ARGS);
-Datum hausdorffdistancedensify(PG_FUNCTION_ARGS);
-Datum ST_FrechetDistance(PG_FUNCTION_ARGS);
-Datum ST_UnaryUnion(PG_FUNCTION_ARGS);
-Datum ST_Equals(PG_FUNCTION_ARGS);
-Datum ST_BuildArea(PG_FUNCTION_ARGS);
-Datum ST_DelaunayTriangles(PG_FUNCTION_ARGS);
-Datum ST_MaximumInscribedCircle(PG_FUNCTION_ARGS);
+extern "C" Datum relate_full(PG_FUNCTION_ARGS);
+extern "C" Datum relate_pattern(PG_FUNCTION_ARGS);
+extern "C" Datum disjoint(PG_FUNCTION_ARGS);
+extern "C" Datum touches(PG_FUNCTION_ARGS);
+extern "C" Datum ST_Intersects(PG_FUNCTION_ARGS);
+extern "C" Datum crosses(PG_FUNCTION_ARGS);
+extern "C" Datum contains(PG_FUNCTION_ARGS);
+extern "C" Datum within(PG_FUNCTION_ARGS);
+extern "C" Datum containsproperly(PG_FUNCTION_ARGS);
+extern "C" Datum covers(PG_FUNCTION_ARGS);
+extern "C" Datum overlaps(PG_FUNCTION_ARGS);
+extern "C" Datum isvalid(PG_FUNCTION_ARGS);
+extern "C" Datum isvalidreason(PG_FUNCTION_ARGS);
+extern "C" Datum isvaliddetail(PG_FUNCTION_ARGS);
+extern "C" Datum buffer(PG_FUNCTION_ARGS);
+extern "C" Datum ST_Intersection(PG_FUNCTION_ARGS);
+extern "C" Datum convexhull(PG_FUNCTION_ARGS);
+extern "C" Datum topologypreservesimplify(PG_FUNCTION_ARGS);
+extern "C" Datum ST_Difference(PG_FUNCTION_ARGS);
 
-Datum pgis_union_geometry_array(PG_FUNCTION_ARGS);
-Datum pgis_geometry_union_finalfn(PG_FUNCTION_ARGS);
+extern "C" Datum ST_SymDifference(PG_FUNCTION_ARGS);
+extern "C" Datum ST_Union(PG_FUNCTION_ARGS);
+extern "C" Datum issimple(PG_FUNCTION_ARGS);
+extern "C" Datum isring(PG_FUNCTION_ARGS);
+extern "C" Datum pointonsurface(PG_FUNCTION_ARGS);
+extern "C" Datum GEOSnoop(PG_FUNCTION_ARGS);
+extern "C" Datum postgis_geos_version(PG_FUNCTION_ARGS);
+extern "C" Datum centroid(PG_FUNCTION_ARGS);
+extern "C" Datum polygonize_garray(PG_FUNCTION_ARGS);
+extern "C" Datum clusterintersecting_garray(PG_FUNCTION_ARGS);
+extern "C" Datum cluster_within_distance_garray(PG_FUNCTION_ARGS);
+extern "C" Datum linemerge(PG_FUNCTION_ARGS);
+extern "C" Datum coveredby(PG_FUNCTION_ARGS);
+extern "C" Datum hausdorffdistance(PG_FUNCTION_ARGS);
+extern "C" Datum hausdorffdistancedensify(PG_FUNCTION_ARGS);
+extern "C" Datum ST_FrechetDistance(PG_FUNCTION_ARGS);
+extern "C" Datum ST_UnaryUnion(PG_FUNCTION_ARGS);
+extern "C" Datum ST_Equals(PG_FUNCTION_ARGS);
+extern "C" Datum ST_BuildArea(PG_FUNCTION_ARGS);
+extern "C" Datum ST_DelaunayTriangles(PG_FUNCTION_ARGS);
+extern "C" Datum ST_MaximumInscribedCircle(PG_FUNCTION_ARGS);
 
+extern "C" Datum pgis_union_geometry_array(PG_FUNCTION_ARGS);
+extern "C" Datum pgis_geometry_union_finalfn(PG_FUNCTION_ARGS);
+
+extern "C" Datum ST_OffsetCurve(PG_FUNCTION_ARGS);
+
+extern "C" Datum symdifference(PG_FUNCTION_ARGS);
+
+extern "C" Datum ST_Split(PG_FUNCTION_ARGS);
+extern "C" Datum ST_SharedPaths(PG_FUNCTION_ARGS);
+extern "C" Datum ST_Node(PG_FUNCTION_ARGS);
+extern "C" Datum ST_Voronoi(PG_FUNCTION_ARGS);
+
+extern "C" Datum ST_Snap(PG_FUNCTION_ARGS);
 /*
 ** Prototypes end
 */
@@ -1211,7 +1221,6 @@ Datum ST_GeneratePoints(PG_FUNCTION_ARGS)
 /*
 * Compute at offset curve to a line
 */
-Datum ST_OffsetCurve(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_OffsetCurve);
 Datum ST_OffsetCurve(PG_FUNCTION_ARGS)
 {
@@ -3177,7 +3186,6 @@ Datum ST_DelaunayTriangles(PG_FUNCTION_ARGS)
  *
  * Snap a geometry to another with a given tolerance
  */
-Datum ST_Snap(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_Snap);
 Datum ST_Snap(PG_FUNCTION_ARGS)
 {
@@ -3228,7 +3236,7 @@ Datum ST_Snap(PG_FUNCTION_ARGS)
  * [1] http://trac.osgeo.org/postgis/wiki/UsersWikiSplitPolygonWithLineString
  *
  */
-Datum ST_Split(PG_FUNCTION_ARGS);
+
 PG_FUNCTION_INFO_V1(ST_Split);
 Datum ST_Split(PG_FUNCTION_ARGS)
 {
@@ -3276,7 +3284,6 @@ Datum ST_Split(PG_FUNCTION_ARGS)
  * 0494241492)"
  *
  **********************************************************************/
-Datum ST_SharedPaths(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_SharedPaths);
 Datum ST_SharedPaths(PG_FUNCTION_ARGS)
 {
@@ -3317,7 +3324,7 @@ Datum ST_SharedPaths(PG_FUNCTION_ARGS)
  * preserving all of the input ones.
  *
  **********************************************************************/
-Datum ST_Node(PG_FUNCTION_ARGS);
+
 PG_FUNCTION_INFO_V1(ST_Node);
 Datum ST_Node(PG_FUNCTION_ARGS)
 {
@@ -3352,7 +3359,7 @@ Datum ST_Node(PG_FUNCTION_ARGS)
  * from the points of the input geometry.
  *
  ******************************************/
-Datum ST_Voronoi(PG_FUNCTION_ARGS);
+
 PG_FUNCTION_INFO_V1(ST_Voronoi);
 Datum ST_Voronoi(PG_FUNCTION_ARGS)
 {

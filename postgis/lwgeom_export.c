@@ -40,14 +40,14 @@
 #include "liblwgeom.h"
 #include "liblwgeom_internal.h"
 
-Datum LWGEOM_asGML(PG_FUNCTION_ARGS);
-Datum LWGEOM_asGeoJson(PG_FUNCTION_ARGS);
-Datum LWGEOM_asGeoJson_old(PG_FUNCTION_ARGS);
-Datum LWGEOM_asSVG(PG_FUNCTION_ARGS);
-Datum LWGEOM_asX3D(PG_FUNCTION_ARGS);
-Datum LWGEOM_asEncodedPolyline(PG_FUNCTION_ARGS);
-Datum geometry_to_json(PG_FUNCTION_ARGS);
-Datum geometry_to_jsonb(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_asGML(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_asGeoJson(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_asGeoJson_old(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_asSVG(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_asX3D(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_asEncodedPolyline(PG_FUNCTION_ARGS);
+extern "C" Datum geometry_to_json(PG_FUNCTION_ARGS);
+extern "C" Datum geometry_to_jsonb(PG_FUNCTION_ARGS);
 
 /**
  * Encode feature in GML
