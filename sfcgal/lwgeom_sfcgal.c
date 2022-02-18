@@ -21,13 +21,13 @@
  * Copyright 2012-2020 Oslandia <infos@oslandia.com>
  *
  **********************************************************************/
-#include "postgres.h"
-#include "fmgr.h"
-#include "utils/builtins.h"
+// #include "postgres.h"
+// #include "fmgr.h"
+// #include "utils/builtins.h"
 #include "lwgeom_pg.h"
 #include "lwgeom_sfcgal.h"
 #include "../postgis_config.h"
-
+#include "extension_dependency.h"
 
 #include "utils/elog.h"
 #include "utils/guc.h"
@@ -96,7 +96,8 @@ handleInterrupt(int sig)
     (*coreIntHandler)(sig);
   }
 }
-
+extern "C"
+{
 Datum postgis_sfcgal_version(PG_FUNCTION_ARGS);
 
 Datum sfcgal_from_ewkt(PG_FUNCTION_ARGS);
@@ -117,7 +118,7 @@ Datum sfcgal_minkowski_sum(PG_FUNCTION_ARGS);
 Datum sfcgal_make_solid(PG_FUNCTION_ARGS);
 Datum sfcgal_is_solid(PG_FUNCTION_ARGS);
 Datum postgis_sfcgal_noop(PG_FUNCTION_ARGS);
-
+}
 GSERIALIZED *geometry_serialize(LWGEOM *lwgeom);
 char *text_to_cstring(const text *textptr);
 
