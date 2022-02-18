@@ -27,23 +27,24 @@
  *
  */
 
-#include <postgres.h>
-#include <fmgr.h>
-#include <funcapi.h> /* for SRF */
-#include <utils/builtins.h> /* for text_to_cstring() */
-#include <access/htup_details.h> /* for heap_form_tuple() */
-#include <utils/lsyscache.h> /* for get_typlenbyvalalign */
-#include <utils/array.h> /* for ArrayType */
-#include <utils/guc.h> /* for ArrayType */
-#include <catalog/pg_type.h> /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
-#include <utils/memutils.h> /* For TopMemoryContext */
-
+// #include <postgres.h>
+// #include <fmgr.h>
+// #include <funcapi.h> /* for SRF */
+// #include <utils/builtins.h> /* for text_to_cstring() */
+// #include <access/htup_details.h> /* for heap_form_tuple() */
+// #include <utils/lsyscache.h> /* for get_typlenbyvalalign */
+// #include <utils/array.h> /* for ArrayType */
+// #include <utils/guc.h> /* for ArrayType */
+// #include <catalog/pg_type.h> /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
+// #include <utils/memutils.h> /* For TopMemoryContext */
+#include "extension_dependency.h"
 #include "../../postgis_config.h"
 
 #include "rtpostgis.h"
 #include "rtpg_internal.h"
 #include "stringbuffer.h"
-
+extern "C"
+{
 /* convert GDAL raster to raster */
 Datum RASTER_fromGDALRaster(PG_FUNCTION_ARGS);
 
@@ -54,7 +55,7 @@ Datum RASTER_setGDALOpenOptions(PG_FUNCTION_ARGS);
 
 /* warp a raster using GDAL Warp API */
 Datum RASTER_GDALWarp(PG_FUNCTION_ARGS);
-
+}
 /* ----------------------------------------------------------------
  * Returns raster from GDAL raster
  * ---------------------------------------------------------------- */
@@ -547,7 +548,7 @@ Datum RASTER_Contour(PG_FUNCTION_ARGS)
 		if (array_size > 0) {
 			Datum value;
 			bool isnull;
-			ArrayIterator iterator = array_create_iterator(array, 0, NULL);
+			ArrayIterator iterator = array_create_iterator(array, 0);
 			fixed_levels = palloc0(array_size * sizeof(double));
 			while (array_iterate(iterator, &value, &isnull))
 			{

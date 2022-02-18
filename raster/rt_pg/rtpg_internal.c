@@ -325,7 +325,8 @@ LIMIT 1
 	snprintf(sql, len, "SELECT CASE WHEN (upper(auth_name) = 'EPSG' OR upper(auth_name) = 'EPSGA') AND length(COALESCE(auth_srid::text, '')) > 0 THEN upper(auth_name) || ':' || auth_srid WHEN length(COALESCE(auth_name, '') || COALESCE(auth_srid::text, '')) > 0 THEN COALESCE(auth_name, '') || COALESCE(auth_srid::text, '') ELSE '' END, proj4text, srtext FROM spatial_ref_sys WHERE srid = %d LIMIT 1", srid);
 	POSTGIS_RT_DEBUGF(4, "SRS query: %s", sql);
 	spi_result = SPI_execute(sql, TRUE, 0);
-	SPI_pfree(sql);
+	//SPI_pfree(sql);
+	pfree(sql);
 	if (spi_result != SPI_OK_SELECT || SPI_tuptable == NULL || SPI_processed != 1) {
 		if (SPI_tuptable) SPI_freetuptable(tuptable);
 		SPI_finish();

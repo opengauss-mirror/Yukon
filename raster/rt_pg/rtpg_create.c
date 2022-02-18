@@ -37,6 +37,8 @@
 
 #include "rtpostgis.h"
 
+extern "C"
+{
 /* Raster and band creation */
 Datum RASTER_makeEmpty(PG_FUNCTION_ARGS);
 Datum RASTER_addBand(PG_FUNCTION_ARGS);
@@ -47,7 +49,7 @@ Datum RASTER_tile(PG_FUNCTION_ARGS);
 
 /* create new raster from existing raster's bands */
 Datum RASTER_band(PG_FUNCTION_ARGS);
-
+}
 /**
  * Make a new raster with no bands
  */

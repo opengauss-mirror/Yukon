@@ -27,25 +27,26 @@
  *
  */
 
-#include <postgres.h>
-#include <fmgr.h>
-#include "utils/lsyscache.h" /* for get_typlenbyvalalign */
-#include <funcapi.h>
-#include "utils/array.h" /* for ArrayType */
-#include "utils/builtins.h" /* for text_to_cstring */
-#include "utils/formatting.h" /* for asc_tolower */
-#include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
-
+// #include <postgres.h>
+// #include <fmgr.h>
+// #include "utils/lsyscache.h" /* for get_typlenbyvalalign */
+// #include <funcapi.h>
+// #include "utils/array.h" /* for ArrayType */
+// #include "utils/builtins.h" /* for text_to_cstring */
+// #include "utils/formatting.h" /* for asc_tolower */
+// #include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
+#include "extension_dependency.h"
 #include "../../postgis_config.h"
 #include "lwgeom_pg.h"
 
 
 
-#include "access/htup_details.h" /* for heap_form_tuple() */
+// #include "access/htup_details.h" /* for heap_form_tuple() */
 
 
 #include "rtpostgis.h"
-
+extern "C"
+{
 /* Get pixel value */
 Datum RASTER_getPixelValue(PG_FUNCTION_ARGS);
 Datum RASTER_getPixelValueResample(PG_FUNCTION_ARGS);
@@ -65,7 +66,7 @@ Datum RASTER_nearestValue(PG_FUNCTION_ARGS);
 
 /* Get the neighborhood around a pixel */
 Datum RASTER_neighborhood(PG_FUNCTION_ARGS);
-
+}
 /**
  * Return value of a single pixel.
  * Pixel location is specified by 1-based index of Nth band of raster and
@@ -141,7 +142,8 @@ Datum RASTER_getPixelValue(PG_FUNCTION_ARGS)
 
 static rt_resample_type resample_text_to_type(text *txt)
 {
-	char *resample = asc_tolower(VARDATA(txt), VARSIZE_ANY_EXHDR(txt));
+	//char *resample = asc_tolower(VARDATA(txt), VARSIZE_ANY_EXHDR(txt));
+	char *resample = VARDATA(txt);
 	if (strncmp(resample, "bilinear", 8) == 0)
 		return RT_BILINEAR;
 	else if (strncmp(resample, "nearest", 7) == 0)

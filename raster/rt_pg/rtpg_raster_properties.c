@@ -27,18 +27,19 @@
  *
  */
 
-#include <postgres.h>
-#include <fmgr.h>
-#include <funcapi.h>
-
+// #include <postgres.h>
+// #include <fmgr.h>
+// #include <funcapi.h>
+#include "extension_dependency.h"
 #include "../../postgis_config.h"
 
 
-#include "access/htup_details.h" /* for heap_form_tuple() */
+// #include "access/htup_details.h" /* for heap_form_tuple() */
 
 
 #include "rtpostgis.h"
-
+extern "C"
+{
 /* Get all the properties of a raster */
 Datum RASTER_getSRID(PG_FUNCTION_ARGS);
 Datum RASTER_getWidth(PG_FUNCTION_ARGS);
@@ -76,7 +77,7 @@ Datum RASTER_setSkewXY(PG_FUNCTION_ARGS);
 Datum RASTER_setUpperLeftXY(PG_FUNCTION_ARGS);
 Datum RASTER_setRotation(PG_FUNCTION_ARGS);
 Datum RASTER_setGeotransform(PG_FUNCTION_ARGS);
-
+}
 /**
  * Return the SRID associated with the raster.
  */

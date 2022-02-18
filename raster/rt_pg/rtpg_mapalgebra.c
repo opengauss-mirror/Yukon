@@ -45,7 +45,8 @@
 
 #include "rtpostgis.h"
 #include "rtpg_internal.h"
-
+extern "C"
+{
 /* n-raster MapAlgebra */
 Datum RASTER_nMapAlgebra(PG_FUNCTION_ARGS);
 Datum RASTER_nMapAlgebraExpr(PG_FUNCTION_ARGS);
@@ -72,7 +73,7 @@ Datum RASTER_mapAlgebraFctNgb(PG_FUNCTION_ARGS);
 
 /* two-raster MapAlgebra */
 Datum RASTER_mapAlgebra2(PG_FUNCTION_ARGS);
-
+}
 /* ---------------------------------------------------------------- */
 /*  n-raster MapAlgebra                                             */
 /* ---------------------------------------------------------------- */
@@ -4082,7 +4083,7 @@ rtpg_colormap_arg_init() {
 	arg->colormap->nentry = 0;
 	arg->colormap->entry = NULL;
 	arg->colormap->ncolor = 4; /* assume RGBA */
-	arg->colormap->method = CM_INTERPOLATE;
+	arg->colormap->method = rt_colormap_t::CM_INTERPOLATE;
 	arg->nodataentry = -1;
 
 	arg->entry = NULL;
@@ -4209,19 +4210,19 @@ Datum RASTER_colorMap(PG_FUNCTION_ARGS)
 		method = rtpg_strtoupper(method);
 
 		if (strcmp(method, "INTERPOLATE") == 0)
-			arg->colormap->method = CM_INTERPOLATE;
+			arg->colormap->method = rt_colormap_t::CM_INTERPOLATE;
 		else if (strcmp(method, "EXACT") == 0)
-			arg->colormap->method = CM_EXACT;
+			arg->colormap->method = rt_colormap_t::CM_EXACT;
 		else if (strcmp(method, "NEAREST") == 0)
-			arg->colormap->method = CM_NEAREST;
+			arg->colormap->method = rt_colormap_t::CM_NEAREST;
 		else {
 			elog(NOTICE, "Unknown value provided for method. Defaulting to INTERPOLATE");
-			arg->colormap->method = CM_INTERPOLATE;
+			arg->colormap->method = rt_colormap_t::CM_INTERPOLATE;
 		}
 	}
 	/* default to INTERPOLATE */
 	else
-		arg->colormap->method = CM_INTERPOLATE;
+		arg->colormap->method = rt_colormap_t::CM_INTERPOLATE;
 	POSTGIS_RT_DEBUGF(4, "method = %d", arg->colormap->method);
 
 	/* colormap (2) */
