@@ -27,24 +27,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  */
-
-#include <postgres.h>
-#include <fmgr.h>
-#include <utils/builtins.h> /* for text_to_cstring() */
-#include "utils/lsyscache.h" /* for get_typlenbyvalalign */
-#include "utils/array.h" /* for ArrayType */
-#include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
-#include <executor/spi.h>
-#include <funcapi.h> /* for SRF */
+#include "extension_dependency.h"
+// #include <postgres.h>
+// #include <fmgr.h>
+// #include <utils/builtins.h> /* for text_to_cstring() */
+// #include "utils/lsyscache.h" /* for get_typlenbyvalalign */
+// #include "utils/array.h" /* for ArrayType */
+// #include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
+// #include <executor/spi.h>
+// #include <funcapi.h> /* for SRF */
 
 #include "../../postgis_config.h"
 
 
-#include "access/htup_details.h" /* for heap_form_tuple() */
+// #include "access/htup_details.h" /* for heap_form_tuple() */
 
 
 #include "rtpostgis.h"
 
+extern "C"
+{
 /* Get summary stats */
 Datum RASTER_summaryStats(PG_FUNCTION_ARGS);
 Datum RASTER_summaryStatsCoverage(PG_FUNCTION_ARGS);
@@ -61,7 +63,7 @@ Datum RASTER_quantile(PG_FUNCTION_ARGS);
 /* get counts of values */
 Datum RASTER_valueCount(PG_FUNCTION_ARGS);
 Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS);
-
+}
 #define VALUES_LENGTH 6
 
 /**

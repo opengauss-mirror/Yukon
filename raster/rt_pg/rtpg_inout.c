@@ -31,14 +31,15 @@
 #include <fmgr.h>
 
 #include "rtpostgis.h"
-
+extern "C"
+{
 Datum RASTER_in(PG_FUNCTION_ARGS);
 Datum RASTER_out(PG_FUNCTION_ARGS);
 
 Datum RASTER_to_bytea(PG_FUNCTION_ARGS);
 
 Datum RASTER_noop(PG_FUNCTION_ARGS);
-
+}
 /**
  * Input is Hex WKB
  * Used as the input function of the raster type

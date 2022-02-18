@@ -38,12 +38,13 @@
 #define str(s) #s
 
 #include "rtpostgis.h"
-
+extern "C"
+{
 Datum RASTER_lib_version(PG_FUNCTION_ARGS);
 Datum RASTER_lib_build_date(PG_FUNCTION_ARGS);
 Datum RASTER_gdal_version(PG_FUNCTION_ARGS);
 Datum RASTER_minPossibleValue(PG_FUNCTION_ARGS);
-
+}
 PG_FUNCTION_INFO_V1(RASTER_lib_version);
 Datum RASTER_lib_version(PG_FUNCTION_ARGS)
 {
@@ -136,7 +137,7 @@ Datum RASTER_minPossibleValue(PG_FUNCTION_ARGS)
 }
 
 /** find the detoasted size of a value */
-Datum RASTER_memsize(PG_FUNCTION_ARGS);
+extern "C" Datum RASTER_memsize(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(RASTER_memsize);
 Datum RASTER_memsize(PG_FUNCTION_ARGS)
 {

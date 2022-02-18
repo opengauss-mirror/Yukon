@@ -35,7 +35,8 @@
 
 #include "lwgeom_pg.h"
 #include "rtpostgis.h"
-
+extern "C"
+{
 /* determine if two rasters intersect */
 Datum RASTER_intersects(PG_FUNCTION_ARGS);
 
@@ -66,7 +67,7 @@ Datum RASTER_dfullywithin(PG_FUNCTION_ARGS);
 /* determine if two rasters are aligned */
 Datum RASTER_sameAlignment(PG_FUNCTION_ARGS);
 Datum RASTER_notSameAlignmentReason(PG_FUNCTION_ARGS);
-
+}
 /**
  * See if two rasters intersect
  */

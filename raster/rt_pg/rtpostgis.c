@@ -151,12 +151,14 @@
  */
 PG_MODULE_MAGIC;
 
+extern "C"
+{
 /* Module load callback */
 void _PG_init(void);
 
 /* Module unload callback */
 void _PG_fini(void);
-
+}
 #define RT_MSG_MAXLEN 256
 
 
@@ -248,7 +250,7 @@ rt_pg_options(const char* varname)
 	char *optvalue;
 	snprintf(optname, 128, "postgis.%s", varname);
 	/* GetConfigOptionByName(name, found_name, missing_ok) */
-	optvalue = GetConfigOptionByName(optname, NULL, true);
+	optvalue = GetConfigOptionByName(optname, NULL);
 	if (optvalue && strlen(optvalue) == 0)
 		return NULL;
 	else
@@ -641,7 +643,7 @@ rtpg_assignHookEnableOutDBRasters(bool enable, void *extra) {
 /* Module load callback */
 void
 _PG_init(void) {
-
+#if 0
 	bool boot_postgis_enable_outdb_rasters = false;
 	MemoryContext old_context;
 
@@ -799,12 +801,13 @@ _PG_init(void) {
 
 	/* Revert back to old context */
 	MemoryContextSwitchTo(old_context);
+	#endif
 }
 
 /* Module unload callback */
 void
 _PG_fini(void) {
-
+#if 0
 	MemoryContext old_context;
 
 	old_context = MemoryContextSwitchTo(TopMemoryContext);
@@ -820,6 +823,7 @@ _PG_fini(void) {
 
 	/* Revert back to old context */
 	MemoryContextSwitchTo(old_context);
+	#endif
 }
 
 
