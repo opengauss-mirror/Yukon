@@ -1,5 +1,9 @@
 #include "postgis_brin.h"
 
+extern "C" Datum geog_brin_inclusion_add_value(PG_FUNCTION_ARGS);
+extern "C" Datum geom3d_brin_inclusion_add_value(PG_FUNCTION_ARGS);
+extern "C" Datum geom4d_brin_inclusion_add_value(PG_FUNCTION_ARGS);
+
 /*
  * As we index geometries but store either a BOX2DF or GIDX according to the
  * operator class, we need to overload the original brin_inclusion_add_value()

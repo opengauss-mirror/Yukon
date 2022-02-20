@@ -8,6 +8,9 @@
 #include "lwgeom_wagyu.h"
 #endif
 
+extern "C" Datum postgis_libprotobuf_version(PG_FUNCTION_ARGS);
+extern "C" Datum postgis_wagyu_version(PG_FUNCTION_ARGS);
+
 PG_FUNCTION_INFO_V1(postgis_libprotobuf_version);
 Datum postgis_libprotobuf_version(PG_FUNCTION_ARGS)
 {

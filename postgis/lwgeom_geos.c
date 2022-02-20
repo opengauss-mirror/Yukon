@@ -1174,7 +1174,7 @@ Datum buffer(PG_FUNCTION_ARGS)
 * polygon or multipolygon. Throws an error for other geometry
 * types.
 */
-Datum ST_GeneratePoints(PG_FUNCTION_ARGS);
+extern "C" Datum ST_GeneratePoints(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_GeneratePoints);
 Datum ST_GeneratePoints(PG_FUNCTION_ARGS)
 {
@@ -1450,7 +1450,7 @@ Datum centroid(PG_FUNCTION_ARGS)
 	PG_RETURN_POINTER(result);
 }
 
-Datum ST_ReducePrecision(PG_FUNCTION_ARGS);
+extern "C" Datum ST_ReducePrecision(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_ReducePrecision);
 Datum ST_ReducePrecision(PG_FUNCTION_ARGS)
 {
@@ -1471,7 +1471,7 @@ Datum ST_ReducePrecision(PG_FUNCTION_ARGS)
 	PG_RETURN_POINTER(result);
 }
 
-Datum ST_ClipByBox2d(PG_FUNCTION_ARGS);
+extern "C" Datum ST_ClipByBox2d(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_ClipByBox2d);
 Datum ST_ClipByBox2d(PG_FUNCTION_ARGS)
 {
@@ -3449,7 +3449,7 @@ Datum ST_Voronoi(PG_FUNCTION_ARGS)
  * Returns the minimum clearance of a geometry.
  *
  ******************************************/
-Datum ST_MinimumClearance(PG_FUNCTION_ARGS);
+extern "C" Datum ST_MinimumClearance(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_MinimumClearance);
 Datum ST_MinimumClearance(PG_FUNCTION_ARGS)
 {
@@ -3480,7 +3480,7 @@ Datum ST_MinimumClearance(PG_FUNCTION_ARGS)
  * Returns the minimum clearance line of a geometry.
  *
  ******************************************/
-Datum ST_MinimumClearanceLine(PG_FUNCTION_ARGS);
+extern "C" Datum ST_MinimumClearanceLine(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_MinimumClearanceLine);
 Datum ST_MinimumClearanceLine(PG_FUNCTION_ARGS)
 {
@@ -3516,7 +3516,7 @@ Datum ST_MinimumClearanceLine(PG_FUNCTION_ARGS)
  * ST_OrientedEnvelope
  *
  ******************************************/
-Datum ST_OrientedEnvelope(PG_FUNCTION_ARGS);
+extern "C" Datum ST_OrientedEnvelope(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_OrientedEnvelope);
 Datum ST_OrientedEnvelope(PG_FUNCTION_ARGS)
 {

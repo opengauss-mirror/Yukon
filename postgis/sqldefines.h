@@ -14,6 +14,11 @@
 #define POSTGIS_LIBXML2_VERSION 2.9.12
 #define POSTGIS_SFCGAL_VERSION 10308
 
+#if POSTGIS_PGSQL_VERSION >= 96
+#define _PARALLEL PARALLEL SAFE
+#else
+#define _PARALLEL
+#endif
 
 /*
  * High costs can only be used for PostGIS 3/PgSQL 12
