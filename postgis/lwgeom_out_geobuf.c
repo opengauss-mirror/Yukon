@@ -39,6 +39,9 @@
 #include "liblwgeom.h"
 #include "geobuf.h"
 
+extern "C" Datum pgis_asgeobuf_transfn(PG_FUNCTION_ARGS);
+extern "C" Datum pgis_asgeobuf_finalfn(PG_FUNCTION_ARGS);
+
 /**
  * Process input parameters and row data into state
  */

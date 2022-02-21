@@ -112,6 +112,7 @@ extern "C" Datum optimistic_overlap(PG_FUNCTION_ARGS);
 extern "C" Datum ST_GeoHash(PG_FUNCTION_ARGS);
 extern "C" Datum ST_MakeEnvelope(PG_FUNCTION_ARGS);
 extern "C" Datum ST_TileEnvelope(PG_FUNCTION_ARGS);
+extern "C" Datum _ST_SortableHash(PG_FUNCTION_ARGS);
 extern "C" Datum ST_CollectionExtract(PG_FUNCTION_ARGS);
 extern "C" Datum ST_CollectionHomogenize(PG_FUNCTION_ARGS);
 extern "C" Datum ST_IsCollection(PG_FUNCTION_ARGS);
@@ -1980,7 +1981,7 @@ Datum LWGEOM_noop(PG_FUNCTION_ARGS)
 	PG_RETURN_POINTER(out);
 }
 
-Datum ST_Normalize(PG_FUNCTION_ARGS);
+extern "C" Datum ST_Normalize(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_Normalize);
 Datum ST_Normalize(PG_FUNCTION_ARGS)
 {
@@ -2953,7 +2954,7 @@ ordname2ordval(char n)
 	return (LWORD)-1;
 }
 
-Datum ST_SwapOrdinates(PG_FUNCTION_ARGS);
+extern "C" Datum ST_SwapOrdinates(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_SwapOrdinates);
 Datum ST_SwapOrdinates(PG_FUNCTION_ARGS)
 {
@@ -3005,7 +3006,7 @@ Datum ST_SwapOrdinates(PG_FUNCTION_ARGS)
 /*
  * ST_BoundingDiagonal(inp geometry, fits boolean)
  */
-Datum ST_BoundingDiagonal(PG_FUNCTION_ARGS);
+extern "C" Datum ST_BoundingDiagonal(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_BoundingDiagonal);
 Datum ST_BoundingDiagonal(PG_FUNCTION_ARGS)
 {

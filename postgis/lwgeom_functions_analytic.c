@@ -38,6 +38,7 @@
 /* Prototypes */
 extern "C" Datum LWGEOM_simplify2d(PG_FUNCTION_ARGS);
 extern "C" Datum LWGEOM_SetEffectiveArea(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_ChaikinSmoothing(PG_FUNCTION_ARGS);
 extern "C" Datum LWGEOM_line_interpolate_point(PG_FUNCTION_ARGS);
 extern "C" Datum ST_LineCrossingDirection(PG_FUNCTION_ARGS);
 extern "C" Datum ST_MinimumBoundingRadius(PG_FUNCTION_ARGS);
@@ -228,7 +229,7 @@ Datum LWGEOM_line_interpolate_point(PG_FUNCTION_ARGS)
  * --vincent.mora@oslandia.com;
  ***********************************************************************/
 
-Datum ST_3DLineInterpolatePoint(PG_FUNCTION_ARGS);
+extern "C" Datum ST_3DLineInterpolatePoint(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(ST_3DLineInterpolatePoint);
 Datum ST_3DLineInterpolatePoint(PG_FUNCTION_ARGS)

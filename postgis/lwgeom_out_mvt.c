@@ -35,6 +35,13 @@
 #include "vector_tile.pb-c.h"
 #endif  /* HAVE_LIBPROTOBUF */
 
+extern "C" Datum ST_AsMVTGeom(PG_FUNCTION_ARGS);
+extern "C" Datum pgis_asmvt_transfn(PG_FUNCTION_ARGS);
+extern "C" Datum pgis_asmvt_finalfn(PG_FUNCTION_ARGS);
+extern "C" Datum pgis_asmvt_serialfn(PG_FUNCTION_ARGS);
+extern "C" Datum pgis_asmvt_deserialfn(PG_FUNCTION_ARGS);
+extern "C" Datum pgis_asmvt_combinefn(PG_FUNCTION_ARGS);
+
 /**
  * Process input parameters to mvt_geom and returned serialized geometry
  */

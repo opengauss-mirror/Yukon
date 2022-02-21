@@ -71,7 +71,7 @@ DECLARE
 	myschema alias for $1;
 	mytable alias for $2;
 	myrid   alias for $3;
-	authid alias for $4;
+	_authid alias for $4;
 	expires alias for $5;
 	ret int;
 	mytoid oid;
@@ -100,7 +100,7 @@ BEGIN
 	FOR myrec IN SELECT * FROM authorization_table WHERE
 		toid = mytoid AND rid = myrid
 	LOOP
-		IF myrec.authid != authid THEN
+		IF myrec.authid != _authid THEN
 			RETURN 0;
 		ELSE
 			RETURN 1;
@@ -110,7 +110,7 @@ BEGIN
 	EXECUTE ''INSERT INTO authorization_table VALUES (''||
 		quote_literal(mytoid)||'',''||quote_literal(myrid)||
 		'',''||quote_literal(expires)||
-		'',''||quote_literal(authid) ||'')'';
+		'',''||quote_literal(_authid) ||'')'';
 
 	GET DIAGNOSTICS ret = ROW_COUNT;
 

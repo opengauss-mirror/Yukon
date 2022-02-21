@@ -74,8 +74,9 @@ static char * postgis_JsonEncodeDateTime(char *buf, Datum value, Oid typid);
 static int postgis_time2tm(TimeADT time, struct pg_tm *tm, fsec_t *fsec);
 static int postgis_timetz2tm(TimeTzADT *time, struct pg_tm *tm, fsec_t *fsec, int *tzp);
 
-Datum row_to_geojson(PG_FUNCTION_ARGS);
-extern Datum LWGEOM_asGeoJson(PG_FUNCTION_ARGS);
+extern "C" Datum row_to_geojson(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_asGeoJson(PG_FUNCTION_ARGS);
+extern "C" Datum ST_AsGeoJsonRow(PG_FUNCTION_ARGS);
 
 /*
  * SQL function row_to_geojson(row)

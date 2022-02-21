@@ -36,6 +36,9 @@
 #include <utils/builtins.h>
 #include "flatgeobuf.h"
 
+extern "C" Datum pgis_tablefromflatgeobuf(PG_FUNCTION_ARGS);
+extern "C" Datum pgis_fromflatgeobuf(PG_FUNCTION_ARGS);
+
 static char *get_pgtype(uint8_t column_type) {
 	switch (column_type) {
 	case flatgeobuf_column_type_bool:

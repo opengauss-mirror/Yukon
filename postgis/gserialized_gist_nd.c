@@ -88,6 +88,7 @@ extern "C" Datum gserialized_gist_geog_distance(PG_FUNCTION_ARGS);
 ** ND Operator prototypes
 */
 extern "C" Datum gserialized_overlaps(PG_FUNCTION_ARGS);
+extern "C" Datum gserialized_gidx_geog_overlaps(PG_FUNCTION_ARGS);
 extern "C" Datum gserialized_gidx_geom_overlaps(PG_FUNCTION_ARGS);
 extern "C" Datum gserialized_gidx_gidx_overlaps(PG_FUNCTION_ARGS);
 extern "C" Datum gserialized_contains(PG_FUNCTION_ARGS);
