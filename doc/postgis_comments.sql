@@ -43,7 +43,7 @@ COMMENT ON FUNCTION ST_Collect(geometry, geometry) IS 'args: g1, g2 - Creates a 
 			
 COMMENT ON FUNCTION ST_Collect(geometry[]) IS 'args: g1_array - Creates a GeometryCollection or Multi* geometry from a set of geometries.';
 			
-COMMENT ON AGGREGATE ST_Collect(geometry) IS 'args: g1field - Creates a GeometryCollection or Multi* geometry from a set of geometries.';
+--COMMENT ON AGGREGATE ST_Collect(geometry) IS 'args: g1field - Creates a GeometryCollection or Multi* geometry from a set of geometries.';
 			
 COMMENT ON FUNCTION ST_LineFromMultiPoint(geometry ) IS 'args: aMultiPoint - Creates a LineString from a MultiPoint geometry.';
 			
@@ -53,7 +53,7 @@ COMMENT ON FUNCTION ST_MakeLine(geometry, geometry) IS 'args: geom1, geom2 - Cre
 			
 COMMENT ON FUNCTION ST_MakeLine(geometry[]) IS 'args: geoms_array - Creates a LineString from Point, MultiPoint, or LineString geometries.';
 			
-COMMENT ON AGGREGATE ST_MakeLine(geometry) IS 'args: geoms - Creates a LineString from Point, MultiPoint, or LineString geometries.';
+--COMMENT ON AGGREGATE ST_MakeLine(geometry) IS 'args: geoms - Creates a LineString from Point, MultiPoint, or LineString geometries.';
 			
 COMMENT ON FUNCTION ST_MakePoint(float, float) IS 'args: x, y - Creates a 2D, 3DZ or 4D Point.';
 			
@@ -389,7 +389,7 @@ COMMENT ON FUNCTION ST_Centroid(geometry ) IS 'args: g1 - Returns the geometric 
 			
 COMMENT ON FUNCTION ST_Centroid(geography , boolean ) IS 'args: g1, use_spheroid=true - Returns the geometric center of a geometry.';
 			
-COMMENT ON FUNCTION ST_ConcaveHull(geometry , float , boolean ) IS 'args: geom, target_percent, allow_holes = false - Computes a possibly concave geometry that encloses all input geometry vertices';
+--COMMENT ON FUNCTION ST_ConcaveHull(geometry , float , boolean ) IS 'args: geom, target_percent, allow_holes = false - Computes a possibly concave geometry that encloses all input geometry vertices';
 			
 COMMENT ON FUNCTION ST_ConvexHull(geometry ) IS 'args: geomA - Computes the convex hull of a geometry.';
 			
@@ -417,7 +417,7 @@ COMMENT ON FUNCTION ST_OffsetCurve(geometry , float , text ) IS 'args: line, sig
 			
 COMMENT ON FUNCTION ST_PointOnSurface(geometry ) IS 'args: g1 - Computes a point guaranteed to lie in a polygon, or on a geometry.';
 			
-COMMENT ON AGGREGATE ST_Polygonize(geometry) IS 'args: geomfield - Computes a collection of polygons formed from the linework of a set of geometries.';
+--COMMENT ON AGGREGATE ST_Polygonize(geometry) IS 'args: geomfield - Computes a collection of polygons formed from the linework of a set of geometries.';
 			
 COMMENT ON FUNCTION ST_Polygonize(geometry[]) IS 'args: geom_array - Computes a collection of polygons formed from the linework of a set of geometries.';
 			
@@ -469,13 +469,13 @@ COMMENT ON FUNCTION ST_Translate(geometry , float , float , float ) IS 'args: g1
 			
 COMMENT ON FUNCTION ST_TransScale(geometry , float, float, float, float) IS 'args: geomA, deltaX, deltaY, XFactor, YFactor - Translates and scales a geometry by given offsets and factors.';
 			
-COMMENT ON FUNCTION ST_ClusterDBSCAN(geometry, float8 , integer ) IS 'args: geom, eps, minpoints - Window function that returns a cluster id for each input geometry using the DBSCAN algorithm.';
+--COMMENT ON FUNCTION ST_ClusterDBSCAN(geometry, float8 , integer ) IS 'args: geom, eps, minpoints - Window function that returns a cluster id for each input geometry using the DBSCAN algorithm.';
 			
-COMMENT ON AGGREGATE ST_ClusterIntersecting(geometry) IS 'args: g - Aggregate function that clusters the input geometries into connected sets.';
+--COMMENT ON AGGREGATE ST_ClusterIntersecting(geometry) IS 'args: g - Aggregate function that clusters the input geometries into connected sets.';
 			
-COMMENT ON FUNCTION ST_ClusterKMeans(geometry, integer , float ) IS 'args: geom, number_of_clusters, max_radius - Window function that returns a cluster id for each input geometry using the K-means algorithm.';
+--COMMENT ON FUNCTION ST_ClusterKMeans(geometry, integer , float ) IS 'args: geom, number_of_clusters, max_radius - Window function that returns a cluster id for each input geometry using the K-means algorithm.';
 			
-COMMENT ON AGGREGATE ST_ClusterWithin(geometry, float8 ) IS 'args: g, distance - Aggregate function that clusters the input geometries by separation distance.';
+--COMMENT ON AGGREGATE ST_ClusterWithin(geometry, float8 ) IS 'args: g, distance - Aggregate function that clusters the input geometries by separation distance.';
 			
 COMMENT ON FUNCTION Box2D(geometry ) IS 'args: geom - Returns a BOX2D representing the 2D extent of a geometry.';
 			
