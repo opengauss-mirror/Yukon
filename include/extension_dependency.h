@@ -561,10 +561,10 @@ typedef struct PlannerInfo {
 typedef struct VacAttrStats VacAttrStats;
 typedef struct VacAttrStats* VacAttrStatsP;
 
-typedef Datum (*AnalyzeAttrFetchFunc)(VacAttrStatsP stats, int rownum, bool* isNull);
+typedef Datum (*AnalyzeAttrFetchFunc)(VacAttrStatsP stats, int rownum, bool* isNull, Relation rel);
 
 typedef void (*AnalyzeAttrComputeStatsFunc)(
-    VacAttrStatsP stats, AnalyzeAttrFetchFunc fetchfunc, int samplerows, double totalrows);
+    VacAttrStatsP stats, AnalyzeAttrFetchFunc fetchfunc, int samplerows, double totalrows, Relation rel);
 
 /*
  * ATTRIBUTE_FIXED_PART_SIZE is the size of the fixed-layout,
