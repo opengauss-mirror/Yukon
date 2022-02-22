@@ -300,7 +300,6 @@ AddToStdPortalCache(StdPortalCache *STDCache, char *lextab, char *gaztab, char *
     MemoryContext STDMemoryContext;
     MemoryContext old_context;
     STANDARDIZER *std = NULL;
-    MemoryContextCallback *callback;
 
     DBG("Enter: AddToStdPortalCache");
     std = CreateStd(lextab, gaztab, rultab);
@@ -322,16 +321,19 @@ AddToStdPortalCache(StdPortalCache *STDCache, char *lextab, char *gaztab, char *
 
 	STDMemoryContext =  AllocSetContextCreate(STDCache->StdCacheContext,
 	                                          "PAGC STD Memory Context",
-	                                          ALLOCSET_SMALL_SIZES);
+	                                          ALLOCSET_SMALL_MINSIZE,
+        							          ALLOCSET_SMALL_INITSIZE,
+                                              ALLOCSET_SMALL_MAXSIZE);
 
+#if POSTGIS_PGSQL_VERSION >= 96
 	/* PgSQL comments suggest allocating callback in the context */
 	/* being managed, so that the callback object gets cleaned along with */
 	/* the context */
-	callback = MemoryContextAlloc(STDMemoryContext, sizeof(MemoryContextCallback));
+    MemoryContextCallback *callback = MemoryContextAlloc(STDMemoryContext, sizeof(MemoryContextCallback));
 	callback->arg = (void*)(STDMemoryContext);
 	callback->func = StdCacheDelete;
 	MemoryContextRegisterResetCallback(STDMemoryContext, callback);
-
+#endif
 
 
     /* Create the backend hash if it doesn't already exist */
