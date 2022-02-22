@@ -1377,7 +1377,7 @@ Datum gserialized_gist_joinsel(PG_FUNCTION_ARGS)
  */
 static void
 compute_gserialized_stats_mode(VacAttrStats *stats, AnalyzeAttrFetchFunc fetchfunc,
-                          int sample_rows, double total_rows, int mode)
+                          int sample_rows, double total_rows, int mode, Relation onerel)
 {
 	MemoryContext old_context;
 	int d, i;                          /* Counters */
@@ -1453,7 +1453,7 @@ compute_gserialized_stats_mode(VacAttrStats *stats, AnalyzeAttrFetchFunc fetchfu
 		ND_BOX *nd_box;
 		bool is_null;
 
-		datum = fetchfunc(stats, i, &is_null);
+		datum = fetchfunc(stats, i, &is_null, onerel);
 
 		/* Skip all NULLs. */
 		if ( is_null )
@@ -1875,21 +1875,21 @@ compute_gserialized_stats_mode(VacAttrStats *stats, AnalyzeAttrFetchFunc fetchfu
 */
 static void
 compute_gserialized_stats(VacAttrStats *stats, AnalyzeAttrFetchFunc fetchfunc,
-                          int sample_rows, double total_rows)
+                          int sample_rows, double total_rows, Relation onerel)
 {
 	GserializedAnalyzeExtraData *extra_data = (GserializedAnalyzeExtraData *)stats->extra_data;
 	/* Call standard statistics calculation routine to fill in correlation for BRIN to work */
 	stats->extra_data = extra_data->std_extra_data;
-	extra_data->std_compute_stats(stats, fetchfunc, sample_rows, total_rows);
+	extra_data->std_compute_stats(stats, fetchfunc, sample_rows, total_rows, onerel);
 	stats->extra_data = extra_data;
 
 	/* 2D Mode */
-	compute_gserialized_stats_mode(stats, fetchfunc, sample_rows, total_rows, 2);
+	compute_gserialized_stats_mode(stats, fetchfunc, sample_rows, total_rows, 2, onerel);
 
 	if (stats->stats_valid)
 	{
 		/* ND Mode: Only computed if 2D was computed too (not NULL and valid) */
-		compute_gserialized_stats_mode(stats, fetchfunc, sample_rows, total_rows, 0);
+		compute_gserialized_stats_mode(stats, fetchfunc, sample_rows, total_rows, 0, onerel);
 	}
 }
 
