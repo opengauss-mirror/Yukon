@@ -1,5 +1,5 @@
 t1|t
-ERROR:  lwgeom_median: Unsupported geometry type: LineString
+gsql:geometric_median.sql:4: ERROR:  lwgeom_median: Unsupported geometry type: LineString
 t3|t
 t4|t
 t5|t
@@ -7,5 +7,5 @@ t6|t
 t7|t
 t8|t
 t9|f
-ERROR:  Median failed to converge within 2e-6 after 1 iterations.
+gsql:geometric_median.sql:14: ERROR:  Median failed to converge within 2e-6 after 1 iterations.
 t11|f

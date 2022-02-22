@@ -99,11 +99,11 @@ TIN EMPTY|011000000000000000|t|000000001000000000
 TIN Z EMPTY|01f803000000000000|t|00000003f800000000
 TIN M EMPTY|01e007000000000000|t|00000007e000000000
 TIN ZM EMPTY|01c80b000000000000|t|0000000bc800000000
-ERROR:  Unable to parse WKB
-ERROR:  Unable to parse WKB
-ERROR:  Unable to parse WKB
-ERROR:  Unable to parse WKB
-ERROR:  Unable to parse WKB
-ERROR:  Unable to parse WKB
-ERROR:  Unable to parse WKB
-ERROR:  Unable to parse WKB
+gsql:wkb.sql:538: ERROR:  Unable to parse WKB
+gsql:wkb.sql:539: ERROR:  Unable to parse WKB
+gsql:wkb.sql:540: ERROR:  Unable to parse WKB
+gsql:wkb.sql:541: ERROR:  Unable to parse WKB
+gsql:wkb.sql:542: ERROR:  Unable to parse WKB
+gsql:wkb.sql:543: ERROR:  Unable to parse WKB
+gsql:wkb.sql:544: ERROR:  Unable to parse WKB
+gsql:wkb.sql:545: ERROR:  Unable to parse WKB

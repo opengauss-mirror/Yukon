@@ -1,4 +1,4 @@
-NOTICE:  table "indexnulls" does not exist, skipping
-NOTICE:  table "indexnulls" does not exist, skipping
-NOTICE:  table "indexempty" does not exist, skipping
-NOTICE:  table "indexempty" does not exist, skipping
+gsql:regress_index_nulls.sql:12: NOTICE:  table "indexnulls" does not exist, skipping
+gsql:regress_index_nulls.sql:19: NOTICE:  table "indexnulls" does not exist, skipping
+gsql:regress_index_nulls.sql:26: NOTICE:  table "indexempty" does not exist, skipping
+gsql:regress_index_nulls.sql:33: NOTICE:  table "indexempty" does not exist, skipping
