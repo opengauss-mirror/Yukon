@@ -3485,7 +3485,7 @@ CREATE OR REPLACE FUNCTION ST_Intersection(geom1 geometry, geom2 geometry, gridS
 	LANGUAGE 'c' IMMUTABLE STRICT _PARALLEL
 	_COST_HIGH;
 
-CREATE OR REPLACE FUNCTION ST_Buffer(geom geometry, radius float8, options text DEFAULT '')
+CREATE OR REPLACE FUNCTION ST_Buffer(geom geometry, radius float8, options text DEFAULT ' ')
 	RETURNS geometry
 	AS 'MODULE_PATHNAME','buffer'
 	LANGUAGE 'c' IMMUTABLE STRICT _PARALLEL
