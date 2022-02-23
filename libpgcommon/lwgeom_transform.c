@@ -115,27 +115,31 @@ GetPROJSRSCache()
 	if (!cache)
 	{
 		/* Put proj cache in a child of the CacheContext */
-		// MemoryContext context = AllocSetContextCreate(
-		//     CacheMemoryContext,
-		//     "Proj Context",
-		//     ALLOCSET_SMALL_SIZES);
+		MemoryContext context = AllocSetContextCreate(
+		    CacheMemoryContext,
+		    "Proj Context",
+		    ALLOCSET_SMALL_MINSIZE,
+        	ALLOCSET_SMALL_INITSIZE,
+        	ALLOCSET_SMALL_MAXSIZE);
 
-		// /* Allocate in the upper context */
-		// cache = MemoryContextAllocZero(context, sizeof(PROJSRSCache));
+		/* Allocate in the upper context */
+		cache = MemoryContextAllocZero(context, sizeof(PROJSRSCache));
 
-		// if (!cache)
-		// 	elog(ERROR, "Unable to allocate space for PROJSRSCache in context %p", context);
+		if (!cache)
+			elog(ERROR, "Unable to allocate space for PROJSRSCache in context %p", context);
 
-		// cache->PROJSRSCacheCount = 0;
-		// cache->PROJSRSCacheContext = context;
+		cache->PROJSRSCacheCount = 0;
+		cache->PROJSRSCacheContext = context;
 
-		// /* Use this to clean up PROJSRSCache in event of MemoryContext reset */
-		// MemoryContextCallback* callback = MemoryContextAlloc(context, sizeof(MemoryContextCallback));
-		// callback->func = PROJSRSDestroyPortalCache;
-		// callback->arg = (void *)cache;
-		// MemoryContextRegisterResetCallback(context, callback);
+#if POSTGIS_PGSQL_VERSION >= 96
+		/* Use this to clean up PROJSRSCache in event of MemoryContext reset */
+		MemoryContextCallback* callback = MemoryContextAlloc(context, sizeof(MemoryContextCallback));
+		callback->func = PROJSRSDestroyPortalCache;
+		callback->arg = (void *)cache;
+		MemoryContextRegisterResetCallback(context, callback);
+#endif
 
-		// PROJ_CACHE = cache;
+		PROJ_CACHE = cache;
 	}
 	return cache;
 }

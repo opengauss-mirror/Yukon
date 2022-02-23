@@ -574,6 +574,8 @@ typedef void (*AnalyzeAttrComputeStatsFunc)(
  */
 #define ATTRIBUTE_FIXED_PART_SIZE (offsetof(FormData_pg_attribute, attkvtype) + sizeof(Oid))
 
+#define CacheMemoryContext (u_sess->cache_mem_cxt)
+
 // typedef void (*AnalyzeAttrComputeStatsFunc)(
 //     VacAttrStatsP stats, AnalyzeAttrFetchFunc fetchfunc, int samplerows, double totalrows);
 
