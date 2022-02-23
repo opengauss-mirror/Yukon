@@ -85,7 +85,7 @@ within130|t
 within131|f
 overlaps|f
 isvalid|t
-NOTICE:  Self-intersection
+gsql:regress_ogc.sql:158: NOTICE:  Self-intersection
 isvalid|f
 isvalid|t
 intersection|POINT(0 0)
