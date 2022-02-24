@@ -1,12 +1,12 @@
-gsql:temporal.sql:7: NOTICE:  Geometry is not a LINESTRING
+NOTICE:  Geometry is not a LINESTRING
 invalidTrajectory1|f
-gsql:temporal.sql:8: NOTICE:  Line does not have M dimension
+NOTICE:  Line does not have M dimension
 invalidTrajectory2|f
-gsql:temporal.sql:9: NOTICE:  Measure of vertex 1 (0) not bigger than measure of vertex 0 (0)
+NOTICE:  Measure of vertex 1 (0) not bigger than measure of vertex 0 (0)
 invalidTrajectory3|f
-gsql:temporal.sql:10: NOTICE:  Measure of vertex 1 (0) not bigger than measure of vertex 0 (1)
+NOTICE:  Measure of vertex 1 (0) not bigger than measure of vertex 0 (1)
 invalidTrajectory4|f
-gsql:temporal.sql:11: NOTICE:  Measure of vertex 3 (1) not bigger than measure of vertex 2 (2)
+NOTICE:  Measure of vertex 3 (1) not bigger than measure of vertex 2 (2)
 invalidTrajectory8|f
 validTrajectory1|t
 validTrajectory2|t
@@ -21,7 +21,7 @@ cpad1|0
 cpad2|1
 cpad3|2
 cpad4|
-gsql:temporal.sql:67: ERROR:  Both input geometries must have a measure dimension
+ERROR:  Both input geometries must have a measure dimension
 cpaw1|0.0|t
 cpaw1|1|t
 cpaw2|.5|f
@@ -31,4 +31,4 @@ cpaw3|1.9|f
 cpaw3|2|t
 cpaw3|2.0001|t
 cpaw4|f
-gsql:temporal.sql:93: ERROR:  Both input geometries must have a measure dimension
+ERROR:  Both input geometries must have a measure dimension

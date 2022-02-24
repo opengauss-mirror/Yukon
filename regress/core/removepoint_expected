@@ -1,6 +1,6 @@
-gsql:removepoint.sql:3: ERROR:  Can't remove points from a single segment line
-gsql:removepoint.sql:6: ERROR:  Point index out of range (0..2)
-gsql:removepoint.sql:7: ERROR:  Point index out of range (0..2)
+ERROR:  Can't remove points from a single segment line
+ERROR:  Point index out of range (0..2)
+ERROR:  Point index out of range (0..2)
 LINESTRING(1 1,2 2)
 LINESTRING(0 0,1 1)
 LINESTRING(1 1 1,2 2 2)

@@ -1,8 +1,8 @@
-gsql:setpoint.sql:3: ERROR:  abs(Point index) out of range (-)(0..2)
+ERROR:  abs(Point index) out of range (-)(0..2)
 LINESTRING(0 0,1 1,9 9)
-gsql:setpoint.sql:5: ERROR:  abs(Point index) out of range (-)(0..2)
-gsql:setpoint.sql:8: ERROR:  First argument must be a LINESTRING
-gsql:setpoint.sql:9: ERROR:  Third argument must be a POINT
+ERROR:  abs(Point index) out of range (-)(0..2)
+ERROR:  First argument must be a LINESTRING
+ERROR:  Third argument must be a POINT
 LINESTRING(90 91 92,1 1 1,2 2 2)
 LINESTRINGM(0 0 0,90 91 92,2 2 2)
 LINESTRINGM(0 0 0,1 1 1,90 91 93)

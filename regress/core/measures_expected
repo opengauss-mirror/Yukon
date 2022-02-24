@@ -36,21 +36,21 @@ distancepoly6|0|32.526912|LINESTRING(2 2,2 2)|LINESTRING(2 2,2 2)|LINESTRING(2 2
 3dDistancetest5|2|10|t|f|LINESTRING(5 0 5,5 2 5)|POINT(5 0 5)|LINESTRING(11 0 5,5 0 13)
 3dDistancetest6|0
 3dDistancetest7|0
-gsql:measures.sql:230: NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
+NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
 POINT Z (1 1 3)
-gsql:measures.sql:233: NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
+NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
 POINT Z (1 1 2)
-gsql:measures.sql:236: NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
+NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
 LINESTRING Z (1 1 3,1 2 3)
-gsql:measures.sql:239: NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
+NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
 LINESTRING Z (1 1 2,1 2 2)
-gsql:measures.sql:242: NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
+NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
 1
-gsql:measures.sql:245: NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
+NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
 1
-gsql:measures.sql:247: NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
+NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
 POINT Z (0 0 0)
-gsql:measures.sql:248: NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
+NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
 LINESTRING Z (2 1 -1,1.5 1.5 -1)
 emptyPolyArea|0
 emptyLineArea|0
@@ -67,15 +67,15 @@ length_spheroid|100
 #4278.2|0
 #4278.3|f
 #4278.4|1
-gsql:measures.sql:287: NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
+NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
 #4328.1|t|t
-gsql:measures.sql:288: NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
+NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
 #4328.2|t|t
-gsql:measures.sql:289: NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
+NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
 #4328.3|t|t
-gsql:measures.sql:290: NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
+NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
 #4328.4|t|t
-gsql:measures.sql:291: NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
+NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
 #4328.5|t|t
-gsql:measures.sql:292: NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
+NOTICE:  One or both of the geometries is missing z-value. The unknown z-value will be regarded as "any value"
 #4328.6|t|t

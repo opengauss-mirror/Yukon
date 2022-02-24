@@ -1,5 +1,5 @@
 t1|t
-gsql:quantize_coordinates.sql:4: ERROR:  Must specify precision
+ERROR:  Must specify precision
 t3|t
 t4|t
 t5|t
