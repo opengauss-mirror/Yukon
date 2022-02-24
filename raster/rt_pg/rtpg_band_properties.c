@@ -46,7 +46,7 @@
 
 #include "rtpostgis.h"
 
-extern bool enable_outdb_rasters;
+extern THR_LOCAL bool enable_outdb_rasters;
 extern "C"
 {
 /* Get all the properties of a raster band */
@@ -350,6 +350,7 @@ Datum RASTER_getBandPath(PG_FUNCTION_ARGS)
 /**
  * Return the file size of the raster.
  */
+extern "C" Datum RASTER_getBandFileSize(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(RASTER_getBandFileSize);
 Datum RASTER_getBandFileSize(PG_FUNCTION_ARGS)
 {
@@ -409,6 +410,7 @@ Datum RASTER_getBandFileSize(PG_FUNCTION_ARGS)
 /**
  * Return the file timestamp of the raster.
  */
+extern "C" Datum RASTER_getBandFileTimestamp(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(RASTER_getBandFileTimestamp);
 Datum RASTER_getBandFileTimestamp(PG_FUNCTION_ARGS)
 {

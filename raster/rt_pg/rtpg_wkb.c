@@ -34,11 +34,11 @@
 
 #include "rtpostgis.h"
 
-Datum RASTER_asWKB(PG_FUNCTION_ARGS);
-Datum RASTER_asHexWKB(PG_FUNCTION_ARGS);
+extern "C" Datum RASTER_asWKB(PG_FUNCTION_ARGS);
+extern "C" Datum RASTER_asHexWKB(PG_FUNCTION_ARGS);
 
-Datum RASTER_fromWKB(PG_FUNCTION_ARGS);
-Datum RASTER_fromHexWKB(PG_FUNCTION_ARGS);
+extern "C" Datum RASTER_fromWKB(PG_FUNCTION_ARGS);
+extern "C" Datum RASTER_fromHexWKB(PG_FUNCTION_ARGS);
 
 /**
  * Output is WKB

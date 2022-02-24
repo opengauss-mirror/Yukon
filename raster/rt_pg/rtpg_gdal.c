@@ -55,7 +55,10 @@ Datum RASTER_setGDALOpenOptions(PG_FUNCTION_ARGS);
 
 /* warp a raster using GDAL Warp API */
 Datum RASTER_GDALWarp(PG_FUNCTION_ARGS);
+void _PG_init_gdal(void);
 }
+
+extern THR_LOCAL bool inited_gdal;
 /* ----------------------------------------------------------------
  * Returns raster from GDAL raster
  * ---------------------------------------------------------------- */
@@ -75,6 +78,10 @@ Datum RASTER_fromGDALRaster(PG_FUNCTION_ARGS)
 	/* NULL if NULL */
 	if (PG_ARGISNULL(0))
 		PG_RETURN_NULL();
+	
+	if (inited_gdal == false) {
+		_PG_init_gdal();
+	}
 
 	/* get data */
 	bytea_data = (bytea *) PG_GETARG_BYTEA_P(0);
@@ -175,6 +182,10 @@ Datum RASTER_asGDALRaster(PG_FUNCTION_ARGS)
 	uint64_t gdal_size = 0;
 	bytea *result = NULL;
 	uint64_t result_size = 0;
+
+	if (inited_gdal == false) {
+		_PG_init_gdal();
+	}
 
 	POSTGIS_RT_DEBUG(3, "RASTER_asGDALRaster: Starting");
 
@@ -349,6 +360,10 @@ Datum RASTER_getGDALDrivers(PG_FUNCTION_ARGS)
 	int call_cntr;
 	int max_calls;
 
+	if (inited_gdal == false) {
+		_PG_init_gdal();
+	}
+
 	/* first call of function */
 	if (SRF_IS_FIRSTCALL()) {
 		MemoryContext oldcontext;
@@ -455,6 +470,7 @@ Datum RASTER_getGDALDrivers(PG_FUNCTION_ARGS)
  * RETURNS table(geom geometry, value float8, id integer)
  ************************************************************************/
 
+extern "C" Datum RASTER_Contour(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(RASTER_Contour);
 Datum RASTER_Contour(PG_FUNCTION_ARGS)
 {
@@ -639,7 +655,7 @@ Datum RASTER_Contour(PG_FUNCTION_ARGS)
  *
  * https://gdal.org/api/gdal_alg.html?highlight=contour#_CPPv414GDALGridCreate17GDALGridAlgorithmPKv7GUInt32PKdPKdPKddddd7GUInt327GUInt3212GDALDataTypePv16GDALProgressFuncPv
  ************************************************************************/
-
+extern "C" Datum RASTER_InterpolateRaster(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(RASTER_InterpolateRaster);
 Datum RASTER_InterpolateRaster(PG_FUNCTION_ARGS)
 {
@@ -867,6 +883,10 @@ Datum RASTER_GDALWarp(PG_FUNCTION_ARGS)
 	int *dim_y = NULL;
 
 	POSTGIS_RT_DEBUG(3, "RASTER_GDALWarp: Starting");
+
+	if (inited_gdal == false) {
+		_PG_init_gdal();
+	}
 
 	/* pgraster is null, return null */
 	if (PG_ARGISNULL(0))
