@@ -104,6 +104,86 @@ PROJSRSDestroyPortalCache(void *portalCache)
 	}
 }
 
+static void
+#if POSTGIS_PGSQL_VERSION < 96
+PROJSRSCacheDelete(MemoryContext context)
+{
+#else
+PROJSRSCacheDelete(void *ptr)
+{
+	MemoryContext context = (MemoryContext)ptr;
+#endif
+	PROJSRSDestroyPortalCache(PROJ_CACHE);
+}
+
+
+static void
+PROJSRSCacheInit(MemoryContext context)
+{
+	/*
+	 * Do nothing as the cache is initialised when the transform()
+	 * function is first called
+	 */
+}
+
+static void
+PROJSRSCacheReset(MemoryContext context)
+{
+	/*
+	 * Do nothing, but we must supply a function since this call is mandatory according to tgl
+	 * (see postgis-devel archives July 2007)
+	 */
+}
+
+static bool
+PROJSRSCacheIsEmpty(MemoryContext context)
+{
+	/*
+	 * Always return false since this call is mandatory according to tgl
+	 * (see postgis-devel archives July 2007)
+	 */
+	return false;
+}
+
+static void
+PROJSRSCacheStats(MemoryContext context, int level)
+{
+	/*
+	 * Simple stats display function - we must supply a function since this call is mandatory according to tgl
+	 * (see postgis-devel archives July 2007)
+	 */
+
+	//fprintf(stderr, "%s: PROJ context\n", context->name);
+}
+
+#ifdef MEMORY_CONTEXT_CHECKING
+static void
+PROJSRSCacheCheck(MemoryContext context)
+{
+	/*
+	 * Do nothing - stub required for when PostgreSQL is compiled
+	 * with MEMORY_CONTEXT_CHECKING defined
+	 */
+}
+#endif /* MEMORY_CONTEXT_CHECKING */
+
+/* Memory context definition must match the current version of PostgreSQL */
+static MemoryContextMethods PROJSRSCacheContextMethods =
+{
+	NULL,
+	NULL,
+	NULL,
+	PROJSRSCacheInit,
+	PROJSRSCacheReset,
+	PROJSRSCacheDelete,
+	NULL,
+	PROJSRSCacheIsEmpty,
+	PROJSRSCacheStats
+#ifdef MEMORY_CONTEXT_CHECKING
+	,PROJSRSCacheCheck
+#endif
+};
+
 /**
 * Get the Proj cache entry from the global variable if one exists.
 * If it doesn't exist, make a new blank one and return it.
@@ -124,6 +204,7 @@ GetPROJSRSCache()
 
 		/* Allocate in the upper context */
 		cache = MemoryContextAllocZero(context, sizeof(PROJSRSCache));
+		//context->methods = &PROJSRSCacheContextMethods;
 
 		if (!cache)
 			elog(ERROR, "Unable to allocate space for PROJSRSCache in context %p", context);
