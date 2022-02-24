@@ -664,7 +664,7 @@ uint64_t rt_band_get_file_timestamp(rt_band band) {
 rt_pixtype
 rt_band_get_pixtype(rt_band band) {
 
-    a//assert(NULL != band);
+    //assert(NULL != band);
 	if (NULL == band) {
 		rterror("rt_band_get_pixtype: band cannot be NULL.");
 	}
