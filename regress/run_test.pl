@@ -788,7 +788,7 @@ sub run_simple_test
 		$lines[$i] =~ s/[eE]([+-])0+(\d+)/e$1$2/g;
 		$lines[$i] =~ s/Self-intersection .*/Self-intersection/;
 		$lines[$i] =~ s/^ROLLBACK/COMMIT/;
-		$lines[$i] =~ s/^psql.*(NOTICE|WARNING|ERROR):/\1:/g;
+		$lines[$i] =~ s/^gsql.*(NOTICE|WARNING|ERROR):/\1:/g;
 		$lines[$i] =~ s/^total time.*//g;
 		chomp $lines[-1];
 	}

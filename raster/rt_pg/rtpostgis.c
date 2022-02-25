@@ -729,7 +729,7 @@ _PG_init_gdal(void) {
 		/* In this narrow case the previously installed GUC is tied to the callback in */
 		/* the previously loaded library. Probably this is happening during an */
 		/* upgrade, so the old library is where the callback ties to. */
-		elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.gdal_datapath");
+		//elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.gdal_datapath");
 	}
 	else
 	{
@@ -754,7 +754,7 @@ _PG_init_gdal(void) {
 		/* In this narrow case the previously installed GUC is tied to the callback in */
 		/* the previously loaded library. Probably this is happening during an */
 		/* upgrade, so the old library is where the callback ties to. */
-		elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.gdal_enabled_drivers");
+		//elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.gdal_enabled_drivers");
 	}
 	else
 	{
@@ -777,7 +777,7 @@ _PG_init_gdal(void) {
 		/* In this narrow case the previously installed GUC is tied to the callback in */
 		/* the previously loaded library. Probably this is happening during an */
 		/* upgrade, so the old library is where the callback ties to. */
-		elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.enable_outdb_rasters");
+		//elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.enable_outdb_rasters");
 	}
 	else
 	{
@@ -797,7 +797,7 @@ _PG_init_gdal(void) {
 
 	if ( postgis_guc_find_option("postgis.gdal_vsi_options") )
 	{
-		elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.gdal_vsi_options");
+		//elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.gdal_vsi_options");
 	}
 	else
 	{

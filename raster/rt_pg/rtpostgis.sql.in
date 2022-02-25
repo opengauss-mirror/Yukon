@@ -281,9 +281,21 @@ CREATE OR REPLACE FUNCTION st_summary(rast raster)
 		bandmetadata record;
 		msg text;
 		msgset text[];
+		upperleftx double precision;
+		upperlefty double precision;
+		width int;
+		height int;
+		scalex double precision;
+		scaley double precision;
+		skewx double precision;
+		skewy double precision;
+		srid int;
+		numbands int;
 	BEGIN
 		extent := @extschema@.ST_Extent(rast::geometry);
-		metadata := @extschema@.ST_Metadata(rast);
+		--metadata := @extschema@.ST_Metadata(rast);
+		metadata := ST_Metadata(rast, upperleftx, upperlefty, width, height, scalex, scaley, skewx, skewy, srid, numbands);
+
 
 		msg := 'Raster of ' || metadata.width || 'x' || metadata.height || ' pixels has ' || metadata.numbands || ' ';
 
@@ -458,7 +470,7 @@ CREATE OR REPLACE FUNCTION st_band(rast raster, nband int)
 
 CREATE OR REPLACE FUNCTION st_band(rast raster, nbands text, delimiter char DEFAULT ',')
 	RETURNS RASTER
-	AS $$ SELECT  @extschema@.ST_band($1, regexp_split_to_array(regexp_replace($2, '[[:space:]]', '', 'g'), E'\\' || array_to_string(regexp_split_to_array($3, ''), E'\\'))::int[]) $$
+	AS $$ SELECT  @extschema@.ST_band($1, regexp_split_to_array(regexp_replace($2, '[[:space:]]', ' ', 'g'), E'\\' || array_to_string(regexp_split_to_array($3, ''), E'\\'))::int[]) $$
 	LANGUAGE 'sql' IMMUTABLE STRICT _PARALLEL;
 
 -----------------------------------------------------------------------
@@ -4815,9 +4827,13 @@ CREATE OR REPLACE FUNCTION st_setgeoreference(rast raster, georef text, format t
             RETURN rastout;
         END IF;
 
+		IF format = ' ' THEN
+			format := 'GDAL';
+        END IF;
+
         SELECT regexp_matches(georef,
-            E'(-?\\d+(?:\\.\\d+)?)\\s(-?\\d+(?:\\.\\d+)?)\\s(-?\\d+(?:\\.\\d+)?)\\s' ||
-            E'(-?\\d+(?:\\.\\d+)?)\\s(-?\\d+(?:\\.\\d+)?)\\s(-?\\d+(?:\\.\\d+)?)') INTO params;
+           E'(-?\\d*(?:\\.\\d+)?)\\s(-?\\d*(?:\\.\\d+)?)\\s(-?\\d*(?:\\.\\d+)?)\\s' ||
+            E'(-?\\d*(?:\\.\\d+)?)\\s(-?\\d*(?:\\.\\d+)?)\\s(-?\\d*(?:\\.\\d+)?)') INTO params;        
 
         IF NOT FOUND THEN
             RAISE EXCEPTION 'st_setgeoreference requires a string with 6 floating point values.';
@@ -5825,6 +5841,17 @@ CREATE OR REPLACE FUNCTION _st_samealignment_transfn(agg agg_samealignment, rast
 	DECLARE
 		m record;
 		aligned boolean;
+
+		upperleftx double precision;
+		upperlefty double precision;
+		width int;
+		height int;
+		scalex double precision;
+		scaley double precision;
+		skewx double precision;
+		skewy double precision;
+		srid int;
+		numbands int;
 	BEGIN
 		IF agg IS NULL THEN
 			agg.refraster := NULL;
@@ -5835,7 +5862,7 @@ CREATE OR REPLACE FUNCTION _st_samealignment_transfn(agg agg_samealignment, rast
 			agg.aligned := NULL;
 		ELSE
 			IF agg.refraster IS NULL THEN
-				m := ST_Metadata(rast);
+				m := ST_Metadata(rast, upperleftx, upperlefty, width, height, scalex, scaley, skewx, skewy, srid, numbands);			
 				agg.refraster := ST_MakeEmptyRaster(1, 1, m.upperleftx, m.upperlefty, m.scalex, m.scaley, m.skewx, m.skewy, m.srid);
 				agg.aligned := TRUE;
 			ELSIF agg.aligned IS TRUE THEN
@@ -5883,14 +5910,25 @@ CREATE OR REPLACE FUNCTION st_iscoveragetile(rast raster, coverage raster, tilew
 		max integer[];
 		tile integer[];
 		edge integer[];
+
+		upperleftx double precision;
+		upperlefty double precision;
+		width int;
+		height int;
+		scalex double precision;
+		scaley double precision;
+		skewx double precision;
+		skewy double precision;
+		srid int;
+		numbands int;
 	BEGIN
 		IF NOT ST_SameAlignment(rast, coverage) THEN
 			RAISE NOTICE 'Raster and coverage are not aligned';
 			RETURN FALSE;
 		END IF;
 
-		_rastmeta := ST_Metadata(rast);
-		_covmeta := ST_Metadata(coverage);
+		_rastmeta := ST_Metadata(rast, upperleftx, upperlefty, width, height, scalex, scaley, skewx, skewy, srid, numbands);
+		_covmeta := ST_Metadata(coverage, upperleftx, upperlefty, width, height, scalex, scaley, skewx, skewy, srid, numbands);
 
 		-- get coverage grid coordinates of upper-left of rast
 		cr := ST_WorldToRasterCoord(coverage, _rastmeta.upperleftx, _rastmeta.upperlefty);
@@ -5918,8 +5956,8 @@ CREATE OR REPLACE FUNCTION st_iscoveragetile(rast raster, coverage raster, tilew
 		max[1] := ceil(_covmeta.height::double precision / tileheight::double precision)::integer;
 
 		-- tile # of rast in coverge
-		tile[0] := (cr.columnx / tilewidth) + 1;
-		tile[1] := (cr.rowy / tileheight) + 1;
+		tile[0] := floor(cr.columnx / tilewidth) + 1;
+		tile[1] := floor(cr.rowy / tileheight) + 1;
 
 		-- inner tile
 		IF tile[0] < max[0] AND tile[1] < max[1] THEN
@@ -6886,7 +6924,7 @@ CREATE OR REPLACE FUNCTION _raster_constraint_info_scale(rastschema name, rastta
 		AND a.attnum = ANY (s.conkey)
 		AND s.consrc LIKE '%st_scale' || $4 || '(% = %')
 -- if it is a comma separated list of two numbers then need to use round
-   SELECT CASE WHEN split_part(c.val,',', 2) > ''
+   SELECT CASE WHEN split_part(c.val,',', 2) > 0
         THEN round( split_part(c.val, ',',1)::numeric, split_part(c.val,',',2)::integer )::float8
         ELSE c.val::float8 END
         FROM c;
@@ -7223,7 +7261,29 @@ CREATE OR REPLACE FUNCTION _drop_raster_constraint_spatially_unique(rastschema n
 	RETURNS boolean AS $$
 	DECLARE
 		cn text;
+		num int;
 	BEGIN
+		SELECT
+			count(*) into num
+		FROM pg_class c, pg_namespace n, pg_attribute a, pg_constraint s, pg_index idx, pg_operator op
+		WHERE n.nspname = $1
+			AND c.relname = $2
+			AND a.attname = $3
+			AND a.attrelid = c.oid
+			AND s.connamespace = n.oid
+			AND s.conrelid = c.oid
+			AND s.contype = 'x'
+			AND 0::smallint = ANY (s.conkey)
+			AND idx.indexrelid = s.conindid
+			AND pg_get_indexdef(idx.indexrelid, 1, true) LIKE '(' || quote_ident($3) || '::geometry)'
+			AND s.conexclop[1] = op.oid
+			AND op.oprname = '=';
+		
+		IF num = 0 THEN
+			RAISE NOTICE 'The constraint is null.  Skipping';
+			RETURN FALSE;
+		END IF;	
+
 		SELECT
 			s.conname INTO cn
 		FROM pg_class c, pg_namespace n, pg_attribute a
@@ -7739,6 +7799,7 @@ CREATE OR REPLACE FUNCTION AddRasterConstraints (
 		x int;
 		kw text;
 		rtn boolean;
+		schema_num int;
 	BEGIN
 		cnt := 0;
 		max := array_length(constraints, 1);
@@ -7749,19 +7810,33 @@ CREATE OR REPLACE FUNCTION AddRasterConstraints (
 
 		-- validate schema
 		schema := NULL;
-		IF length($1) > 0 THEN
+		IF $1 != ' ' THEN
 			sql := 'SELECT nspname FROM pg_namespace '
 				|| 'WHERE nspname = ' || quote_literal($1)
 				|| 'LIMIT 1';
-			EXECUTE sql INTO schema;
-
-			IF schema IS NULL THEN
+			BEGIN
+				EXECUTE sql INTO schema;
+			EXCEPTION WHEN OTHERS THEN
 				RAISE EXCEPTION 'The value provided for schema is invalid';
 				RETURN FALSE;
-			END IF;
+			END;
 		END IF;
 
-		IF schema IS NULL THEN
+		IF ( schema IS NULL ) THEN
+			sql := 'SELECT count(*) '
+						|| 'FROM pg_catalog.pg_class c '
+						|| 'JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace '
+						|| 'WHERE c.relkind = ' || quote_literal('r')
+						|| ' AND n.nspname NOT IN (' || quote_literal('pg_catalog')
+						|| ', ' || quote_literal('pg_toast')
+						|| ') '
+						|| ' AND c.relname = ' || quote_literal($2);
+					EXECUTE sql INTO schema_num;
+
+			IF schema_num > 1 THEN
+				RAISE EXCEPTION 'More than one table with name of %, please use function of AddRasterConstraints with schema parameter instead', quote_literal($2);
+			END IF;
+
 			sql := 'SELECT n.nspname AS schemaname '
 				|| 'FROM pg_catalog.pg_class c '
 				|| 'JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace '
@@ -7770,14 +7845,13 @@ CREATE OR REPLACE FUNCTION AddRasterConstraints (
 				|| ', ' || quote_literal('pg_toast')
 				|| ') AND pg_catalog.pg_table_is_visible(c.oid)'
 				|| ' AND c.relname = ' || quote_literal($2);
-			EXECUTE sql INTO schema;
-
-			IF schema IS NULL THEN
+			BEGIN
+				EXECUTE sql INTO schema;	
+			EXCEPTION WHEN OTHERS THEN
 				RAISE EXCEPTION 'The table % does not occur in the search_path', quote_literal($2);
 				RETURN FALSE;
-			END IF;
+			END;
 		END IF;
-
 		<<kwloop>>
 		FOR x in 1..max LOOP
 			kw := trim(both from lower(constraints[x]));
@@ -7854,7 +7928,7 @@ CREATE OR REPLACE FUNCTION AddRasterConstraints (
 
 		RETURN TRUE;
 	END;
-	$$ LANGUAGE 'plpgsql' VOLATILE STRICT;
+	$$ LANGUAGE 'plpgsql' VOLATILE;
 
 CREATE OR REPLACE FUNCTION AddRasterConstraints (
 	rasttable name,
@@ -7862,8 +7936,8 @@ CREATE OR REPLACE FUNCTION AddRasterConstraints (
 	VARIADIC constraints text[]
 )
 	RETURNS boolean AS
-	$$ SELECT @extschema@.AddRasterConstraints('', $1, $2, VARIADIC $3) $$
-	LANGUAGE 'sql' VOLATILE STRICT;
+	$$ SELECT @extschema@.AddRasterConstraints(' ', $1, $2, VARIADIC $3) $$
+	LANGUAGE 'sql' VOLATILE ;
 
 CREATE OR REPLACE FUNCTION AddRasterConstraints (
 	rastschema name,
@@ -7937,7 +8011,7 @@ CREATE OR REPLACE FUNCTION AddRasterConstraints (
 
 		RETURN @extschema@.AddRasterConstraints($1, $2, $3, VARIADIC constraints);
 	END;
-	$$ LANGUAGE 'plpgsql' VOLATILE STRICT;
+	$$ LANGUAGE 'plpgsql' VOLATILE ;
 
 CREATE OR REPLACE FUNCTION AddRasterConstraints (
 	rasttable name,
@@ -7956,8 +8030,8 @@ CREATE OR REPLACE FUNCTION AddRasterConstraints (
 	extent boolean DEFAULT TRUE
 )
 	RETURNS boolean AS
-	$$ SELECT @extschema@.AddRasterConstraints('', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) $$
-	LANGUAGE 'sql' VOLATILE STRICT;
+	$$ SELECT @extschema@.AddRasterConstraints(' ', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) $$
+	LANGUAGE 'sql' VOLATILE ;
 
 ------------------------------------------------------------------------------
 -- DropRasterConstraints
@@ -7979,6 +8053,7 @@ CREATE OR REPLACE FUNCTION DropRasterConstraints (
 		kw text;
 		rtn boolean;
 		cnt int;
+		schema_num int;
 	BEGIN
 		cnt := 0;
 		max := array_length(constraints, 1);
@@ -7989,19 +8064,33 @@ CREATE OR REPLACE FUNCTION DropRasterConstraints (
 
 		-- validate schema
 		schema := NULL;
-		IF length($1) > 0 THEN
+		IF $1 != ' ' THEN
 			sql := 'SELECT nspname FROM pg_namespace '
 				|| 'WHERE nspname = ' || quote_literal($1)
 				|| 'LIMIT 1';
-			EXECUTE sql INTO schema;
-
-			IF schema IS NULL THEN
+			BEGIN
+				EXECUTE sql INTO schema;
+			EXCEPTION WHEN OTHERS THEN	
 				RAISE EXCEPTION 'The value provided for schema is invalid';
 				RETURN FALSE;
-			END IF;
+			END;
 		END IF;
 
 		IF schema IS NULL THEN
+			sql := 'SELECT count(*) '
+						|| 'FROM pg_catalog.pg_class c '
+						|| 'JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace '
+						|| 'WHERE c.relkind = ' || quote_literal('r')
+						|| ' AND n.nspname NOT IN (' || quote_literal('pg_catalog')
+						|| ', ' || quote_literal('pg_toast')
+						|| ') '
+						|| ' AND c.relname = ' || quote_literal($2);
+					EXECUTE sql INTO schema_num;
+
+			IF schema_num > 1 THEN
+				RAISE EXCEPTION 'More than one table with name of %, please use function of DropRasterConstraints with schema parameter instead', quote_literal($2);
+			END IF;
+
 			sql := 'SELECT n.nspname AS schemaname '
 				|| 'FROM pg_catalog.pg_class c '
 				|| 'JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace '
@@ -8010,12 +8099,12 @@ CREATE OR REPLACE FUNCTION DropRasterConstraints (
 				|| ', ' || quote_literal('pg_toast')
 				|| ') AND pg_catalog.pg_table_is_visible(c.oid)'
 				|| ' AND c.relname = ' || quote_literal($2);
-			EXECUTE sql INTO schema;
-
-			IF schema IS NULL THEN
+			BEGIN
+				EXECUTE sql INTO schema;
+			EXCEPTION WHEN OTHERS THEN
 				RAISE EXCEPTION 'The table % does not occur in the search_path', quote_literal($2);
 				RETURN FALSE;
-			END IF;
+			END;
 		END IF;
 
 		<<kwloop>>
@@ -8105,7 +8194,7 @@ CREATE OR REPLACE FUNCTION DropRasterConstraints (
 	VARIADIC constraints text[]
 )
 	RETURNS boolean AS
-	$$ SELECT  @extschema@.DropRasterConstraints('', $1, $2, VARIADIC $3) $$
+	$$ SELECT  @extschema@.DropRasterConstraints(' ', $1, $2, VARIADIC $3) $$
 	LANGUAGE 'sql' VOLATILE STRICT;
 
 CREATE OR REPLACE FUNCTION DropRasterConstraints (
@@ -8199,7 +8288,7 @@ CREATE OR REPLACE FUNCTION DropRasterConstraints (
 	extent boolean DEFAULT TRUE
 )
 	RETURNS boolean AS
-	$$ SELECT DropRasterConstraints('', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) $$
+	$$ SELECT DropRasterConstraints(' ', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) $$
 	LANGUAGE 'sql' VOLATILE STRICT;
 
 ------------------------------------------------------------------------------
@@ -8372,9 +8461,10 @@ CREATE OR REPLACE FUNCTION AddOverviewConstraints (
 		rschema name;
 		sql text;
 		rtn boolean;
+		schema_num int;
 	BEGIN
 		FOR x IN 1..2 LOOP
-			s := '';
+			s := ' ';
 
 			IF x = 1 THEN
 				s := $1;
@@ -8385,20 +8475,36 @@ CREATE OR REPLACE FUNCTION AddOverviewConstraints (
 			END IF;
 
 			-- validate user-provided schema
-			IF length(s) > 0 THEN
+			--IF length(s) > 0 THEN
+			IF s != ' ' THEN		
 				sql := 'SELECT nspname FROM pg_namespace '
 					|| 'WHERE nspname = ' || quote_literal(s)
 					|| 'LIMIT 1';
-				EXECUTE sql INTO s;
-
-				IF s IS NULL THEN
+				BEGIN
+					EXECUTE sql INTO s;
+				EXCEPTION WHEN OTHERS THEN
 					RAISE EXCEPTION 'The value % is not a valid schema', quote_literal(s);
 					RETURN FALSE;
-				END IF;
+				END;
 			END IF;
 
 			-- no schema, determine what it could be using the table
-			IF length(s) < 1 THEN
+			--IF length(s) < 1 THEN
+			IF s = ' ' THEN
+				sql := 'SELECT count(*) '
+							|| 'FROM pg_catalog.pg_class c '
+							|| 'JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace '
+							|| 'WHERE c.relkind = ' || quote_literal('r')
+							|| ' AND n.nspname NOT IN (' || quote_literal('pg_catalog')
+							|| ', ' || quote_literal('pg_toast')
+							|| ') '
+							|| ' AND c.relname = ' || quote_literal($2);
+						EXECUTE sql INTO schema_num;
+
+				IF schema_num > 1 THEN
+					RAISE EXCEPTION 'More than one table with name of %, please use function of AddOverviewConstraints with schema parameter instead', quote_literal($2);
+				END IF;
+
 				sql := 'SELECT n.nspname AS schemaname '
 					|| 'FROM pg_catalog.pg_class c '
 					|| 'JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace '
@@ -8407,12 +8513,12 @@ CREATE OR REPLACE FUNCTION AddOverviewConstraints (
 					|| ', ' || quote_literal('pg_toast')
 					|| ') AND pg_catalog.pg_table_is_visible(c.oid)'
 					|| ' AND c.relname = ' || quote_literal(t);
-				EXECUTE sql INTO s;
-
-				IF s IS NULL THEN
+				BEGIN
+					EXECUTE sql INTO s;
+				EXCEPTION WHEN OTHERS THEN
 					RAISE EXCEPTION 'The table % does not occur in the search_path', quote_literal(t);
 					RETURN FALSE;
-				END IF;
+				END;
 			END IF;
 
 			IF x = 1 THEN
@@ -8440,7 +8546,7 @@ CREATE OR REPLACE FUNCTION AddOverviewConstraints (
 	ovfactor int
 )
 	RETURNS boolean
-	AS $$ SELECT  @extschema@.AddOverviewConstraints('', $1, $2, '', $3, $4, $5) $$
+	AS $$ SELECT  @extschema@.AddOverviewConstraints(' ', $1, $2, '', $3, $4, $5) $$
 	LANGUAGE 'sql' VOLATILE STRICT;
 
 ------------------------------------------------------------------------------
@@ -8459,22 +8565,37 @@ CREATE OR REPLACE FUNCTION DropOverviewConstraints (
 		schema name;
 		sql text;
 		rtn boolean;
+		schema_num int;
 	BEGIN
 		-- validate schema
 		schema := NULL;
-		IF length($1) > 0 THEN
+		IF $1 != ' ' THEN
 			sql := 'SELECT nspname FROM pg_namespace '
 				|| 'WHERE nspname = ' || quote_literal($1)
 				|| 'LIMIT 1';
-			EXECUTE sql INTO schema;
-
-			IF schema IS NULL THEN
+			BEGIN
+				EXECUTE sql INTO schema;
+			EXCEPTION WHEN OTHERS THEN
 				RAISE EXCEPTION 'The value provided for schema is invalid';
 				RETURN FALSE;
-			END IF;
+			END;
 		END IF;
 
 		IF schema IS NULL THEN
+			sql := 'SELECT count(*) '
+						|| 'FROM pg_catalog.pg_class c '
+						|| 'JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace '
+						|| 'WHERE c.relkind = ' || quote_literal('r')
+						|| ' AND n.nspname NOT IN (' || quote_literal('pg_catalog')
+						|| ', ' || quote_literal('pg_toast')
+						|| ') '
+						|| ' AND c.relname = ' || quote_literal($2);
+					EXECUTE sql INTO schema_num;
+
+			IF schema_num > 1 THEN
+				RAISE EXCEPTION 'More than one table with name of %, please use function of DropOverviewConstraints with schema parameter instead', quote_literal($2);
+			END IF;	
+
 			sql := 'SELECT n.nspname AS schemaname '
 				|| 'FROM pg_catalog.pg_class c '
 				|| 'JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace '
@@ -8483,12 +8604,12 @@ CREATE OR REPLACE FUNCTION DropOverviewConstraints (
 				|| ', ' || quote_literal('pg_toast')
 				|| ') AND pg_catalog.pg_table_is_visible(c.oid)'
 				|| ' AND c.relname = ' || quote_literal($2);
-			EXECUTE sql INTO schema;
-
-			IF schema IS NULL THEN
+			BEGIN
+				EXECUTE sql INTO schema;
+			EXCEPTION WHEN OTHERS THEN
 				RAISE EXCEPTION 'The table % does not occur in the search_path', quote_literal($2);
 				RETURN FALSE;
-			END IF;
+			END;
 		END IF;
 
 		rtn :=  @extschema@._drop_overview_constraint(schema, $2, $3);
@@ -8507,7 +8628,7 @@ CREATE OR REPLACE FUNCTION DropOverviewConstraints (
 	ovcolumn name
 )
 	RETURNS boolean
-	AS $$ SELECT  @extschema@.DropOverviewConstraints('', $1, $2) $$
+	AS $$ SELECT  @extschema@.DropOverviewConstraints(' ', $1, $2) $$
 	LANGUAGE 'sql' VOLATILE STRICT;
 
 ------------------------------------------------------------------------------
@@ -8526,22 +8647,37 @@ CREATE OR REPLACE FUNCTION _UpdateRasterSRID(
 		sql text;
 		srid integer;
 		ct boolean;
+		schema_num int;
 	BEGIN
 		-- validate schema
 		schema := NULL;
-		IF length($1) > 0 THEN
+		IF $1 != ' ' THEN
 			sql := 'SELECT nspname FROM pg_namespace '
 				|| 'WHERE nspname = ' || quote_literal($1)
 				|| 'LIMIT 1';
-			EXECUTE sql INTO schema;
-
-			IF schema IS NULL THEN
+			BEGIN
+				EXECUTE sql INTO schema;
+			EXCEPTION WHEN OTHERS THEN
 				RAISE EXCEPTION 'The value provided for schema is invalid';
 				RETURN FALSE;
-			END IF;
+			END;
 		END IF;
 
 		IF schema IS NULL THEN
+			sql := 'SELECT count(*) '
+						|| 'FROM pg_catalog.pg_class c '
+						|| 'JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace '
+						|| 'WHERE c.relkind = ' || quote_literal('r')
+						|| ' AND n.nspname NOT IN (' || quote_literal('pg_catalog')
+						|| ', ' || quote_literal('pg_toast')
+						|| ') '
+						|| ' AND c.relname = ' || quote_literal($2);
+					EXECUTE sql INTO schema_num;
+
+			IF schema_num > 1 THEN
+				RAISE EXCEPTION 'More than one table with name of %, please use function of UpdateRasterSRID with schema parameter instead', quote_literal($2);
+			END IF;
+
 			sql := 'SELECT n.nspname AS schemaname '
 				|| 'FROM pg_catalog.pg_class c '
 				|| 'JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace '
@@ -8550,12 +8686,12 @@ CREATE OR REPLACE FUNCTION _UpdateRasterSRID(
 				|| ', ' || quote_literal('pg_toast')
 				|| ') AND pg_catalog.pg_table_is_visible(c.oid)'
 				|| ' AND c.relname = ' || quote_literal($2);
-			EXECUTE sql INTO schema;
-
-			IF schema IS NULL THEN
+			BEGIN
+				EXECUTE sql INTO schema;
+			EXCEPTION WHEN OTHERS THEN
 				RAISE EXCEPTION 'The table % does not occur in the search_path', quote_literal($2);
 				RETURN FALSE;
-			END IF;
+			END;
 		END IF;
 
 		-- clamp SRID
@@ -8577,7 +8713,7 @@ CREATE OR REPLACE FUNCTION _UpdateRasterSRID(
 		PERFORM  @extschema@.DropRasterConstraints(schema, $2, $3, 'extent', 'alignment', 'srid');
 
 		fqtn := '';
-		IF length($1) > 0 THEN
+		IF $1 != ' '  THEN
 			fqtn := quote_ident($1) || '.';
 		END IF;
 		fqtn := fqtn || quote_ident($2);
@@ -8615,7 +8751,7 @@ CREATE OR REPLACE FUNCTION UpdateRasterSRID(
 	new_srid integer
 )
 	RETURNS boolean
-	AS $$ SELECT  @extschema@._UpdateRasterSRID('', $1, $2, $3) $$
+	AS $$ SELECT  @extschema@._UpdateRasterSRID(' ', $1, $2, $3) $$
 	LANGUAGE 'sql' VOLATILE STRICT;
 
 ------------------------------------------------------------------------------
