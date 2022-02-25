@@ -1332,8 +1332,9 @@ Datum gserialized_gist_distance(PG_FUNCTION_ARGS)
 	char query_box_mem[GIDX_MAX_SIZE];
 	GIDX *query_box = (GIDX *)query_box_mem;
 	GIDX *entry_box;
+#if POSTGIS_PGSQL_VERSION >= 95
 	bool *recheck = (bool *)PG_GETARG_POINTER(4);
-
+#endif
 	double distance;
 
 	POSTGIS_DEBUG(4, "[GIST] 'distance' function called");
@@ -1359,9 +1360,11 @@ Datum gserialized_gist_distance(PG_FUNCTION_ARGS)
 	/* Strategy 20 is |=| */
 	distance = gidx_distance(entry_box, query_box, strategy == 20);
 
+#if POSTGIS_PGSQL_VERSION >= 95
 	/* Treat leaf node tests different from internal nodes */
 	if (GIST_LEAF(entry))
 		*recheck = true;
+#endif
 
 	PG_RETURN_FLOAT8(distance);
 }
