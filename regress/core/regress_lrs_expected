@@ -1,5 +1,5 @@
-gsql:regress_lrs.sql:3: ERROR:  Input geometry does not have a measure dimension
-gsql:regress_lrs.sql:4: ERROR:  Input geometry does not have a measure dimension
+ERROR:  Input geometry does not have a measure dimension
+ERROR:  Input geometry does not have a measure dimension
 PNTM_1|MULTIPOINT M EMPTY
 PNTM_2|MULTIPOINT M (1 2 3)
 PNTM_3|MULTIPOINT M (1 2 3)
