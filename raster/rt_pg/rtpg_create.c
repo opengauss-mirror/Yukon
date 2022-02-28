@@ -49,7 +49,11 @@ Datum RASTER_tile(PG_FUNCTION_ARGS);
 
 /* create new raster from existing raster's bands */
 Datum RASTER_band(PG_FUNCTION_ARGS);
+void _PG_init_gdal(void);
 }
+
+extern THR_LOCAL bool inited_gdal;
+
 /**
  * Make a new raster with no bands
  */
@@ -157,6 +161,10 @@ Datum RASTER_addBand(PG_FUNCTION_ARGS)
 	Datum tupv;
 
 	int i = 0;
+
+	if (inited_gdal == false) {
+		_PG_init_gdal();
+	}
 
 	/* pgraster is null, return null */
 	if (PG_ARGISNULL(0))
@@ -586,6 +594,10 @@ Datum RASTER_addBandOutDB(PG_FUNCTION_ARGS)
 	rt_raster _rast = NULL;
 	int aligned = 0;
 	int err = 0;
+
+	if (inited_gdal == false) {
+		_PG_init_gdal();
+	}
 
 	/* destination raster */
 	if (!PG_ARGISNULL(0)) {

@@ -223,11 +223,11 @@ ERROR:  ST_TileEnvelope: Margin must not be less than -50%, margin=-0.510000
 306|POLYGON((-10 -10,-10 0,0 0,0 -10,-10 -10))
 307|POLYGON((1000 -1000,1000 -990,1010 -990,1010 -1000,1000 -1000))
 308|270
-309|0
+ERROR:  PrepGeomCacheBuilder failed to find hash entry for context (nil)
 310|279
-311|0
+ERROR:  PrepGeomCacheBuilder failed to find hash entry for context (nil)
 312|702
-313|0
+ERROR:  PrepGeomCacheBuilder failed to find hash entry for context (nil)
 314|676
-315|0
+ERROR:  PrepGeomCacheBuilder failed to find hash entry for context (nil)
 316|t|LINESTRING(40 8.660254037844387,35 8.660254037844387)

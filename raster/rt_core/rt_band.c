@@ -68,7 +68,10 @@ rt_band_new_inline(
 ) {
 	rt_band band = NULL;
 
-	assert(NULL != data);
+	//assert(NULL != data);
+	if (NULL == data) {
+		rterror("rt_band_new_inline: data cannot be NULL.");
+	}
 
 	band = rtalloc(sizeof(struct rt_band_t));
 	if (band == NULL) {
@@ -130,7 +133,10 @@ rt_band_new_offline(
 	rt_band band = NULL;
 	int pathlen = 0;
 
-	assert(NULL != path);
+	//assert(NULL != path);
+	if (NULL == path) {
+		rterror("rt_band_new_offline: path cannot be NULL.");
+	}
 
 	band = rtalloc(sizeof(struct rt_band_t));
 	if (band == NULL) {
@@ -287,7 +293,10 @@ rt_band
 rt_band_duplicate(rt_band band) {
 	rt_band rtn = NULL;
 
-	assert(band != NULL);
+	//assert(band != NULL);
+	if (NULL == band) {
+		rterror("rt_band_duplicate: band cannot be NULL.");
+	}
 
 	/* offline */
 	if (band->offline) {
@@ -327,7 +336,10 @@ rt_band_duplicate(rt_band band) {
 
 int
 rt_band_is_offline(rt_band band) {
-  assert(NULL != band);
+  //assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_is_offline: band cannot be NULL.");
+	}
 	return band->offline ? 1 : 0;
 }
 
@@ -362,7 +374,10 @@ rt_band_destroy(rt_band band) {
 const char*
 rt_band_get_ext_path(rt_band band) {
 
-    assert(NULL != band);
+    //assert(NULL != band);
+    if (NULL == band) {
+		rterror("rt_band_get_ext_path: band cannot be NULL.");
+	}
 
 
     if (!band->offline) {
@@ -374,8 +389,16 @@ rt_band_get_ext_path(rt_band band) {
 
 rt_errorstate
 rt_band_get_ext_band_num(rt_band band, uint8_t *bandnum) {
-	assert(NULL != band);
-	assert(NULL != bandnum);
+	//assert(NULL != band);
+	//assert(NULL != bandnum);
+
+	if (NULL == band) {
+		rterror("rt_band_get_ext_band_num: band cannot be NULL.");
+	}
+
+	if (NULL == bandnum) {
+		rterror("rt_band_get_ext_band_num: bandnum cannot be NULL.");
+	}
 
 	*bandnum = 0;
 
@@ -398,7 +421,10 @@ rt_band_get_ext_band_num(rt_band band, uint8_t *bandnum) {
 	*/
 void *
 rt_band_get_data(rt_band band) {
-	assert(NULL != band);
+	//assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_get_data: band cannot be NULL.");
+	}
 
 	if (band->offline) {
 		if (band->data.offline.mem != NULL)
@@ -414,7 +440,7 @@ rt_band_get_data(rt_band band) {
 }
 
 /* variable for PostgreSQL GUC: postgis.enable_outdb_rasters */
-char enable_outdb_rasters = 1;
+bool THR_LOCAL enable_outdb_rasters = 1;
 
 /**
 	* Load offline band's data.  Loaded data is internally owned
@@ -439,8 +465,16 @@ rt_band_load_offline_data(rt_band band) {
 	int aligned = 0;
 	int err = ES_NONE;
 
-	assert(band != NULL);
-	assert(band->raster != NULL);
+	//assert(band != NULL);
+	//assert(band->raster != NULL);
+
+	if (NULL == band) {
+		rterror("rt_band_load_offline_data: band cannot be NULL.");
+	}
+
+	if (NULL == band->raster) {
+		rterror("rt_band_load_offline_data: band->raster cannot be NULL.");
+	}
 
 	if (!band->offline) {
 		rterror("rt_band_load_offline_data: Band is not offline");
@@ -630,7 +664,10 @@ uint64_t rt_band_get_file_timestamp(rt_band band) {
 rt_pixtype
 rt_band_get_pixtype(rt_band band) {
 
-    assert(NULL != band);
+    //assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_get_pixtype: band cannot be NULL.");
+	}
 
 
     return band->pixtype;
@@ -639,7 +676,10 @@ rt_band_get_pixtype(rt_band band) {
 uint16_t
 rt_band_get_width(rt_band band) {
 
-    assert(NULL != band);
+    //assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_get_width: band cannot be NULL.");
+	}
 
 
     return band->width;
@@ -648,7 +688,10 @@ rt_band_get_width(rt_band band) {
 uint16_t
 rt_band_get_height(rt_band band) {
 
-    assert(NULL != band);
+    //assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_get_height: band cannot be NULL.");
+	}
 
 
     return band->height;
@@ -657,7 +700,10 @@ rt_band_get_height(rt_band band) {
 /* Get ownsdata flag */
 int
 rt_band_get_ownsdata_flag(rt_band band) {
-	assert(NULL != band);
+	//assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_get_ownsdata_flag: band cannot be NULL.");
+	}
 
 	return band->ownsdata ? 1 : 0;
 }
@@ -665,14 +711,20 @@ rt_band_get_ownsdata_flag(rt_band band) {
 /* set ownsdata flag */
 void
 rt_band_set_ownsdata_flag(rt_band band, int flag) {
-	assert(NULL != band);
+	//assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_set_ownsdata_flag: band cannot be NULL.");
+	}
 
 	band->ownsdata = flag ? 1 : 0;
 }
 
 int
 rt_band_get_hasnodata_flag(rt_band band) {
-	assert(NULL != band);
+	//assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_get_hasnodata_flag: band cannot be NULL.");
+	}
 
 	return band->hasnodata ? 1 : 0;
 }
@@ -680,7 +732,10 @@ rt_band_get_hasnodata_flag(rt_band band) {
 void
 rt_band_set_hasnodata_flag(rt_band band, int flag) {
 
-    assert(NULL != band);
+    //assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_set_hasnodata_flag: band cannot be NULL.");
+	}
 
     band->hasnodata = (flag) ? 1 : 0;
 
@@ -693,7 +748,10 @@ rt_band_set_hasnodata_flag(rt_band band, int flag) {
 
 rt_errorstate
 rt_band_set_isnodata_flag(rt_band band, int flag) {
-	assert(NULL != band);
+	//assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_set_isnodata_flag: band cannot be NULL.");
+	}
 
 	if (!band->hasnodata) {
 		/* silently permit setting isnodata flag to FALSE */
@@ -712,7 +770,10 @@ rt_band_set_isnodata_flag(rt_band band, int flag) {
 
 int
 rt_band_get_isnodata_flag(rt_band band) {
-	assert(NULL != band);
+	//assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_get_isnodata_flag: band cannot be NULL.");
+	}
 
 	if (band->hasnodata)
 		return band->isnodata ? 1 : 0;
@@ -737,7 +798,10 @@ rt_band_set_nodata(rt_band band, double val, int *converted) {
 	float checkvalfloat = 0;
 	double checkvaldouble = 0;
 
-	assert(NULL != band);
+	//assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_set_nodata: band cannot be NULL.");
+	}
 
 	if (converted != NULL)
 		*converted = 0;
@@ -860,8 +924,16 @@ rt_band_set_pixel_line(
 	uint8_t *data = NULL;
 	uint32_t offset = 0;
 
-	assert(NULL != band);
-	assert(vals != NULL && len > 0);
+	//assert(NULL != band);
+	//assert(vals != NULL && len > 0);
+
+	if (NULL == band) {
+		rterror("rt_band_set_pixel_line: band cannot be NULL.");
+	}
+
+	if (0 == len || vals == NULL) {
+		rterror("rt_band_set_pixel_line: len cannot be 0, vals cannot be NULL.");
+	}
 
 	RASTER_DEBUGF(3, "length of values = %d", len);
 
@@ -986,7 +1058,10 @@ rt_band_set_pixel(
 	float checkvalfloat = 0;
 	double checkvaldouble = 0;
 
-	assert(NULL != band);
+	//assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_set_pixel: band cannot be NULL.");
+	}
 
 	if (converted != NULL)
 		*converted = 0;
@@ -1148,8 +1223,16 @@ rt_errorstate rt_band_get_pixel_line(
 	int maxlen = 0;
 	uint8_t *ptr = NULL;
 
-	assert(NULL != band);
-	assert(vals != NULL && nvals != NULL);
+	//assert(NULL != band);
+	//assert(vals != NULL && nvals != NULL);
+
+	if (NULL == band) {
+		rterror("rt_band_get_pixel_line: band cannot be NULL.");
+	}
+
+	if (NULL == vals || NULL == nvals) {
+		rterror("rt_band_get_pixel_line: vals and nvals cannot be NULL.");
+	}
 
 	/* initialize to no values */
 	*nvals = 0;
@@ -1382,8 +1465,16 @@ rt_band_get_pixel(
 	uint8_t* data = NULL;
 	uint32_t offset = 0;
 
-	assert(NULL != band);
-	assert(NULL != value);
+	//assert(NULL != band);
+	//assert(NULL != value);
+
+	if (NULL == band) {
+		rterror("rt_band_get_pixel: band cannot be NULL.");
+	}
+
+	if (NULL == value) {
+		rterror("rt_band_get_pixel: band cannot be NULL.");
+	}
 
 	/* set nodata to 0 */
 	if (nodata != NULL)
@@ -1552,8 +1643,15 @@ uint32_t rt_band_get_nearest_pixel(
 
 	int inextent = 0;
 
-	assert(NULL != band);
-	assert(NULL != npixels);
+	//assert(NULL != band);
+	//assert(NULL != npixels);
+	if (NULL == band) {
+		rterror("rt_band_get_nearest_pixel: band cannot be NULL.");
+	}
+
+	if (NULL == npixels) {
+		rterror("rt_band_get_nearest_pixel: band cannot be NULL.");
+	}
 
 	RASTER_DEBUG(3, "Starting");
 
@@ -1821,9 +1919,21 @@ rt_band_get_pixel_of_value(
 
 	rt_pixel pixel = NULL;
 
-	assert(NULL != band);
-	assert(NULL != pixels);
-	assert(NULL != searchset && searchcount > 0);
+	//assert(NULL != band);
+	//assert(NULL != pixels);
+	//assert(NULL != searchset && searchcount > 0);
+
+	if (NULL == band) {
+		rterror("rt_band_get_pixel_of_value: band cannot be NULL.");
+	}
+
+	if (NULL == pixels) {
+		rterror("rt_band_get_pixel_of_value: pixels cannot be NULL.");
+	}
+
+	if (NULL == searchset || searchcount == 0) {
+		rterror("rt_band_get_pixel_of_value: searchset cannot be NULL, searchcount cannot be 0.");
+	}
 
 	if (!band->hasnodata)
 		exclude_nodata_value = FALSE;
@@ -1884,8 +1994,16 @@ rt_band_get_pixel_of_value(
  */
 rt_errorstate
 rt_band_get_nodata(rt_band band, double *nodata) {
-	assert(NULL != band);
-	assert(NULL != nodata);
+	//assert(NULL != band);
+	//assert(NULL != nodata);
+
+	if (NULL == band) {
+		rterror("rt_band_get_nodata: band cannot be NULL.");
+	}
+
+	if (NULL == nodata) {
+		rterror("rt_band_get_nodata: nodata cannot be NULL.");
+	}
 
 	*nodata = band->nodataval;
 
@@ -1899,7 +2017,10 @@ rt_band_get_nodata(rt_band band, double *nodata) {
 
 double
 rt_band_get_min_value(rt_band band) {
-	assert(NULL != band);
+	//assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_get_min_value: band cannot be NULL.");
+	}
 
 	return rt_pixtype_get_min_value(band->pixtype);
 }
@@ -1910,7 +2031,10 @@ rt_band_check_is_nodata(rt_band band) {
 	double pxValue;
 	int isnodata = 0;
 
-	assert(NULL != band);
+	//assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_check_is_nodata: band cannot be NULL.");
+	}
 	band->isnodata = FALSE;
 
 	/* Check if band has nodata value */
@@ -1954,7 +2078,10 @@ int
 rt_band_clamped_value_is_nodata(rt_band band, double val) {
 	int isequal = 0;
 
-	assert(NULL != band);
+	//assert(NULL != band);
+	if (NULL == band) {
+		rterror("rt_band_clamped_value_is_nodata: band cannot be NULL.");
+	}
 
 	/* no NODATA, so never equal */
 	if (!band->hasnodata)
@@ -1994,8 +2121,16 @@ rt_band_corrected_clamped_value(
 ) {
 	double minval = 0.;
 
-	assert(NULL != band);
-	assert(NULL != newval);
+	//assert(NULL != band);
+	//assert(NULL != newval);
+
+	if (NULL == band) {
+		rterror("rt_band_corrected_clamped_value: band cannot be NULL.");
+	}
+
+	if (NULL == newval) {
+		rterror("rt_band_corrected_clamped_value: newval cannot be NULL.");
+	}
 
 	if (corrected != NULL)
 		*corrected = 0;

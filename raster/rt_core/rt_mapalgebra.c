@@ -73,8 +73,15 @@ rt_band_reclass(
 	int do_nv = 0;
 	rt_reclassexpr expr = NULL;
 
-	assert(NULL != srcband);
-	assert(NULL != exprset && exprcount > 0);
+	//assert(NULL != srcband);
+	//assert(NULL != exprset && exprcount > 0);
+	if (NULL == srcband) {
+		rterror("rt_band_reclass: srcband cannot be NULL.");
+	}
+	
+	if (NULL == exprset || exprcount == 0) {
+		rterror("rt_band_reclass: exprset cannot be NULL, exprcount cannot be 0.");
+	}
 	RASTER_DEBUGF(4, "exprcount = %d", exprcount);
 	RASTER_DEBUGF(4, "exprset @ %p", exprset);
 
@@ -858,8 +865,16 @@ rt_raster_iterator(
 
 	RASTER_DEBUG(3, "Starting...");
 
-	assert(itrset != NULL && itrcount > 0);
-	assert(rtnraster != NULL);
+	//assert(itrset != NULL && itrcount > 0);
+	//assert(rtnraster != NULL);
+
+	if (NULL == rtnraster) {
+		rterror("rt_raster_iterator: rtnraster cannot be NULL.");
+	}
+
+	if (NULL == itrset || itrcount == 0) {
+		rterror("rt_raster_iterator: itrset cannot be NULL, itrcount cannot be 0.");
+	}
 
 	/* init rtnraster to NULL */
 	*rtnraster = NULL;
@@ -1531,7 +1546,11 @@ rt_raster rt_raster_colormap(
 	int j = 0;
 	int k = 0;
 
-	assert(colormap != NULL);
+	//assert(colormap != NULL);
+
+	if (NULL == colormap) {
+		rterror("rt_raster_colormap: colormap cannot be NULL.");
+	}
 
 	/* empty raster */
 	if (rt_raster_is_empty(raster))

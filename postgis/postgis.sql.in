@@ -2128,6 +2128,10 @@ DECLARE
 	gc_is_valid boolean;
 	inserted	integer;
 	constraint_successful boolean := false;
+	sql text;
+	coltype text;
+	new_srid integer;
+	count integer;
 
 BEGIN
 	inserted := 0;
@@ -2149,28 +2153,37 @@ BEGIN
 		AND c.oid = tbl_oid
 	LOOP
 
-        RAISE DEBUG 'Processing column %.%.%', gcs.nspname, gcs.relname, gcs.attname;
+        sql := 'SELECT type FROM geometry_columns WHERE f_table_schema = ' || quote_literal(gcs.nspname) ||
+			' AND f_table_name = '|| quote_literal(gcs.relname) ||' AND f_geometry_column = '|| quote_literal(gcs.attname);
+		EXECUTE sql INTO coltype;
 
-        gc_is_valid := true;
-        -- Find the srid, coord_dimension, and type of current geometry
-        -- in geometry_columns -- which is now a view
-
-        SELECT type, srid, coord_dimension, gcs.relkind INTO gc_old
-            FROM geometry_columns
-            WHERE f_table_schema = gcs.nspname AND f_table_name = gcs.relname AND f_geometry_column = gcs.attname;
-
-        IF upper(gc_old.type) = 'GEOMETRY' THEN
+        IF upper(coltype) = 'GEOMETRY' THEN
         -- This is an unconstrained geometry we need to do something
         -- We need to figure out what to set the type by inspecting the data
-            EXECUTE 'SELECT @extschema@.ST_srid(' || quote_ident(gcs.attname) || ') As srid, @extschema@.GeometryType(' || quote_ident(gcs.attname) || ') As type, @extschema@.ST_NDims(' || quote_ident(gcs.attname) || ') As dims ' ||
-                     ' FROM ONLY ' || quote_ident(gcs.nspname) || '.' || quote_ident(gcs.relname) ||
-                     ' WHERE ' || quote_ident(gcs.attname) || ' IS NOT NULL LIMIT 1;'
-                INTO gc;
-            IF gc IS NULL THEN -- there is no data so we can not determine geometry type
+            sql := 'SELECT COUNT(*) from '|| quote_ident(gcs.nspname)||'.'||quote_ident(gcs.relname);
+			EXECUTE sql INTO count;
+			
+			IF(count) THEN
+				EXECUTE 'SELECT ST_srid(' || quote_ident(gcs.attname) || ') As srid FROM ONLY ' || quote_ident(gcs.nspname) || '.' || quote_ident(gcs.relname) ||
+						 ' WHERE ' || quote_ident(gcs.attname) || ' IS NOT NULL LIMIT 1;'
+					INTO gsrid;
+					
+				EXECUTE 'SELECT GeometryType(' || quote_ident(gcs.attname) || ') As type FROM ONLY ' || quote_ident(gcs.nspname) || '.' || quote_ident(gcs.relname) ||
+						 ' WHERE ' || quote_ident(gcs.attname) || ' IS NOT NULL LIMIT 1;'
+					INTO gtype;	
+				
+				EXECUTE 'SELECT ST_NDims(' || quote_ident(gcs.attname) || ') As dims FROM ONLY ' || quote_ident(gcs.nspname) || '.' || quote_ident(gcs.relname) ||
+						 ' WHERE ' || quote_ident(gcs.attname) || ' IS NOT NULL LIMIT 1;'
+					INTO gndims;	
+			
+			   IF gtype IS NULL THEN -- there is no data so we can not determine geometry type
+				RAISE WARNING 'No geometrytype in table %.%', gcs.nspname, gcs.relname;
+				RETURN 0;
+			   END IF;
+			ELSE
             	RAISE WARNING 'No data in table %.%, so no information to determine geometry type and srid', gcs.nspname, gcs.relname;
             	RETURN 0;
             END IF;
-            gsrid := gc.srid; gtype := gc.type; gndims := gc.dims;
 
             IF use_typmod THEN
                 BEGIN
@@ -2267,6 +2280,7 @@ DECLARE
 	real_schema name;
 	sql text;
 	new_srid integer;
+	count integer;
 
 BEGIN
 
@@ -2303,49 +2317,65 @@ BEGIN
 
 	-- Verify SRID
 	IF ( new_srid_in > 0 ) THEN
-		IF new_srid_in > SRID_USR_MAX THEN
-			RAISE EXCEPTION 'AddGeometryColumn() - SRID must be <= %', SRID_USR_MAX;
+		IF new_srid_in > 998999 THEN
+			RAISE EXCEPTION 'AddGeometryColumn() - SRID must be <= %', 998999;
 		END IF;
 		new_srid := new_srid_in;
-		SELECT SRID INTO sr FROM spatial_ref_sys WHERE SRID = new_srid;
-		IF NOT FOUND THEN
+		SELECT COUNT(*) FROM spatial_ref_sys WHERE SRID = new_srid INTO count;
+		if(count) then
+			SELECT SRID INTO sr FROM spatial_ref_sys WHERE SRID = new_srid;
+		ELSE
 			RAISE EXCEPTION 'AddGeometryColumn() - invalid SRID';
 			RETURN 'fail';
 		END IF;
 	ELSE
-		new_srid := @extschema@.ST_SRID('POINT EMPTY'::@extschema@.geometry);
+		new_srid := ST_SRID('POINT EMPTY'::geometry);
 		IF ( new_srid_in != new_srid ) THEN
 			RAISE NOTICE 'SRID value % converted to the officially unknown SRID value %', new_srid_in, new_srid;
 		END IF;
 	END IF;
 
 	-- Verify schema
-	IF ( schema_name IS NOT NULL AND schema_name != '' ) THEN
-		sql := 'SELECT nspname FROM pg_namespace ' ||
+	IF ( schema_name IS NOT NULL) THEN
+		sql := 'SELECT count(*) FROM pg_namespace ' ||
 			'WHERE text(nspname) = ' || quote_literal(schema_name) ||
 			'LIMIT 1';
-		RAISE DEBUG '%', sql;
-		EXECUTE sql INTO real_schema;
+		EXECUTE sql INTO count;
+		
+		if(count) then
+			sql := 'SELECT nspname FROM pg_namespace ' ||
+				'WHERE text(nspname) = ' || quote_literal(schema_name) ||
+				'LIMIT 1';
+			RAISE DEBUG '%', sql;
+			EXECUTE sql INTO real_schema;
 
-		IF ( real_schema IS NULL ) THEN
+		else
 			RAISE EXCEPTION 'Schema % is not a valid schemaname', quote_literal(schema_name);
 			RETURN 'fail';
 		END IF;
+		
 	END IF;
-
 	IF ( real_schema IS NULL ) THEN
 		RAISE DEBUG 'Detecting schema';
-		sql := 'SELECT n.nspname AS schemaname ' ||
+		sql := 'SELECT count(*) ' ||
 			'FROM pg_catalog.pg_class c ' ||
 			  'JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace ' ||
 			'WHERE c.relkind = ' || quote_literal('r') ||
 			' AND n.nspname NOT IN (' || quote_literal('pg_catalog') || ', ' || quote_literal('pg_toast') || ')' ||
 			' AND pg_catalog.pg_table_is_visible(c.oid)' ||
 			' AND c.relname = ' || quote_literal(table_name);
-		RAISE DEBUG '%', sql;
-		EXECUTE sql INTO real_schema;
-
-		IF ( real_schema IS NULL ) THEN
+		EXECUTE sql INTO count;	
+		if(count) then
+			sql := 'SELECT n.nspname AS schemaname ' ||
+				'FROM pg_catalog.pg_class c ' ||
+				  'JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace ' ||
+				'WHERE c.relkind = ' || quote_literal('r') ||
+				' AND n.nspname NOT IN (' || quote_literal('pg_catalog') || ', ' || quote_literal('pg_toast') || ')' ||
+				' AND pg_catalog.pg_table_is_visible(c.oid)' ||
+				' AND c.relname = ' || quote_literal(table_name);
+			RAISE DEBUG '%', sql;
+			EXECUTE sql INTO real_schema;
+		else
 			RAISE EXCEPTION 'Table % does not occur in the search_path', quote_literal(table_name);
 			RETURN 'fail';
 		END IF;
@@ -2408,7 +2438,7 @@ BEGIN
 		' DIMS:' || new_dim::text || ' ';
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE STRICT;
+LANGUAGE 'plpgsql' VOLATILE;
 
 ----------------------------------------------------------------------------
 -- ADDGEOMETRYCOLUMN ( <schema>, <table>, <column>, <srid>, <type>, <dim> )
@@ -2426,7 +2456,7 @@ BEGIN
 	RETURN ret;
 END;
 $$
-LANGUAGE 'plpgsql' STABLE STRICT;
+LANGUAGE 'plpgsql' STABLE;
 
 ----------------------------------------------------------------------------
 -- ADDGEOMETRYCOLUMN ( <table>, <column>, <srid>, <type>, <dim> )
@@ -2444,7 +2474,7 @@ BEGIN
 	RETURN ret;
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE STRICT;
+LANGUAGE 'plpgsql' VOLATILE;
 
 -----------------------------------------------------------------------
 -- DROPGEOMETRYCOLUMN
@@ -2504,7 +2534,7 @@ BEGIN
 
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE STRICT;
+LANGUAGE 'plpgsql' VOLATILE;
 
 -----------------------------------------------------------------------
 -- DROPGEOMETRYCOLUMN
@@ -2526,7 +2556,7 @@ BEGIN
 	RETURN ret;
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE STRICT;
+LANGUAGE 'plpgsql' VOLATILE;
 
 -----------------------------------------------------------------------
 -- DROPGEOMETRYCOLUMN
@@ -2548,7 +2578,7 @@ BEGIN
 	RETURN ret;
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE STRICT;
+LANGUAGE 'plpgsql' VOLATILE;
 
 -----------------------------------------------------------------------
 -- DROPGEOMETRYTABLE
@@ -2564,10 +2594,11 @@ CREATE OR REPLACE FUNCTION DropGeometryTable(catalog_name varchar, schema_name v
 $$
 DECLARE
 	real_schema name;
+	sqlstr text;
 
 BEGIN
 
-	IF ( schema_name = '' ) THEN
+	IF ( schema_name IS NULL ) THEN
 		SELECT current_schema() into real_schema;
 	ELSE
 		real_schema = schema_name;
@@ -2575,17 +2606,14 @@ BEGIN
 
 	-- TODO: Should we warn if table doesn't exist probably instead just saying dropped
 	-- Remove table
-	EXECUTE 'DROP TABLE IF EXISTS '
-		|| quote_ident(real_schema) || '.' ||
-		quote_ident(table_name) || ' RESTRICT';
+	EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(real_schema) || '.' || quote_ident(table_name) || ' RESTRICT';
 
 	RETURN
 		real_schema || '.' ||
 		table_name ||' dropped.';
-
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE STRICT;
+LANGUAGE 'plpgsql' VOLATILE;
 
 -----------------------------------------------------------------------
 -- DROPGEOMETRYTABLE
@@ -2597,7 +2625,7 @@ LANGUAGE 'plpgsql' VOLATILE STRICT;
 -----------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION DropGeometryTable(schema_name varchar, table_name varchar) RETURNS text AS
 $$ SELECT @extschema@.DropGeometryTable('',$1,$2) $$
-LANGUAGE 'sql' VOLATILE STRICT;
+LANGUAGE 'sql' VOLATILE ;
 
 -----------------------------------------------------------------------
 -- DROPGEOMETRYTABLE
@@ -2610,7 +2638,7 @@ LANGUAGE 'sql' VOLATILE STRICT;
 -----------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION DropGeometryTable(table_name varchar) RETURNS text AS
 $$ SELECT @extschema@.DropGeometryTable('','',$1) $$
-LANGUAGE 'sql' VOLATILE STRICT;
+LANGUAGE 'sql' VOLATILE ;
 
 -----------------------------------------------------------------------
 -- UPDATEGEOMETRYSRID
@@ -3485,7 +3513,7 @@ CREATE OR REPLACE FUNCTION ST_Intersection(geom1 geometry, geom2 geometry, gridS
 	LANGUAGE 'c' IMMUTABLE STRICT _PARALLEL
 	_COST_HIGH;
 
-CREATE OR REPLACE FUNCTION ST_Buffer(geom geometry, radius float8, options text DEFAULT '')
+CREATE OR REPLACE FUNCTION ST_Buffer(geom geometry, radius float8, options text DEFAULT ' ')
 	RETURNS geometry
 	AS 'MODULE_PATHNAME','buffer'
 	LANGUAGE 'c' IMMUTABLE STRICT _PARALLEL
@@ -4792,7 +4820,7 @@ CREATE OR REPLACE FUNCTION ST_AsGML(version int4, geom geometry, maxdecimaldigit
 
 -- Availability: 1.2.2
 -- Changed: 2.0.0 to use default args and allow named args
-CREATE OR REPLACE FUNCTION ST_AsKML(geom geometry, maxdecimaldigits int4 DEFAULT 15, nprefix TEXT default '')
+CREATE OR REPLACE FUNCTION ST_AsKML(geom geometry, maxdecimaldigits int4 DEFAULT 15, nprefix TEXT default 'kml')
 	RETURNS TEXT
 	AS 'MODULE_PATHNAME','LWGEOM_asKML'
 	LANGUAGE 'c' IMMUTABLE STRICT _PARALLEL

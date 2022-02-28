@@ -24,7 +24,7 @@ cpad4|
 ERROR:  Both input geometries must have a measure dimension
 cpaw1|0.0|t
 cpaw1|1|t
-cpaw2|0.5|f
+cpaw2|.5|f
 cpaw2|1|t
 cpaw2|1.2|t
 cpaw3|1.9|f

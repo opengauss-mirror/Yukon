@@ -32,6 +32,15 @@
 
 #include <assert.h>
 
+
+#ifndef THR_LOCAL
+#ifndef WIN32
+#define THR_LOCAL __thread
+#else
+#define THR_LOCAL  __declspec(thread)
+#endif
+#endif
+
 #include "lwgeom_geos.h"
 
 #include "librtcore.h"
