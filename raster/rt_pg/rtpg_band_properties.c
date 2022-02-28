@@ -54,6 +54,8 @@ Datum RASTER_getBandPixelType(PG_FUNCTION_ARGS);
 Datum RASTER_getBandPixelTypeName(PG_FUNCTION_ARGS);
 Datum RASTER_getBandNoDataValue(PG_FUNCTION_ARGS);
 Datum RASTER_getBandPath(PG_FUNCTION_ARGS);
+Datum RASTER_getBandFileSize(PG_FUNCTION_ARGS);
+Datum RASTER_getBandFileTimestamp(PG_FUNCTION_ARGS);
 Datum RASTER_bandIsNoData(PG_FUNCTION_ARGS);
 
 /* get raster band's meta data */
