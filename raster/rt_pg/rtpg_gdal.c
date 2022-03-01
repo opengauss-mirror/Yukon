@@ -52,6 +52,8 @@ Datum RASTER_fromGDALRaster(PG_FUNCTION_ARGS);
 Datum RASTER_asGDALRaster(PG_FUNCTION_ARGS);
 Datum RASTER_getGDALDrivers(PG_FUNCTION_ARGS);
 Datum RASTER_setGDALOpenOptions(PG_FUNCTION_ARGS);
+Datum RASTER_Contour(PG_FUNCTION_ARGS);
+Datum RASTER_InterpolateRaster(PG_FUNCTION_ARGS);
 
 /* warp a raster using GDAL Warp API */
 Datum RASTER_GDALWarp(PG_FUNCTION_ARGS);

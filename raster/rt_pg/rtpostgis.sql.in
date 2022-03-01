@@ -576,7 +576,9 @@ CREATE OR REPLACE FUNCTION _st_summarystats_transfn(
 CREATE AGGREGATE st_summarystatsagg(raster, integer, boolean, double precision) (
 	SFUNC = _st_summarystats_transfn,
 	STYPE = internal,
+#if POSTGIS_PGSQL_VERSION >= 96
 	parallel = safe,
+#endif
 	FINALFUNC = _st_summarystats_finalfn
 );
 
@@ -593,7 +595,9 @@ CREATE OR REPLACE FUNCTION _st_summarystats_transfn(
 CREATE AGGREGATE st_summarystatsagg(raster, boolean, double precision) (
 	SFUNC = _st_summarystats_transfn,
 	STYPE = internal,
+#if POSTGIS_PGSQL_VERSION >= 96
 	parallel = safe,
+#endif
 	FINALFUNC = _st_summarystats_finalfn
 );
 
@@ -610,8 +614,9 @@ CREATE OR REPLACE FUNCTION _st_summarystats_transfn(
 CREATE AGGREGATE st_summarystatsagg(raster, int, boolean) (
 	SFUNC = _st_summarystats_transfn,
 	STYPE = internal,
+#if POSTGIS_PGSQL_VERSION >= 96
 	parallel = safe,
-#
+#endif
 	FINALFUNC = _st_summarystats_finalfn
 );
 
@@ -770,7 +775,9 @@ CREATE OR REPLACE FUNCTION _st_countagg_transfn(
 CREATE AGGREGATE st_countagg(raster, integer, boolean, double precision) (
 	SFUNC = _st_countagg_transfn,
 	STYPE = agg_count,
+#if POSTGIS_PGSQL_VERSION >= 96
 	parallel = safe,
+#endif
 	FINALFUNC = _st_countagg_finalfn
 );
 
@@ -798,7 +805,9 @@ CREATE OR REPLACE FUNCTION _st_countagg_transfn(
 CREATE AGGREGATE st_countagg(raster, integer, boolean) (
 	SFUNC = _st_countagg_transfn,
 	STYPE = agg_count,
+#if POSTGIS_PGSQL_VERSION >= 96
 	parallel = safe,
+#endif
 	FINALFUNC = _st_countagg_finalfn
 );
 
@@ -827,7 +836,9 @@ CREATE OR REPLACE FUNCTION _st_countagg_transfn(
 CREATE AGGREGATE st_countagg(raster, boolean) (
 	SFUNC = _st_countagg_transfn,
 	STYPE = agg_count,
+#if POSTGIS_PGSQL_VERSION >= 96
 	parallel = safe,
+#endif
 	FINALFUNC = _st_countagg_finalfn
 );
 
@@ -5883,7 +5894,9 @@ CREATE OR REPLACE FUNCTION _ST_samealignment_finalfn(agg agg_samealignment)
 CREATE AGGREGATE st_samealignment(raster) (
 	SFUNC = _st_samealignment_transfn,
 	STYPE = agg_samealignment,
+#if POSTGIS_PGSQL_VERSION >= 96
 	parallel = safe,
+#endif
 	FINALFUNC = _st_samealignment_finalfn
 );
 
@@ -6506,7 +6519,9 @@ CREATE OR REPLACE FUNCTION _st_union_transfn(internal, raster, unionarg[])
 CREATE AGGREGATE st_union(raster, unionarg[]) (
 	SFUNC = _st_union_transfn,
 	STYPE = internal,
+#if POSTGIS_PGSQL_VERSION >= 96
 	parallel = safe,
+#endif
 	FINALFUNC = _st_union_finalfn
 );
 
@@ -6522,7 +6537,9 @@ CREATE OR REPLACE FUNCTION _st_union_transfn(internal, raster, integer, text)
 CREATE AGGREGATE st_union(raster, integer, text) (
 	SFUNC = _st_union_transfn,
 	STYPE = internal,
+#if POSTGIS_PGSQL_VERSION >= 96
 	parallel = safe,
+#endif
 	FINALFUNC = _st_union_finalfn
 );
 
@@ -6538,7 +6555,9 @@ CREATE OR REPLACE FUNCTION _st_union_transfn(internal, raster, integer)
 CREATE AGGREGATE st_union(raster, integer) (
 	SFUNC = _st_union_transfn,
 	STYPE = internal,
+#if POSTGIS_PGSQL_VERSION >= 96
 	parallel = safe,
+#endif
 	FINALFUNC = _st_union_finalfn
 );
 
@@ -6554,7 +6573,9 @@ CREATE OR REPLACE FUNCTION _st_union_transfn(internal, raster)
 CREATE AGGREGATE st_union(raster) (
 	SFUNC = _st_union_transfn,
 	STYPE = internal,
+#if POSTGIS_PGSQL_VERSION >= 96
 	parallel = safe,
+#endif
 	FINALFUNC = _st_union_finalfn
 );
 
@@ -6570,7 +6591,9 @@ CREATE OR REPLACE FUNCTION _st_union_transfn(internal, raster, text)
 CREATE AGGREGATE st_union(raster, text) (
 	SFUNC = _st_union_transfn,
 	STYPE = internal,
+#if POSTGIS_PGSQL_VERSION >= 96
 	parallel = safe,
+#endif
 	FINALFUNC = _st_union_finalfn
 );
 
