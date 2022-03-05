@@ -52,6 +52,21 @@
 
 postgisConstants *POSTGIS_CONSTANTS = NULL;
 
+
+static void
+#if POSTGIS_PGSQL_VERSION < 96
+PostgisConstantsDelete(MemoryContext context)
+{
+#else
+PostgisConstantsDelete(void *ptr)
+{
+	MemoryContext context = (MemoryContext)ptr;
+#endif
+	if(POSTGIS_CONSTANTS != NULL){
+		POSTGIS_CONSTANTS = NULL;
+	}	
+}
+
 /* Utility call to lookup type oid given name and nspoid */
 static Oid TypenameNspGetTypid(const char *typname, Oid nsp_oid)
 {
@@ -78,10 +93,10 @@ postgis_get_extension_schema(Oid ext_oid)
 
 #if POSTGIS_PGSQL_VERSION < 120
     Relation rel = heap_open(ExtensionRelationId, AccessShareLock);
-    // ScanKeyInit(&entry[0],
-	//     ObjectIdAttributeNumber,
-    //     BTEqualStrategyNumber, F_OIDEQ,
-    //     ObjectIdGetDatum(ext_oid));
+     ScanKeyInit(&entry[0],
+	     ObjectIdAttributeNumber,
+         BTEqualStrategyNumber, F_OIDEQ,
+         ObjectIdGetDatum(ext_oid));
 #else
     Relation rel = table_open(ExtensionRelationId, AccessShareLock);
     ScanKeyInit(&entry[0],
@@ -155,6 +170,8 @@ getPostgisConstants()
 	    ALLOCSET_SMALL_MINSIZE,
         ALLOCSET_SMALL_INITSIZE,
         ALLOCSET_SMALL_MAXSIZE);
+
+    context->methods->delete_context = PostgisConstantsDelete;
 
 	/* Allocate in the CacheContext so we don't lose this at the end of the statement */
 	postgisConstants* constants = MemoryContextAlloc(context, sizeof(postgisConstants));
