@@ -37,7 +37,7 @@
 #include "lwgeom_pg.h"
 
 #define POSTGIS_DEPRECATE(version, funcname) \
-	Datum funcname(PG_FUNCTION_ARGS); \
+	extern "C" Datum funcname(PG_FUNCTION_ARGS); \
 	PG_FUNCTION_INFO_V1(funcname); \
 	Datum funcname(PG_FUNCTION_ARGS) \
 	{ \

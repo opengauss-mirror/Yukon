@@ -154,7 +154,7 @@ float8 gserialized_sel_internal(PlannerInfo *root, List *args, int varRelid, int
 
 
 /* Old Prototype */
-Datum geometry_estimated_extent(PG_FUNCTION_ARGS);
+extern "C" Datum geometry_estimated_extent(PG_FUNCTION_ARGS);
 
 /*
  * Assign a number to the n-dimensional statistics kind
