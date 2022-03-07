@@ -63,6 +63,7 @@
 #include "utils/builtins.h"
 #include "utils/lsyscache.h"
 #include "utils/typcache.h"
+#include "utils/fmgroids.h"
 #include "knl/knl_variable.h"
 
 

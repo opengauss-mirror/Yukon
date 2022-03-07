@@ -113,7 +113,10 @@ PROJSRSCacheDelete(void *ptr)
 {
 	MemoryContext context = (MemoryContext)ptr;
 #endif
-	PROJSRSDestroyPortalCache(PROJ_CACHE);
+    if(PROJ_CACHE != NULL){
+		PROJSRSDestroyPortalCache(PROJ_CACHE);
+		PROJ_CACHE = NULL;
+	}	
 }
 
 
@@ -204,7 +207,7 @@ GetPROJSRSCache()
 
 		/* Allocate in the upper context */
 		cache = MemoryContextAllocZero(context, sizeof(PROJSRSCache));
-		//context->methods = &PROJSRSCacheContextMethods;
+		context->methods->delete_context = PROJSRSCacheDelete;
 
 		if (!cache)
 			elog(ERROR, "Unable to allocate space for PROJSRSCache in context %p", context);
@@ -504,7 +507,7 @@ AddToPROJSRSCache(PROJSRSCache *PROJCache, int32_t srid_from, int32_t srid_to)
 	if (!pjstrs_has_entry(&to_strs))
 		elog(ERROR, "got NULL for SRID (%d)", srid_to);
 
-	oldContext = MemoryContextSwitchTo(PROJCache->PROJSRSCacheContext);
+	oldContext = MemoryContextSwitchTo(CacheMemoryContext);
 
 #if POSTGIS_PROJ_VERSION < 61
 	PJ *projection = palloc(sizeof(PJ));

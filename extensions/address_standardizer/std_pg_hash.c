@@ -40,7 +40,7 @@
 #define STD_CACHE_ITEMS 4
 #define STD_BACKEND_HASH_SIZE 16
 
-static HTAB* StdHash = NULL;
+static THR_LOCAL HTAB* StdHash = NULL;
 
 
 typedef struct

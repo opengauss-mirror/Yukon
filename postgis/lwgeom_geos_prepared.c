@@ -75,7 +75,7 @@
 **
 ** This hash table stores a key/value pair of MemoryContext/Geom* objects.
 */
-static HTAB* PrepGeomHash = NULL;
+static THR_LOCAL HTAB* PrepGeomHash = NULL;
 
 #define PREPARED_BACKEND_HASH_SIZE	32
 
