@@ -10,7 +10,7 @@ ERROR:  Only lon/lat coordinate systems are supported in geography. at character
 #1434: Next two errors
 ERROR:  Unable to find 'coordinates' in GeoJSON string
 ERROR:  unexpected character (at offset 0)
-ERROR:  unexpected end of data (at offset 0)
+#1434.3|
 ERROR:  invalid GeoJSON representation
 #1434.5|0101000020E6100000000000000000F87F000000000000F87F
 #1434.6|0104000020E610000000000000

@@ -3547,11 +3547,27 @@ CREATE OR REPLACE FUNCTION ST_OrientedEnvelope(geometry)
 	_COST_HIGH;
 
 -- Availability: 2.0.0
+CREATE OR REPLACE FUNCTION ST_OffsetCurve_C(line geometry, distance float8, params text)
+       RETURNS geometry
+       AS 'MODULE_PATHNAME','ST_OffsetCurve'
+       LANGUAGE 'c' NOT FENCED IMMUTABLE STRICT
+       COST 1; -- reset cost, see #3675
+
+-- Availability: 2.0.0 - requires GEOS-3.2 or higher
 CREATE OR REPLACE FUNCTION ST_OffsetCurve(line geometry, distance float8, params text DEFAULT '')
-RETURNS geometry
-	AS 'MODULE_PATHNAME','ST_OffsetCurve'
-	LANGUAGE 'c' IMMUTABLE STRICT _PARALLEL
-	_COST_HIGH;
+       RETURNS geometry
+       AS $$
+DECLARE
+	ret geometry;
+BEGIN
+		IF(params IS NULL) THEN
+			params :=' ';
+		END IF;
+		SELECT ST_OffsetCurve_C(line, distance , params ) into ret;
+		return ret;
+END
+$$
+LANGUAGE 'plpgsql' STABLE;
 
 -- Availability: 2.3.0
 -- Changed: 3.0.0
