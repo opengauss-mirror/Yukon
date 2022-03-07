@@ -52,9 +52,14 @@ DECLARE
   est INT; -- estimated count
   act INT; -- actual count
   mat TEXT[];
+  anl_tmp TEXT;
+  r record;
 BEGIN
-  EXECUTE 'EXPLAIN ANALYZE ' || qry INTO anl;
-
+  for r in  EXECUTE 'EXPLAIN ANALYZE ' || qry
+  LOOP
+      anl_tmp = r;
+      anl = anl || anl_tmp;
+  end loop;
   SELECT regexp_matches(anl, ' rows=([0-9]*) .* rows=([0-9]*) ')
   INTO mat;
 

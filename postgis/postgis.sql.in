@@ -2792,14 +2792,14 @@ BEGIN
 	 tabl = substr(tabl,length(schem)+2);
 	END IF;
 
-	select SRID into sr from @extschema@.geometry_columns where (f_table_schema = schem or schem = '') and f_table_name = tabl and f_geometry_column = $3;
+	select SRID into sr from @extschema@.geometry_columns where (f_table_schema = schem or schem IS NULL) and f_table_name = tabl and f_geometry_column = $3;
 	IF NOT FOUND THEN
 	   RAISE EXCEPTION 'find_srid() - could not find the corresponding SRID - is the geometry registered in the GEOMETRY_COLUMNS table?  Is there an uppercase/lowercase mismatch?';
 	END IF;
 	return sr;
 END;
 $$
-LANGUAGE 'plpgsql' STABLE STRICT _PARALLEL;
+LANGUAGE 'plpgsql' STABLE  _PARALLEL;
 
 ---------------------------------------------------------------
 -- PROJ support
