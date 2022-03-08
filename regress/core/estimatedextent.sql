@@ -3,7 +3,7 @@ create table t(g geometry);
 select '#877.1', ST_EstimatedExtent('t','g');
 analyze t;
 select '#877.2', ST_EstimatedExtent('public', 't','g');
-SET client_min_messages TO NOTICE;
+--SET client_min_messages TO DEBUG;
 insert into t(g) values ('LINESTRING(-10 -50, 20 30)');
 
 -- #877.3
@@ -28,8 +28,8 @@ drop table t;
 -- drop table if exists p cascade;
 
 create table p(g geometry);
-create table c1() inherits (p);
-create table c2() inherits (p);
+create table c1(g geometry);
+create table c2(g geometry);
 
 analyze c1;
 analyze c2;
@@ -52,6 +52,8 @@ from ( select ST_EstimatedExtent('p','g') as e offset 0 ) AS e;
 
 insert into c1 values ('Point(0 0)'::geometry);
 insert into c1 values ('Point(1 1)'::geometry);
+insert into p values ('Point(0 0)'::geometry);
+insert into p values ('Point(1 1)'::geometry);
 
 analyze c1;
 analyze c2;
@@ -74,6 +76,8 @@ from ( select ST_EstimatedExtent('p','g') as e offset 0 ) AS e;
 
 insert into c2 values ('Point(0 0)'::geometry);
 insert into c2 values ('Point(-1 -1)'::geometry);
+insert into p values ('Point(0 0)'::geometry);
+insert into p values ('Point(-1 -1)'::geometry);
 
 analyze c1;
 analyze c2;
@@ -152,6 +156,8 @@ from  ( select ST_EstimatedExtent('public','c1','g', 'f') as e offset 0 ) AS e;
 
 insert into c1 values ('Point(0 0)'::geometry);
 insert into c1 values ('Point(1 1)'::geometry);
+insert into p values ('Point(0 0)'::geometry);
+insert into p values ('Point(1 1)'::geometry);
 
 analyze c1;
 analyze c2;
@@ -178,6 +184,8 @@ round(st_ymin(e.e)::numeric, 2), round(st_ymax(e.e)::numeric, 2)
 from ( select ST_EstimatedExtent('public','c1','g', 't') as e offset 0 ) AS e;
 
 drop table p cascade;
+drop table c1 cascade;
+drop table c2 cascade;
 
 --
 -- Index assisted extent generation

@@ -18,14 +18,14 @@ gml_deegree_03|<gml:Point srsName="EPSG:4326"><gml:pos srsDimension="2">2 1</gml
 gml_deegree_04|<gml:Point srsName="EPSG:4326"><gml:pos srsDimension="3">1 2 3</gml:pos></gml:Point>
 gml_deegree_05|<gml:Point srsName="EPSG:4326"><gml:coordinates>1,2,3</gml:coordinates></gml:Point>
 gml_deegree_06|<gml:Point srsName="EPSG:4326"><gml:pos srsDimension="3">2 1 3</gml:pos></gml:Point>
-gml_prefix_01|<Point srsName="EPSG:4326"><coordinates>1,2</coordinates></Point>
-gml_prefix_02|<Point srsName="EPSG:4326"><pos srsDimension="2">2 1</pos></Point>
+gml_prefix_01|<gml:Point srsName="EPSG:4326"><gml:coordinates>1,2</gml:coordinates></gml:Point>
+gml_prefix_02|<gml:Point srsName="EPSG:4326"><gml:pos srsDimension="2">2 1</gml:pos></gml:Point>
 gml_prefix_03|<foo:Point srsName="EPSG:4326"><foo:coordinates>1,2</foo:coordinates></foo:Point>
 gml_prefix_04|<foo:Point srsName="EPSG:4326"><foo:pos srsDimension="2">2 1</foo:pos></foo:Point>
-gml_shortline_01|<LineString><posList>1 2 3 4</posList></LineString>
-gml_shortline_02|<Curve><segments><LineStringSegment><posList>1 2 3 4</posList></LineStringSegment></segments></Curve>
-gml_shortline_03|<MultiCurve><curveMember><LineString><posList>1 2 3 4</posList></LineString></curveMember><curveMember><LineString><posList>5 6 7 8</posList></LineString></curveMember></MultiCurve>
-gml_shortline_04|<MultiCurve><curveMember><Curve><segments><LineStringSegment><posList>1 2 3 4</posList></LineStringSegment></segments></Curve></curveMember><curveMember><Curve><segments><LineStringSegment><posList>5 6 7 8</posList></LineStringSegment></segments></Curve></curveMember></MultiCurve>
+gml_shortline_01|<gml:LineString><gml:posList>1 2 3 4</gml:posList></gml:LineString>
+gml_shortline_02|<gml:Curve><gml:segments><gml:LineStringSegment><gml:posList>1 2 3 4</gml:posList></gml:LineStringSegment></gml:segments></gml:Curve>
+gml_shortline_03|<gml:MultiCurve><gml:curveMember><gml:LineString><gml:posList>1 2 3 4</gml:posList></gml:LineString></gml:curveMember><gml:curveMember><gml:LineString><gml:posList>5 6 7 8</gml:posList></gml:LineString></gml:curveMember></gml:MultiCurve>
+gml_shortline_04|<gml:MultiCurve><gml:curveMember><gml:Curve><gml:segments><gml:LineStringSegment><gml:posList>1 2 3 4</gml:posList></gml:LineStringSegment></gml:segments></gml:Curve></gml:curveMember><gml:curveMember><gml:Curve><gml:segments><gml:LineStringSegment><gml:posList>5 6 7 8</gml:posList></gml:LineStringSegment></gml:segments></gml:Curve></gml:curveMember></gml:MultiCurve>
 gml_out_curve_01|<gml:Curve><gml:segments><gml:ArcString><gml:posList srsDimension="2">-2 0 0 2 2 0 0 2 2 4</gml:posList></gml:ArcString></gml:segments></gml:Curve>
 gml_out_curve_02|<gml:Curve><gml:segments><gml:ArcString><gml:posList srsDimension="2">0 0 1 1 1 0</gml:posList></gml:ArcString><gml:LineStringSegment><gml:posList srsDimension="2">1 0 0 1</gml:posList></gml:LineStringSegment></gml:segments></gml:Curve>
 gml_out_curve_03|<gml:Polygon><gml:exterior><gml:Ring><gml:curveMember><gml:Curve><gml:segments><gml:ArcString><gml:posList srsDimension="2">-2 0 -1 -1 0 0 1 -1 2 0 0 2 -2 0</gml:posList></gml:ArcString></gml:segments></gml:Curve></gml:curveMember></gml:Ring></gml:exterior><gml:interior><gml:LinearRing><gml:posList srsDimension="2">-1 0 0 0.5 1 0 0 1 -1 0</gml:posList></gml:LinearRing></gml:interior></gml:Polygon>
@@ -34,11 +34,11 @@ gml_out_curve_05|<gml:MultiSurface><gml:Polygon><gml:exterior><gml:Ring><gml:cur
 ERROR:  Cannot find SRID (10) in spatial_ref_sys
 ERROR:  ST_AsKML: Input geometry has unknown (0) SRID
 kml_empty_geom|
-kml_precision_01|<Point><coordinates>1,1</coordinates></Point>
-kml_precision_02|<Point><coordinates>1.1111111,1.1111111</coordinates></Point>
-kml_prefix_01|<Point><coordinates>1,2</coordinates></Point>
+kml_precision_01|<kml:Point><kml:coordinates>1,1</kml:coordinates></kml:Point>
+kml_precision_02|<kml:Point><kml:coordinates>1.1111111,1.1111111</kml:coordinates></kml:Point>
+kml_prefix_01|
 kml_prefix_02|<kml:Point><kml:coordinates>1,2</kml:coordinates></kml:Point>
-kml_projection_01|<Point><coordinates>-74.078,4.596</coordinates></Point>
+kml_projection_01|<kml:Point><kml:coordinates>-74.078,4.596</kml:coordinates></kml:Point>
 encoded_polyline_01|_p~iF~ps|U_ulLnnqC_mqNvxq`@
 encoded_polyline_02|_p~iF~ps|U_ulLnnqC_mqNvxq`@
 ERROR:  Only SRID 4326 is supported.
