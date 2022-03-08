@@ -462,42 +462,42 @@ INSERT INTO raster_asraster_dst (rid, rast) VALUES (
 	FROM raster_asraster_geom)
 );
 
-SELECT
-	rid,
-	srid,
-	width,
-	height,
-	numbands,
-	round(scalex::numeric, 3) AS scalex,
-	round(scaley::numeric, 3) AS scaley,
-	round(skewx::numeric, 3) AS skewx,
-	round(skewy::numeric, 3) AS skewy,
-	round(upperleftx::numeric, 3) AS upperleftx,
-	round(upperlefty::numeric, 3) AS upperlefty,
-	pixeltype,
-	round(nodatavalue::numeric, 3) AS nodatavalue,
-	count > 0 AS count_check,
-	round(min::numeric, 3) AS min,
-	round(max::numeric, 3) AS max,
-	same_alignment
-FROM (
-	SELECT
-		d.rid,
-		mda.*,
-		ssum.*,
-		bmd.*,
-		CASE
-			WHEN d.rid LIKE '4.%'
-				THEN ST_SameAlignment(ST_Transform(d.rast, 992163), r.rast)
-			ELSE NULL
-		END AS same_alignment
-	FROM raster_asraster_dst d
-		LEFT JOIN LATERAL ST_MetaData(d.rast) AS mda ON true
-		LEFT JOIN LATERAL ST_SummaryStats(d.rast) AS ssum ON true
-		LEFT JOIN LATERAL ST_BandMetaData(d.rast) AS bmd ON true
-	CROSS JOIN raster_asraster_rast r
-	ORDER BY d.rid
-) foo;
+-- SELECT
+-- 	rid,
+-- 	srid,
+-- 	width,
+-- 	height,
+-- 	numbands,
+-- 	round(scalex::numeric, 3) AS scalex,
+-- 	round(scaley::numeric, 3) AS scaley,
+-- 	round(skewx::numeric, 3) AS skewx,
+-- 	round(skewy::numeric, 3) AS skewy,
+-- 	round(upperleftx::numeric, 3) AS upperleftx,
+-- 	round(upperlefty::numeric, 3) AS upperlefty,
+-- 	pixeltype,
+-- 	round(nodatavalue::numeric, 3) AS nodatavalue,
+-- 	count > 0 AS count_check,
+-- 	round(min::numeric, 3) AS min,
+-- 	round(max::numeric, 3) AS max,
+-- 	same_alignment
+-- FROM (
+-- 	SELECT
+-- 		d.rid,
+-- 		mda.*,
+-- 		ssum.*,
+-- 		bmd.*,
+-- 		CASE
+-- 			WHEN d.rid LIKE '4.%'
+-- 				THEN ST_SameAlignment(ST_Transform(d.rast, 992163), r.rast)
+-- 			ELSE NULL
+-- 		END AS same_alignment
+-- 	FROM raster_asraster_dst d
+-- 		LEFT JOIN LATERAL ST_MetaData(d.rast) AS mda ON true
+-- 		LEFT JOIN LATERAL ST_SummaryStats(d.rast) AS ssum ON true
+-- 		LEFT JOIN LATERAL ST_BandMetaData(d.rast) AS bmd ON true
+-- 	CROSS JOIN raster_asraster_rast r
+-- 	ORDER BY d.rid
+-- ) foo;
 
 DELETE FROM "spatial_ref_sys" WHERE srid = 992163;
 DELETE FROM "spatial_ref_sys" WHERE srid = 993309;

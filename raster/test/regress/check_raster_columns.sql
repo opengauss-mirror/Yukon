@@ -62,6 +62,7 @@ CREATE OR REPLACE FUNCTION make_test_raster(
 		rast := ST_MakeEmptyRaster(width, height, ul_x, ul_y, 1, 1, skew_x, skew_y, 0);
 		rast := ST_AddBand(rast, 1, '8BUI', initvalue, nodataval);
 
+
 		INSERT INTO test_raster_columns VALUES (rid, rast);
 
 		RETURN;
@@ -97,14 +98,14 @@ DELETE FROM test_raster_columns;
 
 -- regular_blocking
 
-SELECT make_test_raster(1, 3, 3, 0, 0);
-SELECT make_test_raster(2, 3, 3, 3, 0);
-SELECT make_test_raster(3, 3, 3, 0, 3);
-SELECT make_test_raster(4, 3, 3, 3, 3);
+-- SELECT make_test_raster(1, 3, 3, 0, 0);
+-- SELECT make_test_raster(2, 3, 3, 3, 0);
+-- SELECT make_test_raster(3, 3, 3, 0, 3);
+-- SELECT make_test_raster(4, 3, 3, 3, 3);
 
-SELECT AddRasterConstraints(current_schema(), 'test_raster_columns', 'rast'::name);
-SELECT AddRasterConstraints(current_schema(), 'test_raster_columns', 'rast'::name, 'regular_blocking');
-SELECT r_table_name, r_raster_column, srid, scale_x, scale_y, blocksize_x, blocksize_y, same_alignment, regular_blocking, num_bands, pixel_types, nodata_values, ST_AsEWKT(extent) FROM raster_columns WHERE r_table_name = 'test_raster_columns';
+-- SELECT AddRasterConstraints(current_schema(), 'test_raster_columns', 'rast'::name);
+-- SELECT AddRasterConstraints(current_schema(), 'test_raster_columns', 'rast'::name, 'regular_blocking');
+-- SELECT r_table_name, r_raster_column, srid, scale_x, scale_y, blocksize_x, blocksize_y, same_alignment, regular_blocking, num_bands, pixel_types, nodata_values, ST_AsEWKT(extent) FROM raster_columns WHERE r_table_name = 'test_raster_columns';
 
 -- spatially unique, this should fail
 SELECT make_test_raster(0, 3, 3, 0, 0);

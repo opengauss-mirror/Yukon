@@ -8569,7 +8569,7 @@ CREATE OR REPLACE FUNCTION AddOverviewConstraints (
 	ovfactor int
 )
 	RETURNS boolean
-	AS $$ SELECT  @extschema@.AddOverviewConstraints(' ', $1, $2, '', $3, $4, $5) $$
+	AS $$ SELECT  @extschema@.AddOverviewConstraints(' ', $1, $2, ' ', $3, $4, $5) $$
 	LANGUAGE 'sql' VOLATILE STRICT;
 
 ------------------------------------------------------------------------------
