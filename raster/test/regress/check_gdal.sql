@@ -18,13 +18,14 @@ SELECT
 -- postgis.gdal_enabled_drivers
 SET client_min_messages TO warning;
 SELECT NULL FROM ST_GDALDrivers();
-SET postgis.gdal_enabled_drivers = 'DISABLE_ALL';
-SELECT count(*) = 0 FROM ST_GDALDrivers();
-SHOW postgis.gdal_enabled_drivers;
 
 SET postgis.gdal_enabled_drivers = 'ENABLE_ALL';
 SHOW postgis.gdal_enabled_drivers;
 SELECT count(*) > 0 FROM ST_GDALDrivers();
+
+SET postgis.gdal_enabled_drivers = 'DISABLE_ALL';
+SELECT count(*) = 0 FROM ST_GDALDrivers();
+SHOW postgis.gdal_enabled_drivers;
 
 SET postgis.gdal_enabled_drivers = 'GTiff PNG JPEG';
 SHOW postgis.gdal_enabled_drivers;

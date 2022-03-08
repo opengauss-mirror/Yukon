@@ -136,4 +136,4 @@ DROP TABLE res1;
 -- Reset the session environment
 -- possibly a bit harsh, but we had to set the search_path
 -- and need to reset it back to default.
-DISCARD ALL;
+--DISCARD ALL;
