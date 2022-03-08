@@ -142,7 +142,7 @@ SELECT ST_SummaryStats(
 );
 BEGIN;
 CREATE TEMP TABLE test_summarystats
-	ON COMMIT DROP AS
+	ON COMMIT DELETE ROWS AS
 	SELECT
 		rast.rast
 	FROM (

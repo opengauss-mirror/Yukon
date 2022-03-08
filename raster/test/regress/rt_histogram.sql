@@ -229,7 +229,7 @@ FROM ST_Histogram(
 );
 BEGIN;
 CREATE TEMP TABLE test_histogram
-	ON COMMIT DROP AS
+	ON COMMIT DELETE ROWS AS
 	SELECT
 		rast.rast
 	FROM (

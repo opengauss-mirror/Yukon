@@ -210,7 +210,7 @@ SELECT round(ST_ValuePercent(
 , 3.14159)::numeric, 3);
 BEGIN;
 CREATE TEMP TABLE test
-	ON COMMIT DROP AS
+	ON COMMIT DELETE ROWS AS
 	SELECT
 		rast.rast
 	FROM (
