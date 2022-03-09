@@ -12,7 +12,7 @@
 
 PERL=@PERL@
 
-override RUNTESTFLAGS := $(RUNTESTFLAGS) --sfcgal
+override RUNTESTFLAGS := $(RUNTESTFLAGS) --sfcgal --extension
 
 topsrcdir = $(realpath ../../)
 
