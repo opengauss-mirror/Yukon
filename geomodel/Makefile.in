@@ -1,0 +1,30 @@
+#导出变量到子 Makefile 中
+export IS_DEBUG = $(findstring -g,@CFLAGS@)
+
+
+all:  libugc  geomodel
+
+libugc:
+	$(MAKE) -C libUGC
+
+
+geomodel: libugc
+	$(MAKE) -C src
+
+clean:
+	$(MAKE) -C src $@
+	$(MAKE) -C libUGC $@ 
+
+distclean: clean	
+	$(MAKE) -C src $@
+	$(MAKE) -C libUGC $@
+	rm -f  Makefile
+
+install:
+	$(MAKE) -C src $@
+
+uninstall:
+	$(MAKE) -C src $@
+
+check:
+	$(MAKE) -C libUGC $@
