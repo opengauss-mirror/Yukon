@@ -1480,6 +1480,19 @@ sub prepare_spatial_extensions
 		}
 	}
 
+	my $sql = "CREATE EXTENSION yukon_geomodel";
+
+
+	print "Preparing db '${DB}' using: ${sql}\n";
+
+	my $cmd = "psql $psql_opts -c \"". $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+	my $rv = system($cmd);
+
+  if ( $rv ) {
+  	fail "Error encountered creating EXTENSION yukon_geomodel", $REGRESS_LOG;
+  	die;
+	}
+
  	return 1;
 }
 

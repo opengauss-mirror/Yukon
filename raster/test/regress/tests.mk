@@ -83,11 +83,12 @@ RASTER_TEST_UTILITY = \
 	$(topsrcdir)/raster/test/regress/rt_asjpeg \
 	$(topsrcdir)/raster/test/regress/rt_aspng \
 	$(topsrcdir)/raster/test/regress/rt_reclass \
+	$(topsrcdir)/raster/test/regress/rt_gdalwarp \
 	$(topsrcdir)/raster/test/regress/rt_gdalcontour \
 	$(topsrcdir)/raster/test/regress/rt_asraster \
 	$(topsrcdir)/raster/test/regress/rt_dumpvalues \
 	$(topsrcdir)/raster/test/regress/rt_makeemptycoverage \
-	
+	$(topsrcdir)/raster/test/regress/rt_createoverview
 
 RASTER_TEST_MAPALGEBRA = \
 	$(topsrcdir)/raster/test/regress/rt_mapalgebraexpr \
@@ -105,12 +106,15 @@ RASTER_TEST_MAPALGEBRA = \
 	$(topsrcdir)/raster/test/regress/rt_invdistweight4ma \
 	$(topsrcdir)/raster/test/regress/rt_4ma \
 	$(topsrcdir)/raster/test/regress/rt_setvalues_geomval \
+	$(topsrcdir)/raster/test/regress/rt_elevation_functions \
 	$(topsrcdir)/raster/test/regress/rt_colormap \
 	$(topsrcdir)/raster/test/regress/rt_grayscale
 
 RASTER_TEST_SREL = \
 	$(topsrcdir)/raster/test/regress/rt_gist_relationships \
+	$(topsrcdir)/raster/test/regress/rt_intersects \
 	$(topsrcdir)/raster/test/regress/rt_samealignment \
+	$(topsrcdir)/raster/test/regress/rt_geos_relationships \
 	$(topsrcdir)/raster/test/regress/rt_iscoveragetile
 
 RASTER_TEST_BUGS = \
@@ -137,11 +141,5 @@ RASTER_TESTS := $(RASTER_TEST_FIRST) \
 	$(RASTER_TEST_BUGS) \
 	$(RASTER_TEST_LOADER) \
 	$(RASTER_TEST_LAST)
-
-RASTER_REMAIN += \
-    $(topsrcdir)/raster/test/regress/rt_gdalwarp \
-	$(topsrcdir)/raster/test/regress/rt_createoverview \
-	$(topsrcdir)/raster/test/regress/rt_intersects \
-	$(topsrcdir)/raster/test/regress/rt_geos_relationships \
 
 TESTS += $(RASTER_TESTS)
