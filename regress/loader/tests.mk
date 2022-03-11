@@ -10,6 +10,10 @@
 # *
 # **********************************************************************
 
+# openGauss 在 PG 兼容性下，CHAR和VARCHAR以字符为计数单位，其它兼容性以字节为计数单位
+TESTS_REMAIN += \
+	$(topsrcdir)/regress/loader/Latin1 \
+	$(topsrcdir)/regress/loader/Latin1-implicit  
 
 TESTS += \
 	$(topsrcdir)/regress/loader/Point \
@@ -35,8 +39,6 @@ TESTS += \
 	$(topsrcdir)/regress/loader/ReprojectPtsD \
 	$(topsrcdir)/regress/loader/ReprojectPtsGeog \
 	$(topsrcdir)/regress/loader/ReprojectPtsGeogD \
-	$(topsrcdir)/regress/loader/Latin1 \
-	$(topsrcdir)/regress/loader/Latin1-implicit \
 	$(topsrcdir)/regress/loader/mfile \
 	$(topsrcdir)/regress/loader/TestSkipANALYZE \
 	$(topsrcdir)/regress/loader/TestANALYZE

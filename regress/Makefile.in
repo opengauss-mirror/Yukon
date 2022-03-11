@@ -49,6 +49,7 @@ check-unit:
 include core/tests.mk
 include loader/tests.mk
 include dumper/tests.mk
+include geomodel/tests.mk
 
 include runtest.mk
 
