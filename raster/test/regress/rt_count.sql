@@ -61,9 +61,9 @@ SELECT ST_Count(
 		, 1, 5, 5, 3.14159
 	)
 );
---BEGIN;
-CREATE  TABLE test
-	AS
+BEGIN;
+CREATE TEMP TABLE test
+	ON COMMIT DELETE ROWS AS
 	SELECT
 		rast.rast
 	FROM (
@@ -85,11 +85,6 @@ CREATE  TABLE test
 		SELECT generate_series(1, 10) AS id
 	) AS id
 		ON 1 = 1;
-SELECT ST_Count('test', 'rast', 1, TRUE);
-SELECT ST_Count('test', 'rast', 1, FALSE);
-SELECT ST_Count('test', 'rast', 1);
-SELECT ST_Count('test', 'rast', FALSE);
-SELECT ST_Count('test', 'rast');
 
 SELECT ST_CountAgg(rast, 1, TRUE, 1) FROM test;
 SELECT ST_CountAgg(rast, 1, TRUE, 0) FROM test;
@@ -100,16 +95,14 @@ SELECT ST_CountAgg(rast, 1, FALSE) FROM test;
 SELECT ST_CountAgg(rast, TRUE) FROM test;
 SELECT ST_CountAgg(rast, FALSE) FROM test;
 
---SAVEPOINT test;
+SAVEPOINT test;
 SELECT ST_CountAgg(rast, 2, TRUE) FROM test;
---ROLLBACK TO SAVEPOINT test;
---RELEASE SAVEPOINT test;
+ROLLBACK TO SAVEPOINT test;
+RELEASE SAVEPOINT test;
 
---SAVEPOINT test;
+SAVEPOINT test;
 SELECT ST_CountAgg(rast, 1, TRUE, 2) FROM test;
---ROLLBACK TO SAVEPOINT test;
---RELEASE SAVEPOINT test;
+ROLLBACK TO SAVEPOINT test;
+RELEASE SAVEPOINT test;
 
---ROLLBACK;
-
-DROP TABLE test cascade;
+ROLLBACK;

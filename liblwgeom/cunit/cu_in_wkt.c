@@ -20,8 +20,8 @@
 /*
 ** Globals used by tests
 */
-static char *s;
-static char *r;
+char *s;
+char *r;
 
 /*
 ** The suite initialization function.
@@ -54,19 +54,34 @@ static char* cu_wkt_in(char *wkt, uint8_t variant)
 	char *s = 0;
 
 	rv = lwgeom_parse_wkt(&p, wkt, 0);
-	if( p.errcode ) {
-	  CU_ASSERT_EQUAL( rv, LW_FAILURE );
+	if (p.errcode)
+	{
+		CU_ASSERT_EQUAL(rv, LW_FAILURE);
+		CU_ASSERT(!p.geom);
 		return strdup(p.message);
 	}
-	CU_ASSERT_EQUAL( rv, LW_SUCCESS );
+	CU_ASSERT_EQUAL(rv, LW_SUCCESS);
 	s = lwgeom_to_wkt(p.geom, variant, 8, NULL);
 	lwgeom_parser_result_free(&p);
 	return s;
 }
 
+#include <ctype.h>
+static void cu_strtolower(char* str)
+{
+	size_t i;
+	for (i = 0; i < strlen(str); ++i) {
+		str[i] = tolower(str[i]);
+	}
+}
 
 static void test_wkt_in_point(void)
 {
+	s = "POINT(1 2) foobar";
+	r = cu_wkt_in(s, WKT_SFSQL);
+	CU_ASSERT_STRING_EQUAL("parse error - invalid geometry", r);
+	lwfree(r);
+
 	s = "POINT(1e700 0)";
 	r = cu_wkt_in(s, WKT_SFSQL);
 	CU_TEST ( ! strcmp(r, "POINT(inf 0)") || ! strcmp(r, "POINT(1.#INF 0)") || ! strcmp(r, "POINT(Infinity 0)") );
@@ -87,7 +102,13 @@ static void test_wkt_in_point(void)
 	CU_ASSERT_STRING_EQUAL(r,s);
 	lwfree(r);
 
-	//printf("\nIN:  %s\nOUT: %s\n",s,r);
+	s = "point(nan 10)";
+	r = cu_wkt_in(s, WKT_ISO);
+	cu_strtolower(r);
+	CU_ASSERT_STRING_EQUAL(r,s);
+	lwfree(r);
+
+	// printf("\nIN:  %s\nOUT: %s\n",s,r);
 }
 
 static void test_wkt_in_linestring(void)
@@ -346,6 +367,60 @@ static void test_wkt_in_errlocation(void)
 
 }
 
+static void test_wkt_double(void)
+{
+	LWGEOM_PARSER_RESULT p;
+	int rv = 0;
+	char *wkt = 0;
+
+	wkt = "LINESTRING(1.1.1, 2.2.2)";
+	lwgeom_parser_result_init(&p);
+	rv = lwgeom_parse_wkt(&p, wkt, LW_PARSER_CHECK_ALL);
+	CU_ASSERT( LW_FAILURE == rv );
+	CU_ASSERT( p.errcode );
+	CU_ASSERT( ! p.geom );
+	lwgeom_parser_result_free(&p);
+
+	wkt = "LINESTRING(1.1 .1, 2.2 .2)";
+	lwgeom_parser_result_init(&p);
+	rv = lwgeom_parse_wkt(&p, wkt, LW_PARSER_CHECK_ALL);
+	CU_ASSERT_EQUAL( rv, LW_SUCCESS );
+	lwgeom_parser_result_free(&p);
+
+	wkt = "LINESTRING(    1.1    .1    ,    2.2   .2    )";
+	lwgeom_parser_result_init(&p);
+	rv = lwgeom_parse_wkt(&p, wkt, LW_PARSER_CHECK_ALL);
+	CU_ASSERT_EQUAL( rv, LW_SUCCESS );
+	lwgeom_parser_result_free(&p);
+
+	wkt = "LINESTRING(\n1.1\n.1,\n2.2\n.2\n)";
+	lwgeom_parser_result_init(&p);
+	rv = lwgeom_parse_wkt(&p, wkt, LW_PARSER_CHECK_ALL);
+	CU_ASSERT_EQUAL( rv, LW_SUCCESS );
+	lwgeom_parser_result_free(&p);
+
+	wkt = "LINESTRING(1.1\t.1\t,\t2.2\t.2\t)";
+	lwgeom_parser_result_init(&p);
+	rv = lwgeom_parse_wkt(&p, wkt, LW_PARSER_CHECK_ALL);
+	CU_ASSERT_EQUAL( rv, LW_SUCCESS );
+	lwgeom_parser_result_free(&p);
+}
+
+static void test_wkt_leak(void)
+{
+	/* OSS-FUZZ: https://trac.osgeo.org/postgis/ticket/4537 */
+	char *wkt = "TINEMPTY,";
+	char *err = cu_wkt_in(wkt, WKT_EXTENDED);
+	CU_ASSERT_STRING_EQUAL(err, "parse error - invalid geometry");
+	lwfree(err);
+
+	/* OSS-FUZZ: https://trac.osgeo.org/postgis/ticket/4545 */
+	wkt = "GEOMeTRYCOLLECTION(POLYHEDRALSURFACEEMPTY ";
+	err = cu_wkt_in(wkt, WKT_EXTENDED);
+	CU_ASSERT_STRING_EQUAL(err, "parse error - invalid geometry");
+	lwfree(err);
+}
+
 /*
 ** Used by test harness to register the tests in this file.
 */
@@ -368,4 +443,6 @@ void wkt_in_suite_setup(void)
 	PG_ADD_TEST(suite, test_wkt_in_tin);
 	PG_ADD_TEST(suite, test_wkt_in_polyhedralsurface);
 	PG_ADD_TEST(suite, test_wkt_in_errlocation);
+	PG_ADD_TEST(suite, test_wkt_double);
+	PG_ADD_TEST(suite, test_wkt_leak);
 }

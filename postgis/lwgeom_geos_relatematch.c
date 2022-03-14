@@ -23,7 +23,10 @@
  **********************************************************************/
 
 
-#include "extension_dependency.h"
+#include "postgres.h"
+#include "fmgr.h"
+#include "funcapi.h"
+#include "utils/builtins.h"
 
 #include "../postgis_config.h"
 #include "lwgeom_geos.h"
@@ -47,8 +50,8 @@ Datum ST_RelateMatch(PG_FUNCTION_ARGS)
         pat_text = (PG_GETARG_TEXT_P(1));
 
         /* Convert from text to cstring */
-        mat = text2cstring(mat_text);
-        pat = text2cstring(pat_text);
+        mat = text_to_cstring(mat_text);
+        pat = text_to_cstring(pat_text);
 
 	initGEOS(lwpgnotice, lwgeom_geos_error);
 

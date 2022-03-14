@@ -4,18 +4,19 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PostGIS\n"
-"Report-Msgid-Bugs-To: http://bugs.kde.org\n"
-"POT-Creation-Date: 2017-08-30 03:58+0000\n"
-"PO-Revision-Date: 2015-09-29 12:22+0000\n"
-"Last-Translator: Sandro Santilli <strk@kbt.io>\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-09-11 01:55+0000\n"
+"PO-Revision-Date: 2018-07-23 18:00+0000\n"
+"Last-Translator: Milena Nowotarska <do.milenki@gmail.com>\n"
 "Language-Team: Polish (http://www.transifex.com/postgis/postgis/language/"
 "pl/)\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
-"|| n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n"
+"%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n"
+"%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
 
 #. Tag: title
 #: extras_address_standardizer.xml:3
@@ -46,7 +47,7 @@ msgstr ""
 #: extras_address_standardizer.xml:6
 #, no-c-format
 msgid ""
-"The code is built into a single postgresql extension library called "
+"The code is built into a single PostgreSQL extension library called "
 "<code>address_standardizer</code> which can be installed with <code>CREATE "
 "EXTENSION address_standardizer;</code>. In addition to the "
 "address_standardizer extension, a sample data extension called "
@@ -167,7 +168,7 @@ msgstr ""
 #: extras_address_standardizer.xml:586 extras_address_standardizer.xml:646
 #, no-c-format
 msgid "Description"
-msgstr ""
+msgstr "Opis"
 
 #. Tag: para
 #: extras_address_standardizer.xml:50
@@ -1307,7 +1308,7 @@ msgstr ""
 #: extras_address_standardizer.xml:598 extras_address_standardizer.xml:660
 #, no-c-format
 msgid "Examples"
-msgstr ""
+msgstr "Przykłady"
 
 #. Tag: para
 #: extras_address_standardizer.xml:600
@@ -1380,7 +1381,7 @@ msgstr ""
 #: extras_address_standardizer.xml:611 extras_address_standardizer.xml:682
 #, no-c-format
 msgid "See Also"
-msgstr ""
+msgstr "Zobacz także"
 
 #. Tag: refname
 #: extras_address_standardizer.xml:619

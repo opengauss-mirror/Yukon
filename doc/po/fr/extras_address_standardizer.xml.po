@@ -4,10 +4,10 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PostGIS\n"
-"Report-Msgid-Bugs-To: http://bugs.kde.org\n"
-"POT-Creation-Date: 2017-08-30 03:58+0000\n"
-"PO-Revision-Date: 2015-09-29 12:22+0000\n"
-"Last-Translator: Sandro Santilli <strk@kbt.io>\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-09-11 01:55+0000\n"
+"PO-Revision-Date: 2018-07-23 18:00+0000\n"
+"Last-Translator: Vincent Picavet <vincent.ml@oslandia.com>\n"
 "Language-Team: French (http://www.transifex.com/postgis/postgis/language/"
 "fr/)\n"
 "Language: fr\n"
@@ -45,7 +45,7 @@ msgstr ""
 #: extras_address_standardizer.xml:6
 #, no-c-format
 msgid ""
-"The code is built into a single postgresql extension library called "
+"The code is built into a single PostgreSQL extension library called "
 "<code>address_standardizer</code> which can be installed with <code>CREATE "
 "EXTENSION address_standardizer;</code>. In addition to the "
 "address_standardizer extension, a sample data extension called "
@@ -166,7 +166,7 @@ msgstr ""
 #: extras_address_standardizer.xml:586 extras_address_standardizer.xml:646
 #, no-c-format
 msgid "Description"
-msgstr ""
+msgstr "Description"
 
 #. Tag: para
 #: extras_address_standardizer.xml:50
@@ -754,7 +754,7 @@ msgstr ""
 #: extras_address_standardizer.xml:294
 #, no-c-format
 msgid "TYPE"
-msgstr ""
+msgstr "TYPE"
 
 #. Tag: para
 #: extras_address_standardizer.xml:296
@@ -1300,13 +1300,13 @@ msgstr ""
 #: extras_address_standardizer.xml:592 extras_address_standardizer.xml:654
 #, no-c-format
 msgid "Availability: 2.2.0"
-msgstr ""
+msgstr "Disponibilité : 2.2.0"
 
 #. Tag: title
 #: extras_address_standardizer.xml:598 extras_address_standardizer.xml:660
 #, no-c-format
 msgid "Examples"
-msgstr ""
+msgstr "Exemples"
 
 #. Tag: para
 #: extras_address_standardizer.xml:600
@@ -1379,7 +1379,7 @@ msgstr ""
 #: extras_address_standardizer.xml:611 extras_address_standardizer.xml:682
 #, no-c-format
 msgid "See Also"
-msgstr ""
+msgstr "Voir aussi"
 
 #. Tag: refname
 #: extras_address_standardizer.xml:619

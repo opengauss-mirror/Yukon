@@ -39,33 +39,24 @@
  * use SRID=SRID_UNKNOWN for unknown SRID (will have 8bit type's S = 0)
  */
 LWLINE *
-lwline_construct(int srid, GBOX *bbox, POINTARRAY *points)
+lwline_construct(int32_t srid, GBOX *bbox, POINTARRAY *points)
 {
-	LWLINE *result;
-	result = (LWLINE*) lwalloc(sizeof(LWLINE));
-
-	LWDEBUG(2, "lwline_construct called.");
-
+	LWLINE *result = (LWLINE *)lwalloc(sizeof(LWLINE));
 	result->type = LINETYPE;
-
 	result->flags = points->flags;
 	FLAGS_SET_BBOX(result->flags, bbox?1:0);
-
-	LWDEBUGF(3, "lwline_construct type=%d", result->type);
-
 	result->srid = srid;
 	result->points = points;
 	result->bbox = bbox;
-
 	return result;
 }
 
 LWLINE *
-lwline_construct_empty(int srid, char hasz, char hasm)
+lwline_construct_empty(int32_t srid, char hasz, char hasm)
 {
 	LWLINE *result = lwalloc(sizeof(LWLINE));
 	result->type = LINETYPE;
-	result->flags = gflags(hasz,hasm,0);
+	result->flags = lwflags(hasz,hasm,0);
 	result->srid = srid;
 	result->points = ptarray_construct_empty(hasz, hasm, 1);
 	result->bbox = NULL;
@@ -136,15 +127,9 @@ lwline_release(LWLINE *lwline)
 	lwgeom_release(lwline_as_lwgeom(lwline));
 }
 
-void
-lwline_reverse(LWLINE *line)
-{
-	if ( lwline_is_empty(line) ) return;
-	ptarray_reverse(line->points);
-}
 
 LWLINE *
-lwline_segmentize2d(LWLINE *line, double dist)
+lwline_segmentize2d(const LWLINE *line, double dist)
 {
 	POINTARRAY *segmentized = ptarray_segmentize2d(line->points, dist);
 	if ( ! segmentized ) return NULL;
@@ -163,9 +148,9 @@ lwline_same(const LWLINE *l1, const LWLINE *l2)
  * LWLINE dimensions are large enough to host all input dimensions.
  */
 LWLINE *
-lwline_from_lwgeom_array(int srid, uint32_t ngeoms, LWGEOM **geoms)
+lwline_from_lwgeom_array(int32_t srid, uint32_t ngeoms, LWGEOM **geoms)
 {
-	int i;
+	uint32_t i;
 	int hasz = LW_FALSE;
 	int hasm = LW_FALSE;
 	POINTARRAY *pa;
@@ -240,9 +225,9 @@ lwline_from_lwgeom_array(int srid, uint32_t ngeoms, LWGEOM **geoms)
  * LWLINE dimensions are large enough to host all input dimensions.
  */
 LWLINE *
-lwline_from_ptarray(int srid, uint32_t npoints, LWPOINT **points)
+lwline_from_ptarray(int32_t srid, uint32_t npoints, LWPOINT **points)
 {
- 	int i;
+ 	uint32_t i;
 	int hasz = LW_FALSE;
 	int hasm = LW_FALSE;
 	POINTARRAY *pa;
@@ -287,7 +272,7 @@ lwline_from_ptarray(int srid, uint32_t npoints, LWPOINT **points)
  * Construct a LWLINE from a LWMPOINT
  */
 LWLINE *
-lwline_from_lwmpoint(int srid, const LWMPOINT *mpoint)
+lwline_from_lwmpoint(int32_t srid, const LWMPOINT *mpoint)
 {
 	uint32_t i;
 	POINTARRAY *pa = NULL;
@@ -321,13 +306,13 @@ lwline_from_lwmpoint(int srid, const LWMPOINT *mpoint)
 * Returns NULL if the geometry is empty or the index invalid.
 */
 LWPOINT*
-lwline_get_lwpoint(const LWLINE *line, int where)
+lwline_get_lwpoint(const LWLINE *line, uint32_t where)
 {
 	POINT4D pt;
 	LWPOINT *lwpoint;
 	POINTARRAY *pa;
 
-	if ( lwline_is_empty(line) || where < 0 || where >= line->points->npoints )
+	if ( lwline_is_empty(line) || where >= line->points->npoints )
 		return NULL;
 
 	pa = ptarray_construct_empty(FLAGS_GET_Z(line->flags), FLAGS_GET_M(line->flags), 1);
@@ -339,7 +324,7 @@ lwline_get_lwpoint(const LWLINE *line, int where)
 
 
 int
-lwline_add_lwpoint(LWLINE *line, LWPOINT *point, int where)
+lwline_add_lwpoint(LWLINE *line, LWPOINT *point, uint32_t where)
 {
 	POINT4D pt;
 	getPoint4d_p(point->point, 0, &pt);
@@ -350,8 +335,7 @@ lwline_add_lwpoint(LWLINE *line, LWPOINT *point, int where)
 	/* Update the bounding box */
 	if ( line->bbox )
 	{
-		lwgeom_drop_bbox(lwline_as_lwgeom(line));
-		lwgeom_add_bbox(lwline_as_lwgeom(line));
+		lwgeom_refresh_bbox((LWGEOM*)line);
 	}
 
 	return LW_SUCCESS;
@@ -383,8 +367,7 @@ lwline_setPoint4d(LWLINE *line, uint32_t index, POINT4D *newpoint)
 	/* Update the box, if there is one to update */
 	if ( line->bbox )
 	{
-		lwgeom_drop_bbox((LWGEOM*)line);
-		lwgeom_add_bbox((LWGEOM*)line);
+		lwgeom_refresh_bbox((LWGEOM*)line);
 	}
 }
 
@@ -455,13 +438,7 @@ lwline_measured_from_lwline(const LWLINE *lwline, double m_start, double m_end)
 LWGEOM*
 lwline_remove_repeated_points(const LWLINE *lwline, double tolerance)
 {
-	POINTARRAY* npts = ptarray_remove_repeated_points_minpoints(lwline->points, tolerance, 2);
-
-	LWDEBUGF(3, "%s: npts %p", __func__, npts);
-
-	return (LWGEOM*)lwline_construct(lwline->srid,
-	                                 lwline->bbox ? gbox_copy(lwline->bbox) : 0,
-	                                 npts);
+	return lwgeom_remove_repeated_points((LWGEOM*)lwline, tolerance);
 }
 
 int
@@ -476,34 +453,37 @@ lwline_is_closed(const LWLINE *line)
 int
 lwline_is_trajectory(const LWLINE *line)
 {
-  POINT3DM p;
-  int i, n;
-  double m = -1 * FLT_MAX;
+	if (!FLAGS_GET_M(line->flags))
+	{
+		lwnotice("Line does not have M dimension");
+		return LW_FALSE;
+	}
 
-  if ( ! FLAGS_GET_M(line->flags) ) {
-    lwnotice("Line does not have M dimension");
-    return LW_FALSE;
-  }
+	uint32_t n = line->points->npoints;
 
-  n = line->points->npoints;
-  if ( n < 2 ) return LW_TRUE; /* empty or single-point are "good" */
+	if (n < 2)
+		return LW_TRUE; /* empty or single-point are "good" */
 
-  for (i=0; i<n; ++i) {
-    getPoint3dm_p(line->points, i, &p);
-    if ( p.m <= m ) {
-      lwnotice("Measure of vertex %d (%g) not bigger than measure of vertex %d (%g)",
-        i, p.m, i-1, m);
-      return LW_FALSE;
-    }
-    m = p.m;
-  }
+	double m = -1 * FLT_MAX;
+	for (uint32_t i = 0; i < n; ++i)
+	{
+		POINT3DM p;
+		if (!getPoint3dm_p(line->points, i, &p))
+			return LW_FALSE;
+		if (p.m <= m)
+		{
+			lwnotice(
+			    "Measure of vertex %d (%g) not bigger than measure of vertex %d (%g)", i, p.m, i - 1, m);
+			return LW_FALSE;
+		}
+		m = p.m;
+	}
 
-  return LW_TRUE;
+	return LW_TRUE;
 }
 
-
 LWLINE*
-lwline_force_dims(const LWLINE *line, int hasz, int hasm)
+lwline_force_dims(const LWLINE *line, int hasz, int hasm, double zval, double mval)
 {
 	POINTARRAY *pdims = NULL;
 	LWLINE *lineout;
@@ -515,65 +495,19 @@ lwline_force_dims(const LWLINE *line, int hasz, int hasm)
 	}
 	else
 	{
-		pdims = ptarray_force_dims(line->points, hasz, hasm);
+		pdims = ptarray_force_dims(line->points, hasz, hasm, zval, mval);
 		lineout = lwline_construct(line->srid, NULL, pdims);
 	}
 	lineout->type = line->type;
 	return lineout;
 }
 
-int lwline_is_empty(const LWLINE *line)
-{
-	if ( !line->points || line->points->npoints < 1 )
-		return LW_TRUE;
-	return LW_FALSE;
-}
-
-
-int lwline_count_vertices(LWLINE *line)
+uint32_t lwline_count_vertices(LWLINE *line)
 {
 	assert(line);
 	if ( ! line->points )
 		return 0;
 	return line->points->npoints;
-}
-
-LWLINE* lwline_simplify(const LWLINE *iline, double dist, int preserve_collapsed)
-{
-	static const int minvertices = 2; /* TODO: allow setting this */
-	LWLINE *oline;
-	POINTARRAY *pa;
-
-	LWDEBUG(2, "function called");
-
-	/* Skip empty case */
-	if( lwline_is_empty(iline) )
-		return NULL;
-
-	pa = ptarray_simplify(iline->points, dist, minvertices);
-	if ( ! pa ) return NULL;
-
-	/* Make sure single-point collapses have two points */
-	if ( pa->npoints == 1 )
-	{
-		/* Make sure single-point collapses have two points */
-		if ( preserve_collapsed )
-		{
-			POINT4D pt;
-			getPoint4d_p(pa, 0, &pt);
-			ptarray_append_point(pa, &pt, LW_TRUE);
-		}
-		/* Return null for collapse */
-		else
-		{
-			ptarray_free(pa);
-			return NULL;
-		}
-	}
-
-	oline = lwline_construct(iline->srid, NULL, pa);
-	oline->type = iline->type;
-	return oline;
 }
 
 double lwline_length(const LWLINE *line)
@@ -591,20 +525,145 @@ double lwline_length_2d(const LWLINE *line)
 }
 
 
+POINTARRAY* lwline_interpolate_points(const LWLINE *line, double length_fraction, char repeat) {
+	POINT4D pt;
+	uint32_t i;
+	uint32_t points_to_interpolate;
+	uint32_t points_found = 0;
+	double length;
+	double length_fraction_increment = length_fraction;
+	double length_fraction_consumed = 0;
+	char has_z = (char) lwgeom_has_z(lwline_as_lwgeom(line));
+	char has_m = (char) lwgeom_has_m(lwline_as_lwgeom(line));
+	const POINTARRAY* ipa = line->points;
+	POINTARRAY* opa;
 
-LWLINE* lwline_grid(const LWLINE *line, const gridspec *grid)
-{
-	LWLINE *oline;
-	POINTARRAY *opa;
+	/* Empty.InterpolatePoint == Point Empty */
+	if ( lwline_is_empty(line) )
+	{
+		return ptarray_construct_empty(has_z, has_m, 0);
+	}
 
-	opa = ptarray_grid(line->points, grid);
+	/* If distance is one of the two extremes, return the point on that
+	 * end rather than doing any computations
+	 */
+	if ( length_fraction == 0.0 || length_fraction == 1.0 )
+	{
+		if ( length_fraction == 0.0 )
+			getPoint4d_p(ipa, 0, &pt);
+		else
+			getPoint4d_p(ipa, ipa->npoints-1, &pt);
 
-	/* Skip line3d with less then 2 points */
-	if ( opa->npoints < 2 ) return NULL;
+		opa = ptarray_construct(has_z, has_m, 1);
+		ptarray_set_point4d(opa, 0, &pt);
 
-	/* TODO: grid bounding box... */
-	oline = lwline_construct(line->srid, NULL, opa);
+		return opa;
+	}
 
-	return oline;
+	/* Interpolate points along the line */
+	length = ptarray_length_2d(ipa);
+	points_to_interpolate = repeat ? (uint32_t) floor(1 / length_fraction) : 1;
+	opa = ptarray_construct(has_z, has_m, points_to_interpolate);
+
+	const POINT2D* p1 = getPoint2d_cp(ipa, 0);
+	for ( i = 0; i < ipa->npoints - 1 && points_found < points_to_interpolate; i++ )
+	{
+		const POINT2D* p2 = getPoint2d_cp(ipa, i+1);
+		double segment_length_frac = distance2d_pt_pt(p1, p2) / length;
+
+		/* If our target distance is before the total length we've seen
+		 * so far. create a new point some distance down the current
+		 * segment.
+		 */
+		while ( length_fraction < length_fraction_consumed + segment_length_frac && points_found < points_to_interpolate )
+		{
+			POINT4D p1_4d = getPoint4d(ipa, i);
+			POINT4D p2_4d = getPoint4d(ipa, i+1);
+
+			double segment_fraction = (length_fraction - length_fraction_consumed) / segment_length_frac;
+			interpolate_point4d(&p1_4d, &p2_4d, &pt, segment_fraction);
+			ptarray_set_point4d(opa, points_found++, &pt);
+			length_fraction += length_fraction_increment;
+		}
+
+		length_fraction_consumed += segment_length_frac;
+
+		p1 = p2;
+	}
+
+	/* Return the last point on the line. This shouldn't happen, but
+	 * could if there's some floating point rounding errors. */
+	if (points_found < points_to_interpolate) {
+		getPoint4d_p(ipa, ipa->npoints - 1, &pt);
+		ptarray_set_point4d(opa, points_found, &pt);
+	}
+
+    return opa;
 }
 
+extern LWPOINT *
+lwline_interpolate_point_3d(const LWLINE *line, double distance)
+{
+	double length, slength, tlength;
+	POINTARRAY *ipa;
+	POINT4D pt;
+	int nsegs, i;
+	LWGEOM *geom = lwline_as_lwgeom(line);
+	int has_z = lwgeom_has_z(geom);
+	int has_m = lwgeom_has_m(geom);
+	ipa = line->points;
+
+	/* Empty.InterpolatePoint == Point Empty */
+	if (lwline_is_empty(line))
+	{
+		return lwpoint_construct_empty(line->srid, has_z, has_m);
+	}
+
+	/* If distance is one of the two extremes, return the point on that
+	 * end rather than doing any expensive computations
+	 */
+	if (distance == 0.0 || distance == 1.0)
+	{
+		if (distance == 0.0)
+			getPoint4d_p(ipa, 0, &pt);
+		else
+			getPoint4d_p(ipa, ipa->npoints - 1, &pt);
+
+		return lwpoint_make(line->srid, has_z, has_m, &pt);
+	}
+
+	/* Interpolate a point on the line */
+	nsegs = ipa->npoints - 1;
+	length = ptarray_length(ipa);
+	tlength = 0;
+	for (i = 0; i < nsegs; i++)
+	{
+		POINT4D p1, p2;
+		POINT4D *p1ptr = &p1, *p2ptr = &p2; /* don't break
+						     * strict-aliasing rules
+						     */
+
+		getPoint4d_p(ipa, i, &p1);
+		getPoint4d_p(ipa, i + 1, &p2);
+
+		/* Find the relative length of this segment */
+		slength = distance3d_pt_pt((POINT3D *)p1ptr, (POINT3D *)p2ptr) / length;
+
+		/* If our target distance is before the total length we've seen
+		 * so far. create a new point some distance down the current
+		 * segment.
+		 */
+		if (distance < tlength + slength)
+		{
+			double dseg = (distance - tlength) / slength;
+			interpolate_point4d(&p1, &p2, &pt, dseg);
+			return lwpoint_make(line->srid, has_z, has_m, &pt);
+		}
+		tlength += slength;
+	}
+
+	/* Return the last point on the line. This shouldn't happen, but
+	 * could if there's some floating point rounding errors. */
+	getPoint4d_p(ipa, ipa->npoints - 1, &pt);
+	return lwpoint_make(line->srid, has_z, has_m, &pt);
+}

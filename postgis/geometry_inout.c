@@ -21,7 +21,9 @@
  * ^copyright^
  *
  **********************************************************************/
-#include "extension_dependency.h"
+
+#include "postgres.h"
+#include "utils/geo_decls.h"
 
 #include "../postgis_config.h"
 
@@ -29,12 +31,12 @@
 #include "lwgeom_pg.h"       /* For debugging macros. */
 
 
-extern "C" Datum geometry_to_point(PG_FUNCTION_ARGS);
-extern "C" Datum point_to_geometry(PG_FUNCTION_ARGS);
-extern "C" Datum geometry_to_path(PG_FUNCTION_ARGS);
-extern "C" Datum path_to_geometry(PG_FUNCTION_ARGS);
-extern "C" Datum geometry_to_polygon(PG_FUNCTION_ARGS);
-extern "C" Datum polygon_to_geometry(PG_FUNCTION_ARGS);
+extern "C" Datum  geometry_to_point(PG_FUNCTION_ARGS);
+extern "C" Datum  point_to_geometry(PG_FUNCTION_ARGS);
+extern "C" Datum  geometry_to_path(PG_FUNCTION_ARGS);
+extern "C" Datum  path_to_geometry(PG_FUNCTION_ARGS);
+extern "C" Datum  geometry_to_polygon(PG_FUNCTION_ARGS);
+extern "C" Datum  polygon_to_geometry(PG_FUNCTION_ARGS);
 
 /**
 * Cast a PostgreSQL Point to a PostGIS geometry
@@ -70,33 +72,22 @@ PG_FUNCTION_INFO_V1(geometry_to_point);
 Datum geometry_to_point(PG_FUNCTION_ARGS)
 {
 	Point *point;
-	LWGEOM *lwgeom;
-	LWPOINT *lwpoint;
+	POINT4D pt;
 	GSERIALIZED *geom;
 
-	POSTGIS_DEBUG(2, "geometry_to_point called");
-
-	if ( PG_ARGISNULL(0) )
+	if (PG_ARGISNULL(0))
 		PG_RETURN_NULL();
-
 	geom = PG_GETARG_GSERIALIZED_P(0);
 
-	if ( gserialized_get_type(geom) != POINTTYPE )
+	if (gserialized_get_type(geom) != POINTTYPE)
 		elog(ERROR, "geometry_to_point only accepts Points");
 
-	lwgeom = lwgeom_from_gserialized(geom);
-
-	if ( lwgeom_is_empty(lwgeom) )
+	if (gserialized_peek_first_point(geom, &pt) == LW_FAILURE)
 		PG_RETURN_NULL();
 
-	lwpoint = lwgeom_as_lwpoint(lwgeom);
-
-	point = (Point*)palloc(sizeof(Point));
-	point->x = lwpoint_get_x(lwpoint);
-	point->y = lwpoint_get_y(lwpoint);
-
-	lwpoint_free(lwpoint);
-	PG_FREE_IF_COPY(geom,0);
+	point = (Point *)palloc(sizeof(Point));
+	point->x = pt.x;
+	point->y = pt.y;
 
 	PG_RETURN_POINT_P(point);
 }
@@ -109,7 +100,7 @@ Datum geometry_to_path(PG_FUNCTION_ARGS)
 	LWGEOM *lwgeom;
 	GSERIALIZED *geom;
 	POINTARRAY *pa;
-	int i;
+	uint32_t i;
 	const POINT2D *pt;
 	size_t size;
 
@@ -195,7 +186,7 @@ Datum geometry_to_polygon(PG_FUNCTION_ARGS)
 	GSERIALIZED *geom;
 	POINTARRAY *pa;
 	GBOX gbox;
-	int i;
+	uint32_t i;
 	size_t size;
 
 	POSTGIS_DEBUG(2, "geometry_to_polygon called");
@@ -215,8 +206,8 @@ Datum geometry_to_polygon(PG_FUNCTION_ARGS)
 
 	pa = lwpoly->rings[0];
 
-    size = offsetof(POLYGON, p[0]) + sizeof(polygon->p[0]) * pa->npoints;
-    polygon = (POLYGON*)palloc0(size); /* zero any holes */
+	size = offsetof(POLYGON, p[0]) + sizeof(polygon->p[0]) * pa->npoints;
+	polygon = (POLYGON*)palloc0(size); /* zero any holes */
 	SET_VARSIZE(polygon, size);
 
 	polygon->npts = pa->npoints;

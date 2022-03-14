@@ -1,4 +1,5 @@
-#include "extension_dependency.h"
+#include "postgres.h"
+#include "fmgr.h"
 
 #include "../postgis_config.h"
 
@@ -11,7 +12,9 @@
 #include <math.h>
 #include <float.h>
 #include <string.h>
-
+#include "access/brin_tuple.h"
+#include "utils/datum.h"
+#include "gserialized_gist.h"
 
 #define INCLUSION_UNION				0
 #define INCLUSION_UNMERGEABLE		1

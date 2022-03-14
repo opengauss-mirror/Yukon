@@ -15,7 +15,7 @@ SELECT '#2532.2', NULL::geometry @ null::raster;
 /******************************************************************************
  #2911
 ******************************************************************************/
-
+-- added OFFSET 0 to force PostgreSQL 12+ to materialize the cte
 WITH data AS ( SELECT '#2911' l, ST_Metadata(ST_Rescale(
  ST_AddBand(
   ST_MakeEmptyRaster(10, 10, 0, 0, 1, -1, 0, 0, 0),
@@ -23,7 +23,7 @@ WITH data AS ( SELECT '#2911' l, ST_Metadata(ST_Rescale(
  ),
  2.0,
  -2.0
- )) m
+ )) m OFFSET 0
 ) SELECT l, (m).* FROM data;
 
 /******************************************************************************
@@ -112,3 +112,51 @@ DROP TABLE IF EXISTS test_raster_scale_big;
 DROP TABLE IF EXISTS test_raster_scale_small;
 
 SET client_min_messages TO DEFAULT;
+
+/******************************************************************************
+ #3055 ST_Clip() on a raster without band crashes the server
+******************************************************************************/
+SELECT ST_SummaryStats(ST_Clip(ST_MakeEmptyRaster(42, 42, 0, 0, 1.0, 1.0, 0, 0, 4269), ST_MakeEnvelope(0, 0, 20, 20, 4269)));
+
+-- #4102 negative nodata values don't apply on Raspberry Pi
+SELECT '#4102.1', ST_BandNoDataValue(ST_AddBand(ST_MakeEmptyRaster(2, 2, 0, 0, 1, -1, 0, 0, 0), 1, '16BSI', 0, -10), 1) AS rast;
+SELECT '#4102.2', ST_BandNoDataValue(ST_AddBand(ST_MakeEmptyRaster(2, 2, 0, 0, 1, -1, 0, 0, 0), 1, '32BSI', 0, -10), 1) AS rast;
+
+select '#3457', ST_Area((ST_DumpAsPolygons(ST_Clip(ST_ASRaster(ST_GeomFromText('POLYGON((0 0,100 0,100 100,0 100,0 0))',4326),ST_Addband(ST_MakeEmptyRaster(1,1,0,0,1,-1,0,0,4326),'32BF'::text,0,-1),'32BF'::text,1,-1), ST_GeomFromText('POLYGON((0 0,100 100,100 0,0 0))',4326)))).geom);
+
+SELECT '#4412', exists(select ST_PixelAsPolygons(ST_AddBand(ST_MakeEmptyRaster(2, 2, 0, 0, 1, -1, 0, 0, 0), 1, '64BF', 0, 'NaN'), 1)) AS rast;
+
+/**
+#4308,
+*/
+CREATE TABLE table_4308 (r raster);
+INSERT INTO table_4308(r) values (NULL);
+INSERT INTO table_4308(r) SELECT ST_AddBand(ST_MakeEmptyRaster(10, 10, 1, 1, 2, 2, 0, 0,4326), 1, '8BSI'::text, -129, NULL);;
+SELECT AddRasterConstraints('table_4308', 'r');
+DROP TABLE table_4308;
+
+-- #4547
+CREATE TABLE ticket_4547(r raster);
+SELECT '#4547.1', AddRasterConstraints('ticket_4547', 'r');
+INSERT INTO ticket_4547 VALUES (null);
+INSERT INTO ticket_4547 SELECT ST_AddBand(ST_MakeEmptyRaster(10, 10, 1, 1, 2, 2, 0, 0,4326), 1, '8BSI'::text, -129, NULL);
+SELECT '#4547.2', AddRasterConstraints('ticket_4547', 'r');
+DROP TABLE ticket_4547;
+
+-- #4769
+SELECT '#4769', st_addband(NULL, NULL::_raster, 1, 1);
+
+SELECT '#4770.a',
+ ST_Union(NULL::raster) OVER (ORDER BY b)
+FROM (VALUES ('A0006', 300), ('A0006', 302)) t(a,b);
+
+SELECT '#4770.b',
+ ST_Union(NULL::raster) OVER (PARTITION BY a ORDER BY b)
+FROM (VALUES ('A0006', 300),
+	         ('A0006', 302)) t(a, b);
+
+SELECT '#4724.a', ST_SummaryStatsAgg(NULL::raster, NULL::int4, NULL::bool)
+ OVER (ORDER BY q) FROM generate_series(1,2) AS e(q);
+
+SELECT '#4724.b', ST_SummaryStatsAgg(NULL::raster, NULL::int4, NULL::bool)
+ FROM generate_series(1,2) AS e(q);

@@ -18,7 +18,7 @@
  *
  **********************************************************************
  *
- * Copyright (C) 2015 Sandro Santilli <strk@kbt.io>
+ * Copyright (C) 2015-2021 Sandro Santilli <strk@kbt.io>
  *
  **********************************************************************/
 
@@ -156,10 +156,7 @@ typedef struct LWT_BE_CALLBACKS_T {
    * @return a topology handler, which embeds the backend data/params
    *         or NULL on error (@see lastErrorMessage)
    */
-  LWT_BE_TOPOLOGY* (*createTopology) (
-    const LWT_BE_DATA* be,
-    const char* name, int srid, double precision, int hasZ
-  );
+  LWT_BE_TOPOLOGY *(*createTopology)(const LWT_BE_DATA *be, const char *name, int32_t srid, double precision, int hasZ);
 
   /**
    * Load a topology from the backend
@@ -198,10 +195,7 @@ typedef struct LWT_BE_CALLBACKS_T {
    *           (@see lastErrorMessage)
    *
    */
-  LWT_ISO_NODE* (*getNodeById) (
-      const LWT_BE_TOPOLOGY* topo,
-      const LWT_ELEMID* ids, int* numelems, int fields
-  );
+  LWT_ISO_NODE *(*getNodeById)(const LWT_BE_TOPOLOGY *topo, const LWT_ELEMID *ids, uint64_t *numelems, int fields);
 
   /**
    * Get nodes within distance by point
@@ -223,11 +217,12 @@ typedef struct LWT_BE_CALLBACKS_T {
    *         - error ("numelems" is set to -1)
    *
    */
-  LWT_ISO_NODE* (*getNodeWithinDistance2D) (
-      const LWT_BE_TOPOLOGY* topo,
-      const LWPOINT* pt, double dist, int* numelems,
-      int fields, int limit
-  );
+  LWT_ISO_NODE *(*getNodeWithinDistance2D)(const LWT_BE_TOPOLOGY *topo,
+					   const LWPOINT *pt,
+					   double dist,
+					   uint64_t *numelems,
+					   int fields,
+					   int64_t limit);
 
   /**
    * Insert nodes
@@ -242,11 +237,7 @@ typedef struct LWT_BE_CALLBACKS_T {
    *
    * @return 1 on success, 0 on error (@see lastErrorMessage)
    */
-  int (*insertNodes) (
-      const LWT_BE_TOPOLOGY* topo,
-      LWT_ISO_NODE* nodes,
-      int numelems
-  );
+  int (*insertNodes)(const LWT_BE_TOPOLOGY *topo, LWT_ISO_NODE *nodes, uint64_t numelems);
 
   /**
    * Get edge by id
@@ -264,10 +255,7 @@ typedef struct LWT_BE_CALLBACKS_T {
    *         - none found ("numelems" is set to 0)
    *         - error ("numelems" is set to -1)
    */
-  LWT_ISO_EDGE* (*getEdgeById) (
-      const LWT_BE_TOPOLOGY* topo,
-      const LWT_ELEMID* ids, int* numelems, int fields
-  );
+  LWT_ISO_EDGE *(*getEdgeById)(const LWT_BE_TOPOLOGY *topo, const LWT_ELEMID *ids, uint64_t *numelems, int fields);
 
   /**
    * Get edges within distance by point
@@ -281,7 +269,7 @@ typedef struct LWT_BE_CALLBACKS_T {
    * @param fields fields to be filled in the returned structure, see
    *               LWT_COL_EDGE_* macros
    * @param limit max number of edges to return, 0 for no limit, -1
-   *              to only check for existance if a matching row.
+   *              to only check for existence if a matching row.
    *
    * @return an array of edges or null in the following cases:
    *         - limit=-1 ("numelems" is set to 1 if found, 0 otherwise)
@@ -289,11 +277,12 @@ typedef struct LWT_BE_CALLBACKS_T {
    *         - error ("numelems" is set to -1)
    *
    */
-  LWT_ISO_EDGE* (*getEdgeWithinDistance2D) (
-      const LWT_BE_TOPOLOGY* topo,
-      const LWPOINT* pt, double dist, int* numelems,
-      int fields, int limit
-  );
+  LWT_ISO_EDGE *(*getEdgeWithinDistance2D)(const LWT_BE_TOPOLOGY *topo,
+					   const LWPOINT *pt,
+					   double dist,
+					   uint64_t *numelems,
+					   int fields,
+					   int64_t limit);
 
   /**
    * Get next available edge identifier
@@ -322,11 +311,7 @@ typedef struct LWT_BE_CALLBACKS_T {
    *
    * @return number of inserted edges, or -1 (@see lastErrorMessage)
    */
-  int (*insertEdges) (
-      const LWT_BE_TOPOLOGY* topo,
-      LWT_ISO_EDGE* edges,
-      int numelems
-  );
+  int (*insertEdges)(const LWT_BE_TOPOLOGY *topo, LWT_ISO_EDGE *edges, uint64_t numelems);
 
   /**
    * Update edges selected by fields match/mismatch
@@ -369,25 +354,7 @@ typedef struct LWT_BE_CALLBACKS_T {
    *         - none found ("numelems" is set to 0)
    *         - error ("numelems" is set to -1)
    */
-  LWT_ISO_FACE* (*getFaceById) (
-      const LWT_BE_TOPOLOGY* topo,
-      const LWT_ELEMID* ids, int* numelems, int fields
-  );
-
-  /**
-   * Get face containing point
-   *
-   * @param topo the topology to act upon
-   * @param pt the query point
-   *
-   * @return a face identifier, -1 if no face contains the point
-   *         (could be in universe face or on an edge)
-   *         or -2 on error (@see lastErrorMessage)
-   */
-  LWT_ELEMID (*getFaceContainingPoint) (
-      const LWT_BE_TOPOLOGY* topo,
-      const LWPOINT* pt
-  );
+  LWT_ISO_FACE *(*getFaceById)(const LWT_BE_TOPOLOGY *topo, const LWT_ELEMID *ids, uint64_t *numelems, int fields);
 
   /**
    * Update TopoGeometry objects after an edge split event
@@ -439,7 +406,7 @@ typedef struct LWT_BE_CALLBACKS_T {
    * @param fields fields to be filled in the returned structure, see
    *               LWT_COL_NODE_* macros
    * @param limit max number of nodes to return, 0 for no limit, -1
-   *              to only check for existance if a matching row.
+   *              to only check for existence if a matching row.
    *
    * @return an array of nodes or null in the following cases:
    *         - limit=-1 ("numelems" is set to 1 if found, 0 otherwise)
@@ -447,11 +414,8 @@ typedef struct LWT_BE_CALLBACKS_T {
    *         - error ("numelems" is set to -1)
    *
    */
-  LWT_ISO_NODE* (*getNodeWithinBox2D) (
-      const LWT_BE_TOPOLOGY* topo,
-      const GBOX* box,
-      int* numelems, int fields, int limit
-  );
+  LWT_ISO_NODE *(
+      *getNodeWithinBox2D)(const LWT_BE_TOPOLOGY *topo, const GBOX *box, uint64_t *numelems, int fields, int limit);
 
   /**
    * Get edges whose bounding box overlaps a given 2D bounding box
@@ -464,7 +428,7 @@ typedef struct LWT_BE_CALLBACKS_T {
    * @param fields fields to be filled in the returned structure, see
    *               LWT_COL_EDGE_* macros
    * @param limit max number of edges to return, 0 for no limit, -1
-   *              to only check for existance if a matching row.
+   *              to only check for existence if a matching row.
    *
    * @return an array of edges or null in the following cases:
    *         - limit=-1 ("numelems" is set to 1 if found, 0 otherwise)
@@ -472,11 +436,8 @@ typedef struct LWT_BE_CALLBACKS_T {
    *         - error ("numelems" is set to -1)
    *
    */
-  LWT_ISO_EDGE* (*getEdgeWithinBox2D) (
-      const LWT_BE_TOPOLOGY* topo,
-      const GBOX* box,
-      int* numelems, int fields, int limit
-  );
+  LWT_ISO_EDGE *(
+      *getEdgeWithinBox2D)(const LWT_BE_TOPOLOGY *topo, const GBOX *box, uint64_t *numelems, int fields, int limit);
 
   /**
    * Get edges that start or end on any of the given node identifiers
@@ -496,10 +457,7 @@ typedef struct LWT_BE_CALLBACKS_T {
    *         - error ("numelems" is set to -1)
    *           (@see lastErrorMessage)
    */
-  LWT_ISO_EDGE* (*getEdgeByNode) (
-      const LWT_BE_TOPOLOGY* topo,
-      const LWT_ELEMID* ids, int* numelems, int fields
-  );
+  LWT_ISO_EDGE *(*getEdgeByNode)(const LWT_BE_TOPOLOGY *topo, const LWT_ELEMID *ids, uint64_t *numelems, int fields);
 
   /**
    * Update nodes selected by fields match/mismatch
@@ -512,7 +470,7 @@ typedef struct LWT_BE_CALLBACKS_T {
    * @param upd_fields fields to be updated for the selected nodes,
    *                   see LWT_COL_NODE_* macros
    * @param exc_node an LWT_ISO_NODE object with exclusion fields set,
-   *                 can be NULL if no exlusion condition exists.
+   *                 can be NULL if no exclusion condition exists.
    * @param exc_fields fields used for excluding nodes from the update,
    *                   see LWT_COL_NODE_* macros
    *
@@ -558,11 +516,7 @@ typedef struct LWT_BE_CALLBACKS_T {
    *
    * @return number of inserted faces, or -1 (@see lastErrorMessage)
    */
-  int (*insertFaces) (
-      const LWT_BE_TOPOLOGY* topo,
-      LWT_ISO_FACE* faces,
-      int numelems
-  );
+  int (*insertFaces)(const LWT_BE_TOPOLOGY *topo, LWT_ISO_FACE *faces, uint64_t numelems);
 
   /**
    * Update faces by id
@@ -572,12 +526,12 @@ typedef struct LWT_BE_CALLBACKS_T {
    *              and setting mbr.
    * @param numfaces number of faces in the "faces" array
    *
-   * @return number of faces being updated or -1 on error
+   * @return number of faces being updated or UINT64_MAX on error
    *         (@see lastErroMessage)
    */
-  int (*updateFacesById) (
+  uint64_t (*updateFacesById) (
       const LWT_BE_TOPOLOGY* topo,
-      const LWT_ISO_FACE* faces, int numfaces
+      const LWT_ISO_FACE* faces, uint64_t numfaces
   );
 
   /*
@@ -598,18 +552,16 @@ typedef struct LWT_BE_CALLBACKS_T {
    *             side (left if positive, right if negative)
    *             and direction (forward if positive, backward if negative).
    * @param numedges output parameter, gets the number of edges visited
+   *
    * @param limit max edges to return (to avoid an infinite loop in case
    *              of a corrupted topology). 0 is for unlimited.
    *              The function is expected to error out if the limit is hit.
    *
    * @return an array of signed edge identifiers (positive edges being
    *         walked in their direction, negative ones in opposite) or
-   *         NULL on error (@see lastErroMessage)
+   *         NULL on error (@see lastErrorMessage)
    */
-  LWT_ELEMID* (*getRingEdges) (
-      const LWT_BE_TOPOLOGY* topo,
-      LWT_ELEMID edge, int *numedges, int limit
-  );
+  LWT_ELEMID *(*getRingEdges)(const LWT_BE_TOPOLOGY *topo, LWT_ELEMID edge, uint64_t *numedges, int limit);
 
   /**
    * Update edges by id
@@ -622,13 +574,9 @@ typedef struct LWT_BE_CALLBACKS_T {
    *                   see LWT_COL_EDGE_* macros
    *
    * @return number of edges being updated or -1 on error
-   *         (@see lastErroMessage)
+   *         (@see lastErrorMessage)
    */
-  int (*updateEdgesById) (
-      const LWT_BE_TOPOLOGY* topo,
-      const LWT_ISO_EDGE* edges, int numedges,
-      int upd_fields
-  );
+  int (*updateEdgesById)(const LWT_BE_TOPOLOGY *topo, const LWT_ISO_EDGE *edges, uint64_t numedges, int upd_fields);
 
   /**
    * \brief
@@ -650,11 +598,11 @@ typedef struct LWT_BE_CALLBACKS_T {
    *         - no edge found ("numelems" is set to 0)
    *         - error ("numelems" is set to -1)
    */
-  LWT_ISO_EDGE* (*getEdgeByFace) (
-      const LWT_BE_TOPOLOGY* topo,
-      const LWT_ELEMID* ids, int* numelems, int fields,
-      const GBOX *box
-  );
+  LWT_ISO_EDGE *(*getEdgeByFace)(const LWT_BE_TOPOLOGY *topo,
+				 const LWT_ELEMID *ids,
+				 uint64_t *numelems,
+				 int fields,
+				 const GBOX *box);
 
   /**
    * Get isolated nodes contained in any of the given faces
@@ -674,11 +622,11 @@ typedef struct LWT_BE_CALLBACKS_T {
    *         - no nod found ("numelems" is set to 0)
    *         - error ("numelems" is set to -1, @see lastErrorMessage)
    */
-  LWT_ISO_NODE* (*getNodeByFace) (
-      const LWT_BE_TOPOLOGY* topo,
-      const LWT_ELEMID* faces, int* numelems, int fields,
-      const GBOX *box
-  );
+  LWT_ISO_NODE *(*getNodeByFace)(const LWT_BE_TOPOLOGY *topo,
+				 const LWT_ELEMID *faces,
+				 uint64_t *numelems,
+				 int fields,
+				 const GBOX *box);
 
   /**
    * Update nodes by id
@@ -691,13 +639,9 @@ typedef struct LWT_BE_CALLBACKS_T {
    *                   see LWT_COL_NODE_* macros
    *
    * @return number of nodes being updated or -1 on error
-   *         (@see lastErroMessage)
+   *         (@see lastErrorMessage)
    */
-  int (*updateNodesById) (
-      const LWT_BE_TOPOLOGY* topo,
-      const LWT_ISO_NODE* nodes, int numnodes,
-      int upd_fields
-  );
+  int (*updateNodesById)(const LWT_BE_TOPOLOGY *topo, const LWT_ISO_NODE *nodes, uint64_t numnodes, int upd_fields);
 
   /**
    * Delete faces by id
@@ -707,13 +651,9 @@ typedef struct LWT_BE_CALLBACKS_T {
    * @param numelems number of face identifiers in the ids array
    *
    * @return number of faces being deleted or -1 on error
-   *         (@see lastErroMessage)
+   *         (@see lastErrorMessage)
    */
-  int (*deleteFacesById) (
-      const LWT_BE_TOPOLOGY* topo,
-      const LWT_ELEMID* ids,
-      int numelems
-  );
+  int (*deleteFacesById)(const LWT_BE_TOPOLOGY *topo, const LWT_ELEMID *ids, uint64_t numelems);
 
   /**
    * Get topology SRID
@@ -746,13 +686,9 @@ typedef struct LWT_BE_CALLBACKS_T {
    * @param numelems number of node identifiers in the ids array
    *
    * @return number of nodes being deleted or -1 on error
-   *         (@see lastErroMessage)
+   *         (@see lastErrorMessage)
    */
-  int (*deleteNodesById) (
-      const LWT_BE_TOPOLOGY* topo,
-      const LWT_ELEMID* ids,
-      int numelems
-  );
+  int (*deleteNodesById)(const LWT_BE_TOPOLOGY *topo, const LWT_ELEMID *ids, uint64_t numelems);
 
   /**
    * Check TopoGeometry objects before an edge removal event
@@ -805,7 +741,7 @@ typedef struct LWT_BE_CALLBACKS_T {
    *
    * The operation should also be forbidden if the removed node
    * takes part in the definition of a TopoGeometry, although
-   * this wasn't the case yet as of PostGIS version 2.1.8:
+   * this wasn't the case yet as of PostGIS version 3.1:
    * https://trac.osgeo.org/postgis/ticket/3239
    *
    * @return 1 to allow, 0 to forbid the operation
@@ -850,7 +786,7 @@ typedef struct LWT_BE_CALLBACKS_T {
    * @param fields fields to be filled in the returned structure, see
    *               LWT_COL_FACE_* macros
    * @param limit max number of faces to return, 0 for no limit, -1
-   *              to only check for existance if a matching row.
+   *              to only check for existence if a matching row.
    *
    * @return an array of faces or null in the following cases:
    *         - limit=-1 ("numelems" is set to 1 if found, 0 otherwise)
@@ -858,11 +794,64 @@ typedef struct LWT_BE_CALLBACKS_T {
    *         - error ("numelems" is set to -1)
    *
    */
-  LWT_ISO_FACE* (*getFaceWithinBox2D) (
+  LWT_ISO_FACE *(*getFaceWithinBox2D)(const LWT_BE_TOPOLOGY *topo,
+				      const GBOX *box,
+				      uint64_t *numelems,
+				      int fields,
+				      int limit);
+
+  /**
+   * Check TopoGeometry objects before an isolated node removal event
+   *
+   * @param topo the topology to act upon
+   * @param rem_node identifier of the isolated node that's been removed
+   *
+   * The operation should be forbidden if the removed node
+   * takes part in the definition of a TopoGeometry.
+   *
+   * @return 1 to allow, 0 to forbid the operation
+   *         (reporting reason via lastErrorMessage)
+   *
+   */
+  int (*checkTopoGeomRemIsoNode) (
       const LWT_BE_TOPOLOGY* topo,
-      const GBOX* box,
-      int* numelems, int fields, int limit
+      LWT_ELEMID rem_node
   );
+
+  /**
+   * Check TopoGeometry objects before an isolated edge removal event
+   *
+   * @param topo the topology to act upon
+   * @param rem_edge identifier of the edge that's been removed
+   *
+   * @return 1 to allow, 0 to forbid the operation
+   *         (reporting reason via lastErrorMessage)
+   */
+  int (*checkTopoGeomRemIsoEdge) (
+      const LWT_BE_TOPOLOGY* topo,
+      LWT_ELEMID rem_edge
+  );
+
+
+  /**
+   * Get closest edge to a given point
+   *
+   * @param topo the topology to act upon
+   * @param pt the query point
+   * @param numelems output parameter, gets number of elements found
+   *                 or UINT64_MAX on error (@see lastErrorMessage)
+   * @param fields fields to be filled in the returned structure, see
+   *               LWT_COL_EDGE_* macros
+   *
+   * @return an array of 1 edges or null in the following cases:
+	 *				 - no edges are in the topology ("numelems" is set to 0)
+   *         - error ("numelems" is set to UINT64_MAX)
+   *
+   */
+  LWT_ISO_EDGE *(*getClosestEdge)(const LWT_BE_TOPOLOGY *topo,
+					   const LWPOINT *pt,
+					   uint64_t *numelems,
+					   int fields);
 
 } LWT_BE_CALLBACKS;
 
@@ -948,8 +937,7 @@ typedef struct LWT_TOPOLOGY_T LWT_TOPOLOGY;
  * @return the handler of the topology, or NULL on error
  *         (liblwgeom error handler will be invoked with error message)
  */
-LWT_TOPOLOGY *lwt_CreateTopology(LWT_BE_IFACE *iface, const char *name,
-                        int srid, double prec, int hasz);
+LWT_TOPOLOGY *lwt_CreateTopology(LWT_BE_IFACE *iface, const char *name, int32_t srid, double prec, int hasz);
 
 /**
  * Loads an existing topology by name from the database
@@ -1012,7 +1000,20 @@ LWT_ELEMID lwt_GetEdgeByPoint(LWT_TOPOLOGY *topo, LWPOINT *pt, double tol);
  *         or edge).
  *         The liblwgeom error handler will be invoked in case of error.
  */
-LWT_ELEMID lwt_GetFaceByPoint(LWT_TOPOLOGY *topo, LWPOINT *pt, double tol);
+LWT_ELEMID lwt_GetFaceByPoint(LWT_TOPOLOGY *topo, const LWPOINT *pt, double tol);
+
+/**
+ * Find the face-id of the face properly containing a given point
+ *
+ * @param topo the topology to operate on
+ * @param point the point to use for query
+ *
+ * @return a face identifier if one is found (0 if universe), -1
+ *         on error (point intersects non-dangling edge).
+ *         The liblwgeom error handler will be invoked in case of error.
+ */
+LWT_ELEMID lwt_GetFaceContainingPoint(LWT_TOPOLOGY* topo, const LWPOINT* pt);
+
 
 
 /*******************************************************************
@@ -1055,6 +1056,60 @@ LWT_ELEMID lwt_AddPoint(LWT_TOPOLOGY* topo, LWPOINT* point, double tol);
  */
 LWT_ELEMID* lwt_AddLine(LWT_TOPOLOGY* topo, LWLINE* line, double tol,
                         int* nedges);
+
+/**
+ * Adds a linestring to the topology without determining generated faces
+ *
+ * The given line will snap to existing nodes or edges within given
+ * tolerance. Existing edges or faces may be split by the line.
+ *
+ * Side faces for the new edges will not be determined and no new
+ * faces will be created, effectively leaving the topology in an
+ * invalid state (WARNING!)
+ *
+ * @param topo the topology to operate on
+ * @param line the line to add
+ * @param tol snap tolerance, the topology tolerance will be used if 0
+ * @param nedges output parameter, will be set to number of edges the
+ *               line was split into, or -1 on error
+ *               (liblwgeom error handler will be invoked with error message)
+ *
+ * @return an array of <nedges> edge identifiers that sewed togheter
+ *         will build up the input linestring (after snapping). Caller
+ *         will need to free the array using lwfree(), if not null.
+ */
+LWT_ELEMID* lwt_AddLineNoFace(LWT_TOPOLOGY* topo, LWLINE* line, double tol,
+                        int* nedges);
+
+/*
+ * Determine and register all topology faces:
+ *
+ *  - Determines which faces are generated by existing
+ *    edges.
+ *  - Creates face records with correct mbr
+ *  - Update edge left/right face attributes
+ *
+ *  Precondition:
+ *     - the topology edges are correctly linked
+ *     - there are no faces registered in the topology
+ *
+ *  Postconditions:
+ *     - all left/right face attributes of edges
+ *       reference faces with correct mbr.
+ *
+ *  Notes:
+ *     - does not attempt to assign isolated nodes to their
+ *       containing faces
+ *     - does not remove existing face records
+ *     - loads in memory all the topology edges
+ *
+ * @param topo the topology to operate on
+ *
+ * @return 0 on success, -1 on error
+ *         (librtgeom error handler will be invoked with error
+ *         message)
+ */
+int lwt_Polygonize(LWT_TOPOLOGY* topo);
 
 /**
  * Adds a polygon to the topology
@@ -1104,7 +1159,7 @@ void lwt_CreateTopoGeo(LWT_TOPOLOGY* topo, LWGEOM *geom);
  * @param pt the node position
  * @param skipChecks if non-zero skips consistency checks
  *                   (coincident nodes, crossing edges,
- *                    actual face containement)
+ *                    actual face containment)
  *
  * @return ID of the newly added node, or -1 on error
  *         (liblwgeom error handler will be invoked with error message)
@@ -1176,7 +1231,7 @@ LWT_ELEMID lwt_AddIsoEdge(LWT_TOPOLOGY* topo,
  *
  * For ST_AddEdgeModFace
  *
- * If the new edge splits a face, the face is shrinked and a new one
+ * If the new edge splits a face, the face is shrunk and a new one
  * is created. Unless the face being split is the Universal Face, the
  * new face will be on the right side of the newly added edge.
  *
@@ -1186,7 +1241,7 @@ LWT_ELEMID lwt_AddIsoEdge(LWT_TOPOLOGY* topo,
  * @param geom the edge geometry
  * @param skipChecks if non-zero skips consistency checks
  *                   (curve being simple and valid, start/end nodes
- *                    consistency actual face containement)
+ *                    consistency actual face containment)
  *
  * @return ID of the newly added edge or null on error
  *         (liblwgeom error handler will be invoked with error message)
@@ -1209,7 +1264,7 @@ LWT_ELEMID lwt_AddEdgeModFace(LWT_TOPOLOGY* topo,
  * @param geom the edge geometry
  * @param skipChecks if non-zero skips consistency checks
  *                   (curve being simple and valid, start/end nodes
- *                    consistency actual face containement)
+ *                    consistency actual face containment)
  * @return ID of the newly added edge
  *
  */

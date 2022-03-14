@@ -584,7 +584,13 @@ static void test_edge_intersects(void)
 {
 	POINT3D A1, A2, B1, B2;
 	GEOGRAPHIC_POINT g;
-	int rv;
+	uint32_t rv;
+
+	/* 5m close case */
+	line2pts("LINESTRING(58.5112113206308 0, 58.511211320077201 0.00090193752520337797)", &A1, &A2);
+	line2pts("LINESTRING(58.511166525601702 0.00027058124084120699, 58.511166525562899 0.00036077498778824899)", &B1, &B2);
+	rv = edge_intersects(&A1, &A2, &B1, &B2);
+	CU_ASSERT(rv == 0);
 
 	/* Covers case, end-to-end intersection */
 	line2pts("LINESTRING(50 -10.999999999999998224, -10.0 50.0)", &A1, &A2);
@@ -847,7 +853,7 @@ static void test_gbox_calculation(void)
 
 	LWGEOM *geom;
 	int i = 0;
-	GBOX *gbox = gbox_new(gflags(0,0,0));
+	GBOX *gbox = gbox_new(lwflags(0,0,0));
 	BOX3D *box3d;
 
 	char ewkt[][512] =
@@ -1129,7 +1135,7 @@ static void test_lwpoly_covers_point2d(void)
 	lwgeom_free(lwg);
 
 	/* Great big ring */
-	lwg = lwgeom_from_wkt("POLYGON((-40.0 52.0, 102.0 -6.0, -67.0 -29.0, -40.0 52.0))", LW_PARSER_CHECK_NONE);
+	lwg = lwgeom_from_wkt("POLYGON((-40.0 52.0, -67.0 -29.0, 102.0 -6.0, -40.0 52.0))", LW_PARSER_CHECK_NONE);
 	poly = (LWPOLY*)lwg;
 	pt_to_test.x = 4.0;
 	pt_to_test.y = 11.0;
@@ -1177,6 +1183,15 @@ static void test_lwgeom_distance_sphere(void)
 	/* Init and force spherical */
 	spheroid_init(&s, 6378137.0, 6356752.314245179498);
 	s.a = s.b = s.radius;
+
+	/* https://trac.osgeo.org/postgis/ticket/4835 */
+	lwg1 = lwgeom_from_wkt("POINT(0 90)", LW_PARSER_CHECK_NONE);
+	lwg2 = lwgeom_from_wkt("LINESTRING(-166.11 68.875,15.55 78.216667)", LW_PARSER_CHECK_NONE);
+	d = lwgeom_distance_spheroid(lwg1, lwg2, &s, 0.0);
+	// printf("%12.8g\n", d);
+	CU_ASSERT_DOUBLE_EQUAL(d, 25003.707, 0.1);
+	lwgeom_free(lwg1);
+	lwgeom_free(lwg2);
 
 	/* Line/line distance, 1 degree apart */
 	lwg1 = lwgeom_from_wkt("LINESTRING(-30 10, -20 5, -10 3, 0 1)", LW_PARSER_CHECK_NONE);
@@ -1270,7 +1285,7 @@ static void test_spheroid_distance(void)
 {
 	GEOGRAPHIC_POINT g1, g2;
 	double d;
-#if ! PROJ_GEODESIC
+#ifndef PROJ_GEODESIC
 	double epsilon; /* irregular */
 #else
 	const double epsilon = 1e-8; /* at least 10 nm precision */
@@ -1285,7 +1300,7 @@ static void test_spheroid_distance(void)
 	point_set(0.0, 0.0, &g1);
 	point_set(0.0, 1.0, &g2);
 	d = spheroid_distance(&g1, &g2, &s);
-#if ! PROJ_GEODESIC
+#ifndef PROJ_GEODESIC
 	epsilon = 1e-6;
 #endif
 	CU_ASSERT_DOUBLE_EQUAL(d, 110574.3885577987957342, epsilon);
@@ -1295,7 +1310,7 @@ static void test_spheroid_distance(void)
 	point_set(-10.0, 0.0, &g1);
 	point_set(0.0, 0.0, &g2);
 	d = spheroid_distance(&g1, &g2, &s);
-#if ! PROJ_GEODESIC
+#ifndef PROJ_GEODESIC
 	epsilon = 1e-3;
 #endif
 	CU_ASSERT_DOUBLE_EQUAL(d, 1113194.9079327357264771, epsilon);
@@ -1305,7 +1320,7 @@ static void test_spheroid_distance(void)
 	point_set(-1.0, 0.0, &g1);
 	point_set(0.0, 0.0, &g2);
 	d = spheroid_distance(&g1, &g2, &s);
-#if ! PROJ_GEODESIC
+#ifndef PROJ_GEODESIC
 	epsilon = 1e-4;
 #endif
 	CU_ASSERT_DOUBLE_EQUAL(d, 111319.4907932735726477, epsilon);
@@ -1315,7 +1330,7 @@ static void test_spheroid_distance(void)
 	point_set(-180.0, 0.0, &g1);
 	point_set(0.0, 1.0, &g2);
 	d = spheroid_distance(&g1, &g2, &s);
-#if ! PROJ_GEODESIC
+#ifndef PROJ_GEODESIC
 	epsilon = 1e-5;
 #endif
 	CU_ASSERT_DOUBLE_EQUAL(d, 19893357.0700676468277450, epsilon);
@@ -1325,7 +1340,7 @@ static void test_spheroid_distance(void)
 	point_set(-180.0, 0.0, &g1);
 	point_set(0.0, 90.0, &g2);
 	d = spheroid_distance(&g1, &g2, &s);
-#if ! PROJ_GEODESIC
+#ifndef PROJ_GEODESIC
 	epsilon = 1e-6;
 #endif
 	CU_ASSERT_DOUBLE_EQUAL(d, 10001965.7293127228117396, epsilon);
@@ -1342,7 +1357,7 @@ static void test_spheroid_area(void)
 	/* Init to WGS84 */
 	spheroid_init(&s, WGS84_MAJOR_AXIS, WGS84_MINOR_AXIS);
 
-	gbox.flags = gflags(0, 0, 1);
+	gbox.flags = lwflags(0, 0, 1);
 
 	/* Medford lot test polygon */
 	lwg = lwgeom_from_wkt("POLYGON((-122.848227067007 42.5007249610493,-122.848309475585 42.5007179884263,-122.848327688675 42.500835880696,-122.848245279942 42.5008428533324,-122.848227067007 42.5007249610493))", LW_PARSER_CHECK_NONE);
@@ -1366,8 +1381,7 @@ static void test_spheroid_area(void)
 	a1 = lwgeom_area_sphere(lwg, &s);
 	CU_ASSERT_DOUBLE_EQUAL(a1, 12341436880.106982993974659, 0.1);
 	/* spheroid: Planimeter -E -p 20 -r --input-string "3 -2;4 -2;4 -1;3 -1" */
-#if PROJ_GEODESIC
-	// printf("XXXXX %d\n", PJ_VERSION);
+#ifdef PROJ_GEODESIC
 	a2 = lwgeom_area_spheroid(lwg, &s);
 	CU_ASSERT_DOUBLE_EQUAL(a2, 12286884908.946891319597874, 0.1);
 #endif
@@ -1380,7 +1394,7 @@ static void test_spheroid_area(void)
 	a1 = lwgeom_area_sphere(lwg, &s);
 	CU_ASSERT_DOUBLE_EQUAL(a1, 12360265021.368023059138681, 0.1);
 	/* spheroid: Planimeter -E -p 20 --input-string "2 8.5;1 8.5;1 9.5;2 9.5" */
-#if PROJ_GEODESIC
+#ifdef PROJ_GEODESIC
 	a2 = lwgeom_area_spheroid(lwg, &s);
 	CU_ASSERT_DOUBLE_EQUAL(a2, 12305128751.042900673161556, 0.1);
 #endif
@@ -1393,7 +1407,7 @@ static void test_spheroid_area(void)
 	a1 = lwgeom_area_sphere(lwg, &s);
 	CU_ASSERT_DOUBLE_EQUAL(a1, 12360265021.368023059138681, 0.1);
 	/* spheroid: Planimeter -E -p 20 -r --input-string "2 179.5;1 179.5;1 178.5;2 178.5" */
-#if PROJ_GEODESIC
+#ifdef PROJ_GEODESIC
 	a2 = lwgeom_area_spheroid(lwg, &s);
 	CU_ASSERT_DOUBLE_EQUAL(a2, 12305128751.042900673161556, 0.1);
 #endif
@@ -1406,7 +1420,7 @@ static void test_spheroid_area(void)
 	a1 = lwgeom_area_sphere(lwg, &s);
 	CU_ASSERT_DOUBLE_EQUAL(a1, 12360265021.368023059138681, 0.1);
 	/* spheroid: Planimeter -E -p 20 --input-string "2 179.5;1 179.5;1 -179.5;2 -179.5" */
-#if PROJ_GEODESIC
+#ifdef PROJ_GEODESIC
 	a2 = lwgeom_area_spheroid(lwg, &s);
 	CU_ASSERT_DOUBLE_EQUAL(a2, 12305128751.042900673161556, 0.1);
 #endif
@@ -1424,7 +1438,7 @@ static void test_gbox_utils(void)
 	/* Init to WGS84 */
 	spheroid_init(&s, WGS84_MAJOR_AXIS, WGS84_MINOR_AXIS);
 
-	gbox.flags = gflags(0, 0, 1);
+	gbox.flags = lwflags(0, 0, 1);
 
 	/* One-degree square by equator */
 	lwg = lwgeom_from_wkt("POLYGON((1 20,1 21,2 21,2 20,1 20))", LW_PARSER_CHECK_NONE);

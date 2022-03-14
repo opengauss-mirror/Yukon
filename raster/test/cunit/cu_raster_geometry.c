@@ -258,9 +258,9 @@ static void test_raster_surface() {
 	const int maxX = 5;
 	const int maxY = 5;
 	int x, y;
-	char *wkt = NULL;
 	LWMPOLY *mpoly = NULL;
 	int err;
+	LWGEOM *gexpected, *gobserved;
 
 	rast = rt_raster_new(maxX, maxY);
 	CU_ASSERT(rast != NULL);
@@ -280,9 +280,10 @@ static void test_raster_surface() {
 	err = rt_raster_surface(rast, 0, &mpoly);
 	CU_ASSERT_EQUAL(err, ES_NONE);
 	CU_ASSERT(mpoly != NULL);
-	wkt = lwgeom_to_text(lwmpoly_as_lwgeom(mpoly));
-	CU_ASSERT_STRING_EQUAL(wkt, "MULTIPOLYGON(((0 0,0 -5,5 -5,5 0,0 0)))");
-	rtdealloc(wkt);
+	//wkt = lwgeom_to_text(lwmpoly_as_lwgeom(mpoly));
+	gobserved = (LWGEOM *)lwmpoly_as_lwgeom(mpoly);
+	gexpected = lwgeom_from_wkt("MULTIPOLYGON(((0 0,0 -5,5 -5,5 0,0 0)))", LW_PARSER_CHECK_NONE);
+	CU_ASSERT_DOUBLE_EQUAL(lwgeom_area(gobserved), lwgeom_area(gexpected), FLT_EPSILON);
 	lwmpoly_free(mpoly);
 	mpoly = NULL;
 
@@ -292,9 +293,9 @@ static void test_raster_surface() {
 	err = rt_raster_surface(rast, 0, &mpoly);
 	CU_ASSERT_EQUAL(err, ES_NONE);
 	CU_ASSERT(mpoly != NULL);
-	wkt = lwgeom_to_text(lwmpoly_as_lwgeom(mpoly));
-	CU_ASSERT_STRING_EQUAL(wkt, "MULTIPOLYGON(((1 0,1 -1,0 -1,0 -5,4 -5,5 -5,5 0,1 0)))");
-	rtdealloc(wkt);
+	gobserved = (LWGEOM *)lwmpoly_as_lwgeom(mpoly);
+	gexpected = lwgeom_from_wkt("MULTIPOLYGON(((1 0,1 -1,0 -1,0 -5,4 -5,5 -5,5 0,1 0)))", LW_PARSER_CHECK_NONE);
+	CU_ASSERT_DOUBLE_EQUAL(lwgeom_area(gobserved), lwgeom_area(gexpected), FLT_EPSILON);
 	lwmpoly_free(mpoly);
 	mpoly = NULL;
 
@@ -304,9 +305,10 @@ static void test_raster_surface() {
 	err = rt_raster_surface(rast, 0, &mpoly);
 	CU_ASSERT_EQUAL(err, ES_NONE);
 	CU_ASSERT(mpoly != NULL);
-	wkt = lwgeom_to_text(lwmpoly_as_lwgeom(mpoly));
-	CU_ASSERT_STRING_EQUAL(wkt, "MULTIPOLYGON(((1 0,1 -1,0 -1,0 -5,4 -5,5 -5,5 0,1 0),(1 -1,1 -2,2 -2,2 -1,1 -1)))");
-	rtdealloc(wkt);
+	gobserved = (LWGEOM *)lwmpoly_as_lwgeom(mpoly);
+	gexpected = lwgeom_from_wkt("MULTIPOLYGON(((1 0,1 -1,0 -1,0 -5,4 -5,5 -5,5 0,1 0),(1 -1,1 -2,2 -2,2 -1,1 -1)))",
+				    LW_PARSER_CHECK_NONE);
+	CU_ASSERT_DOUBLE_EQUAL(lwgeom_area(gobserved), lwgeom_area(gexpected), FLT_EPSILON);
 	lwmpoly_free(mpoly);
 	mpoly = NULL;
 
@@ -316,11 +318,11 @@ static void test_raster_surface() {
 	err = rt_raster_surface(rast, 0, &mpoly);
 	CU_ASSERT_EQUAL(err, ES_NONE);
 	CU_ASSERT(mpoly != NULL);
-	wkt = lwgeom_to_text(lwmpoly_as_lwgeom(mpoly));
-
-	CU_ASSERT_STRING_EQUAL(wkt, "MULTIPOLYGON(((1 -1,1 0,5 0,5 -5,4 -5,0 -5,0 -1,1 -1),(1 -1,1 -2,2 -2,2 -1,1 -1),(2 -2,2 -3,3 -3,3 -2,2 -2)))");
-
-	rtdealloc(wkt);
+	gobserved = (LWGEOM *)lwmpoly_as_lwgeom(mpoly);
+	gexpected = lwgeom_from_wkt(
+	    "MULTIPOLYGON(((1 -1,1 0,5 0,5 -5,4 -5,0 -5,0 -1,1 -1),(1 -1,1 -2,2 -2,2 -1,1 -1),(2 -2,2 -3,3 -3,3 -2,2 -2)))",
+	    LW_PARSER_CHECK_NONE);
+	CU_ASSERT_DOUBLE_EQUAL(lwgeom_area(gobserved), lwgeom_area(gexpected), FLT_EPSILON);
 	lwmpoly_free(mpoly);
 	mpoly = NULL;
 
@@ -330,11 +332,11 @@ static void test_raster_surface() {
 	err = rt_raster_surface(rast, 0, &mpoly);
 	CU_ASSERT_EQUAL(err, ES_NONE);
 	CU_ASSERT(mpoly != NULL);
-	wkt = lwgeom_to_text(lwmpoly_as_lwgeom(mpoly));
-
-	CU_ASSERT_STRING_EQUAL(wkt, "MULTIPOLYGON(((1 -1,1 0,5 0,5 -5,4 -5,0 -5,0 -1,1 -1),(1 -1,1 -2,2 -2,2 -1,1 -1),(2 -2,2 -3,3 -3,3 -2,2 -2),(3 -3,3 -4,4 -4,4 -3,3 -3)))");
-
-	rtdealloc(wkt);
+	gobserved = (LWGEOM *)lwmpoly_as_lwgeom(mpoly);
+	gexpected = lwgeom_from_wkt(
+	    "MULTIPOLYGON(((1 -1,1 0,5 0,5 -5,4 -5,0 -5,0 -1,1 -1),(1 -1,1 -2,2 -2,2 -1,1 -1),(2 -2,2 -3,3 -3,3 -2,2 -2),(3 -3,3 -4,4 -4,4 -3,3 -3)))",
+	    LW_PARSER_CHECK_NONE);
+	CU_ASSERT_DOUBLE_EQUAL(lwgeom_area(gobserved), lwgeom_area(gexpected), FLT_EPSILON);
 	lwmpoly_free(mpoly);
 	mpoly = NULL;
 
@@ -344,9 +346,11 @@ static void test_raster_surface() {
 	err = rt_raster_surface(rast, 0, &mpoly);
 	CU_ASSERT_EQUAL(err, ES_NONE);
 	CU_ASSERT(mpoly != NULL);
-	wkt = lwgeom_to_text(lwmpoly_as_lwgeom(mpoly));
-	CU_ASSERT_STRING_EQUAL(wkt, "MULTIPOLYGON(((4 -4,4 -5,0 -5,0 -1,1 -1,1 -2,2 -2,2 -3,3 -3,3 -4,4 -4)),((1 -1,1 0,5 0,5 -4,4 -4,4 -3,3 -3,3 -2,2 -2,2 -1,1 -1)))");
-	rtdealloc(wkt);
+	gobserved = (LWGEOM *)lwmpoly_as_lwgeom(mpoly);
+	gexpected = lwgeom_from_wkt(
+	    "MULTIPOLYGON(((4 -4,4 -5,0 -5,0 -1,1 -1,1 -2,2 -2,2 -3,3 -3,3 -4,4 -4)),((1 -1,1 0,5 0,5 -4,4 -4,4 -3,3 -3,3 -2,2 -2,2 -1,1 -1)))",
+	    LW_PARSER_CHECK_NONE);
+	CU_ASSERT_DOUBLE_EQUAL(lwgeom_area(gobserved), lwgeom_area(gexpected), FLT_EPSILON);
 	lwmpoly_free(mpoly);
 	mpoly = NULL;
 
@@ -359,9 +363,11 @@ static void test_raster_surface() {
 	err = rt_raster_surface(rast, 0, &mpoly);
 	CU_ASSERT_EQUAL(err, ES_NONE);
 	CU_ASSERT(mpoly != NULL);
-	wkt = lwgeom_to_text(lwmpoly_as_lwgeom(mpoly));
-	CU_ASSERT_STRING_EQUAL(wkt, "MULTIPOLYGON(((1 -4,2 -4,2 -3,3 -3,3 -4,4 -4,4 -5,3 -5,1 -5,1 -4)),((1 -4,0 -4,0 -1,1 -1,1 -2,2 -2,2 -3,1 -3,1 -4)),((3 -2,4 -2,4 -1,5 -1,5 -4,4 -4,4 -3,3 -3,3 -2)),((3 -2,2 -2,2 -1,1 -1,1 0,4 0,4 -1,3 -1,3 -2)))");
-	rtdealloc(wkt);
+	gobserved = (LWGEOM *)lwmpoly_as_lwgeom(mpoly);
+	gexpected = lwgeom_from_wkt(
+	    "MULTIPOLYGON(((1 -4,2 -4,2 -3,3 -3,3 -4,4 -4,4 -5,3 -5,1 -5,1 -4)),((1 -4,0 -4,0 -1,1 -1,1 -2,2 -2,2 -3,1 -3,1 -4)),((3 -2,4 -2,4 -1,5 -1,5 -4,4 -4,4 -3,3 -3,3 -2)),((3 -2,2 -2,2 -1,1 -1,1 0,4 0,4 -1,3 -1,3 -2)))",
+	    LW_PARSER_CHECK_NONE);
+	CU_ASSERT_DOUBLE_EQUAL(lwgeom_area(gobserved), lwgeom_area(gexpected), FLT_EPSILON);
 	lwmpoly_free(mpoly);
 	mpoly = NULL;
 
@@ -526,8 +532,8 @@ static void test_raster_pixel_as_polygon() {
 	rt_raster rast;
 	rt_band band;
 	uint32_t x, y;
-	const int maxX = 10;
-	const int maxY = 10;
+	const uint32_t maxX = 10;
+	const uint32_t maxY = 10;
 	LWPOLY *poly = NULL;
 
 	rast = rt_raster_new(maxX, maxY);
@@ -567,6 +573,69 @@ static void test_raster_pixel_as_polygon() {
 	cu_free_raster(rast);
 }
 
+
+
+
+static void test_raster_get_pixel_bilinear() {
+	uint32_t width = 2;
+	uint32_t height = 2;
+	double ul_x = 0.0;
+	double ul_y = 0.0;
+	double scale_x = 1;
+	double scale_y = 1;
+
+	double xr, yr;
+	double igt[6];
+
+	rt_raster rast = rt_raster_new(width, height);
+	rt_raster_set_offsets(rast, ul_x, ul_y);
+	rt_raster_set_scale(rast, scale_x, scale_y);
+
+	double xw = 1.5, yw = 0.5;
+
+	rt_raster_generate_new_band(
+		rast,    // rt_raster raster,
+		PT_64BF, // rt_pixtype pixtype,
+		1.0,    // double initialvalue,
+		1,       // uint32_t hasnodata,
+		-99.0,   // double nodatavalue,
+		0        // int index
+	);
+
+	rt_raster_geopoint_to_rasterpoint(
+		rast,
+		xw, yw,
+		&xr, &yr, igt);
+
+	printf("xw = %g, yw = %g, xr = %g, yr = %g\n", xw, yw, xr, yr);
+
+	// err = rt_raster_cell_to_geopoint(
+	// 	rast,
+	// 	xr, yr,
+	// 	&xw, &yw, igt);
+
+	// printf("xw = %g, yw = %g, xr = %g, yr = %g\n", xw, yw, xr, yr);
+
+	rt_band band = rt_raster_get_band(rast, 0);
+	rt_band_set_pixel(band, 0, 0, 10.0, NULL);
+	rt_band_set_pixel(band, 0, 1, 10.0, NULL);
+	rt_band_set_pixel(band, 1, 0, 20.0, NULL);
+	rt_band_set_pixel(band, 1, 1, 40.0, NULL);
+
+
+	double value;
+	int nodata;
+	rt_band_get_pixel_bilinear(
+		band,
+		xw, yw, // double xw, double yw,
+		&value, &nodata // double *r_value, int *r_nodata)
+		);
+
+	printf("xw = %g, yw = %g, value = %g, nodata = %d\n", xr, yr, value, nodata);
+
+
+}
+
 /* register tests */
 void raster_geometry_suite_setup(void);
 void raster_geometry_suite_setup(void)
@@ -578,5 +647,6 @@ void raster_geometry_suite_setup(void)
 	PG_ADD_TEST(suite, test_raster_surface);
 	PG_ADD_TEST(suite, test_raster_perimeter);
 	PG_ADD_TEST(suite, test_raster_pixel_as_polygon);
+	PG_ADD_TEST(suite, test_raster_get_pixel_bilinear);
 }
 

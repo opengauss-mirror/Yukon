@@ -238,9 +238,9 @@ SELECT ST_ValueCount(
 		, 1, 5, 5, 3.14159
 	)
 , 2);
---BEGIN;
-CREATE  TABLE test
-	AS
+BEGIN;
+CREATE TEMP TABLE test
+	ON COMMIT DELETE ROWS AS
 	SELECT
 		rast.rast
 	FROM (
@@ -274,18 +274,17 @@ SELECT ST_ValueCount('test', 'rast', 1, -1);
 SELECT ST_ValueCount('test', 'rast', 3.1, 0.1);
 SELECT ST_ValueCount('test', 'rast', -9.);
 
---SAVEPOINT test;
+SAVEPOINT test;
 SELECT ST_ValueCount('test', 'rast', 2);
---ROLLBACK TO SAVEPOINT test;
---RELEASE SAVEPOINT test;
---SAVEPOINT test;
+ROLLBACK TO SAVEPOINT test;
+RELEASE SAVEPOINT test;
+SAVEPOINT test;
 SELECT ST_ValueCount('test1', 'rast', 2);
---ROLLBACK TO SAVEPOINT test;
---RELEASE SAVEPOINT test;
---SAVEPOINT test;
+ROLLBACK TO SAVEPOINT test;
+RELEASE SAVEPOINT test;
+SAVEPOINT test;
 SELECT ST_ValueCount('test', 'rast1', 2);
---ROLLBACK TO SAVEPOINT test;
---RELEASE SAVEPOINT test;
+ROLLBACK TO SAVEPOINT test;
+RELEASE SAVEPOINT test;
 
---ROLLBACK;
-DROP TABLE test cascade;
+ROLLBACK;

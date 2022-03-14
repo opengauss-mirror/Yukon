@@ -28,8 +28,8 @@
 static void test_band_get_nearest_pixel() {
 	rt_raster rast;
 	rt_band band;
-	uint32_t x, y;
-	int rtn;
+	int x, y;
+	uint32_t rtn;
 	const int maxX = 10;
 	const int maxY = 10;
 	rt_pixel npixels = NULL;
@@ -292,8 +292,8 @@ static void test_band_get_pixel_of_value() {
 	rt_band band;
 	uint32_t x, y;
 	int rtn;
-	const int maxX = 10;
-	const int maxY = 10;
+	uint32_t maxX = 10;
+	uint32_t maxY = 10;
 	rt_pixel pixels = NULL;
 
 	double search0[1] = {0};
@@ -371,7 +371,7 @@ static void test_pixel_set_to_array(){
 	rt_raster rast;
 	rt_band band;
 	rt_mask mask = NULL;
-	uint32_t x, y;
+	int x, y;
 	int rtn;
 	const int maxX = 10;
 	const int maxY = 10;

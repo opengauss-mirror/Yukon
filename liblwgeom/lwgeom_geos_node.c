@@ -157,7 +157,7 @@ lwgeom_node(const LWGEOM* lwgeom_in)
 	GEOSGeom_destroy(g1);
 	if ( ! gn ) {
 		lwgeom_free(ep);
-		lwerror("GEOSUnaryUnion: %s", lwgeom_geos_errmsg);
+		lwerror("GEOSNode: %s", lwgeom_geos_errmsg);
 		return NULL;
 	}
 
@@ -244,7 +244,7 @@ lwgeom_node(const LWGEOM* lwgeom_in)
 	lwgeom_free(ep);
 	lwcollection_free(col);
 
-	lines->srid = lwgeom_in->srid;
+	lwgeom_set_srid(lines, lwgeom_in->srid);
 	return (LWGEOM*)lines;
 }
 

@@ -34,8 +34,7 @@
 #include <ctype.h>
 #include <sys/wait.h> /* for WEXITSTATUS */
 
-#include "liblwgeom.h"
-#include "liblwgeom_internal.h" /* for trim_trailing_zeros */
+#include "liblwgeom_internal.h"
 #include "lwgeom_log.h"
 #include "styles.h"
 
@@ -45,7 +44,6 @@
 
 // Some global styling variables
 char *imageSize = "200x200";
-
 
 int getStyleName(char **styleName, char* line);
 
@@ -70,8 +68,8 @@ checked_system(const char* cmd)
 static size_t
 pointarrayToString(char *output, POINTARRAY *pa)
 {
-	char x[MAX_DIGS_DOUBLE+MAX_DOUBLE_PRECISION+1];
-	char y[MAX_DIGS_DOUBLE+MAX_DOUBLE_PRECISION+1];
+	char x[OUT_DOUBLE_BUFFER_SIZE];
+	char y[OUT_DOUBLE_BUFFER_SIZE];
 	int i;
 	char *ptr = output;
 
@@ -79,10 +77,10 @@ pointarrayToString(char *output, POINTARRAY *pa)
 	{
 		POINT2D pt;
 		getPoint2d_p(pa, i, &pt);
-		sprintf(x, "%f", pt.x);
-		trim_trailing_zeros(x);
-		sprintf(y, "%f", pt.y);
-		trim_trailing_zeros(y);
+
+		lwprint_double(pt.x, 10, x);
+		lwprint_double(pt.y, 10, y);
+
 		if ( i ) ptr += sprintf(ptr, " ");
 		ptr += sprintf(ptr, "%s,%s", x, y);
 	}
@@ -102,9 +100,9 @@ pointarrayToString(char *output, POINTARRAY *pa)
 static size_t
 drawPoint(char *output, LWPOINT *lwp, LAYERSTYLE *styles)
 {
-	char x[MAX_DIGS_DOUBLE+MAX_DOUBLE_PRECISION+1];
-	char y1[MAX_DIGS_DOUBLE+MAX_DOUBLE_PRECISION+1];
-	char y2[MAX_DIGS_DOUBLE+MAX_DOUBLE_PRECISION+1];
+	char x[OUT_DOUBLE_BUFFER_SIZE];
+	char y1[OUT_DOUBLE_BUFFER_SIZE];
+	char y2[OUT_DOUBLE_BUFFER_SIZE];
 	char *ptr = output;
 	POINTARRAY *pa = lwp->point;
 	POINT2D p;
@@ -113,12 +111,9 @@ drawPoint(char *output, LWPOINT *lwp, LAYERSTYLE *styles)
 	LWDEBUGF(4, "%s", "drawPoint called");
 	LWDEBUGF( 4, "point = %s", lwgeom_to_ewkt((LWGEOM*)lwp) );
 
-	sprintf(x, "%f", p.x);
-	trim_trailing_zeros(x);
-	sprintf(y1, "%f", p.y);
-	trim_trailing_zeros(y1);
-	sprintf(y2, "%f", p.y + styles->pointSize);
-	trim_trailing_zeros(y2);
+	lwprint_double(p.x, 10, x);
+	lwprint_double(p.y, 10, y1);
+	lwprint_double(p.y + styles->pointSize, 10, y2);
 
 	ptr += sprintf(ptr, "-fill %s -strokewidth 0 ", styles->pointColor);
 	ptr += sprintf(ptr, "-draw \"circle %s,%s %s,%s", x, y1, x, y2);
@@ -229,11 +224,9 @@ drawGeometry(char *output, LWGEOM *lwgeom, LAYERSTYLE *styles )
  * shadow to the current layer image.
  *
  * @param layerNumber the current working layer number.
- */
 static void
 addDropShadow(int layerNumber)
 {
-	// TODO: change to properly sized string
 	char str[512];
 	sprintf(
 	    str,
@@ -242,6 +235,7 @@ addDropShadow(int layerNumber)
 	LWDEBUGF(4, "%s", str);
 	checked_system(str);
 }
+ */
 
 /**
  * Invokes a system call to ImageMagick's "convert" command that adds a
@@ -402,7 +396,7 @@ int main( int argc, const char* argv[] )
 		checked_system(output);
 
 		addHighlight( layerCount );
-		addDropShadow( layerCount );
+		// addDropShadow( layerCount );
 		layerCount++;
 		free(styleName);
 	}

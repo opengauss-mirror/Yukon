@@ -33,45 +33,79 @@
 
 #include <string.h>
 #include "liblwgeom_internal.h"
-
+#include "liblwgeom.h"
 
 static size_t asgml2_point_size(const LWPOINT *point, const char *srs, int precision, const char *prefix);
-static char *asgml2_point(const LWPOINT *point, const char *srs, int precision, const char *prefix);
+static lwvarlena_t *asgml2_point(const LWPOINT *point, const char *srs, int precision, const char *prefix);
 static size_t asgml2_line_size(const LWLINE *line, const char *srs, int precision, const char *prefix);
-static char *asgml2_line(const LWLINE *line, const char *srs, int precision, const char *prefix);
+static lwvarlena_t *asgml2_line(const LWLINE *line, const char *srs, int precision, const char *prefix);
 static size_t asgml2_poly_size(const LWPOLY *poly, const char *srs, int precision, const char *prefix);
-static char *asgml2_poly(const LWPOLY *poly, const char *srs, int precision, const char *prefix);
+static lwvarlena_t *asgml2_poly(const LWPOLY *poly, const char *srs, int precision, const char *prefix);
 static size_t asgml2_multi_size(const LWCOLLECTION *col, const char *srs, int precision, const char *prefix);
-static char *asgml2_multi(const LWCOLLECTION *col, const char *srs, int precision, const char *prefix);
+static lwvarlena_t *asgml2_multi(const LWCOLLECTION *col, const char *srs, int precision, const char *prefix);
 static size_t asgml2_collection_size(const LWCOLLECTION *col, const char *srs, int precision, const char *prefix);
-static char *asgml2_collection(const LWCOLLECTION *col, const char *srs, int precision, const char *prefix);
+static lwvarlena_t *asgml2_collection(const LWCOLLECTION *col, const char *srs, int precision, const char *prefix);
 static size_t pointArray_toGML2(POINTARRAY *pa, char *buf, int precision);
 
 static size_t asgml3_point_size(const LWPOINT *point, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char *asgml3_point(const LWPOINT *point, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static lwvarlena_t *
+asgml3_point(const LWPOINT *point, const char *srs, int precision, int opts, const char *prefix, const char *id);
 static size_t asgml3_line_size(const LWLINE *line, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char *asgml3_line(const LWLINE *line, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char *asgml3_circstring( const LWCIRCSTRING *circ, const char *srs, int precision, int opts, const char *prefix, const char *id );
+static lwvarlena_t *
+asgml3_line(const LWLINE *line, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static lwvarlena_t *asgml3_circstring(const LWCIRCSTRING *circ,
+				      const char *srs,
+				      int precision,
+				      int opts,
+				      const char *prefix,
+				      const char *id);
 static size_t asgml3_poly_size(const LWPOLY *poly, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char *asgml3_poly(const LWPOLY *poly, const char *srs, int precision, int opts, int is_patch, const char *prefix, const char *id);
-static char * asgml3_curvepoly(const LWCURVEPOLY* poly, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static lwvarlena_t *asgml3_poly(const LWPOLY *poly,
+				const char *srs,
+				int precision,
+				int opts,
+				int is_patch,
+				const char *prefix,
+				const char *id);
+static lwvarlena_t *
+asgml3_curvepoly(const LWCURVEPOLY *poly, const char *srs, int precision, int opts, const char *prefix, const char *id);
 static size_t asgml3_triangle_size(const LWTRIANGLE *triangle, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char *asgml3_triangle(const LWTRIANGLE *triangle, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static lwvarlena_t *asgml3_triangle(const LWTRIANGLE *triangle,
+				    const char *srs,
+				    int precision,
+				    int opts,
+				    const char *prefix,
+				    const char *id);
 static size_t asgml3_multi_size(const LWCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char *asgml3_multi(const LWCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char *asgml3_psurface(const LWPSURFACE *psur, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char *asgml3_tin(const LWTIN *tin, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static lwvarlena_t *
+asgml3_multi(const LWCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static lwvarlena_t *
+asgml3_psurface(const LWPSURFACE *psur, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static lwvarlena_t *
+asgml3_tin(const LWTIN *tin, const char *srs, int precision, int opts, const char *prefix, const char *id);
 static size_t asgml3_collection_size(const LWCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char *asgml3_collection(const LWCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id);
-static char *asgml3_compound(const LWCOMPOUND *col, const char *srs, int precision, int opts, const char *prefix, const char *id );
-static char *asgml3_multicurve( const LWMCURVE* cur, const char *srs, int precision, int opts, const char *prefix, const char *id );
-static char *asgml3_multisurface(const LWMSURFACE *sur, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static lwvarlena_t *asgml3_collection(const LWCOLLECTION *col,
+				      const char *srs,
+				      int precision,
+				      int opts,
+				      const char *prefix,
+				      const char *id);
+static lwvarlena_t *
+asgml3_compound(const LWCOMPOUND *col, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static lwvarlena_t *
+asgml3_multicurve(const LWMCURVE *cur, const char *srs, int precision, int opts, const char *prefix, const char *id);
+static lwvarlena_t *asgml3_multisurface(const LWMSURFACE *sur,
+					const char *srs,
+					int precision,
+					int opts,
+					const char *prefix,
+					const char *id);
 static size_t pointArray_toGML3(POINTARRAY *pa, char *buf, int precision, int opts);
 
 
 static size_t pointArray_GMLsize(POINTARRAY *pa, int precision);
 
-static char *
+static lwvarlena_t *
 gbox_to_gml2(const GBOX *bbox, const char *srs, int precision, const char *prefix)
 {
 	int size;
@@ -85,7 +119,8 @@ gbox_to_gml2(const GBOX *bbox, const char *srs, int precision, const char *prefi
 		size = ( sizeof("<Box>/") + (prefixlen*2) ) * 2;
 		if ( srs ) size += strlen(srs) + sizeof(" srsName=..");
 
-		ptr = output = lwalloc(size);
+		lwvarlena_t *v = lwalloc(size + LWVARHDRSZ);
+		ptr = output = v->data;
 
 		ptr += sprintf(ptr, "<%sBox", prefix);
 
@@ -93,7 +128,9 @@ gbox_to_gml2(const GBOX *bbox, const char *srs, int precision, const char *prefi
 
 		ptr += sprintf(ptr, "/>");
 
-		return output;
+		LWSIZE_SET(v->size, ptr - output + LWVARHDRSZ);
+
+		return v;
 	}
 
 	pa = ptarray_construct_empty(FLAGS_GET_Z(bbox->flags), 0, 2);
@@ -112,7 +149,8 @@ gbox_to_gml2(const GBOX *bbox, const char *srs, int precision, const char *prefi
 	size += ( sizeof("<Box><coordinates>/") + (prefixlen*2) ) * 2;
 	if ( srs ) size += strlen(srs) + sizeof(" srsName=..");
 
-	ptr = output = lwalloc(size);
+	lwvarlena_t *v = lwalloc(size + LWVARHDRSZ);
+	ptr = output = v->data;
 
 	if ( srs ) ptr += sprintf(ptr, "<%sBox srsName=\"%s\">", prefix, srs);
 	else       ptr += sprintf(ptr, "<%sBox>", prefix);
@@ -122,11 +160,12 @@ gbox_to_gml2(const GBOX *bbox, const char *srs, int precision, const char *prefi
 	ptr += sprintf(ptr, "</%scoordinates></%sBox>", prefix, prefix);
 
 	ptarray_free(pa);
+	LWSIZE_SET(v->size, ptr - output + LWVARHDRSZ);
 
-	return output;
+	return v;
 }
 
-static char *
+static lwvarlena_t *
 gbox_to_gml3(const GBOX *bbox, const char *srs, int precision, int opts, const char *prefix)
 {
 	int size;
@@ -141,14 +180,16 @@ gbox_to_gml3(const GBOX *bbox, const char *srs, int precision, int opts, const c
 		size = ( sizeof("<Envelope>/") + (prefixlen*2) ) * 2;
 		if ( srs ) size += strlen(srs) + sizeof(" srsName=..");
 
-		ptr = output = lwalloc(size);
+		lwvarlena_t *v = lwalloc(size + LWVARHDRSZ);
+		ptr = output = v->data;
 
 		ptr += sprintf(ptr, "<%sEnvelope", prefix);
 		if ( srs ) ptr += sprintf(ptr, " srsName=\"%s\"", srs);
 
 		ptr += sprintf(ptr, "/>");
 
-		return output;
+		LWSIZE_SET(v->size, ptr - output + LWVARHDRSZ);
+		return v;
 	}
 
 	if (FLAGS_GET_Z(bbox->flags)) dimension = 3;
@@ -165,7 +206,8 @@ gbox_to_gml3(const GBOX *bbox, const char *srs, int precision, int opts, const c
 	if ( srs ) size += strlen(srs) + sizeof(" srsName=..");
 	if ( IS_DIMS(opts) ) size += sizeof(" srsDimension=. .");
 
-	ptr = output = lwalloc(size);
+	lwvarlena_t *v = lwalloc(size + LWVARHDRSZ);
+	ptr = output = v->data;
 
 	ptr += sprintf(ptr, "<%sEnvelope", prefix);
 	if ( srs ) ptr += sprintf(ptr, " srsName=\"%s\"", srs);
@@ -190,35 +232,21 @@ gbox_to_gml3(const GBOX *bbox, const char *srs, int precision, int opts, const c
 
 	ptarray_free(pa);
 
-	return output;
+	LWSIZE_SET(v->size, ptr - output + LWVARHDRSZ);
+	return v;
 }
 
-
-extern char *
+extern lwvarlena_t *
 lwgeom_extent_to_gml2(const LWGEOM *geom, const char *srs, int precision, const char *prefix)
 {
 	const GBOX* bbox = lwgeom_get_bbox(geom);
-	/*
-		if ( ! bbox ) {
-			lwerror("lwgeom_extent_to_gml2: empty geometry doesn't have a bounding box");
-			return NULL;
-		}
-	*/
-	char *ret = gbox_to_gml2(bbox, srs, precision, prefix);
-	return ret;
+	return gbox_to_gml2(bbox, srs, precision, prefix);
 }
 
-
-extern char *
+extern lwvarlena_t *
 lwgeom_extent_to_gml3(const LWGEOM *geom, const char *srs, int precision, int opts, const char *prefix)
 {
 	const GBOX* bbox = lwgeom_get_bbox(geom);
-	/*
-		if ( ! bbox ) {
-			lwerror("lwgeom_extent_to_gml3: empty geometry doesn't have a bounding box");
-			return NULL;
-		}
-	*/
 	return gbox_to_gml3(bbox, srs, precision, opts, prefix);
 }
 
@@ -227,8 +255,8 @@ lwgeom_extent_to_gml3(const LWGEOM *geom, const char *srs, int precision, int op
  *  @brief VERSION GML 2
  *  	takes a GEOMETRY and returns a GML2 representation
  */
-extern char *
-lwgeom_to_gml2(const LWGEOM *geom, const char *srs, int precision, const char* prefix)
+extern lwvarlena_t *
+lwgeom_to_gml2(const LWGEOM *geom, const char *srs, int precision, const char *prefix)
 {
 	int type = geom->type;
 
@@ -299,15 +327,13 @@ asgml2_point_buf(const LWPOINT *point, const char *srs, char *output, int precis
 	return (ptr-output);
 }
 
-static char *
+static lwvarlena_t *
 asgml2_point(const LWPOINT *point, const char *srs, int precision, const char *prefix)
 {
-	char *output;
-	int size;
-
-	size = asgml2_point_size(point, srs, precision, prefix);
-	output = lwalloc(size);
-	asgml2_point_buf(point, srs, output, precision, prefix);
+	int size = asgml2_point_size(point, srs, precision, prefix);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml2_point_buf(point, srs, output->data, precision, prefix);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
 	return output;
 }
 
@@ -346,15 +372,13 @@ asgml2_line_buf(const LWLINE *line, const char *srs, char *output, int precision
 	return (ptr-output);
 }
 
-static char *
+static lwvarlena_t *
 asgml2_line(const LWLINE *line, const char *srs, int precision, const char *prefix)
 {
-	char *output;
-	int size;
-
-	size = asgml2_line_size(line, srs, precision, prefix);
-	output = lwalloc(size);
-	asgml2_line_buf(line, srs, output, precision, prefix);
+	int size = asgml2_line_size(line, srs, precision, prefix);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml2_line_buf(line, srs, output->data, precision, prefix);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
 	return output;
 }
 
@@ -362,7 +386,7 @@ static size_t
 asgml2_poly_size(const LWPOLY *poly, const char *srs, int precision, const char *prefix)
 {
 	size_t size;
-	int i;
+	uint32_t i;
 	size_t prefixlen = strlen(prefix);
 
 	size = sizeof("<polygon></polygon>") + prefixlen*2;
@@ -382,7 +406,7 @@ static size_t
 asgml2_poly_buf(const LWPOLY *poly, const char *srs, char *output, int precision,
                 const char *prefix)
 {
-	int i;
+	uint32_t i;
 	char *ptr=output;
 
 	ptr += sprintf(ptr, "<%sPolygon", prefix);
@@ -408,15 +432,13 @@ asgml2_poly_buf(const LWPOLY *poly, const char *srs, char *output, int precision
 	return (ptr-output);
 }
 
-static char *
+static lwvarlena_t *
 asgml2_poly(const LWPOLY *poly, const char *srs, int precision, const char *prefix)
 {
-	char *output;
-	int size;
-
-	size = asgml2_poly_size(poly, srs, precision, prefix);
-	output = lwalloc(size);
-	asgml2_poly_buf(poly, srs, output, precision, prefix);
+	int size = asgml2_poly_size(poly, srs, precision, prefix);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml2_poly_buf(poly, srs, output->data, precision, prefix);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
 	return output;
 }
 
@@ -429,7 +451,7 @@ static size_t
 asgml2_multi_size(const LWCOLLECTION *col, const char *srs, int precision,
                   const char *prefix)
 {
-	int i;
+	uint32_t i;
 	size_t size;
 	size_t prefixlen = strlen(prefix);
 	LWGEOM *subgeom;
@@ -472,7 +494,7 @@ asgml2_multi_buf(const LWCOLLECTION *col, const char *srs, char *output,
 {
 	int type = col->type;
 	char *ptr, *gmltype;
-	int i;
+	uint32_t i;
 	LWGEOM *subgeom;
 
 	ptr = output;
@@ -525,17 +547,14 @@ asgml2_multi_buf(const LWCOLLECTION *col, const char *srs, char *output,
 /*
  * Don't call this with single-geoms inspected!
  */
-static char *
-asgml2_multi(const LWCOLLECTION *col, const char *srs, int precision,
-             const char *prefix)
+static lwvarlena_t *
+asgml2_multi(const LWCOLLECTION *col, const char *srs, int precision, const char *prefix)
 {
-	char *gml;
-	size_t size;
-
-	size = asgml2_multi_size(col, srs, precision, prefix);
-	gml = lwalloc(size);
-	asgml2_multi_buf(col, srs, gml, precision, prefix);
-	return gml;
+	int size = asgml2_multi_size(col, srs, precision, prefix);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml2_multi_buf(col, srs, output->data, precision, prefix);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
+	return output;
 }
 
 
@@ -546,7 +565,7 @@ static size_t
 asgml2_collection_size(const LWCOLLECTION *col, const char *srs, int precision,
                        const char *prefix)
 {
-	int i;
+	uint32_t i;
 	size_t size;
 	size_t prefixlen = strlen(prefix);
 	LWGEOM *subgeom;
@@ -592,7 +611,7 @@ static size_t
 asgml2_collection_buf(const LWCOLLECTION *col, const char *srs, char *output, int precision, const char *prefix)
 {
 	char *ptr;
-	int i;
+	uint32_t i;
 	LWGEOM *subgeom;
 
 	ptr = output;
@@ -644,28 +663,25 @@ asgml2_collection_buf(const LWCOLLECTION *col, const char *srs, char *output, in
 /*
  * Don't call this with single-geoms inspected!
  */
-static char *
-asgml2_collection(const LWCOLLECTION *col, const char *srs, int precision,
-                  const char *prefix)
+static lwvarlena_t *
+asgml2_collection(const LWCOLLECTION *col, const char *srs, int precision, const char *prefix)
 {
-	char *gml;
-	size_t size;
-
-	size = asgml2_collection_size(col, srs, precision, prefix);
-	gml = lwalloc(size);
-	asgml2_collection_buf(col, srs, gml, precision, prefix);
-	return gml;
+	int size = asgml2_collection_size(col, srs, precision, prefix);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml2_collection_buf(col, srs, output->data, precision, prefix);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
+	return output;
 }
 
 
 static size_t
 pointArray_toGML2(POINTARRAY *pa, char *output, int precision)
 {
-	int i;
+	uint32_t i;
 	char *ptr;
-	char x[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
-	char y[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
-	char z[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
+	char x[OUT_DOUBLE_BUFFER_SIZE];
+	char y[OUT_DOUBLE_BUFFER_SIZE];
+	char z[OUT_DOUBLE_BUFFER_SIZE];
 
 	ptr = output;
 
@@ -676,17 +692,8 @@ pointArray_toGML2(POINTARRAY *pa, char *output, int precision)
 			const POINT2D *pt;
 			pt = getPoint2d_cp(pa, i);
 
-			if (fabs(pt->x) < OUT_MAX_DOUBLE)
-				sprintf(x, "%.*f", precision, pt->x);
-			else
-				sprintf(x, "%g", pt->x);
-			trim_trailing_zeros(x);
-
-			if (fabs(pt->y) < OUT_MAX_DOUBLE)
-				sprintf(y, "%.*f", precision, pt->y);
-			else
-				sprintf(y, "%g", pt->y);
-			trim_trailing_zeros(y);
+			lwprint_double(pt->x, precision, x);
+			lwprint_double(pt->y, precision, y);
 
 			if ( i ) ptr += sprintf(ptr, " ");
 			ptr += sprintf(ptr, "%s,%s", x, y);
@@ -696,26 +703,10 @@ pointArray_toGML2(POINTARRAY *pa, char *output, int precision)
 	{
 		for (i=0; i<pa->npoints; i++)
 		{
-			const POINT3DZ *pt;
-			pt = getPoint3dz_cp(pa, i);
-
-			if (fabs(pt->x) < OUT_MAX_DOUBLE)
-				sprintf(x, "%.*f", precision, pt->x);
-			else
-				sprintf(x, "%g", pt->x);
-			trim_trailing_zeros(x);
-
-			if (fabs(pt->y) < OUT_MAX_DOUBLE)
-				sprintf(y, "%.*f", precision, pt->y);
-			else
-				sprintf(y, "%g", pt->y);
-			trim_trailing_zeros(y);
-
-			if (fabs(pt->z) < OUT_MAX_DOUBLE)
-				sprintf(z, "%.*f", precision, pt->z);
-			else
-				sprintf(z, "%g", pt->z);
-			trim_trailing_zeros(z);
+			const POINT3D *pt = getPoint3d_cp(pa, i);
+			lwprint_double(pt->x, precision, x);
+			lwprint_double(pt->y, precision, y);
+			lwprint_double(pt->z, precision, z);
 
 			if ( i ) ptr += sprintf(ptr, " ");
 			ptr += sprintf(ptr, "%s,%s,%s", x, y, z);
@@ -732,7 +723,7 @@ pointArray_toGML2(POINTARRAY *pa, char *output, int precision)
 
 
 /* takes a GEOMETRY and returns a GML representation */
-extern char *
+extern lwvarlena_t *
 lwgeom_to_gml3(const LWGEOM *geom, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
 	int type = geom->type;
@@ -830,15 +821,13 @@ asgml3_point_buf(const LWPOINT *point, const char *srs, char *output, int precis
 	return (ptr-output);
 }
 
-static char *
+static lwvarlena_t *
 asgml3_point(const LWPOINT *point, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
-	char *output;
-	int size;
-
-	size = asgml3_point_size(point, srs, precision, opts, prefix, id);
-	output = lwalloc(size);
-	asgml3_point_buf(point, srs, output, precision, opts, prefix, id);
+	size_t size = asgml3_point_size(point, srs, precision, opts, prefix, id);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml3_point_buf(point, srs, output->data, precision, opts, prefix, id);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
 	return output;
 }
 
@@ -932,15 +921,13 @@ asgml3_line_buf(const LWLINE *line, const char *srs, char *output, int precision
 	return (ptr-output);
 }
 
-static char *
+static lwvarlena_t *
 asgml3_line(const LWLINE *line, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
-	char *output;
-	int size;
-
-	size = asgml3_line_size(line, srs, precision, opts, prefix, id);
-	output = lwalloc(size);
-	asgml3_line_buf(line, srs, output, precision, opts, prefix, id);
+	size_t size = asgml3_line_size(line, srs, precision, opts, prefix, id);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml3_line_buf(line, srs, output->data, precision, opts, prefix, id);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
 	return output;
 }
 
@@ -997,15 +984,18 @@ asgml3_circstring_buf(const LWCIRCSTRING *circ, const char *srs, char *output, i
 	return (ptr-output);
 }
 
-static char *
-asgml3_circstring( const LWCIRCSTRING *circ, const char *srs, int precision, int opts, const char *prefix, const char *id )
+static lwvarlena_t *
+asgml3_circstring(const LWCIRCSTRING *circ,
+		  const char *srs,
+		  int precision,
+		  int opts,
+		  const char *prefix,
+		  const char *id)
 {
-	char *output;
-	int size;
-
-	size = asgml3_circstring_size(circ, srs, precision, opts, prefix, id);
-	output = lwalloc( size );
-	asgml3_circstring_buf(circ, srs, output, precision, opts, prefix, id);
+	size_t size = asgml3_circstring_size(circ, srs, precision, opts, prefix, id);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml3_circstring_buf(circ, srs, output->data, precision, opts, prefix, id);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
 	return output;
 }
 
@@ -1015,7 +1005,7 @@ asgml3_poly_size(const LWPOLY *poly, const char *srs, int precision, int opts, c
 {
 	size_t size;
 	size_t prefixlen = strlen(prefix);
-	int i;
+	uint32_t i;
 
 	size = ( sizeof("<PolygonPatch><exterior><LinearRing>///") + (prefixlen*3) ) * 2;
 	size += ( sizeof("<interior><LinearRing>//") + (prefixlen*2) ) * 2 * (poly->nrings - 1);
@@ -1033,7 +1023,7 @@ asgml3_poly_size(const LWPOLY *poly, const char *srs, int precision, int opts, c
 static size_t
 asgml3_poly_buf(const LWPOLY *poly, const char *srs, char *output, int precision, int opts, int is_patch, const char *prefix, const char *id)
 {
-	int i;
+	uint32_t i;
 	char *ptr=output;
 	int dimension=2;
 
@@ -1080,22 +1070,26 @@ asgml3_poly_buf(const LWPOLY *poly, const char *srs, char *output, int precision
 	return (ptr-output);
 }
 
-static char *
-asgml3_poly(const LWPOLY *poly, const char *srs, int precision, int opts, int is_patch, const char *prefix, const char *id)
+static lwvarlena_t *
+asgml3_poly(const LWPOLY *poly,
+	    const char *srs,
+	    int precision,
+	    int opts,
+	    int is_patch,
+	    const char *prefix,
+	    const char *id)
 {
-	char *output;
-	int size;
-
-	size = asgml3_poly_size(poly, srs, precision, opts, prefix, id);
-	output = lwalloc(size);
-	asgml3_poly_buf(poly, srs, output, precision, opts, is_patch, prefix, id);
+	size_t size = asgml3_poly_size(poly, srs, precision, opts, prefix, id);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml3_poly_buf(poly, srs, output->data, precision, opts, is_patch, prefix, id);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
 	return output;
 }
 
 static size_t
 asgml3_compound_size(const LWCOMPOUND *col, const char *srs, int precision, int opts, const char *prefix, const char *id )
 {
-	int i;
+	uint32_t i;
 	size_t size;
 	LWGEOM *subgeom;
 	size_t prefixlen = strlen(prefix);
@@ -1138,7 +1132,7 @@ static size_t
 asgml3_compound_buf(const LWCOMPOUND *col, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	LWGEOM *subgeom;
-	int i;
+	uint32_t i;
 	char* ptr = output;
 	int dimension=2;
 
@@ -1196,16 +1190,14 @@ asgml3_compound_buf(const LWCOMPOUND *col, const char *srs, char *output, int pr
 	return ( ptr - output );
 }
 
-static char *
-asgml3_compound(const LWCOMPOUND *col, const char *srs, int precision, int opts, const char *prefix, const char *id )
+static lwvarlena_t *
+asgml3_compound(const LWCOMPOUND *col, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
-	char* gml;
-	size_t size;
-
-	size = asgml3_compound_size( col, srs, precision, opts, prefix, id );
-	gml = lwalloc( size );
-	asgml3_compound_buf( col, srs, gml, precision, opts, prefix, id );
-	return gml;
+	size_t size = asgml3_compound_size(col, srs, precision, opts, prefix, id);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml3_compound_buf(col, srs, output->data, precision, opts, prefix, id);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
+	return output;
 }
 
 static size_t asgml3_curvepoly_size(const LWCURVEPOLY* poly, const char *srs, int precision, int opts, const char *prefix, const char *id)
@@ -1215,7 +1207,7 @@ static size_t asgml3_curvepoly_size(const LWCURVEPOLY* poly, const char *srs, in
 	size_t size = sizeof( "<Polygon></Polygon" ) + 2 * prefixlen;
 	if (srs) size += strlen(srs) + sizeof(" srsName=..");
 	if (id)  size += strlen(id) + strlen(prefix) + sizeof(" id=..");
-	int i;
+	uint32_t i;
 
 	for( i = 0; i < poly->nrings; ++i )
 	{
@@ -1257,7 +1249,7 @@ static size_t asgml3_curvepoly_size(const LWCURVEPOLY* poly, const char *srs, in
 
 static size_t asgml3_curvepoly_buf(const LWCURVEPOLY* poly, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
-	int i;
+	uint32_t i;
 	LWGEOM* subgeom;
 	char *ptr=output;
 	int dimension=2;
@@ -1334,15 +1326,14 @@ static size_t asgml3_curvepoly_buf(const LWCURVEPOLY* poly, const char *srs, cha
 	return (ptr - output);
 }
 
-static char* asgml3_curvepoly(const LWCURVEPOLY* poly, const char *srs, int precision, int opts, const char *prefix, const char *id)
+static lwvarlena_t *
+asgml3_curvepoly(const LWCURVEPOLY *poly, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
-	char* gml;
-	size_t size;
-
-	size = asgml3_curvepoly_size( poly, srs, precision, opts, prefix, id );
-	gml = lwalloc( size );
-	asgml3_curvepoly_buf( poly, srs, gml, precision, opts, prefix, id );
-	return gml;
+	size_t size = asgml3_curvepoly_size(poly, srs, precision, opts, prefix, id);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml3_curvepoly_buf(poly, srs, output->data, precision, opts, prefix, id);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
+	return output;
 }
 
 
@@ -1388,15 +1379,18 @@ asgml3_triangle_buf(const LWTRIANGLE *triangle, const char *srs, char *output, i
 	return (ptr-output);
 }
 
-static char *
-asgml3_triangle(const LWTRIANGLE *triangle, const char *srs, int precision, int opts, const char *prefix, const char *id)
+static lwvarlena_t *
+asgml3_triangle(const LWTRIANGLE *triangle,
+		const char *srs,
+		int precision,
+		int opts,
+		const char *prefix,
+		const char *id)
 {
-	char *output;
-	int size;
-
-	size = asgml3_triangle_size(triangle, srs, precision, opts, prefix, id);
-	output = lwalloc(size);
-	asgml3_triangle_buf(triangle, srs, output, precision, opts, prefix, id);
+	size_t size = asgml3_triangle_size(triangle, srs, precision, opts, prefix, id);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml3_triangle_buf(triangle, srs, output->data, precision, opts, prefix, id);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
 	return output;
 }
 
@@ -1409,7 +1403,7 @@ asgml3_triangle(const LWTRIANGLE *triangle, const char *srs, int precision, int 
 static size_t
 asgml3_multi_size(const LWCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
-	int i;
+	uint32_t i;
 	size_t size;
 	size_t prefixlen = strlen(prefix);
 	LWGEOM *subgeom;
@@ -1451,7 +1445,7 @@ asgml3_multi_buf(const LWCOLLECTION *col, const char *srs, char *output, int pre
 {
 	int type = col->type;
 	char *ptr, *gmltype;
-	int i;
+	uint32_t i;
 	LWGEOM *subgeom;
 
 	ptr = output;
@@ -1505,23 +1499,21 @@ asgml3_multi_buf(const LWCOLLECTION *col, const char *srs, char *output, int pre
 /*
  * Don't call this with single-geoms inspected!
  */
-static char *
+static lwvarlena_t *
 asgml3_multi(const LWCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
-	char *gml;
-	size_t size;
-
-	size = asgml3_multi_size(col, srs, precision, opts, prefix, id);
-	gml = lwalloc(size);
-	asgml3_multi_buf(col, srs, gml, precision, opts, prefix, id);
-	return gml;
+	size_t size = asgml3_multi_size(col, srs, precision, opts, prefix, id);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml3_multi_buf(col, srs, output->data, precision, opts, prefix, id);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
+	return output;
 }
 
 
 static size_t
 asgml3_psurface_size(const LWPSURFACE *psur, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
-	int i;
+	uint32_t i;
 	size_t size;
 	size_t prefixlen = strlen(prefix);
 
@@ -1545,7 +1537,7 @@ static size_t
 asgml3_psurface_buf(const LWPSURFACE *psur, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	char *ptr;
-	int i;
+	uint32_t i;
 
 	ptr = output;
 
@@ -1570,23 +1562,21 @@ asgml3_psurface_buf(const LWPSURFACE *psur, const char *srs, char *output, int p
 /*
  * Don't call this with single-geoms inspected!
  */
-static char *
+static lwvarlena_t *
 asgml3_psurface(const LWPSURFACE *psur, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
-	char *gml;
-	size_t size;
-
-	size = asgml3_psurface_size(psur, srs, precision, opts, prefix, id);
-	gml = lwalloc(size);
-	asgml3_psurface_buf(psur, srs, gml, precision, opts, prefix, id);
-	return gml;
+	size_t size = asgml3_psurface_size(psur, srs, precision, opts, prefix, id);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml3_psurface_buf(psur, srs, output->data, precision, opts, prefix, id);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
+	return output;
 }
 
 
 static size_t
 asgml3_tin_size(const LWTIN *tin, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
-	int i;
+	uint32_t i;
 	size_t size;
 	size_t prefixlen = strlen(prefix);
 
@@ -1610,7 +1600,7 @@ static size_t
 asgml3_tin_buf(const LWTIN *tin, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	char *ptr;
-	int i;
+	uint32_t i;
 
 	ptr = output;
 
@@ -1635,22 +1625,20 @@ asgml3_tin_buf(const LWTIN *tin, const char *srs, char *output, int precision, i
 /*
  * Don't call this with single-geoms inspected!
  */
-static char *
+static lwvarlena_t *
 asgml3_tin(const LWTIN *tin, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
-	char *gml;
-	size_t size;
-
-	size = asgml3_tin_size(tin, srs, precision, opts, prefix, id);
-	gml = lwalloc(size);
-	asgml3_tin_buf(tin, srs, gml, precision, opts, prefix, id);
-	return gml;
+	size_t size = asgml3_tin_size(tin, srs, precision, opts, prefix, id);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml3_tin_buf(tin, srs, output->data, precision, opts, prefix, id);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
+	return output;
 }
 
 static size_t
 asgml3_collection_size(const LWCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
-	int i;
+	uint32_t i;
 	size_t size;
 	size_t prefixlen = strlen(prefix);
 	LWGEOM *subgeom;
@@ -1691,7 +1679,7 @@ static size_t
 asgml3_collection_buf(const LWCOLLECTION *col, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	char *ptr;
-	int i;
+	uint32_t i;
 	LWGEOM *subgeom;
 
 	ptr = output;
@@ -1746,16 +1734,14 @@ asgml3_collection_buf(const LWCOLLECTION *col, const char *srs, char *output, in
 /*
  * Don't call this with single-geoms inspected!
  */
-static char *
+static lwvarlena_t *
 asgml3_collection(const LWCOLLECTION *col, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
-	char *gml;
-	size_t size;
-
-	size = asgml3_collection_size(col, srs, precision, opts, prefix, id);
-	gml = lwalloc(size);
-	asgml3_collection_buf(col, srs, gml, precision, opts, prefix, id);
-	return gml;
+	size_t size = asgml3_collection_size(col, srs, precision, opts, prefix, id);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml3_collection_buf(col, srs, output->data, precision, opts, prefix, id);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
+	return output;
 }
 
 static size_t asgml3_multicurve_size( const LWMCURVE* cur, const char *srs, int precision, int opts, const char *prefix, const char *id )
@@ -1765,7 +1751,7 @@ static size_t asgml3_multicurve_size( const LWMCURVE* cur, const char *srs, int 
 	if (srs) size += strlen(srs) + sizeof(" srsName=..");
 	if (id)  size += strlen(id) + strlen(prefix) + sizeof(" id=..");
 	LWGEOM* subgeom;
-	int i;
+	uint32_t i;
 
 	for( i = 0; i < cur->ngeoms; ++i )
 	{
@@ -1791,7 +1777,7 @@ static size_t asgml3_multicurve_buf( const LWMCURVE* cur, const char *srs, char 
 {
 	char* ptr = output;
 	LWGEOM* subgeom;
-	int i;
+	uint32_t i;
 
 	ptr += sprintf(ptr, "<%sMultiCurve", prefix );
 	if (srs)
@@ -1826,13 +1812,14 @@ static size_t asgml3_multicurve_buf( const LWMCURVE* cur, const char *srs, char 
 	return (ptr - output);
 }
 
-static char *asgml3_multicurve( const LWMCURVE* cur, const char *srs, int precision, int opts, const char *prefix, const char *id )
+static lwvarlena_t *
+asgml3_multicurve(const LWMCURVE *cur, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
-	char* gml;
-	size_t size =asgml3_multicurve_size( cur, srs, precision, opts, prefix, id );
-	gml = lwalloc( size );
-	asgml3_multicurve_buf( cur, srs, gml, precision, opts, prefix, id );
-	return gml;
+	size_t size = asgml3_multicurve_size(cur, srs, precision, opts, prefix, id);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml3_multicurve_buf(cur, srs, output->data, precision, opts, prefix, id);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
+	return output;
 }
 
 static size_t asgml3_multisurface_size(const LWMSURFACE *sur, const char *srs, int precision, int opts, const char *prefix, const char *id)
@@ -1842,7 +1829,7 @@ static size_t asgml3_multisurface_size(const LWMSURFACE *sur, const char *srs, i
 	if (srs) size += strlen(srs) + sizeof(" srsName=..");
 	if (id)  size += strlen(id) + strlen(prefix) + sizeof(" id=..");
 	LWGEOM* subgeom;
-	int i;
+	uint32_t i;
 
 	for( i = 0; i < sur->ngeoms; ++i )
 	{
@@ -1862,7 +1849,7 @@ static size_t asgml3_multisurface_size(const LWMSURFACE *sur, const char *srs, i
 static size_t asgml3_multisurface_buf(const LWMSURFACE *sur, const char *srs, char *output, int precision, int opts, const char *prefix, const char *id)
 {
 	char* ptr = output;
-	int i;
+	uint32_t i;
 	LWGEOM* subgeom;
 
 	ptr += sprintf( ptr, "<%sMultiSurface", prefix );
@@ -1892,13 +1879,14 @@ static size_t asgml3_multisurface_buf(const LWMSURFACE *sur, const char *srs, ch
 	return ptr - output;
 }
 
-static char *asgml3_multisurface(const LWMSURFACE *sur, const char *srs, int precision, int opts, const char *prefix, const char *id)
+static lwvarlena_t *
+asgml3_multisurface(const LWMSURFACE *sur, const char *srs, int precision, int opts, const char *prefix, const char *id)
 {
-	char* gml;
-	size_t size = asgml3_multisurface_size( sur, srs, precision, opts, prefix, id );
-	gml = lwalloc( size );
-	asgml3_multisurface_buf( sur, srs, gml, precision, opts, prefix, id );
-	return gml;
+	size_t size = asgml3_multisurface_size(sur, srs, precision, opts, prefix, id);
+	lwvarlena_t *output = lwalloc(LWVARHDRSZ + size);
+	size = asgml3_multisurface_buf(sur, srs, output->data, precision, opts, prefix, id);
+	LWSIZE_SET(output->size, size + LWVARHDRSZ);
+	return output;
 }
 
 
@@ -1908,11 +1896,11 @@ static char *asgml3_multisurface(const LWMSURFACE *sur, const char *srs, int pre
 static size_t
 pointArray_toGML3(POINTARRAY *pa, char *output, int precision, int opts)
 {
-	int i;
+	uint32_t i;
 	char *ptr;
-	char x[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
-	char y[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
-	char z[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
+	char x[OUT_DOUBLE_BUFFER_SIZE];
+	char y[OUT_DOUBLE_BUFFER_SIZE];
+	char z[OUT_DOUBLE_BUFFER_SIZE];
 
 	ptr = output;
 
@@ -1922,18 +1910,8 @@ pointArray_toGML3(POINTARRAY *pa, char *output, int precision, int opts)
 		{
 			const POINT2D *pt;
 			pt = getPoint2d_cp(pa, i);
-
-			if (fabs(pt->x) < OUT_MAX_DOUBLE)
-				sprintf(x, "%.*f", precision, pt->x);
-			else
-				sprintf(x, "%g", pt->x);
-			trim_trailing_zeros(x);
-
-			if (fabs(pt->y) < OUT_MAX_DOUBLE)
-				sprintf(y, "%.*f", precision, pt->y);
-			else
-				sprintf(y, "%g", pt->y);
-			trim_trailing_zeros(y);
+			lwprint_double(pt->x, precision, x);
+			lwprint_double(pt->y, precision, y);
 
 			if ( i ) ptr += sprintf(ptr, " ");
 			if (IS_DEGREE(opts))
@@ -1946,26 +1924,11 @@ pointArray_toGML3(POINTARRAY *pa, char *output, int precision, int opts)
 	{
 		for (i=0; i<pa->npoints; i++)
 		{
-			const POINT3DZ *pt;
-			pt = getPoint3dz_cp(pa, i);
+			const POINT3D *pt = getPoint3d_cp(pa, i);
 
-			if (fabs(pt->x) < OUT_MAX_DOUBLE)
-				sprintf(x, "%.*f", precision, pt->x);
-			else
-				sprintf(x, "%g", pt->x);
-			trim_trailing_zeros(x);
-
-			if (fabs(pt->y) < OUT_MAX_DOUBLE)
-				sprintf(y, "%.*f", precision, pt->y);
-			else
-				sprintf(y, "%g", pt->y);
-			trim_trailing_zeros(y);
-
-			if (fabs(pt->z) < OUT_MAX_DOUBLE)
-				sprintf(z, "%.*f", precision, pt->z);
-			else
-				sprintf(z, "%g", pt->z);
-			trim_trailing_zeros(z);
+			lwprint_double(pt->x, precision, x);
+			lwprint_double(pt->y, precision, y);
+			lwprint_double(pt->z, precision, z);
 
 			if ( i ) ptr += sprintf(ptr, " ");
 			if (IS_DEGREE(opts))
@@ -1987,7 +1950,7 @@ static size_t
 pointArray_GMLsize(POINTARRAY *pa, int precision)
 {
 	if (FLAGS_NDIMS(pa->flags) == 2)
-		return (OUT_MAX_DIGS_DOUBLE + precision + sizeof(", ")) * 2 * pa->npoints;
+		return (OUT_MAX_BYTES_DOUBLE + precision + sizeof(", ")) * 2 * pa->npoints;
 
-	return (OUT_MAX_DIGS_DOUBLE + precision + sizeof(", ")) * 3 * pa->npoints;
+	return (OUT_MAX_BYTES_DOUBLE + precision + sizeof(", ")) * 3 * pa->npoints;
 }

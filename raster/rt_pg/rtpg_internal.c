@@ -27,11 +27,10 @@
  *
  */
 
-//#include <ctype.h> /* for isspace */
-//#include <postgres.h> /* for palloc */
-//#include <executor/spi.h>
+#include <ctype.h> /* for isspace */
+#include <postgres.h> /* for palloc */
+#include <executor/spi.h>
 
-#include "extension_dependency.h"
 #include "rtpg_internal.h"
 
 /* string replacement function taken from
@@ -61,9 +60,9 @@ rtpg_strreplace(
 	const char *tmp = str;
 	char *result;
 	int found = 0;
-	int length, reslen;
-	int oldlen = strlen(oldstr);
-	int newlen = strlen(newstr);
+	int64_t length, reslen;
+	size_t oldlen = strlen(oldstr);
+	size_t newlen = strlen(newstr);
 	int limit = (count != NULL && *count > 0) ? *count : -1;
 
 	tmp = str;
@@ -128,11 +127,11 @@ rtpg_chartrim(const char *input, char *remove) {
 		offset++;
 
 	rtn = palloc(sizeof(char) * (strlen(input) - offset + 1));
-	if (rtn == NULL) {
+	if (!rtn) {
 		fprintf(stderr, "Not enough memory\n");
 		return NULL;
 	}
-	strncpy(rtn, input, strlen(input) - offset);
+	memcpy(rtn, input, strlen(input) - offset);
 	rtn[strlen(input) - offset] = '\0';
 
 	return rtn;
@@ -140,7 +139,7 @@ rtpg_chartrim(const char *input, char *remove) {
 
 /* split a string based on a delimiter */
 char**
-rtpg_strsplit(const char *str, const char *delimiter, int *n) {
+rtpg_strsplit(const char *str, const char *delimiter, uint32_t *n) {
 	char *tmp = NULL;
 	char **rtn = NULL;
 	char *token = NULL;
@@ -280,8 +279,9 @@ rtpg_strrstr(const char *s1, const char *s2) {
 	return NULL;
 }
 
-char*
-rtpg_getSR(int srid) {
+char *
+rtpg_getSR(int32_t srid)
+{
 	int i = 0;
 	int len = 0;
 	char *sql = NULL;

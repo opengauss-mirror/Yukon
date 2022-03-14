@@ -22,9 +22,10 @@
  *
  **********************************************************************/
 
-#include "extension_dependency.h"
 
-
+#include "postgres.h"
+#include "funcapi.h"
+#include "fmgr.h"
 #include "liblwgeom.h"
 #include "liblwgeom_internal.h"  /* For FP comparators. */
 #include "lwgeom_pg.h"
@@ -32,20 +33,13 @@
 #include "lwgeom_rtree.h"
 #include "lwgeom_functions_analytic.h"
 
-
-//#include "access/htup_details.h"
-/***********************************************************************
- * Simple Douglas-Peucker line simplification.
- * No checks are done to avoid introduction of self-intersections.
- * No topology relations are considered.
- *
- * --strk@kbt.io;
- ***********************************************************************/
-
+// #include "access/htup_details.h"
 
 /* Prototypes */
 extern "C" Datum LWGEOM_simplify2d(PG_FUNCTION_ARGS);
 extern "C" Datum LWGEOM_SetEffectiveArea(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_ChaikinSmoothing(PG_FUNCTION_ARGS);
+extern "C" Datum LWGEOM_line_interpolate_point(PG_FUNCTION_ARGS);
 extern "C" Datum ST_LineCrossingDirection(PG_FUNCTION_ARGS);
 extern "C" Datum ST_MinimumBoundingRadius(PG_FUNCTION_ARGS);
 extern "C" Datum ST_MinimumBoundingCircle(PG_FUNCTION_ARGS);
@@ -59,36 +53,43 @@ static int isOnSegment(const POINT2D *seg1, const POINT2D *seg2, const POINT2D *
 static int point_in_ring(POINTARRAY *pts, const POINT2D *point);
 static int point_in_ring_rtree(RTREE_NODE *root, const POINT2D *point);
 
+/***********************************************************************
+ * Simple Douglas-Peucker line simplification.
+ * No checks are done to avoid introduction of self-intersections.
+ * No topology relations are considered.
+ *
+ * --strk@kbt.io;
+ ***********************************************************************/
 
 PG_FUNCTION_INFO_V1(LWGEOM_simplify2d);
 Datum LWGEOM_simplify2d(PG_FUNCTION_ARGS)
 {
-	GSERIALIZED *geom = PG_GETARG_GSERIALIZED_P(0);
+	GSERIALIZED *geom = PG_GETARG_GSERIALIZED_P_COPY(0);
 	double dist = PG_GETARG_FLOAT8(1);
 	GSERIALIZED *result;
 	int type = gserialized_get_type(geom);
-	LWGEOM *in, *out;
+	LWGEOM *in;
 	bool preserve_collapsed = false;
-
-	/* Handle optional argument to preserve collapsed features */
-	if ( PG_NARGS() > 2 && ! PG_ARGISNULL(2) )
-		preserve_collapsed = true;
+	int modified = LW_FALSE;
 
 	/* Can't simplify points! */
 	if ( type == POINTTYPE || type == MULTIPOINTTYPE )
 		PG_RETURN_POINTER(geom);
 
+	/* Handle optional argument to preserve collapsed features */
+	if ((PG_NARGS() > 2) && (!PG_ARGISNULL(2)))
+		preserve_collapsed = PG_GETARG_BOOL(2);
+
 	in = lwgeom_from_gserialized(geom);
 
-	out = lwgeom_simplify(in, dist, preserve_collapsed);
-	if ( ! out ) PG_RETURN_NULL();
+	modified = lwgeom_simplify_in_place(in, dist, preserve_collapsed);
+	if (!modified)
+		PG_RETURN_POINTER(geom);
 
-	/* COMPUTE_BBOX TAINTING */
-	if ( in->bbox ) lwgeom_add_bbox(out);
+	if (!in || lwgeom_is_empty(in))
+		PG_RETURN_NULL();
 
-	result = geometry_serialize(out);
-	lwgeom_free(out);
-	PG_FREE_IF_COPY(geom, 0);
+	result = geometry_serialize(in);
 	PG_RETURN_POINTER(result);
 }
 
@@ -126,6 +127,48 @@ Datum LWGEOM_SetEffectiveArea(PG_FUNCTION_ARGS)
 	PG_RETURN_POINTER(result);
 }
 
+PG_FUNCTION_INFO_V1(LWGEOM_ChaikinSmoothing);
+Datum LWGEOM_ChaikinSmoothing(PG_FUNCTION_ARGS)
+{
+	GSERIALIZED *geom = PG_GETARG_GSERIALIZED_P(0);
+	GSERIALIZED *result;
+	int type = gserialized_get_type(geom);
+	LWGEOM *in;
+	LWGEOM *out;
+	int preserve_endpoints=1;
+	int n_iterations=1;
+
+	if ( type == POINTTYPE || type == MULTIPOINTTYPE )
+		PG_RETURN_POINTER(geom);
+
+	if ( (PG_NARGS()>1) && (!PG_ARGISNULL(1)) )
+		n_iterations = PG_GETARG_INT32(1);
+
+	if (n_iterations< 1 || n_iterations>5)
+		elog(ERROR,"Number of iterations must be between 1 and 5 : %s", __func__);
+
+	if ( (PG_NARGS()>2) && (!PG_ARGISNULL(2)) )
+	{
+		if(PG_GETARG_BOOL(2))
+			preserve_endpoints = 1;
+		else
+			preserve_endpoints = 0;
+	}
+
+	in = lwgeom_from_gserialized(geom);
+
+	out = lwgeom_chaikin(in, n_iterations, preserve_endpoints);
+	if ( ! out ) PG_RETURN_NULL();
+
+	/* COMPUTE_BBOX TAINTING */
+	if ( in->bbox ) lwgeom_add_bbox(out);
+
+	result = geometry_serialize(out);
+	lwgeom_free(out);
+	PG_FREE_IF_COPY(geom, 0);
+	PG_RETURN_POINTER(result);
+}
+
 
 /***********************************************************************
  * --strk@kbt.io;
@@ -135,16 +178,61 @@ Datum LWGEOM_SetEffectiveArea(PG_FUNCTION_ARGS)
  * Interpolate a point along a line, useful for Geocoding applications
  * SELECT line_interpolate_point( 'LINESTRING( 0 0, 2 2'::geometry, .5 )
  * returns POINT( 1 1 ).
- * Works in 2d space only.
- *
- * Initially written by: jsunday@rochgrp.com
- * Ported to LWGEOM by: strk@refractions.net
  ***********************************************************************/
-
-extern "C" Datum LWGEOM_line_interpolate_point(PG_FUNCTION_ARGS);
-
 PG_FUNCTION_INFO_V1(LWGEOM_line_interpolate_point);
 Datum LWGEOM_line_interpolate_point(PG_FUNCTION_ARGS)
+{
+	GSERIALIZED *gser = PG_GETARG_GSERIALIZED_P(0);
+	GSERIALIZED *result;
+	double distance_fraction = PG_GETARG_FLOAT8(1);
+	int repeat = PG_NARGS() > 2 && PG_GETARG_BOOL(2);
+	int32_t srid = gserialized_get_srid(gser);
+	LWLINE* lwline;
+	LWGEOM* lwresult;
+	POINTARRAY* opa;
+
+	if ( distance_fraction < 0 || distance_fraction > 1 )
+	{
+		elog(ERROR,"line_interpolate_point: 2nd arg isn't within [0,1]");
+		PG_FREE_IF_COPY(gser, 0);
+		PG_RETURN_NULL();
+	}
+
+	if ( gserialized_get_type(gser) != LINETYPE )
+	{
+		elog(ERROR,"line_interpolate_point: 1st arg isn't a line");
+		PG_FREE_IF_COPY(gser, 0);
+		PG_RETURN_NULL();
+	}
+
+	lwline = lwgeom_as_lwline(lwgeom_from_gserialized(gser));
+	opa = lwline_interpolate_points(lwline, distance_fraction, repeat);
+
+	lwgeom_free(lwline_as_lwgeom(lwline));
+	PG_FREE_IF_COPY(gser, 0);
+
+	if (opa->npoints <= 1)
+	{
+		lwresult = lwpoint_as_lwgeom(lwpoint_construct(srid, NULL, opa));
+	} else {
+		lwresult = lwmpoint_as_lwgeom(lwmpoint_construct(srid, opa));
+	}
+
+	result = geometry_serialize(lwresult);
+	lwgeom_free(lwresult);
+
+	PG_RETURN_POINTER(result);
+}
+
+/***********************************************************************
+ * Interpolate a point along a line 3D version
+ * --vincent.mora@oslandia.com;
+ ***********************************************************************/
+
+extern "C" Datum ST_3DLineInterpolatePoint(PG_FUNCTION_ARGS);
+
+PG_FUNCTION_INFO_V1(ST_3DLineInterpolatePoint);
+Datum ST_3DLineInterpolatePoint(PG_FUNCTION_ARGS)
 {
 	GSERIALIZED *gser = PG_GETARG_GSERIALIZED_P(0);
 	GSERIALIZED *result;
@@ -152,95 +240,33 @@ Datum LWGEOM_line_interpolate_point(PG_FUNCTION_ARGS)
 	LWLINE *line;
 	LWGEOM *geom;
 	LWPOINT *point;
-	POINTARRAY *ipa, *opa;
-	POINT4D pt;
-	int nsegs, i;
-	double length, slength, tlength;
 
-	if ( distance < 0 || distance > 1 )
+	if (distance < 0 || distance > 1)
 	{
-		elog(ERROR,"line_interpolate_point: 2nd arg isn't within [0,1]");
+		elog(ERROR, "line_interpolate_point: 2nd arg isn't within [0,1]");
 		PG_RETURN_NULL();
 	}
 
-	if ( gserialized_get_type(gser) != LINETYPE )
+	if (gserialized_get_type(gser) != LINETYPE)
 	{
-		elog(ERROR,"line_interpolate_point: 1st arg isn't a line");
+		elog(ERROR, "line_interpolate_point: 1st arg isn't a line");
 		PG_RETURN_NULL();
-	}
-
-	/* Empty.InterpolatePoint == Point Empty */
-	if ( gserialized_is_empty(gser) )
-	{
-		point = lwpoint_construct_empty(gserialized_get_srid(gser), gserialized_has_z(gser), gserialized_has_m(gser));
-		result = geometry_serialize(lwpoint_as_lwgeom(point));
-		lwpoint_free(point);
-		PG_RETURN_POINTER(result);
 	}
 
 	geom = lwgeom_from_gserialized(gser);
 	line = lwgeom_as_lwline(geom);
-	ipa = line->points;
 
-	/* If distance is one of the two extremes, return the point on that
-	 * end rather than doing any expensive computations
-	 */
-	if ( distance == 0.0 || distance == 1.0 )
-	{
-		if ( distance == 0.0 )
-			getPoint4d_p(ipa, 0, &pt);
-		else
-			getPoint4d_p(ipa, ipa->npoints-1, &pt);
+	point = lwline_interpolate_point_3d(line, distance);
 
-		opa = ptarray_construct(lwgeom_has_z(geom), lwgeom_has_m(geom), 1);
-		ptarray_set_point4d(opa, 0, &pt);
-
-		point = lwpoint_construct(line->srid, NULL, opa);
-		PG_RETURN_POINTER(geometry_serialize(lwpoint_as_lwgeom(point)));
-	}
-
-	/* Interpolate a point on the line */
-	nsegs = ipa->npoints - 1;
-	length = ptarray_length_2d(ipa);
-	tlength = 0;
-	for ( i = 0; i < nsegs; i++ )
-	{
-		POINT4D p1, p2;
-		POINT4D *p1ptr=&p1, *p2ptr=&p2; /* don't break
-						                                 * strict-aliasing rules
-						                                 */
-
-		getPoint4d_p(ipa, i, &p1);
-		getPoint4d_p(ipa, i+1, &p2);
-
-		/* Find the relative length of this segment */
-		slength = distance2d_pt_pt((POINT2D*)p1ptr, (POINT2D*)p2ptr)/length;
-
-		/* If our target distance is before the total length we've seen
-		 * so far. create a new point some distance down the current
-		 * segment.
-		 */
-		if ( distance < tlength + slength )
-		{
-			double dseg = (distance - tlength) / slength;
-			interpolate_point4d(&p1, &p2, &pt, dseg);
-			opa = ptarray_construct(lwgeom_has_z(geom), lwgeom_has_m(geom), 1);
-			ptarray_set_point4d(opa, 0, &pt);
-			point = lwpoint_construct(line->srid, NULL, opa);
-			PG_RETURN_POINTER(geometry_serialize(lwpoint_as_lwgeom(point)));
-		}
-		tlength += slength;
-	}
-
-	/* Return the last point on the line. This shouldn't happen, but
-	 * could if there's some floating point rounding errors. */
-	getPoint4d_p(ipa, ipa->npoints-1, &pt);
-	opa = ptarray_construct(lwgeom_has_z(geom), lwgeom_has_m(geom), 1);
-	ptarray_set_point4d(opa, 0, &pt);
-	point = lwpoint_construct(line->srid, NULL, opa);
+	lwgeom_free(geom);
 	PG_FREE_IF_COPY(gser, 0);
-	PG_RETURN_POINTER(geometry_serialize(lwpoint_as_lwgeom(point)));
+
+	result = geometry_serialize(lwpoint_as_lwgeom(point));
+	lwpoint_free(point);
+
+	PG_RETURN_POINTER(result);
 }
+
 /***********************************************************************
  * --jsunday@rochgrp.com;
  ***********************************************************************/
@@ -348,8 +374,7 @@ Datum LWGEOM_snaptogrid(PG_FUNCTION_ARGS)
 
 	/* COMPUTE_BBOX TAINTING */
 	if ( in_lwgeom->bbox )
-		lwgeom_add_bbox(out_lwgeom);
-
+		lwgeom_refresh_bbox(out_lwgeom);
 
 	POSTGIS_DEBUGF(3, "SnapToGrid made a %s", lwtype_name(out_lwgeom->type));
 
@@ -407,10 +432,8 @@ Datum LWGEOM_snaptogrid_pointoff(PG_FUNCTION_ARGS)
 	getPoint4d_p(in_lwpoint->point, 0, &offsetpoint);
 	grid.ipx = offsetpoint.x;
 	grid.ipy = offsetpoint.y;
-	if (FLAGS_GET_Z(in_lwpoint->flags) ) grid.ipz = offsetpoint.z;
-	else grid.ipz=0;
-	if (FLAGS_GET_M(in_lwpoint->flags) ) grid.ipm = offsetpoint.m;
-	else grid.ipm=0;
+	grid.ipz = lwgeom_has_z((LWGEOM*)in_lwpoint) ? offsetpoint.z : 0;
+	grid.ipm = lwgeom_has_m((LWGEOM*)in_lwpoint) ? offsetpoint.m : 0;
 
 #if POSTGIS_DEBUG_LEVEL >= 4
 	grid_print(&grid);
@@ -430,7 +453,10 @@ Datum LWGEOM_snaptogrid_pointoff(PG_FUNCTION_ARGS)
 	if ( out_lwgeom == NULL ) PG_RETURN_NULL();
 
 	/* COMPUTE_BBOX TAINTING */
-	if ( in_lwgeom->bbox ) lwgeom_add_bbox(out_lwgeom);
+	if (in_lwgeom->bbox)
+	{
+		lwgeom_refresh_bbox(out_lwgeom);
+	}
 
 	POSTGIS_DEBUGF(3, "SnapToGrid made a %s", lwtype_name(out_lwgeom->type));
 
@@ -455,7 +481,7 @@ Datum ST_LineCrossingDirection(PG_FUNCTION_ARGS)
 	GSERIALIZED *geom1 = PG_GETARG_GSERIALIZED_P(0);
 	GSERIALIZED *geom2 = PG_GETARG_GSERIALIZED_P(1);
 
-	error_if_srid_mismatch(gserialized_get_srid(geom1), gserialized_get_srid(geom2));
+	gserialized_error_if_srid_mismatch(geom1, geom2, __func__);
 
 	type1 = gserialized_get_type(geom1);
 	type2 = gserialized_get_type(geom2);
@@ -540,7 +566,7 @@ Datum LWGEOM_line_substring(PG_FUNCTION_ARGS)
 	else if ( type == MULTILINETYPE )
 	{
 		LWMLINE *iline;
-		int i = 0, g = 0;
+		uint32_t i = 0, g = 0;
 		int homogeneous = LW_TRUE;
 		LWGEOM **geoms = NULL;
 		double length = 0.0, sublength = 0.0, minprop = 0.0, maxprop = 0.0;
@@ -710,7 +736,7 @@ static int isOnSegment(const POINT2D *seg1, const POINT2D *seg2, const POINT2D *
 static int point_in_ring_rtree(RTREE_NODE *root, const POINT2D *point)
 {
 	int wn = 0;
-	int i;
+	uint32_t i;
 	double side;
 	const POINT2D *seg1;
 	const POINT2D *seg2;
@@ -756,9 +782,9 @@ static int point_in_ring_rtree(RTREE_NODE *root, const POINT2D *point)
 		/*
 		 * If the point is to the left of the line, and it's rising,
 		 * then the line is to the right of the point and
-		 * circling counter-clockwise, so incremement.
+		 * circling counter-clockwise, so increment.
 		 */
-		if (FP_CONTAINS_BOTTOM(seg1->y, point->y, seg2->y) && side>0)
+		if ((seg1->y <= point->y) && (point->y < seg2->y) && (side > 0))
 		{
 			POSTGIS_DEBUG(3, "incrementing winding number.");
 
@@ -769,7 +795,7 @@ static int point_in_ring_rtree(RTREE_NODE *root, const POINT2D *point)
 		 * then the line is to the right of the point and circling
 		 * clockwise, so decrement.
 		 */
-		else if (FP_CONTAINS_BOTTOM(seg2->y, point->y, seg1->y) && side<0)
+		else if ((seg2->y <= point->y) && (point->y < seg1->y) && (side < 0))
 		{
 			POSTGIS_DEBUG(3, "decrementing winding number.");
 
@@ -793,14 +819,14 @@ static int point_in_ring_rtree(RTREE_NODE *root, const POINT2D *point)
 static int point_in_ring(POINTARRAY *pts, const POINT2D *point)
 {
 	int wn = 0;
-	int i;
+	uint32_t i;
 	double side;
 	const POINT2D* seg1;
 	const POINT2D* seg2;
 
 	POSTGIS_DEBUG(2, "point_in_ring called.");
 
-    seg2 = getPoint2d_cp(pts, 0);
+	seg2 = getPoint2d_cp(pts, 0);
 	for (i=0; i<pts->npoints-1; i++)
 	{
 		seg1 = seg2;
@@ -813,7 +839,7 @@ static int point_in_ring(POINTARRAY *pts, const POINT2D *point)
 		POSTGIS_DEBUGF(3, "counterclockwise wrap %d, clockwise wrap %d", FP_CONTAINS_BOTTOM(seg1->y, point->y, seg2->y), FP_CONTAINS_BOTTOM(seg2->y, point->y, seg1->y));
 
 		/* zero length segments are ignored. */
-		if (((seg2->x - seg1->x)*(seg2->x - seg1->x) + (seg2->y - seg1->y)*(seg2->y - seg1->y)) < 1e-12*1e-12)
+		if ((seg2->x == seg1->x) && (seg2->y == seg1->y))
 		{
 			POSTGIS_DEBUG(3, "segment is zero length... ignoring.");
 
@@ -835,9 +861,9 @@ static int point_in_ring(POINTARRAY *pts, const POINT2D *point)
 		/*
 		 * If the point is to the left of the line, and it's rising,
 		 * then the line is to the right of the point and
-		 * circling counter-clockwise, so incremement.
+		 * circling counter-clockwise, so increment.
 		 */
-		if (FP_CONTAINS_BOTTOM(seg1->y, point->y, seg2->y) && side>0)
+		if ((seg1->y <= point->y) && (point->y < seg2->y) && (side > 0))
 		{
 			POSTGIS_DEBUG(3, "incrementing winding number.");
 
@@ -848,7 +874,7 @@ static int point_in_ring(POINTARRAY *pts, const POINT2D *point)
 		 * then the line is to the right of the point and circling
 		 * clockwise, so decrement.
 		 */
-		else if (FP_CONTAINS_BOTTOM(seg2->y, point->y, seg1->y) && side<0)
+		else if ((seg2->y <= point->y) && (point->y < seg1->y) && (side < 0))
 		{
 			POSTGIS_DEBUG(3, "decrementing winding number.");
 
@@ -970,7 +996,8 @@ int point_in_multipolygon_rtree(RTREE_NODE **root, int polyCount, int *ringCount
  */
 int point_in_polygon(LWPOLY *polygon, LWPOINT *point)
 {
-	int i, result, in_ring;
+	uint32_t i;
+	int result, in_ring;
 	POINT2D pt;
 
 	POSTGIS_DEBUG(2, "point_in_polygon called.");
@@ -1013,7 +1040,8 @@ int point_in_polygon(LWPOLY *polygon, LWPOINT *point)
  */
 int point_in_multipolygon(LWMPOLY *mpolygon, LWPOINT *point)
 {
-	int i, j, result, in_ring;
+	uint32_t i, j;
+	int result, in_ring;
 	POINT2D pt;
 
 	POSTGIS_DEBUG(2, "point_in_polygon called.");
@@ -1324,12 +1352,11 @@ Datum ST_IsPolygonCCW(PG_FUNCTION_ARGS)
 
 	geom = PG_GETARG_GSERIALIZED_P_COPY(0);
 	input = lwgeom_from_gserialized(geom);
-
-    lwgeom_reverse(input);
+	lwgeom_reverse_in_place(input);
 	is_ccw = lwgeom_is_clockwise(input);
-
 	lwgeom_free(input);
 	PG_FREE_IF_COPY(geom, 0);
 
 	PG_RETURN_BOOL(is_ccw);
 }
+

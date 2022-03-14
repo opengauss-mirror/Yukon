@@ -67,11 +67,11 @@
 */
 #define MAXTILESIZE 1073741824
 
-#define RCSID "$Id: raster2pgsql.h 13497 2015-05-13 18:29:52Z pramsey $"
+#define RCSID "$Id$"
 
 typedef struct raster_loader_config {
 	/* raster filename */
-	int rt_file_count;
+	uint32_t rt_file_count;
 	char **rt_file;
 	char **rt_filename;
 
@@ -89,7 +89,7 @@ typedef struct raster_loader_config {
 	char *file_column_name;
 
 	/* overview factor */
-	int overview_count;
+	uint32_t overview_count;
 	int *overview;
 	char **overview_table;
 
@@ -97,14 +97,14 @@ typedef struct raster_loader_config {
 	int quoteident;
 
 	/* SRID of input raster */
-	int srid;
+	int32_t srid;
 
 	/* SRID of output raster (reprojection) */
 	int out_srid;
 
 	/* bands to extract */
 	int *nband; /* 1-based */
-	int nband_count;
+	uint32_t nband_count;
 
 	/* tile size */
 	int tile_size[2];
@@ -163,7 +163,7 @@ typedef struct raster_loader_config {
 
 typedef struct rasterinfo_t {
 	/* SRID of raster */
-	int srid;
+	int32_t srid;
 
 	/* srs of raster */
 	char *srs;
@@ -173,7 +173,7 @@ typedef struct rasterinfo_t {
 
 	/* number of bands */
 	int *nband; /* 1-based */
-	int nband_count;
+	uint32_t nband_count;
 
 	/* array of pixeltypes */
 	GDALDataType *gdalbandtype;

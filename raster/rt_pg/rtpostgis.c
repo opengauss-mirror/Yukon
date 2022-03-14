@@ -129,23 +129,29 @@
  *   datum is copied for use.
  *****************************************************************************/
 
-//#include <postgres.h> /* for palloc */
-//#include <fmgr.h> /* for PG_MODULE_MAGIC */
-//#include "utils/guc.h"
-//#include "utils/memutils.h"
-
+// #include <postgres.h> /* for palloc */
+// #include <fmgr.h> /* for PG_MODULE_MAGIC */
+// #include "utils/guc.h"
+// #include "utils/memutils.h"
 #include "extension_dependency.h"
-
 #include "../../postgis_config.h"
 #include "lwgeom_pg.h"
 
 #include "rtpostgis.h"
 #include "rtpg_internal.h"
-
-#define GDAL_DATA_PATH  "/data1/llq4/Install/raster/gdal_path"
+#include "stringlist.h"
+#include "optionlist.h"
 
 #ifndef __GNUC__
 # define __attribute__ (x)
+#endif
+
+#ifndef THR_LOCAL
+#ifndef WIN32
+#define THR_LOCAL __thread
+#else
+#define THR_LOCAL  __declspec(thread)
+#endif
 #endif
 
 /*
@@ -153,18 +159,18 @@
  */
 PG_MODULE_MAGIC;
 
+extern "C"
+{
+/* Module load callback */
+void _PG_init(void);
 
-extern "C" {
-	/* Module load callback */
-	void _PG_init(void);
-
-	/* Module unload callback */
-	void _PG_fini(void);
-
-	void _PG_init_gdal();
+/* Module unload callback */
+void _PG_fini(void);
+void _PG_init_gdal(void);
 }
 #define RT_MSG_MAXLEN 256
 THR_LOCAL bool inited_gdal = false;
+
 
 /* ---------------------------------------------------------------- */
 /*  Memory allocation / error reporting hooks                       */
@@ -247,12 +253,217 @@ rt_pg_debug(const char *fmt, va_list ap)
     ereport(DEBUG1, (errmsg_internal("%s", msg)));
 }
 
+static char *
+rt_pg_options(const char* varname)
+{
+	char optname[128];
+	char *optvalue;
+	snprintf(optname, 128, "postgis.%s", varname);
+	/* GetConfigOptionByName(name, found_name, missing_ok) */
+	optvalue = GetConfigOptionByName(optname, NULL);
+	if (optvalue && strlen(optvalue) == 0)
+		return NULL;
+	else
+		return optvalue;
+}
+
+/* ---------------------------------------------------------------- */
+/*  GDAL allowed config options for VSI filesystems */
+/* ---------------------------------------------------------------- */
+
+stringlist_t *vsi_option_stringlist = NULL;
+
+
+#if POSTGIS_GDAL_VERSION < 23
+
+/*
+* For older versions of GDAL we  have extracted the list of options
+* that were available at the 2.2 release and use that
+* as our set of allowed VSI network file options.
+*/
+static void
+rt_pg_vsi_load_all_options(void)
+{
+	const char * gdaloption;
+	const char * const gdaloptions[] = {
+		"aws_access_key_id",
+		"aws_https",
+		"aws_max_keys",
+		"aws_s3_endpoint",
+		"aws_region",
+		"aws_request_payer",
+		"aws_secret_access_key",
+		"aws_session_token",
+		"aws_timestamp",
+		"aws_virtual_hosting",
+		"cpl_gs_timestamp",
+		"cpl_gs_endpoint",
+		"gs_secret_access_key",
+		"gs_access_key_id",
+		"goa2_client_id",
+		"goa2_client_secret",
+		"cpl_curl_enable_vsimem",
+		"cpl_curl_gzip",
+		"cpl_curl_verbose",
+		"gdal_http_auth",
+		"gdal_http_connecttimeout",
+		"gdal_http_cookie",
+		"gdal_http_header_file",
+		"gdal_http_low_speed_time",
+		"gdal_http_low_speed_limit",
+		"gdal_http_max_retry",
+		"gdal_http_netrc",
+		"gdal_http_proxy",
+		"gdal_http_proxyuserpwd",
+		"gdal_http_retry_delay",
+		"gdal_http_userpwd",
+		"gdal_http_timeout",
+		"gdal_http_unsafessl",
+		"gdal_http_useragent",
+		"gdal_disable_readdir_on_open",
+		"gdal_proxy_auth",
+		"curl_ca_bundle",
+		"ssl_cert_file",
+		"vsi_cache_size",
+		"cpl_vsil_curl_use_head",
+		"cpl_vsil_curl_use_s3_redirect",
+		"cpl_vsil_curl_max_ranges",
+		"cpl_vsil_curl_use_cache",
+		"cpl_vsil_curl_allowed_filename",
+		"cpl_vsil_curl_allowed_extensions",
+		"cpl_vsil_curl_slow_get_size",
+		"vsi_cache",
+		"vsis3_chunk_size",
+		NULL
+	};
+	const char * const * gdaloptionsptr = gdaloptions;
+
+	vsi_option_stringlist = stringlist_create();
+	while((gdaloption = *gdaloptionsptr++))
+	{
+		stringlist_add_string_nosort(vsi_option_stringlist, gdaloption);
+	}
+	stringlist_sort(vsi_option_stringlist);
+}
+
+#else /* POSTGIS_GDAL_VERSION < 23 */
+
+/*
+* For newer versions of GDAL the VSIGetFileSystemOptions() call returns
+* all the allowed options for each VSI network file type, and we just have
+* to keep the list of VSI types statically in rt_pg_vsi_load_all_options().
+*/
+static void
+rt_pg_vsi_load_options(const char* vsiname, stringlist_t *s)
+{
+	CPLXMLNode *root, *optNode;
+	const char *xml = VSIGetFileSystemOptions(vsiname);
+	if (!xml) return;
+
+	root = CPLParseXMLString(xml);
+	if (!root) {
+		elog(ERROR, "%s: Unable to read options for VSI %s", __func__, vsiname);
+		return;
+	}
+	optNode = CPLSearchXMLNode(root, "Option");
+	if (!optNode) {
+		CPLDestroyXMLNode(root);
+		elog(ERROR, "%s: Unable to find <Option> in VSI XML %s", __func__, vsiname);
+		return;
+	}
+	while(optNode)
+	{
+		const char *option = CPLGetXMLValue(optNode, "name", NULL);
+		if (option) {
+			char *optionstr = pstrdup(option);
+			char *ptr = optionstr;
+			/* The options parser used in rt_util_gdal_open()
+			   lowercases keys, so we'll lower case our list
+			   of options before storing them in the stringlist. */
+			while (*ptr) {
+				*ptr = tolower(*ptr);
+				ptr++;
+			}
+			elog(DEBUG4, "GDAL %s option: %s", vsiname, optionstr);
+			stringlist_add_string_nosort(s, optionstr);
+		}
+		optNode = optNode->psNext;
+	}
+	CPLDestroyXMLNode(root);
+}
+
+static void
+rt_pg_vsi_load_all_options(void)
+{
+	const char * vsiname;
+	const char * const vsilist[] = {
+		"/vsicurl/",
+		"/vsis3/",
+		"/vsigs/",
+		"/vsiaz/",
+		"/vsioss/",
+		"/vsihdfs/",
+		"/vsiwebhdfs/",
+		"/vsiswift/",
+		"/vsiadls/",
+		NULL
+	};
+	const char * const * vsilistptr = vsilist;
+
+	vsi_option_stringlist = stringlist_create();
+	while((vsiname = *vsilistptr++))
+	{
+		rt_pg_vsi_load_options(vsiname, vsi_option_stringlist);
+	}
+	stringlist_sort(vsi_option_stringlist);
+}
+
+#endif /* POSTGIS_GDAL_VERSION < 23 */
+
+
+static bool
+rt_pg_vsi_check_options(char **newval, void **extra, GucSource source)
+{
+	size_t olist_sz, i;
+	char *olist[OPTION_LIST_SIZE];
+	const char *found = NULL;
+	char *newoptions;
+
+	memset(olist, 0, sizeof(olist));
+	if (!newval || !*newval)
+		return false;
+	newoptions = pstrdup(*newval);
+
+	/* Cache the legal options if they aren't already loaded */
+	if (!vsi_option_stringlist)
+		rt_pg_vsi_load_all_options();
+
+	elog(DEBUG5, "%s: processing VSI options: %s", __func__, newoptions);
+	option_list_parse(newoptions, olist);
+	olist_sz = option_list_length(olist);
+	if (olist_sz % 2 != 0)
+		return false;
+
+	for (i = 0; i < olist_sz; i += 2)
+	{
+		found = stringlist_find(vsi_option_stringlist, olist[i]);
+		if (!found)
+		{
+			elog(WARNING, "'%s' is not a legal VSI network file option", olist[i]);
+			pfree(newoptions);
+			return false;
+		}
+	}
+	return true;
+}
+
 
 /* ---------------------------------------------------------------- */
 /*  PostGIS raster GUCs                                             */
 /* ---------------------------------------------------------------- */
 
 static char *gdal_datapath = NULL;
+static char *gdal_vsi_options = NULL;
 extern THR_LOCAL char *gdal_enabled_drivers;
 extern THR_LOCAL bool enable_outdb_rasters;
 MemoryContext gdal_shared_context;
@@ -287,9 +498,10 @@ static void
 rtpg_assignHookGDALEnabledDrivers(const char *enabled_drivers, void *extra) {
 	int enable_all = 0;
 	int disable_all = 0;
+	int vsicurl = 0;
 
 	char **enabled_drivers_array = NULL;
-	int enabled_drivers_count = 0;
+	uint32_t enabled_drivers_count = 0;
 	bool *enabled_drivers_found = NULL;
 	char *gdal_skip = NULL;
 
@@ -302,6 +514,8 @@ rtpg_assignHookGDALEnabledDrivers(const char *enabled_drivers, void *extra) {
 	/* if NULL, nothing to do */
 	if (enabled_drivers == NULL)
 		return;
+
+	elog(DEBUG4, "Enabling GDAL drivers: %s", enabled_drivers);
 
 	/* destroy the driver manager */
 	/* this is the only way to ensure GDAL_SKIP is recognized */
@@ -331,6 +545,14 @@ rtpg_assignHookGDALEnabledDrivers(const char *enabled_drivers, void *extra) {
 			if (strstr(enabled_drivers_array[i], GDAL_ENABLE_ALL) != NULL) {
 				enabled_drivers_found[i] = TRUE;
 				enable_all = 1;
+			}
+		}
+	}
+	else if (strstr(enabled_drivers, GDAL_VSICURL) != NULL) {
+		for (i = 0; i < enabled_drivers_count; i++) {
+			if (strstr(enabled_drivers_array[i], GDAL_VSICURL) != NULL) {
+				enabled_drivers_found[i] = TRUE;
+				vsicurl = 1;
 			}
 		}
 	}
@@ -402,6 +624,9 @@ rtpg_assignHookGDALEnabledDrivers(const char *enabled_drivers, void *extra) {
 			elog(WARNING, "Unknown GDAL driver: %s", enabled_drivers_array[i]);
 	}
 
+	if (vsicurl)
+		elog(WARNING, "%s set.", GDAL_VSICURL);
+
 	/* destroy the driver manager */
 	/* this is the only way to ensure GDAL_SKIP is recognized */
 	GDALDestroyDriverManager();
@@ -425,13 +650,11 @@ rtpg_assignHookEnableOutDBRasters(bool enable, void *extra) {
 	/* do nothing for now */
 }
 
-/* Module load callback */
 void
 _PG_init_gdal(void) {
-
 	bool boot_postgis_enable_outdb_rasters = false;
 	MemoryContext old_context;
-	MemoryContext gdal_shared_context;
+	
 	void *extra = NULL;
 
 	/*
@@ -496,8 +719,9 @@ _PG_init_gdal(void) {
 	pg_install_lwgeom_handlers();
 
 	/* Install rtcore handlers */
-	rt_set_handlers(rt_pg_alloc, rt_pg_realloc, rt_pg_free, rt_pg_error, rt_pg_debug, rt_pg_notice);
-
+	rt_set_handlers_options(rt_pg_alloc, rt_pg_realloc, rt_pg_free,
+		rt_pg_error, rt_pg_debug, rt_pg_notice,
+		rt_pg_options);
 
 	/* Define custom GUC variables. */
 	if ( postgis_guc_find_option("postgis.gdal_datapath") )
@@ -571,6 +795,26 @@ _PG_init_gdal(void) {
 		);
 	}
 
+	if ( postgis_guc_find_option("postgis.gdal_vsi_options") )
+	{
+		//elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.gdal_vsi_options");
+	}
+	else
+	{
+		DefineCustomStringVariable(
+			"postgis.gdal_vsi_options", /* name */
+			"VSI config options", /* short_desc */
+			"Set the config options to be used when opening /vsi/ network files", /* long_desc */
+			&gdal_vsi_options, /* valueAddr */
+			"", /* bootValue */
+			PGC_USERSET, /* GucContext context */
+			0, /* int flags */
+			rt_pg_vsi_check_options, /* GucStringCheckHook check_hook */
+			NULL, /* GucStringAssignHook assign_hook */
+			NULL  /* GucShowHook show_hook */
+		);
+	}
+
 	/* postgis.gdal_enabled_drivers is alway GDAL_ENABLE_ALL  */
 	gdal_enabled_drivers = palloc(sizeof(char) * (strlen(GDAL_ENABLE_ALL) + 1));
 	sprintf(gdal_enabled_drivers, "%s", GDAL_ENABLE_ALL);
@@ -585,13 +829,172 @@ _PG_init_gdal(void) {
 	inited_gdal = true;
 	/* Revert back to old context */
 	MemoryContextSwitchTo(old_context);
-}
 
+}
+/* Module load callback */
 void
 _PG_init(void) {
-	_PG_init_gdal();
-}
+#if 0
+	bool boot_postgis_enable_outdb_rasters = false;
+	MemoryContext old_context;
 
+	/*
+	 * Change to context for memory allocation calls like palloc() in the
+	 * extension initialization routine
+	 */
+	old_context = MemoryContextSwitchTo(TopMemoryContext);
+
+	/*
+	 use POSTGIS_GDAL_ENABLED_DRIVERS to set the bootValue
+	 of GUC postgis.gdal_enabled_drivers
+	*/
+	env_postgis_gdal_enabled_drivers = getenv("POSTGIS_GDAL_ENABLED_DRIVERS");
+	if (env_postgis_gdal_enabled_drivers == NULL) {
+		boot_postgis_gdal_enabled_drivers = palloc(
+			sizeof(char) * (strlen(GDAL_DISABLE_ALL) + 1)
+		);
+		sprintf(boot_postgis_gdal_enabled_drivers, "%s", GDAL_DISABLE_ALL);
+	}
+	else {
+		boot_postgis_gdal_enabled_drivers = rtpg_trim(
+			env_postgis_gdal_enabled_drivers
+		);
+	}
+	POSTGIS_RT_DEBUGF(
+		4,
+		"boot_postgis_gdal_enabled_drivers = %s",
+		boot_postgis_gdal_enabled_drivers
+	);
+
+	/*
+	 use POSTGIS_ENABLE_OUTDB_RASTERS to set the bootValue
+	 of GUC postgis.enable_outdb_rasters
+	*/
+	env_postgis_enable_outdb_rasters = getenv("POSTGIS_ENABLE_OUTDB_RASTERS");
+	if (env_postgis_enable_outdb_rasters != NULL) {
+		char *env = rtpg_trim(env_postgis_enable_outdb_rasters);
+
+		/* out of memory */
+		if (env == NULL) {
+			elog(ERROR, "_PG_init: Cannot process environmental variable: POSTGIS_ENABLE_OUTDB_RASTERS");
+			return;
+		}
+
+		if (strcmp(env, "1") == 0)
+			boot_postgis_enable_outdb_rasters = true;
+
+		if (env != env_postgis_enable_outdb_rasters)
+			pfree(env);
+	}
+	POSTGIS_RT_DEBUGF(
+		4,
+		"boot_postgis_enable_outdb_rasters = %s",
+		boot_postgis_enable_outdb_rasters ? "TRUE" : "FALSE"
+	);
+
+	/* Install liblwgeom handlers */
+	pg_install_lwgeom_handlers();
+
+	/* Install rtcore handlers */
+	rt_set_handlers_options(rt_pg_alloc, rt_pg_realloc, rt_pg_free,
+		rt_pg_error, rt_pg_debug, rt_pg_notice,
+		rt_pg_options);
+
+	/* Define custom GUC variables. */
+	if ( postgis_guc_find_option("postgis.gdal_datapath") )
+	{
+		/* In this narrow case the previously installed GUC is tied to the callback in */
+		/* the previously loaded library. Probably this is happening during an */
+		/* upgrade, so the old library is where the callback ties to. */
+		elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.gdal_datapath");
+	}
+	else
+	{
+		DefineCustomStringVariable(
+			"postgis.gdal_datapath", /* name */
+			"Path to GDAL data files.", /* short_desc */
+			"Physical path to directory containing GDAL data files (sets the GDAL_DATA config option).", /* long_desc */
+			&gdal_datapath, /* valueAddr */
+			NULL, /* bootValue */
+			PGC_SUSET, /* GucContext context */
+			0, /* int flags */
+			NULL, /* GucStringCheckHook check_hook */
+			rtpg_assignHookGDALDataPath, /* GucStringAssignHook assign_hook */
+			NULL  /* GucShowHook show_hook */
+		);
+	}
+
+	if ( postgis_guc_find_option("postgis.gdal_enabled_drivers") )
+	{
+		/* In this narrow case the previously installed GUC is tied to the callback in */
+		/* the previously loaded library. Probably this is happening during an */
+		/* upgrade, so the old library is where the callback ties to. */
+		elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.gdal_enabled_drivers");
+	}
+	else
+	{
+		DefineCustomStringVariable(
+			"postgis.gdal_enabled_drivers", /* name */
+			"Enabled GDAL drivers.", /* short_desc */
+			"List of enabled GDAL drivers by short name. To enable/disable all drivers, use 'ENABLE_ALL' or 'DISABLE_ALL' (sets the GDAL_SKIP config option).", /* long_desc */
+			&gdal_enabled_drivers, /* valueAddr */
+			boot_postgis_gdal_enabled_drivers, /* bootValue */
+			PGC_SUSET, /* GucContext context */
+			0, /* int flags */
+			NULL, /* GucStringCheckHook check_hook */
+			rtpg_assignHookGDALEnabledDrivers, /* GucStringAssignHook assign_hook */
+			NULL  /* GucShowHook show_hook */
+		);
+	}
+
+	if ( postgis_guc_find_option("postgis.enable_outdb_rasters") )
+	{
+		/* In this narrow case the previously installed GUC is tied to the callback in */
+		/* the previously loaded library. Probably this is happening during an */
+		/* upgrade, so the old library is where the callback ties to. */
+		elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.enable_outdb_rasters");
+	}
+	else
+	{
+		DefineCustomBoolVariable(
+			"postgis.enable_outdb_rasters", /* name */
+			"Enable Out-DB raster bands", /* short_desc */
+			"If true, rasters can access data located outside the database", /* long_desc */
+			&enable_outdb_rasters, /* valueAddr */
+			boot_postgis_enable_outdb_rasters, /* bootValue */
+			PGC_SUSET, /* GucContext context */
+			0, /* int flags */
+			NULL, /* GucBoolCheckHook check_hook */
+			rtpg_assignHookEnableOutDBRasters, /* GucBoolAssignHook assign_hook */
+			NULL  /* GucShowHook show_hook */
+		);
+	}
+
+	if ( postgis_guc_find_option("postgis.gdal_vsi_options") )
+	{
+		elog(WARNING, "'%s' is already set and cannot be changed until you reconnect", "postgis.gdal_vsi_options");
+	}
+	else
+	{
+		DefineCustomStringVariable(
+			"postgis.gdal_vsi_options", /* name */
+			"VSI config options", /* short_desc */
+			"Set the config options to be used when opening /vsi/ network files", /* long_desc */
+			&gdal_vsi_options, /* valueAddr */
+			"", /* bootValue */
+			PGC_USERSET, /* GucContext context */
+			0, /* int flags */
+			rt_pg_vsi_check_options, /* GucStringCheckHook check_hook */
+			NULL, /* GucStringAssignHook assign_hook */
+			NULL  /* GucShowHook show_hook */
+		);
+	}
+
+	/* Revert back to old context */
+	MemoryContextSwitchTo(old_context);
+#endif
+_PG_init_gdal();
+}
 
 /* Module unload callback */
 void
@@ -610,11 +1013,9 @@ _PG_fini(void) {
 	boot_postgis_gdal_enabled_drivers = NULL;
 	env_postgis_enable_outdb_rasters = NULL;
 
-	pfree(gdal_enabled_drivers);
-	gdal_enabled_drivers = NULL;
-
 	/* Revert back to old context */
 	MemoryContextSwitchTo(old_context);
+
 }
 
 

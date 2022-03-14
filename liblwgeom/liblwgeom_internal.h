@@ -18,7 +18,7 @@
  *
  **********************************************************************
  *
- * Copyright (C) 2011-2012 Sandro Santilli <strk@kbt.io>
+ * Copyright (C) 2011-2021 Sandro Santilli <strk@kbt.io>
  * Copyright (C) 2011 Paul Ramsey <pramsey@cleverelephant.ca>
  * Copyright (C) 2007-2008 Mark Cave-Ayland
  * Copyright (C) 2001-2006 Refractions Research Inc.
@@ -38,22 +38,15 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <float.h>
+#include <math.h>
 
 #if HAVE_IEEEFP_H
 #include <ieeefp.h>
 #endif
 
-#include <float.h>
-
 #include "liblwgeom.h"
-
-#ifndef THR_LOCAL
-#ifndef WIN32
-#define THR_LOCAL __thread
-#else
-#define THR_LOCAL  __declspec(thread)
-#endif
-#endif
 
 /**
 * Floating point comparators.
@@ -74,6 +67,10 @@
 #define FP_CONTAINS_INCL(A, X, B) (FP_LTEQ(A, X) && FP_LTEQ(X, B))
 #define FP_CONTAINS_EXCL(A, X, B) (FP_LT(A, X) && FP_LT(X, B))
 #define FP_CONTAINS(A, X, B) FP_CONTAINS_EXCL(A, X, B)
+
+#define STR_EQUALS(A, B) strcmp((A), (B)) == 0
+#define STR_IEQUALS(A, B) (strcasecmp((A), (B)) == 0)
+#define STR_ISTARTS(A, B) (strncasecmp((A), (B), strlen((B))) == 0)
 
 
 /*
@@ -121,13 +118,6 @@
 #define WKB_TIN_TYPE 16
 #define WKB_TRIANGLE_TYPE 17
 
-/**
-* Macro for reading the size from the GSERIALIZED size attribute.
-* Cribbed from PgSQL, top 30 bits are size. Use VARSIZE() when working
-* internally with PgSQL.
-*/
-#define SIZE_GET(varsize) (((varsize) >> 2) & 0x3FFFFFFF)
-#define SIZE_SET(varsize, size) (((varsize) & 0x00000003)|(((size) & 0x3FFFFFFF) << 2 ))
 
 /**
 * Macro that returns:
@@ -145,11 +135,20 @@
 /*
  * Export functions
  */
-#define OUT_MAX_DOUBLE 1E15
-#define OUT_SHOW_DIGS_DOUBLE 20
-#define OUT_MAX_DOUBLE_PRECISION 15
-#define OUT_MAX_DIGS_DOUBLE (OUT_SHOW_DIGS_DOUBLE + 2) /* +2 mean add dot and sign */
 
+/* Any (absolute) values outside this range will be printed in scientific notation */
+#define OUT_MIN_DOUBLE 1E-8
+#define OUT_MAX_DOUBLE 1E15
+#define OUT_DEFAULT_DECIMAL_DIGITS 15
+
+/* 17 digits are sufficient for round-tripping
+ * Then we might add up to 8 (from OUT_MIN_DOUBLE) max leading zeroes (or 2 digits for "e+") */
+#define OUT_MAX_DIGITS 17 + 8
+
+/* Limit for the max amount of characters that a double can use, including dot and sign */
+/* */
+#define OUT_MAX_BYTES_DOUBLE (1 /* Sign */ + 2 /* 0.x */ + OUT_MAX_DIGITS)
+#define OUT_DOUBLE_BUFFER_SIZE OUT_MAX_BYTES_DOUBLE + 1 /* +1 including NULL */
 
 /**
 * Constants for point-in-polygon return values
@@ -165,18 +164,17 @@
 /* Machine endianness */
 #define XDR 0 /* big endian */
 #define NDR 1 /* little endian */
-extern char getMachineEndian(void);
 
 
 /*
 * Force dims
 */
-LWGEOM* lwgeom_force_dims(const LWGEOM *lwgeom, int hasz, int hasm);
-LWPOINT* lwpoint_force_dims(const LWPOINT *lwpoint, int hasz, int hasm);
-LWLINE* lwline_force_dims(const LWLINE *lwline, int hasz, int hasm);
-LWPOLY* lwpoly_force_dims(const LWPOLY *lwpoly, int hasz, int hasm);
-LWCOLLECTION* lwcollection_force_dims(const LWCOLLECTION *lwcol, int hasz, int hasm);
-POINTARRAY* ptarray_force_dims(const POINTARRAY *pa, int hasz, int hasm);
+LWGEOM* lwgeom_force_dims(const LWGEOM *lwgeom, int hasz, int hasm, double zval, double mval);
+LWPOINT* lwpoint_force_dims(const LWPOINT *lwpoint, int hasz, int hasm, double zval, double mval);
+LWLINE* lwline_force_dims(const LWLINE *lwline, int hasz, int hasm, double zval, double mval);
+LWPOLY* lwpoly_force_dims(const LWPOLY *lwpoly, int hasz, int hasm, double zval, double mval);
+LWCOLLECTION* lwcollection_force_dims(const LWCOLLECTION *lwcol, int hasz, int hasm, double zval, double mval);
+POINTARRAY* ptarray_force_dims(const POINTARRAY *pa, int hasz, int hasm, double zval, double mval);
 
 /**
  * Swap ordinate values o1 and o2 on a given POINTARRAY
@@ -198,33 +196,30 @@ int lwpoint_is_empty(const LWPOINT *point);
 /*
 * Number of vertices?
 */
-int lwline_count_vertices(LWLINE *line);
-int lwpoly_count_vertices(LWPOLY *poly);
-int lwcollection_count_vertices(LWCOLLECTION *col);
+uint32_t lwline_count_vertices(LWLINE *line);
+uint32_t lwpoly_count_vertices(LWPOLY *poly);
+uint32_t lwcollection_count_vertices(LWCOLLECTION *col);
 
 /*
 * DP simplification
 */
 
 /**
- * @param minpts minimun number of points to retain, if possible.
+ * @param minpts minimum number of points to retain, if possible.
  */
-POINTARRAY* ptarray_simplify(POINTARRAY *inpts, double epsilon, unsigned int minpts);
-LWLINE* lwline_simplify(const LWLINE *iline, double dist, int preserve_collapsed);
-LWPOLY* lwpoly_simplify(const LWPOLY *ipoly, double dist, int preserve_collapsed);
-LWCOLLECTION* lwcollection_simplify(const LWCOLLECTION *igeom, double dist, int preserve_collapsed);
+void ptarray_simplify_in_place(POINTARRAY *pa, double tolerance, uint32_t minpts);
 
 /*
 * The possible ways a pair of segments can interact. Returned by lw_segment_intersects
 */
 enum CG_SEGMENT_INTERSECTION_TYPE {
-    SEG_ERROR = -1,
-    SEG_NO_INTERSECTION = 0,
-    SEG_COLINEAR = 1,
-    SEG_CROSS_LEFT = 2,
-    SEG_CROSS_RIGHT = 3,
-    SEG_TOUCH_LEFT = 4,
-    SEG_TOUCH_RIGHT = 5
+		SEG_ERROR = -1,
+		SEG_NO_INTERSECTION = 0,
+		SEG_COLINEAR = 1,
+		SEG_CROSS_LEFT = 2,
+		SEG_CROSS_RIGHT = 3,
+		SEG_TOUCH_LEFT = 4,
+		SEG_TOUCH_RIGHT = 5
 };
 
 /*
@@ -244,31 +239,11 @@ void lwpoint_set_ordinate(POINT4D *p, char ordinate, double value);
 int point_interpolate(const POINT4D *p1, const POINT4D *p2, POINT4D *p, int hasz, int hasm, char ordinate, double interpolation_value);
 
 
-/**
-* Clip a line based on the from/to range of one of its ordinates. Use for m- and z- clipping
-*/
-LWCOLLECTION *lwline_clip_to_ordinate_range(const LWLINE *line, char ordinate, double from, double to);
-
-/**
-* Clip a multi-line based on the from/to range of one of its ordinates. Use for m- and z- clipping
-*/
-LWCOLLECTION *lwmline_clip_to_ordinate_range(const LWMLINE *mline, char ordinate, double from, double to);
-
-/**
-* Clip a multi-point based on the from/to range of one of its ordinates. Use for m- and z- clipping
-*/
-LWCOLLECTION *lwmpoint_clip_to_ordinate_range(const LWMPOINT *mpoint, char ordinate, double from, double to);
-
-/**
-* Clip a point based on the from/to range of one of its ordinates. Use for m- and z- clipping
-*/
-LWCOLLECTION *lwpoint_clip_to_ordinate_range(const LWPOINT *mpoint, char ordinate, double from, double to);
-
 /*
 * Geohash
 */
 int lwgeom_geohash_precision(GBOX bbox, GBOX *bounds);
-char *geohash_point(double longitude, double latitude, int precision);
+lwvarlena_t *geohash_point(double longitude, double latitude, int precision);
 void decode_geohash_bbox(char *geohash, double *lat, double *lon, int precision);
 
 /*
@@ -289,7 +264,20 @@ double lwtriangle_area(const LWTRIANGLE *triangle);
 * Pull a #GBOX from the header of a #GSERIALIZED, if one is available. If
 * it is not, return LW_FAILURE.
 */
-extern int gserialized_read_gbox_p(const GSERIALIZED *g, GBOX *gbox);
+int gserialized_read_gbox_p(const GSERIALIZED *g, GBOX *gbox);
+
+/*
+ * Populate a bounding box *without* allocating an LWGEOM. Useful for some performance
+ * purposes. Use only if gserialized_read_gbox_p failed
+ */
+int gserialized_peek_gbox_p(const GSERIALIZED *g, GBOX *gbox);
+
+/**
+* Calculate required memory segment to contain a serialized form of the LWGEOM.
+* Primarily used internally by the serialization code. Exposed to allow the cunit
+* tests to exercise it.
+*/
+size_t gserialized_from_lwgeom_size(const LWGEOM *geom);
 
 /*
 * Length calculations
@@ -310,18 +298,23 @@ double lwtriangle_perimeter_2d(const LWTRIANGLE *triangle);
 /*
 * Segmentization
 */
-LWLINE *lwcompound_stroke(const LWCOMPOUND *icompound, uint32_t perQuad);
 LWPOLY *lwcurvepoly_stroke(const LWCURVEPOLY *curvepoly, uint32_t perQuad);
 
 /*
 * Affine
 */
 void ptarray_affine(POINTARRAY *pa, const AFFINE *affine);
+void affine_invert(AFFINE *affine);
 
 /*
 * Scale
 */
 void ptarray_scale(POINTARRAY *pa, const POINT4D *factor);
+
+/*
+* Scroll
+*/
+int ptarray_scroll_in_place(POINTARRAY *pa, const POINT4D *newbase);
 
 /*
 * PointArray
@@ -331,24 +324,61 @@ int ptarray_has_m(const POINTARRAY *pa);
 double ptarray_signed_area(const POINTARRAY *pa);
 
 /*
+* Length
+*/
+double ptarray_length(const POINTARRAY *pts);
+double ptarray_arc_length_2d(const POINTARRAY *pts);
+
+/*
 * Clone support
 */
+LWPOINT *lwpoint_clone(const LWPOINT *lwgeom);
 LWLINE *lwline_clone(const LWLINE *lwgeom);
 LWPOLY *lwpoly_clone(const LWPOLY *lwgeom);
 LWTRIANGLE *lwtriangle_clone(const LWTRIANGLE *lwgeom);
 LWCOLLECTION *lwcollection_clone(const LWCOLLECTION *lwgeom);
 LWCIRCSTRING *lwcircstring_clone(const LWCIRCSTRING *curve);
 POINTARRAY *ptarray_clone(const POINTARRAY *ptarray);
-GBOX *box2d_clone(const GBOX *lwgeom);
 LWLINE *lwline_clone_deep(const LWLINE *lwgeom);
 LWPOLY *lwpoly_clone_deep(const LWPOLY *lwgeom);
 LWCOLLECTION *lwcollection_clone_deep(const LWCOLLECTION *lwgeom);
 GBOX *gbox_clone(const GBOX *gbox);
 
 /*
- * Reverse
- */
-extern void lwcircstring_reverse(LWCIRCSTRING *curve);
+* Clockwise
+*/
+void lwpoly_force_clockwise(LWPOLY *poly);
+void lwtriangle_force_clockwise(LWTRIANGLE *triangle);
+int lwpoly_is_clockwise(LWPOLY *poly);
+int lwtriangle_is_clockwise(LWTRIANGLE *triangle);
+int ptarray_isccw(const POINTARRAY *pa);
+
+/*
+* Same
+*/
+char ptarray_same(const POINTARRAY *pa1, const POINTARRAY *pa2);
+char lwpoint_same(const LWPOINT *p1, const LWPOINT *p2);
+char lwline_same(const LWLINE *p1, const LWLINE *p2);
+char lwpoly_same(const LWPOLY *p1, const LWPOLY *p2);
+char lwtriangle_same(const LWTRIANGLE *p1, const LWTRIANGLE *p2);
+char lwcollection_same(const LWCOLLECTION *p1, const LWCOLLECTION *p2);
+char lwcircstring_same(const LWCIRCSTRING *p1, const LWCIRCSTRING *p2);
+
+/*
+* Shift
+*/
+void ptarray_longitude_shift(POINTARRAY *pa);
+
+/*
+* Support for in place modification of point arrays, fast
+* function to move coordinate values around
+*/
+void ptarray_copy_point(POINTARRAY *pa, uint32_t from, uint32_t to);
+
+/*
+* Reverse
+*/
+void ptarray_reverse_in_place(POINTARRAY *pa);
 
 /*
 * Startpoint
@@ -366,12 +396,9 @@ void closest_point_on_segment(const POINT4D *R, const POINT4D *A, const POINT4D 
 /*
 * Repeated points
 */
-POINTARRAY *ptarray_remove_repeated_points_minpoints(const POINTARRAY *in, double tolerance, int minpoints);
 POINTARRAY *ptarray_remove_repeated_points(const POINTARRAY *in, double tolerance);
-LWGEOM* lwmpoint_remove_repeated_points(const LWMPOINT *in, double tolerance);
 LWGEOM* lwline_remove_repeated_points(const LWLINE *in, double tolerance);
-LWGEOM* lwcollection_remove_repeated_points(const LWCOLLECTION *in, double tolerance);
-LWGEOM* lwpoly_remove_repeated_points(const LWPOLY *in, double tolerance);
+void ptarray_remove_repeated_points_in_place(POINTARRAY *pa, double tolerance, uint32_t min_points);
 
 /*
 * Closure test
@@ -386,30 +413,7 @@ int lwtin_is_closed(const LWTIN *tin);
 /**
 * Snap to grid
 */
-
-/**
-* Snap-to-grid Support
-*/
-typedef struct gridspec_t
-{
-	double ipx;
-	double ipy;
-	double ipz;
-	double ipm;
-	double xsize;
-	double ysize;
-	double zsize;
-	double msize;
-}
-gridspec;
-
-LWGEOM* lwgeom_grid(const LWGEOM *lwgeom, const gridspec *grid);
-LWCOLLECTION* lwcollection_grid(const LWCOLLECTION *coll, const gridspec *grid);
-LWPOINT* lwpoint_grid(const LWPOINT *point, const gridspec *grid);
-LWPOLY* lwpoly_grid(const LWPOLY *poly, const gridspec *grid);
-LWLINE* lwline_grid(const LWLINE *line, const gridspec *grid);
-LWCIRCSTRING* lwcircstring_grid(const LWCIRCSTRING *line, const gridspec *grid);
-POINTARRAY* ptarray_grid(const POINTARRAY *pa, const gridspec *grid);
+void ptarray_grid_in_place(POINTARRAY *pa, const gridspec *grid);
 
 /*
 * What side of the line formed by p1 and p2 does q fall?
@@ -445,10 +449,10 @@ int lwgeom_contains_point(const LWGEOM *geom, const POINT2D *pt);
 int lwline_split_by_point_to(const LWLINE* ln, const LWPOINT* pt, LWMLINE* to);
 
 /** Ensure the collection can hold at least up to ngeoms geometries */
-void lwcollection_reserve(LWCOLLECTION *col, int ngeoms);
+void lwcollection_reserve(LWCOLLECTION *col, uint32_t ngeoms);
 
 /** Check if subtype is allowed in collectiontype */
-extern int lwcollection_allows_subtype(int collectiontype, int subtype);
+int lwcollection_allows_subtype(int collectiontype, int subtype);
 
 /** GBOX utility functions to figure out coverage/location on the globe */
 double gbox_angular_height(const GBOX* gbox);
@@ -456,25 +460,26 @@ double gbox_angular_width(const GBOX* gbox);
 int gbox_centroid(const GBOX* gbox, POINT2D* out);
 
 /* Utilities */
-extern void trim_trailing_zeros(char *num);
-
+int lwprint_double(double d, int maxdd, char *buf);
 extern uint8_t MULTITYPE[NUMTYPES];
 
-extern THR_LOCAL lwinterrupt_callback *_lwgeom_interrupt_callback;
-extern THR_LOCAL int _lwgeom_interrupt_requested;
+extern lwinterrupt_callback *_lwgeom_interrupt_callback;
+extern int _lwgeom_interrupt_requested;
 #define LW_ON_INTERRUPT(x) { \
-  if ( _lwgeom_interrupt_callback ) { \
-    (*_lwgeom_interrupt_callback)(); \
-  } \
-  if ( _lwgeom_interrupt_requested ) { \
-    _lwgeom_interrupt_requested = 0; \
-    lwnotice("liblwgeom code interrupted"); \
-    x; \
-  } \
+	if ( _lwgeom_interrupt_callback ) { \
+		(*_lwgeom_interrupt_callback)(); \
+	} \
+	if ( _lwgeom_interrupt_requested ) { \
+		_lwgeom_interrupt_requested = 0; \
+		lwnotice("liblwgeom code interrupted"); \
+		x; \
+	} \
 }
 
 int ptarray_npoints_in_rect(const POINTARRAY *pa, const GBOX *gbox);
 int gbox_contains_point2d(const GBOX *g, const POINT2D *p);
 int lwpoly_contains_point(const LWPOLY *poly, const POINT2D *pt);
+POINT4D* lwmpoint_extract_points_4d(const LWMPOINT* g, uint32_t* npoints, int* input_empty);
+char* lwstrdup(const char* a);
 
 #endif /* _LIBLWGEOM_INTERNAL_H */

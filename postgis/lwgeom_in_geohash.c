@@ -22,8 +22,11 @@
  *
  **********************************************************************/
 
+
 #include <assert.h>
-#include "extension_dependency.h"
+
+#include "postgres.h"
+#include "utils/builtins.h"
 
 #include "../postgis_config.h"
 #include "lwgeom_pg.h"
@@ -33,13 +36,12 @@
 extern "C" Datum box2d_from_geohash(PG_FUNCTION_ARGS);
 extern "C" Datum point_from_geohash(PG_FUNCTION_ARGS);
 
-static void geohash_lwpgerror(char *msg, int error_code)
+static void geohash_lwpgerror(char *msg, __attribute__((__unused__)) int error_code)
 {
 	POSTGIS_DEBUGF(3, "ST_Box2dFromGeoHash ERROR %i", error_code);
 	lwpgerror("%s", msg);
 }
 
-#include "lwgeom_export.h"
 
 static GBOX*
 parse_geohash(char *geohash, int precision)
@@ -59,7 +61,7 @@ parse_geohash(char *geohash, int precision)
 	POSTGIS_DEBUGF(2, "ST_Box2dFromGeoHash sw: %.20f, %.20f", lon[0], lat[0]);
 	POSTGIS_DEBUGF(2, "ST_Box2dFromGeoHash ne: %.20f, %.20f", lon[1], lat[1]);
 
-	box = gbox_new(gflags(0, 0, 1));
+	box = gbox_new(lwflags(0, 0, 1));
 
 	box->xmin = lon[0];
 	box->ymin = lat[0];
@@ -90,7 +92,7 @@ Datum box2d_from_geohash(PG_FUNCTION_ARGS)
 	}
 
 	geohash_input = PG_GETARG_TEXT_P(0);
-	geohash = text2cstring(geohash_input);
+	geohash = text_to_cstring(geohash_input);
 
 	box = parse_geohash(geohash, precision);
 
@@ -119,7 +121,7 @@ Datum point_from_geohash(PG_FUNCTION_ARGS)
 	}
 
 	geohash_input = PG_GETARG_TEXT_P(0);
-	geohash = text2cstring(geohash_input);
+	geohash = text_to_cstring(geohash_input);
 
 	box = parse_geohash(geohash, precision);
 

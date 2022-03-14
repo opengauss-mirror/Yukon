@@ -26,18 +26,6 @@ typedef struct
 #define GIDX_MAX_SIZE 36
 #define GIDX_MAX_DIM 4
 
-
-/*
- * This macro is based on PG_FREE_IF_COPY, except that it accepts two pointers.
- * See PG_FREE_IF_COPY comment in src/include/fmgr.h in postgres source code
- * for more details.
- */
-#define POSTGIS_FREE_IF_COPY_P(ptrsrc, ptrori) \
-	do { \
-		if ((Pointer) (ptrsrc) != (Pointer) (ptrori)) \
-			pfree(ptrsrc); \
-	} while (0)
-
 /**********************************************************************
 **  BOX2DF structure.
 **
@@ -51,7 +39,6 @@ typedef struct
 	float xmin, xmax, ymin, ymax;
 } BOX2DF;
 
-
 /*********************************************************************************
 ** GIDX support functions.
 **
@@ -61,14 +48,13 @@ typedef struct
 */
 
 /* allocate a new gidx object on the heap */
-GIDX* gidx_new(int ndims) ;
+GIDX *gidx_new(int ndims);
 
-/* Increase the size of a GIDX */
-void gidx_expand(GIDX *a, float d);
-
+/* Note empty GIDX */
+bool gidx_is_unknown(const GIDX *a);
 
 /* Generate human readable form for GIDX. */
-char* gidx_to_string(GIDX *a) ;
+char *gidx_to_string(GIDX *a);
 
 /* typedef to correct array-bounds checking for casts to GIDX - do not
    use this ANYWHERE except in the casts below */
@@ -77,15 +63,36 @@ typedef float _gidx_float_array[sizeof(float) * 2 * 4];
 /* Returns number of dimensions for this GIDX */
 #define GIDX_NDIMS(gidx) ((VARSIZE((gidx)) - VARHDRSZ) / (2 * sizeof(float)))
 /* Minimum accessor. */
-#define GIDX_GET_MIN(gidx, dimension) (*((_gidx_float_array *)(&(gidx)->c)))[2*(dimension)]
+#define GIDX_GET_MIN(gidx, dimension) (*((_gidx_float_array *)(&(gidx)->c)))[2 * (dimension)]
 /* Maximum accessor. */
-#define GIDX_GET_MAX(gidx, dimension) (*((_gidx_float_array *)(&(gidx)->c)))[2*(dimension)+1]
+#define GIDX_GET_MAX(gidx, dimension) (*((_gidx_float_array *)(&(gidx)->c)))[2 * (dimension) + 1]
 /* Minimum setter. */
-#define GIDX_SET_MIN(gidx, dimension, value) ((gidx)->c[2*(dimension)] = (value))
+#define GIDX_SET_MIN(gidx, dimension, value) ((gidx)->c[2 * (dimension)] = (value))
 /* Maximum setter. */
-#define GIDX_SET_MAX(gidx, dimension, value) ((gidx)->c[2*(dimension)+1] = (value))
+#define GIDX_SET_MAX(gidx, dimension, value) ((gidx)->c[2 * (dimension) + 1] = (value))
 /* Returns the size required to store a GIDX of requested dimension */
-#define GIDX_SIZE(dimensions) (sizeof(int32) + 2*(dimensions)*sizeof(float))
+#define GIDX_SIZE(dimensions) (sizeof(int32) + 2 * (dimensions) * sizeof(float))
+
+/* Allocate a copy of the box */
+BOX2DF *box2df_copy(BOX2DF *b);
+
+/* Grow the first argument to contain the second */
+void box2df_merge(BOX2DF *b_union, BOX2DF *b_new);
+
+/* Allocate a copy of the box */
+GIDX *gidx_copy(GIDX *b);
+
+/* Grow the first argument to contain the second */
+void gidx_merge(GIDX **b_union, GIDX *b_new);
+
+/* Note empty BOX2DF */
+extern "C" bool box2df_is_empty(const BOX2DF *a);
+
+/* Fill in a gbox from a GIDX */
+void gbox_from_gidx(GIDX *a, GBOX *gbox, int flags);
+
+/* Fill in a gbox from a BOX2DF */
+int box2df_to_gbox_p(BOX2DF *a, GBOX *box);
 
 /*********************************************************************************
 ** GSERIALIZED support functions.
@@ -93,21 +100,27 @@ typedef float _gidx_float_array[sizeof(float) * 2 * 4];
 ** Fast functions for pulling boxes out of serializations.
 */
 
-/* Pull out the #GIDX bounding box with a absolute minimum system overhead */
+/* Pull out the #GIDX bounding box and flags with a absolute minimum system overhead */
 int gserialized_datum_get_gidx_p(Datum gserialized_datum, GIDX *gidx);
-
-/* Pull out the gidx bounding box from an already de-toasted geography */
-int gserialized_get_gidx_p(const GSERIALIZED *g, GIDX *gidx);
-/* Copy a new bounding box into an existing gserialized */
-GSERIALIZED* gserialized_set_gidx(GSERIALIZED *g, GIDX *gidx);
-
-/* Given two datums, do they overlap? Computed very fast using embedded boxes. */
-/* int gserialized_datum_overlaps(Datum gs1, Datum gs2); */
-/* Remove the box from a disk serialization */
-GSERIALIZED* gserialized_drop_gidx(GSERIALIZED *g);
-
-bool box2df_contains(const BOX2DF *a, const BOX2DF *b);
-bool gidx_contains(GIDX *a, GIDX *b);
 int gserialized_datum_get_box2df_p(Datum gsdatum, BOX2DF *box2df);
 
+bool box2df_contains(const BOX2DF *a, const BOX2DF *b);
+void box2df_set_empty(BOX2DF *a);
+void box2df_set_finite(BOX2DF *a);
+void box2df_validate(BOX2DF *b);
+bool box2df_overlaps(const BOX2DF *a, const BOX2DF *b);
+bool box2df_overleft(const BOX2DF *a, const BOX2DF *b);
+bool box2df_equals(const BOX2DF *a, const BOX2DF *b);
+bool box2df_left(const BOX2DF *a, const BOX2DF *b);
+bool box2df_right(const BOX2DF *a, const BOX2DF *b);
+bool box2df_overright(const BOX2DF *a, const BOX2DF *b);
+bool box2df_overbelow(const BOX2DF *a, const BOX2DF *b);
+bool box2df_below(const BOX2DF *a, const BOX2DF *b);
+bool box2df_above(const BOX2DF *a, const BOX2DF *b);
+bool box2df_overabove(const BOX2DF *a, const BOX2DF *b);
 
+void gidx_validate(GIDX *b);
+void gidx_set_unknown(GIDX *a);
+bool gidx_overlaps(GIDX *a, GIDX *b);
+bool gidx_equals(GIDX *a, GIDX *b);
+bool gidx_contains(GIDX *a, GIDX *b);

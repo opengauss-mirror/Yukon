@@ -58,10 +58,10 @@ static void test_unionfind_ordered_by_cluster(void)
 	/* Manually create UF at desired final state */
 	UNIONFIND uf =
 	{
-		.clusters = final_clusters,
-		.cluster_sizes = final_sizes,
+		.N = 10,
 		.num_clusters = 5,
-		.N = 10
+		.clusters = final_clusters,
+		.cluster_sizes = final_sizes
 	};
 
 	uint32_t* ids_by_cluster = UF_ordered_by_cluster(&uf);
@@ -151,7 +151,7 @@ static void test_unionfind_collapse_cluster_ids(void)
 	uint32_t expected_collapsed_ids2[] = { 8, 0, 0, 0, 7, 0, 8, 7, 8, 7 };
 
 	collapsed_ids = UF_get_collapsed_cluster_ids(uf, is_in_cluster);
-	int i;
+	uint32_t i;
 	for (i = 0; i < uf->N; i++)
 	{
 		if (is_in_cluster[i])
@@ -165,7 +165,7 @@ static void test_unionfind_collapse_cluster_ids(void)
 void unionfind_suite_setup(void);
 void unionfind_suite_setup(void)
 {
-	CU_pSuite suite = CU_add_suite("Clustering Union-Find", NULL, NULL);
+	CU_pSuite suite = CU_add_suite("clustering_unionfind", NULL, NULL);
 	PG_ADD_TEST(suite, test_unionfind_create);
 	PG_ADD_TEST(suite, test_unionfind_union);
 	PG_ADD_TEST(suite, test_unionfind_ordered_by_cluster);

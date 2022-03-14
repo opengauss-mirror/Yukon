@@ -3,9 +3,11 @@ include ../upgradeable_versions.mk
 EXTENSION     = postgis_raster
 EXTVERSION    = @POSTGIS_LIB_VERSION@
 MINORVERSION  = @POSTGIS_MAJOR_VERSION@.@POSTGIS_MINOR_VERSION@
-MODULEPATH    = $$libdir/$(EXTENSION)-$(MINORVERSION)
+MODULEPATH    = $$libdir/$(EXTENSION)-@POSTGIS_MAJOR_VERSION@
 
-
+ifeq (@LIBINCLUDEMINORVERSION@,yes)
+MODULEPATH=$$libdir/$(EXTENSION)-$(MINORVERSION)
+endif
 GREP = @GREP@
 
 # SQL preprocessor
@@ -30,14 +32,15 @@ PREREL_PREFIX = $(shell echo $(EXTVERSION) | \
 DATA_built = \
 	$(EXTENSION).control \
 	sql/$(EXTENSION)--$(EXTVERSION).sql \
+	sql/$(EXTENSION)--unpackaged.sql \
 	sql/$(EXTENSION)--unpackaged--$(EXTVERSION).sql \
 	$(NULL)
 
 # Scripts making up the extension file
 # NOTE: order matters
 EXTENSION_SCRIPTS = \
-	sql/rtpostgis.sql 
-#	sql/raster_comments.sql
+	sql/rtpostgis.sql \
+	sql/raster_comments.sql
 
 # Scripts making up the extension minor upgrade file
 # NOTE: order matters
@@ -50,7 +53,7 @@ EXTENSION_UPGRADE_SCRIPTS = \
 # Scripts making up the extension upgrade-from-unpackaged file
 # NOTE: order matters
 EXTENSION_UNPACKAGED_UPGRADE_SCRIPTS = \
-	sql/rtpostgis.sql
+	sql/$(EXTENSION)--$(EXTVERSION).sql
 
 EXTRA_CLEAN = sql
 
@@ -61,16 +64,23 @@ all: sql/$(EXTENSION)--$(EXTVERSION).sql sql/$(EXTENSION)--unpackaged--$(EXTVERS
 sql:
 	mkdir -p $@
 
-sql/$(EXTENSION).sql: $(EXTENSION_SCRIPTS) | sql
+$(EXTENSION).control: $(EXTENSION).control.in Makefile
+	cat $< \
+		| sed -e 's|@EXTVERSION@|$(EXTVERSION)|g' \
+		| sed -e 's|@EXTENSION@|$(EXTENSION)|g' \
+		| sed -e 's|@MODULEPATH@|$(MODULEPATH)|g' \
+		> $@
+
+sql/$(EXTENSION)--$(EXTVERSION).sql: $(EXTENSION_SCRIPTS) | sql
 	printf '\\echo Use "CREATE EXTENSION $(EXTENSION)" to load this file. \\quit\n' > $@
 	cat $^ >> $@
 
+sql/$(EXTENSION)--unpackaged.sql: Makefile | sql
+	echo "-- Nothing to do here" > $@
 
-sql/$(EXTENSION)--$(EXTVERSION).sql: sql/$(EXTENSION).sql | sql
-	cp $< $@
-
-sql/$(EXTENSION)--unpackaged--$(EXTVERSION).sql: $(EXTENSION_UNPACKAGED_UPGRADE_SCRIPTS) ../../utils/create_unpackaged.pl Makefile | sql
+sql/$(EXTENSION)--unpackaged--$(EXTVERSION).sql: $(EXTENSION_UNPACKAGED_UPGRADE_SCRIPTS) ../../utils/create_unpackaged.pl sql/$(EXTENSION)--ANY--$(EXTVERSION).sql Makefile | sql
 	# Ensure version is correct
+	cat sql/$(EXTENSION)--ANY--$(EXTVERSION).sql > $@
 	cat $(EXTENSION_UNPACKAGED_UPGRADE_SCRIPTS) | $(PERL) ../../utils/create_unpackaged.pl postgis_raster >> $@
 
 unpackaged_check.sql: unpackaged_check.sql.in Makefile
@@ -82,7 +92,7 @@ unpackaged_check.sql: unpackaged_check.sql.in Makefile
 sql/rtpostgis.sql: sql/rtpostgis_for_extension.sql | sql
 	$(PERL) -pe 's/BEGIN\;//g ; s/COMMIT\;//g' $< > $@
 
-sql/rtpostgis_for_extension.sql: ../../raster/rt_pg/rtpostgis.sql.in | sql
+sql/rtpostgis_for_extension.sql: ../../raster/rt_pg/rtpostgis.sql.in ../../postgis_revision.h | sql
 	$(SQLPP) -I../../postgis/ -I../../ $< | grep -v '^#' | \
 	$(PERL) -lpe "s'MODULE_PATHNAME'\$(MODULEPATH)'g" > $@
 
@@ -105,6 +115,12 @@ sql/rtpostgis_upgrade_for_extension.sql.in: sql/rtpostgis_for_extension.sql ../.
 
 sql/raster_comments.sql: ../../doc/raster_comments.sql | sql
 	cp $< $@
+
+sql/$(EXTENSION)--ANY--$(EXTVERSION).sql: $(EXTENSION_UPGRADE_SCRIPTS) | sql
+	printf '\\echo Use "CREATE EXTENSION $(EXTENSION)" to load this file. \\quit\n' > $@
+	cat $(EXTENSION_UPGRADE_SCRIPTS) >> $@
+
+include ../upgrade-paths-rules.mk
 
 distclean: clean
 	rm -f Makefile

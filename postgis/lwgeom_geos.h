@@ -28,14 +28,14 @@
 
 #include "../liblwgeom/lwgeom_geos.h" /* for GEOSGeom */
 #include "liblwgeom.h" /* for GSERIALIZED */
-
+#include "utils/array.h" /* for ArrayType */
 
 /*
 ** Public prototypes for GEOS utility functions.
 */
 
 GSERIALIZED *GEOS2POSTGIS(GEOSGeom geom, char want3d);
-GEOSGeometry * POSTGIS2GEOS(GSERIALIZED *g);
+GEOSGeometry *POSTGIS2GEOS(const GSERIALIZED *g);
 GEOSGeometry** ARRAY2GEOS(ArrayType* array, uint32_t nelems, int* is3d, int* srid);
 LWGEOM** ARRAY2LWGEOM(ArrayType* array, uint32_t nelems, int* is3d, int* srid);
 
@@ -45,9 +45,8 @@ extern "C" Datum geos_difference(PG_FUNCTION_ARGS);
 extern "C" Datum geos_geomunion(PG_FUNCTION_ARGS);
 extern "C" Datum LWGEOM_area_polygon(PG_FUNCTION_ARGS);
 extern "C" Datum LWGEOM_mindistance2d(PG_FUNCTION_ARGS);
-extern "C" Datum LWGEOM_mindistance3d(PG_FUNCTION_ARGS);
+extern "C" Datum ST_3DDistance(PG_FUNCTION_ARGS);
 
-void errorIfGeometryCollection(GSERIALIZED *g1, GSERIALIZED *g2);
 uint32_t array_nelems_not_null(ArrayType* array);
 
 #endif /* LWGEOM_GEOS_H_ */

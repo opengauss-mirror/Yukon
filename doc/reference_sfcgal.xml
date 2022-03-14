@@ -3,20 +3,14 @@
 	<sect1info>
 		<abstract>
 				<para>
-            SFCGAL is a C++ wrapper  library around CGAL that provides advanced 2D and 3D functions.
-            For robustness, geometry coordinates have an exact rational number representation.
+          SFCGAL is a C++ wrapper library around CGAL that provides advanced 2D and 3D spatial functions.
+          For robustness, geometry coordinates have an exact rational number representation.
         </para>
         <para>
-            Installation instructions of the library can be found on SFCGAL home page <ulink url="http://www.sfcgal.org">http://www.sfcgal.org</ulink>.
-            To load the functions create extension postgis_sfcgal.
+          Installation instructions for the library can be found on the SFCGAL home page (<ulink url="http://www.sfcgal.org">http://www.sfcgal.org</ulink>).
+          To enable the functions use <code>create extension postgis_sfcgal</code>.
         </para>
-        <para>
-          Some SFCGAL functions replace standard ones (ST_Intersects, ST_Intersection, ST_Difference, ST_Union, ST_Area and ST_Distance), to switch between standard functions and SFCGAL function use:
-	<programlisting>SET postgis.backend = sfcgal;</programlisting>
-	and
-	<programlisting>SET postgis.backend = geos;</programlisting>
 
-        </para>
 		</abstract>
 	</sect1info>
 	<title>SFCGAL Functions</title>
@@ -425,7 +419,7 @@ around ST_StraightSkeleton (slower case).
             <programlisting>
 SELECT ST_MinkowskiSum(line, circle))
 FROM (SELECT
-    ST_MakeLine(ST_MakePoint(10, 10),ST_MakePoint(100, 100)) As line,
+    ST_MakeLine(ST_Point(10, 10),ST_Point(100, 100)) As line,
     ST_Buffer(ST_GeomFromText('POINT(50 50)'), 30) As circle) As foo;
 
 -- wkt --
@@ -481,7 +475,88 @@ MULTIPOLYGON(
        </refsection>
 
 	</refentry>
+	<refentry id="ST_ConstrainedDelaunayTriangles">
+		<refnamediv>
+			<refname>ST_ConstrainedDelaunayTriangles</refname>
 
+			<refpurpose>
+Return a constrained Delaunay triangulation around the given input geometry.
+			</refpurpose>
+		</refnamediv>
+
+		<refsynopsisdiv>
+			<funcsynopsis>
+			  <funcprototype>
+				<funcdef>geometry <function>ST_ConstrainedDelaunayTriangles</function></funcdef>
+				<paramdef><type>geometry </type> <parameter>g1</parameter></paramdef>
+			  </funcprototype>
+			</funcsynopsis>
+		</refsynopsisdiv>
+
+		  <refsection>
+			<title>Description</title>
+
+			<para>
+Return a <ulink
+url="https://en.wikipedia.org/wiki/Constrained_Delaunay_triangulation">Constrained Delaunay
+triangulation</ulink> around the vertices of the input geometry.
+Output is a TIN.
+			</para>
+			<para>&sfcgal_required;</para>
+			<para>Availability: 3.0.0</para>
+			<para>&Z_support;</para>
+		</refsection>
+			  <refsection>
+		<title>Examples</title>
+			<informaltable>
+				  <tgroup cols="2">
+					<tbody>
+					  <row>
+						  <entry><para><informalfigure>
+							<mediaobject>
+							  <imageobject>
+								<imagedata fileref="images/st_constraineddelaunaytriangles01.png" />
+							  </imageobject>
+							  <caption><para>ST_ConstrainedDelaunayTriangles of 2 polygons</para></caption>
+							</mediaobject>
+						  </informalfigure>
+						  <programlisting>
+select ST_ConstrainedDelaunayTriangles(
+               ST_Union(
+                       'POLYGON((175 150, 20 40, 50 60, 125 100, 175 150))'::geometry,
+                       ST_Buffer('POINT(110 170)'::geometry, 20)
+                   )
+           );
+				</programlisting>
+						  </para></entry>
+							<entry><para><informalfigure>
+							<mediaobject>
+							  <imageobject>
+								<imagedata fileref="images/st_constraineddelaunaytriangles02.png" />
+							  </imageobject>
+							  <caption><para><xref linkend="ST_DelaunayTriangles" />  of 2 polygons. Triangle edges cross polygon boundaries.</para></caption>
+							</mediaobject>
+						  </informalfigure>
+						  <programlisting>
+select ST_DelaunayTriangles(
+               ST_Union(
+                       'POLYGON((175 150, 20 40, 50 60, 125 100, 175 150))'::geometry,
+                       ST_Buffer('POINT(110 170)'::geometry, 20)
+                   )
+	   );
+</programlisting>
+						  </para></entry>
+			 </row>
+		</tbody>
+	</tgroup>
+</informaltable>
+	  </refsection>
+		<refsection>
+			<title>See Also</title>
+			<para><xref linkend="ST_DelaunayTriangles" />,  <xref linkend="ST_Tesselate" />, <xref linkend="ST_ConcaveHull" />, <xref linkend="ST_Dump" />
+			</para>
+		</refsection>
+	</refentry>
 	<refentry id="ST_3DIntersection">
 	  <refnamediv>
 		<refname>ST_3DIntersection</refname>
@@ -825,7 +900,7 @@ FROM ( SELECT ST_Extrude(ST_Buffer(ST_GeomFromText('POINT(100 90)'),
 
 	  <refsection>
 		<title>Description</title>
-		<para>Takes as input a surface such a  MULTI(POLYGON) or POLYHEDRALSURFACE and returns a TIN representation via the process of tesselation using triangles.</para>
+		<para>Takes as input a surface such a  MULTI(POLYGON) or POLYHEDRALSURFACE and returns a TIN representation via the process of tessellation using triangles.</para>
 		<para>Availability: 2.1.0</para>
 		<para>&sfcgal_required;</para>
 		<para>&Z_support;</para>
@@ -909,7 +984,14 @@ FROM ( SELECT ST_Extrude(ST_Buffer(ST_GeomFromText('POINT(100 90)'),
 				</tbody>
 				</tgroup>
 			</informaltable>
-	  </refsection>
+		</refsection>
+
+		<refsection>
+                <title>See Also</title>
+
+                <para><xref linkend="ST_ConstrainedDelaunayTriangles" />, <xref linkend="ST_DelaunayTriangles" /></para>
+          </refsection>
+
 
 	</refentry>
 

@@ -26,7 +26,9 @@
 #include "../postgis_config.h"
 
 /* PostgreSQL */
-#include "extension_dependency.h"
+#include "postgres.h"
+#include "funcapi.h"
+//#include "windowapi.h"
 
 /* PostGIS */
 #include "liblwgeom.h"
@@ -35,8 +37,8 @@
 #include "lwgeom_log.h"
 #include "lwgeom_pg.h"
 
-extern "C"  Datum ST_ClusterDBSCAN(PG_FUNCTION_ARGS);
-extern "C" Datum ST_ClusterKMeans(PG_FUNCTION_ARGS);
+extern Datum ST_ClusterDBSCAN(PG_FUNCTION_ARGS);
+extern Datum ST_ClusterKMeans(PG_FUNCTION_ARGS);
 
 typedef struct {
 	bool	isdone;
@@ -117,7 +119,7 @@ Datum ST_ClusterDBSCAN(PG_FUNCTION_ARGS)
 		uf = UF_create(ngeoms);
 		for (i = 0; i < ngeoms; i++)
 		{
-			geoms[i] = read_lwgeom_from_partition(win_obj, i, (bool *)(context->cluster_assignments[i].is_null));
+			geoms[i] = read_lwgeom_from_partition(win_obj, i, (bool*)&(context->cluster_assignments[i].is_null));
 
 			if (!geoms[i]) {
 				/* TODO release memory ? */
@@ -183,11 +185,14 @@ Datum ST_ClusterKMeans(PG_FUNCTION_ARGS)
 	{
 		int       i, k, N;
 		bool      isnull, isout;
+		double max_radius = 0.0;
 		LWGEOM    **geoms;
 		int       *r;
+		Datum argdatum;
 
 		/* What is K? If it's NULL or invalid, we can't procede */
-		k = DatumGetInt32(WinGetFuncArgCurrent(winobj, 1, &isnull));
+		argdatum = WinGetFuncArgCurrent(winobj, 1, &isnull);
+		k = DatumGetInt32(argdatum);
 		if (isnull || k <= 0)
 		{
 			context->isdone = true;
@@ -204,11 +209,18 @@ Datum ST_ClusterKMeans(PG_FUNCTION_ARGS)
 			PG_RETURN_NULL();
 		}
 
+		/* Maximum cluster radius. 0 if not set*/
+		argdatum = WinGetFuncArgCurrent(winobj, 2, &isnull);
+		if (!isnull)
+		{
+			max_radius = DatumGetFloat8(argdatum);
+			if (max_radius < 0)
+				max_radius = 0.0;
+		}
+
 		/* Error out if N < K */
 		if (N<k)
-		{
 			lwpgerror("K (%d) must be smaller than the number of rows in the group (%d)", k, N);
-		}
 
 		/* Read all the geometries from the partition window into a list */
 		geoms = palloc(sizeof(LWGEOM*) * N);
@@ -230,7 +242,7 @@ Datum ST_ClusterKMeans(PG_FUNCTION_ARGS)
 		}
 
 		/* Calculate k-means on the list! */
-		r = lwgeom_cluster_2d_kmeans((const LWGEOM **)geoms, N, k);
+		r = lwgeom_cluster_kmeans((const LWGEOM **)geoms, N, k, max_radius);
 
 		/* Clean up */
 		for (i = 0; i < N; i++)
@@ -248,7 +260,7 @@ Datum ST_ClusterKMeans(PG_FUNCTION_ARGS)
 
 		/* Safe the result */
 		memcpy(context->result, r, sizeof(int) * N);
-		pfree(r);
+		lwfree(r);
 		context->isdone = true;
 	}
 

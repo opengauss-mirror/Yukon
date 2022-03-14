@@ -1,0 +1,5 @@
+NOTICE:  CREATE TABLE will create implicit sequence "tbl_geomcollection_nd_k_seq" for serial column "tbl_geomcollection_nd.k"
+&&&|180502|Seq Scan|180502|Index Scan
+~~ |39682|Seq Scan|39682|Index Scan
+@@ |39682|Seq Scan|39682|Index Scan
+~~=|480|Seq Scan|480|Index Scan

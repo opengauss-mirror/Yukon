@@ -24,6 +24,7 @@
 
 
 #include <math.h>
+#include <stddef.h> // for ptrdiff_t
 
 #include "liblwgeom_internal.h"
 #include "lwgeom_log.h"
@@ -36,10 +37,10 @@ static size_t lwgeom_to_wkb_size(const LWGEOM *geom, uint8_t variant);
 */
 static char *hexchr = "0123456789ABCDEF";
 
-char* hexbytes_from_bytes(uint8_t *bytes, size_t size)
+char* hexbytes_from_bytes(const uint8_t *bytes, size_t size)
 {
 	char *hex;
-	int i;
+	uint32_t i;
 	if ( ! bytes || ! size )
 	{
 		lwerror("hexbutes_from_bytes: invalid input");
@@ -131,8 +132,7 @@ static uint32_t lwgeom_wkb_type(const LWGEOM *geom, uint8_t variant)
 		wkb_type = WKB_TRIANGLE_TYPE;
 		break;
 	default:
-		lwerror("Unsupported geometry type: %s [%d]",
-			lwtype_name(geom->type), geom->type);
+		lwerror("%s: Unsupported geometry type: %s", __func__, lwtype_name(geom->type));
 	}
 
 	if ( variant & WKB_EXTENDED )
@@ -182,8 +182,8 @@ static uint8_t* endian_to_wkb_buf(uint8_t *buf, uint8_t variant)
 static inline int wkb_swap_bytes(uint8_t variant)
 {
 	/* If requested variant matches machine arch, we don't have to swap! */
-	if ( ((variant & WKB_NDR) && (getMachineEndian() == NDR)) ||
-	     ((! (variant & WKB_NDR)) && (getMachineEndian() == XDR)) )
+	if (((variant & WKB_NDR) && !IS_BIG_ENDIAN) ||
+	    ((!(variant & WKB_NDR)) && IS_BIG_ENDIAN))
 	{
 		return LW_FALSE;
 	}
@@ -193,9 +193,10 @@ static inline int wkb_swap_bytes(uint8_t variant)
 /*
 * Integer32
 */
-static uint8_t* integer_to_wkb_buf(const int ival, uint8_t *buf, uint8_t variant)
+static uint8_t *
+integer_to_wkb_buf(const uint32_t ival, uint8_t *buf, uint8_t variant)
 {
-	char *iptr = (char*)(&ival);
+	uint8_t *iptr = (uint8_t *)(&ival);
 	int i = 0;
 
 	if ( sizeof(int) != WKB_INT_SIZE )
@@ -237,12 +238,40 @@ static uint8_t* integer_to_wkb_buf(const int ival, uint8_t *buf, uint8_t variant
 	}
 }
 
+static uint8_t* double_nan_to_wkb_buf(uint8_t *buf, uint8_t variant)
+{
+#define NAN_SIZE 8
+	const uint8_t ndr_nan[NAN_SIZE] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf8, 0x7f};
+	const uint8_t xdr_nan[NAN_SIZE] = {0x7f, 0xf8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+	if ( variant & WKB_HEX )
+	{
+		for (int i = 0; i < NAN_SIZE; i++)
+		{
+			uint8_t b = (variant & WKB_NDR) ? ndr_nan[i] : xdr_nan[i];
+			/* Top four bits to 0-F */
+			buf[2*i] = hexchr[b >> 4];
+			/* Bottom four bits to 0-F */
+			buf[2*i + 1] = hexchr[b & 0x0F];
+		}
+		return buf + (2 * NAN_SIZE);
+	}
+	else
+	{
+		for (int i = 0; i < NAN_SIZE; i++)
+		{
+			buf[i] = (variant & WKB_NDR) ? ndr_nan[i] : xdr_nan[i];;
+		}
+		return buf + NAN_SIZE;
+	}
+}
+
 /*
 * Float64
 */
 static uint8_t* double_to_wkb_buf(const double d, uint8_t *buf, uint8_t variant)
 {
-	char *dptr = (char*)(&d);
+	uint8_t *dptr = (uint8_t *)(&d);
 	int i = 0;
 
 	if ( sizeof(double) != WKB_DOUBLE_SIZE )
@@ -330,11 +359,9 @@ static uint8_t* empty_to_wkb_buf(const LWGEOM *geom, uint8_t *buf, uint8_t varia
 	if ( geom->type == POINTTYPE )
 	{
 		const LWPOINT *pt = (LWPOINT*)geom;
-		static double nn = NAN;
-		int i;
-		for ( i = 0; i < FLAGS_NDIMS(pt->point->flags); i++ )
+		for (int i = 0; i < FLAGS_NDIMS(pt->point->flags); i++)
 		{
-			buf = double_to_wkb_buf(nn, buf, variant);
+			buf = double_nan_to_wkb_buf(buf, variant);
 		}
 	}
 	/* Everything else is flagged as empty using num-elements == 0 */
@@ -370,9 +397,9 @@ static size_t ptarray_to_wkb_size(const POINTARRAY *pa, uint8_t variant)
 
 static uint8_t* ptarray_to_wkb_buf(const POINTARRAY *pa, uint8_t *buf, uint8_t variant)
 {
-	int dims = 2;
-	int pa_dims = FLAGS_NDIMS(pa->flags);
-	int i, j;
+	uint32_t dims = 2;
+	uint32_t pa_dims = FLAGS_NDIMS(pa->flags);
+	uint32_t i, j;
 	double *dbl_ptr;
 
 	/* SFSQL is always 2-d. Extended and ISO use all available dimensions */
@@ -548,7 +575,7 @@ static size_t lwpoly_to_wkb_size(const LWPOLY *poly, uint8_t variant)
 {
 	/* endian flag + type number + number of rings */
 	size_t size = WKB_BYTE_SIZE + WKB_INT_SIZE + WKB_INT_SIZE;
-	int i = 0;
+	uint32_t i = 0;
 
 	/* Only process empty at this level in the EXTENDED case */
 	if ( (variant & WKB_EXTENDED) && lwgeom_is_empty((LWGEOM*)poly) )
@@ -569,7 +596,7 @@ static size_t lwpoly_to_wkb_size(const LWPOLY *poly, uint8_t variant)
 
 static uint8_t* lwpoly_to_wkb_buf(const LWPOLY *poly, uint8_t *buf, uint8_t variant)
 {
-	int i;
+	uint32_t i;
 
 	/* Only process empty at this level in the EXTENDED case */
 	if ( (variant & WKB_EXTENDED) && lwgeom_is_empty((LWGEOM*)poly) )
@@ -603,7 +630,7 @@ static size_t lwcollection_to_wkb_size(const LWCOLLECTION *col, uint8_t variant)
 {
 	/* Endian flag + type number + number of subgeoms */
 	size_t size = WKB_BYTE_SIZE + WKB_INT_SIZE + WKB_INT_SIZE;
-	int i = 0;
+	uint32_t i = 0;
 
 	/* Extended WKB needs space for optional SRID integer */
 	if ( lwgeom_wkb_needs_srid((LWGEOM*)col, variant) )
@@ -620,7 +647,7 @@ static size_t lwcollection_to_wkb_size(const LWCOLLECTION *col, uint8_t variant)
 
 static uint8_t* lwcollection_to_wkb_buf(const LWCOLLECTION *col, uint8_t *buf, uint8_t variant)
 {
-	int i;
+	uint32_t i;
 
 	/* Set the endian flag */
 	buf = endian_to_wkb_buf(buf, variant);
@@ -645,12 +672,17 @@ static uint8_t* lwcollection_to_wkb_buf(const LWCOLLECTION *col, uint8_t *buf, u
 /*
 * GEOMETRY
 */
-static size_t lwgeom_to_wkb_size(const LWGEOM *geom, uint8_t variant)
+static size_t
+lwgeom_to_wkb_size(const LWGEOM *geom, uint8_t variant)
 {
 	size_t size = 0;
 
-	if ( geom == NULL )
+	if (geom == NULL)
+	{
+		LWDEBUG(4, "Cannot convert NULL into WKB.");
+		lwerror("Cannot convert NULL into WKB.");
 		return 0;
+	}
 
 	/* Short circuit out empty geometries */
 	if ( (!(variant & WKB_EXTENDED)) && lwgeom_is_empty(geom) )
@@ -696,7 +728,7 @@ static size_t lwgeom_to_wkb_size(const LWGEOM *geom, uint8_t variant)
 
 		/* Unknown type! */
 		default:
-			lwerror("Unsupported geometry type: %s [%d]", lwtype_name(geom->type), geom->type);
+			lwerror("%s: Unsupported geometry type: %s", __func__, lwtype_name(geom->type));
 	}
 
 	return size;
@@ -708,7 +740,7 @@ static uint8_t* lwgeom_to_wkb_buf(const LWGEOM *geom, uint8_t *buf, uint8_t vari
 {
 
 	/* Do not simplify empties when outputting to canonical form */
-	if ( lwgeom_is_empty(geom) & ! (variant & WKB_EXTENDED) )
+	if (lwgeom_is_empty(geom) && !(variant & WKB_EXTENDED))
 		return empty_to_wkb_buf(geom, buf, variant);
 
 	switch ( geom->type )
@@ -744,7 +776,7 @@ static uint8_t* lwgeom_to_wkb_buf(const LWGEOM *geom, uint8_t *buf, uint8_t vari
 
 		/* Unknown type! */
 		default:
-			lwerror("Unsupported geometry type: %s [%d]", lwtype_name(geom->type), geom->type);
+			lwerror("%s: Unsupported geometry type: %s", __func__, lwtype_name(geom->type));
 	}
 	/* Return value to keep compiler happy. */
 	return 0;
@@ -761,93 +793,86 @@ static uint8_t* lwgeom_to_wkb_buf(const LWGEOM *geom, uint8_t *buf, uint8_t vari
 * @param size_out If supplied, will return the size of the returned memory segment,
 * including the null terminator in the case of ASCII.
 */
-uint8_t* lwgeom_to_wkb(const LWGEOM *geom, uint8_t variant, size_t *size_out)
+static ptrdiff_t
+lwgeom_to_wkb_write_buf(const LWGEOM *geom, uint8_t variant, uint8_t *buffer)
 {
-	size_t buf_size;
-	uint8_t *buf = NULL;
-	uint8_t *wkb_out = NULL;
-
-	/* Initialize output size */
-	if ( size_out ) *size_out = 0;
-
-	if ( geom == NULL )
-	{
-		LWDEBUG(4,"Cannot convert NULL into WKB.");
-		lwerror("Cannot convert NULL into WKB.");
-		return NULL;
-	}
-
-	/* Calculate the required size of the output buffer */
-	buf_size = lwgeom_to_wkb_size(geom, variant);
-	LWDEBUGF(4, "WKB output size: %d", buf_size);
-
-	if ( buf_size == 0 )
-	{
-		LWDEBUG(4,"Error calculating output WKB buffer size.");
-		lwerror("Error calculating output WKB buffer size.");
-		return NULL;
-	}
-
-	/* Hex string takes twice as much space as binary + a null character */
-	if ( variant & WKB_HEX )
-	{
-		buf_size = 2 * buf_size + 1;
-		LWDEBUGF(4, "Hex WKB output size: %d", buf_size);
-	}
-
 	/* If neither or both variants are specified, choose the native order */
-	if ( ! (variant & WKB_NDR || variant & WKB_XDR) ||
-	       (variant & WKB_NDR && variant & WKB_XDR) )
+	if (!(variant & WKB_NDR || variant & WKB_XDR) || (variant & WKB_NDR && variant & WKB_XDR))
 	{
-		if ( getMachineEndian() == NDR )
-			variant = variant | WKB_NDR;
-		else
+		if (IS_BIG_ENDIAN)
 			variant = variant | WKB_XDR;
+		else
+			variant = variant | WKB_NDR;
 	}
-
-	/* Allocate the buffer */
-	buf = lwalloc(buf_size);
-
-	if ( buf == NULL )
-	{
-		LWDEBUGF(4,"Unable to allocate %d bytes for WKB output buffer.", buf_size);
-		lwerror("Unable to allocate %d bytes for WKB output buffer.", buf_size);
-		return NULL;
-	}
-
-	/* Retain a pointer to the front of the buffer for later */
-	wkb_out = buf;
 
 	/* Write the WKB into the output buffer */
-	buf = lwgeom_to_wkb_buf(geom, buf, variant);
+	int written_bytes = (lwgeom_to_wkb_buf(geom, buffer, variant) - buffer);
 
-	/* Null the last byte if this is a hex output */
-	if ( variant & WKB_HEX )
+	return written_bytes;
+}
+
+uint8_t *
+lwgeom_to_wkb_buffer(const LWGEOM *geom, uint8_t variant)
+{
+	size_t b_size = lwgeom_to_wkb_size(geom, variant);
+	/* Hex string takes twice as much space as binary + a null character */
+	if (variant & WKB_HEX)
 	{
-		*buf = '\0';
-		buf++;
+		b_size = 2 * b_size + 1;
 	}
 
-	LWDEBUGF(4,"buf (%p) - wkb_out (%p) = %d", buf, wkb_out, buf - wkb_out);
-
-	/* The buffer pointer should now land at the end of the allocated buffer space. Let's check. */
-	if ( buf_size != (buf - wkb_out) )
+	uint8_t *buffer = (uint8_t *)lwalloc(b_size);
+	ptrdiff_t written_size = lwgeom_to_wkb_write_buf(geom, variant, buffer);
+	if (variant & WKB_HEX)
 	{
-		LWDEBUG(4,"Output WKB is not the same size as the allocated buffer.");
-		lwfree(wkb_out);
-		lwerror("Output WKB is not the same size as the allocated buffer.");
-		
+		buffer[written_size] = '\0';
+		written_size++;
+	}
+
+	if (written_size != (ptrdiff_t)b_size)
+	{
+		char *wkt = lwgeom_to_wkt(geom, WKT_EXTENDED, 15, NULL);
+		lwerror("Output WKB is not the same size as the allocated buffer. Variant: %u, Geom: %s", variant, wkt);
+		lwfree(wkt);
+		lwfree(buffer);
 		return NULL;
 	}
 
-	/* Report output size */
-	if ( size_out ) *size_out = buf_size;
-
-	return wkb_out;
+	return buffer;
 }
 
-char* lwgeom_to_hexwkb(const LWGEOM *geom, uint8_t variant, size_t *size_out)
+char *
+lwgeom_to_hexwkb_buffer(const LWGEOM *geom, uint8_t variant)
 {
-	return (char*)lwgeom_to_wkb(geom, variant | WKB_HEX, size_out);
+	return (char *)lwgeom_to_wkb_buffer(geom, variant | WKB_HEX);
 }
 
+lwvarlena_t *
+lwgeom_to_wkb_varlena(const LWGEOM *geom, uint8_t variant)
+{
+	size_t b_size = lwgeom_to_wkb_size(geom, variant);
+	/* Hex string takes twice as much space as binary, but No NULL ending in varlena */
+	if (variant & WKB_HEX)
+	{
+		b_size = 2 * b_size;
+	}
+
+	lwvarlena_t *buffer = (lwvarlena_t *)lwalloc(b_size + LWVARHDRSZ);
+	int written_size = lwgeom_to_wkb_write_buf(geom, variant, (uint8_t *)buffer->data);
+	if (written_size != (ptrdiff_t)b_size)
+	{
+		char *wkt = lwgeom_to_wkt(geom, WKT_EXTENDED, 15, NULL);
+		lwerror("Output WKB is not the same size as the allocated buffer. Variant: %u, Geom: %s", variant, wkt);
+		lwfree(wkt);
+		lwfree(buffer);
+		return NULL;
+	}
+	LWSIZE_SET(buffer->size, written_size + LWVARHDRSZ);
+	return buffer;
+}
+
+lwvarlena_t *
+lwgeom_to_hexwkb_varlena(const LWGEOM *geom, uint8_t variant)
+{
+	return lwgeom_to_wkb_varlena(geom, variant | WKB_HEX);
+}

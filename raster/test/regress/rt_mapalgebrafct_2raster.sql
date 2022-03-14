@@ -305,35 +305,37 @@ INSERT INTO raster_mapalgebra_out
 ;
 
 -- output
-SELECT
-	rid1,
-	rid2,
-	extent,
-	round(upperleftx::numeric, 3) AS upperleftx,
-	round(upperlefty::numeric, 3) AS upperlefty,
-	width,
-	height,
-	round(scalex::numeric, 3) AS scalex,
-	round(scaley::numeric, 3) AS scaley,
-	round(skewx::numeric, 3) AS skewx,
-	round(skewy::numeric, 3) AS skewy,
-	srid,
-	numbands,
-	pixeltype,
-	round(nodatavalue::numeric, 3) AS nodatavalue,
-	round(firstvalue::numeric, 3) AS firstvalue,
-	round(lastvalue::numeric, 3) AS lastvalue
-FROM (
-	SELECT
-		rid1,
-		rid2,
-		extent,
-		(ST_Metadata(rast)).*,
-		(ST_BandMetadata(rast, 1)).*,
-		ST_Value(rast, 1, 1, 1) AS firstvalue,
-		ST_Value(rast, 1, ST_Width(rast), ST_Height(rast)) AS lastvalue
-	FROM raster_mapalgebra_out
-) AS r;
+-- SELECT
+-- 	rid1,
+-- 	rid2,
+-- 	extent,
+-- 	round(upperleftx::numeric, 3) AS upperleftx,
+-- 	round(upperlefty::numeric, 3) AS upperlefty,
+-- 	width,
+-- 	height,
+-- 	round(scalex::numeric, 3) AS scalex,
+-- 	round(scaley::numeric, 3) AS scaley,
+-- 	round(skewx::numeric, 3) AS skewx,
+-- 	round(skewy::numeric, 3) AS skewy,
+-- 	srid,
+-- 	numbands,
+-- 	pixeltype,
+-- 	round(nodatavalue::numeric, 3) AS nodatavalue,
+-- 	round(firstvalue::numeric, 3) AS firstvalue,
+-- 	round(lastvalue::numeric, 3) AS lastvalue
+-- FROM (
+-- 	SELECT
+-- 		rid1,
+-- 		rid2,
+-- 		extent,
+-- 		mda.*,
+-- 		bmd.*,
+-- 		ST_Value(rast, 1, 1, 1) AS firstvalue,
+-- 		ST_Value(rast, 1, ST_Width(rast), ST_Height(rast)) AS lastvalue
+-- 	FROM raster_mapalgebra_out
+-- 		LEFT JOIN LATERAL ST_Metadata(rast) AS mda ON true
+-- 		LEFT JOIN LATERAL ST_BandMetadata(rast,1) AS bmd ON true
+-- ) AS r;
 
 DROP FUNCTION IF EXISTS raster_mapalgebra_intersection(double precision, double precision, int[], VARIADIC text[]);
 DROP FUNCTION IF EXISTS raster_mapalgebra_union(double precision, double precision, VARIADIC text[]);

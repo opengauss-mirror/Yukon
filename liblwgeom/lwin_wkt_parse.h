@@ -1,27 +1,4 @@
-/**********************************************************************
- *
- * PostGIS - Spatial Types for PostgreSQL
- * http://postgis.net
- *
- * PostGIS is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * PostGIS is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with PostGIS.  If not, see <http://www.gnu.org/licenses/>.
- *
- **********************************************************************
- *
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
- *
- **********************************************************************/
-
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -52,13 +29,6 @@
 
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
-#ifndef THR_LOCAL
-#ifndef WIN32
-#define THR_LOCAL __thread
-#else
-#define THR_LOCAL  __declspec(thread)
-#endif
-#endif
 
 #ifndef YY_WKT_YY_LWIN_WKT_PARSE_H_INCLUDED
 # define YY_WKT_YY_LWIN_WKT_PARSE_H_INCLUDED
@@ -100,37 +70,13 @@ extern int wkt_yydebug;
     SRID_TOK = 280
   };
 #endif
-/* Tokens.  */
-#define POINT_TOK 258
-#define LINESTRING_TOK 259
-#define POLYGON_TOK 260
-#define MPOINT_TOK 261
-#define MLINESTRING_TOK 262
-#define MPOLYGON_TOK 263
-#define MSURFACE_TOK 264
-#define MCURVE_TOK 265
-#define CURVEPOLYGON_TOK 266
-#define COMPOUNDCURVE_TOK 267
-#define CIRCULARSTRING_TOK 268
-#define COLLECTION_TOK 269
-#define RBRACKET_TOK 270
-#define LBRACKET_TOK 271
-#define COMMA_TOK 272
-#define EMPTY_TOK 273
-#define SEMICOLON_TOK 274
-#define TRIANGLE_TOK 275
-#define TIN_TOK 276
-#define POLYHEDRALSURFACE_TOK 277
-#define DOUBLE_TOK 278
-#define DIMENSIONALITY_TOK 279
-#define SRID_TOK 280
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 108 "lwin_wkt_parse.y" /* yacc.c:1909  */
+#line 112 "lwin_wkt_parse.y" /* yacc.c:1909  */
 
 	int integervalue;
 	double doublevalue;
@@ -139,7 +85,7 @@ union YYSTYPE
 	POINT coordinatevalue;
 	POINTARRAY *ptarrayvalue;
 
-#line 113 "lwin_wkt_parse.h" /* yacc.c:1909  */
+#line 89 "lwin_wkt_parse.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -162,8 +108,8 @@ struct YYLTYPE
 #endif
 
 
-extern THR_LOCAL YYSTYPE wkt_yylval;
-extern THR_LOCAL YYLTYPE wkt_yylloc;
+extern YYSTYPE wkt_yylval;
+extern YYLTYPE wkt_yylloc;
 int wkt_yyparse (void);
 
 #endif /* !YY_WKT_YY_LWIN_WKT_PARSE_H_INCLUDED  */

@@ -16,7 +16,8 @@
 #include "cu_tester.h"
 #include "../postgis_config.h"
 
-char cu_error_msg[MAX_CUNIT_ERROR_LENGTH+1];
+char cu_error_msg[MAX_CUNIT_ERROR_LENGTH + 1] = {0};
+
 /* Internal funcs */
 static void
 cu_errorreporter(const char *fmt, va_list ap);
@@ -31,9 +32,11 @@ cu_debuglogger(int level, const char *fmt, va_list ap);
 /* ADD YOUR SUITE SETUP FUNCTION HERE (1 of 2) */
 extern void print_suite_setup();
 extern void algorithms_suite_setup();
+extern void boundary_suite_setup();
 extern void buildarea_suite_setup();
 extern void clean_suite_setup();
 extern void clip_by_rect_suite_setup();
+extern void force_dims_suite_setup(void);
 extern void force_sfs_suite_setup(void);
 extern void geodetic_suite_setup(void);
 extern void geos_suite_setup(void);
@@ -44,10 +47,13 @@ extern void in_encoded_polyline_suite_setup(void);
 extern void in_geojson_suite_setup(void);
 extern void iterator_suite_setup(void);
 extern void twkb_in_suite_setup(void);
-extern void libgeom_suite_setup(void);
+extern void gserialized1_suite_setup(void);
+extern void gserialized2_suite_setup(void);
 extern void lwstroke_suite_setup(void);
 extern void measures_suite_setup(void);
 extern void effectivearea_suite_setup(void);
+extern void chaikin_suite_setup(void);
+extern void filterm_suite_setup(void);
 extern void minimum_bounding_circle_suite_setup(void);
 extern void misc_suite_setup(void);
 extern void node_suite_setup(void);
@@ -76,56 +82,58 @@ extern void wrapx_suite_setup(void);
 
 
 /* AND ADD YOUR SUITE SETUP FUNCTION HERE (2 of 2) */
-PG_SuiteSetup setupfuncs[] =
-{
-	algorithms_suite_setup,
-	buildarea_suite_setup,
-	clean_suite_setup,
-	clip_by_rect_suite_setup,
-	force_sfs_suite_setup,
-	geodetic_suite_setup,
-	geos_suite_setup,
-	geos_cluster_suite_setup,
-	unionfind_suite_setup,
-	homogenize_suite_setup,
-	in_encoded_polyline_suite_setup,
+PG_SuiteSetup setupfuncs[] = {algorithms_suite_setup,
+			      boundary_suite_setup,
+			      buildarea_suite_setup,
+			      clean_suite_setup,
+			      clip_by_rect_suite_setup,
+			      force_dims_suite_setup,
+			      force_sfs_suite_setup,
+			      geodetic_suite_setup,
+			      geos_suite_setup,
+			      geos_cluster_suite_setup,
+			      unionfind_suite_setup,
+			      homogenize_suite_setup,
+			      in_encoded_polyline_suite_setup,
 #if HAVE_LIBJSON
-	in_geojson_suite_setup,
+			      in_geojson_suite_setup,
 #endif
-    iterator_suite_setup,
-	twkb_in_suite_setup,
-	libgeom_suite_setup,
-	lwstroke_suite_setup,
-	measures_suite_setup,
-	effectivearea_suite_setup,
-	minimum_bounding_circle_suite_setup,
-	misc_suite_setup,
-	node_suite_setup,
-	out_encoded_polyline_suite_setup,
-	out_geojson_suite_setup,
-	out_gml_suite_setup,
-	out_kml_suite_setup,
-	out_svg_suite_setup,
-	out_x3d_suite_setup,
-	ptarray_suite_setup,
-	print_suite_setup,
+			      iterator_suite_setup,
+			      twkb_in_suite_setup,
+			      gserialized1_suite_setup,
+			      gserialized2_suite_setup,
+			      lwstroke_suite_setup,
+			      measures_suite_setup,
+			      effectivearea_suite_setup,
+			      chaikin_suite_setup,
+			      filterm_suite_setup,
+			      minimum_bounding_circle_suite_setup,
+			      misc_suite_setup,
+			      node_suite_setup,
+			      out_encoded_polyline_suite_setup,
+			      out_geojson_suite_setup,
+			      out_gml_suite_setup,
+			      out_kml_suite_setup,
+			      out_svg_suite_setup,
+			      out_x3d_suite_setup,
+			      ptarray_suite_setup,
+			      print_suite_setup,
 #if HAVE_SFCGAL
-	sfcgal_suite_setup,
+			      sfcgal_suite_setup,
 #endif
-	split_suite_setup,
-	stringbuffer_suite_setup,
-	surface_suite_setup,
-	tree_suite_setup,
-	triangulate_suite_setup,
-	twkb_out_suite_setup,
-	varint_suite_setup,
-	wkb_in_suite_setup,
-	wkb_out_suite_setup,
-	wkt_in_suite_setup,
-	wkt_out_suite_setup,
-	wrapx_suite_setup,
-	NULL
-};
+			      split_suite_setup,
+			      stringbuffer_suite_setup,
+			      surface_suite_setup,
+			      tree_suite_setup,
+			      triangulate_suite_setup,
+			      twkb_out_suite_setup,
+			      varint_suite_setup,
+			      wkb_in_suite_setup,
+			      wkb_out_suite_setup,
+			      wkt_in_suite_setup,
+			      wkt_out_suite_setup,
+			      wrapx_suite_setup,
+			      NULL};
 
 
 #define MAX_CUNIT_MSG_LENGTH 256
@@ -141,7 +149,7 @@ int main(int argc, char *argv[])
 	char *suite_name;
 	CU_pSuite suite_to_run;
 	char *test_name;
-	CU_pTest test_to_run;
+	CU_pTest test_to_run = NULL;
 	CU_ErrorCode errCode = 0;
 	CU_pTestRegistry registry;
 	int num_run;
@@ -207,7 +215,7 @@ int main(int argc, char *argv[])
 			}
 			else
 			{
-				if (test_name != NULL)
+				if (test_name != NULL && test_to_run != NULL)
 				{
 					/* Run only this test. */
 					printf("\nRunning test '%s' in suite '%s'.\n", test_name, suite_name);

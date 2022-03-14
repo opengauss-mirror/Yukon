@@ -26,13 +26,24 @@
 #define GEOBUF_H_ 1
 
 #include <stdlib.h>
+// #include "postgres.h"
+// #include "utils/builtins.h"
+// #include "utils/array.h"
+// #include "utils/typcache.h"
+// #include "utils/lsyscache.h"
+// #include "catalog/pg_type.h"
+// #include "catalog/namespace.h"
+// #include "executor/spi.h"
+// #include "executor/executor.h"
+// #include "access/htup_details.h"
+// #include "access/htup.h"
 #include "extension_dependency.h"
 #include "../postgis_config.h"
 #include "liblwgeom.h"
 #include "lwgeom_pg.h"
 #include "lwgeom_log.h"
 
-#ifdef HAVE_LIBPROTOBUF
+#if defined HAVE_LIBPROTOBUF
 
 #include "geobuf.pb-c.h"
 

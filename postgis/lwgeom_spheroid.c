@@ -23,15 +23,19 @@
  **********************************************************************/
 
 
-#include "extension_dependency.h"
+// #include "postgres.h"
 
 
 #include <math.h>
 #include <float.h>
 #include <string.h>
 #include <stdio.h>
-#include <errno.h>
 
+// #include "access/gist.h"
+// #include "access/itup.h"
+
+// #include "fmgr.h"
+// #include "utils/elog.h"
 
 #include "../postgis_config.h"
 #include "liblwgeom.h"
@@ -51,7 +55,7 @@
 extern "C" Datum ellipsoid_in(PG_FUNCTION_ARGS);
 extern "C" Datum ellipsoid_out(PG_FUNCTION_ARGS);
 extern "C" Datum LWGEOM_length2d_ellipsoid(PG_FUNCTION_ARGS);
-extern "C" Datum LWGEOM_length_ellipsoid_linestring(PG_FUNCTION_ARGS);
+extern "C" extern "C" Datum LWGEOM_length_ellipsoid_linestring(PG_FUNCTION_ARGS);
 extern "C" Datum LWGEOM_distance_ellipsoid(PG_FUNCTION_ARGS);
 extern "C" Datum LWGEOM_distance_sphere(PG_FUNCTION_ARGS);
 extern "C" Datum geometry_distance_spheroid(PG_FUNCTION_ARGS);
@@ -84,8 +88,8 @@ Datum ellipsoid_in(PG_FUNCTION_ARGS)
 
 	if (strstr(str,"SPHEROID") !=  str )
 	{
-		pfree(sphere);
 		elog(ERROR,"SPHEROID parser - doesn't start with SPHEROID");
+		pfree(sphere);
 		PG_RETURN_NULL();
 	}
 
@@ -98,8 +102,8 @@ Datum ellipsoid_in(PG_FUNCTION_ARGS)
 
 	if (nitems != 3)
 	{
-		pfree(sphere);
 		elog(ERROR,"SPHEROID parser - couldnt parse the spheroid");
+		pfree(sphere);
 		PG_RETURN_NULL();
 	}
 
@@ -396,7 +400,7 @@ Datum LWGEOM_length_ellipsoid_linestring(PG_FUNCTION_ARGS)
  *    Its radius is approximated by looking at the ellipse. Near the equator R = 'a' (earth's major axis)
  *    near the pole R = 'b' (earth's minor axis).
  *
- *    The second (S) is basically a (east-west) line of lattitude.
+ *    The second (S) is basically a (east-west) line of latitude.
  *    Its radius runs from 'a' (major axis) at the equator, and near 0 at the poles.
  *
  *
@@ -420,8 +424,8 @@ Datum LWGEOM_length_ellipsoid_linestring(PG_FUNCTION_ARGS)
  *   Angle A is lat1
  *   R is the distance from the centre of the earth to the lat1/long1 point on the surface
  *   of the Earth.
- *   S is the circle-of-lattitude.  Its calculated from the right triangle defined by
- *      the angle (90-A), and the hypothenus R.
+ *   S is the circle-of-latitude.  Its calculated from the right triangle defined by
+ *      the angle (90-A), and the hypotenuse R.
  *
  *
  *
@@ -435,7 +439,7 @@ Datum LWGEOM_length_ellipsoid_linestring(PG_FUNCTION_ARGS)
  *    (if deltaX is 1 degrees, then that distance represents 1/360 of a circle of radius S.)
  *
  *
- *  Parts taken from PROJ4 - geodetic_to_geocentric() (for calculating Rn)
+ *  Parts taken from PROJ - geodetic_to_geocentric() (for calculating Rn)
  *
  *  remember that lat1/long1/lat2/long2 are comming in a *RADIANS* not degrees.
  *
@@ -485,11 +489,10 @@ Datum geometry_distance_spheroid(PG_FUNCTION_ARGS)
 	bool use_spheroid = PG_GETARG_BOOL(3);
 	LWGEOM *lwgeom1, *lwgeom2;
 	double distance;
+	gserialized_error_if_srid_mismatch(geom1, geom2, __func__);
 
 	/* Calculate some other parameters on the spheroid */
 	spheroid_init(sphere, sphere->a, sphere->b);
-
-	error_if_srid_mismatch(gserialized_get_srid(geom1), gserialized_get_srid(geom2));
 
 	/* Catch sphere special case and re-jig spheroid appropriately */
 	if ( ! use_spheroid )
@@ -529,7 +532,7 @@ PG_FUNCTION_INFO_V1(LWGEOM_distance_ellipsoid);
 Datum LWGEOM_distance_ellipsoid(PG_FUNCTION_ARGS)
 {
 	PG_RETURN_DATUM(DirectFunctionCall4(geometry_distance_spheroid,
-	                                    PG_GETARG_DATUM(0), PG_GETARG_DATUM(1), PG_GETARG_DATUM(2), BoolGetDatum(TRUE)));
+	                                    PG_GETARG_DATUM(0), PG_GETARG_DATUM(1), PG_GETARG_DATUM(2), BoolGetDatum(true)));
 }
 
 PG_FUNCTION_INFO_V1(LWGEOM_distance_sphere);
@@ -542,6 +545,6 @@ Datum LWGEOM_distance_sphere(PG_FUNCTION_ARGS)
 	s.a = s.b = s.radius;
 
 	PG_RETURN_DATUM(DirectFunctionCall4(geometry_distance_spheroid,
-	                                    PG_GETARG_DATUM(0), PG_GETARG_DATUM(1), PointerGetDatum(&s), BoolGetDatum(FALSE)));
+	                                    PG_GETARG_DATUM(0), PG_GETARG_DATUM(1), PointerGetDatum(&s), BoolGetDatum(false)));
 }
 

@@ -2,13 +2,14 @@
 #
 # Translators:
 # Kwon.Yongchan <ruvyn@naver.com>, 2016
+# Kwon.Yongchan <ruvyn@naver.com>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: PostGIS\n"
 "Report-Msgid-Bugs-To: http://bugs.kde.org\n"
-"POT-Creation-Date: 2017-09-21 22:52+0000\n"
-"PO-Revision-Date: 2016-07-22 10:00+0000\n"
-"Last-Translator: Kwon.Yongchan <ruvyn@naver.com>\n"
+"POT-Creation-Date: 2018-09-16 19:07+0000\n"
+"PO-Revision-Date: 2018-07-23 18:00+0000\n"
+"Last-Translator: Regina Obe\n"
 "Language-Team: Korean (Korea) (http://www.transifex.com/postgis/postgis/"
 "language/ko_KR/)\n"
 "Language: ko_KR\n"
@@ -1159,11 +1160,10 @@ msgstr "ST_PointInsideCircle"
 
 #. Tag: refpurpose
 #: reference_misc.xml:512
-#, fuzzy, no-c-format
+#, no-c-format
 msgid ""
 "Is the point geometry inside the circle defined by center_x, center_y, radius"
 msgstr ""
-"center_x, center_y, radius로 정의되는 원 내부에 들어가는 포인트 도형입니다."
 
 #. Tag: funcprototype
 #: reference_misc.xml:517

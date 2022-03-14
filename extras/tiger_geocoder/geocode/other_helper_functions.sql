@@ -18,7 +18,7 @@ CREATE OR REPLACE FUNCTION greatest_hn(fromhn varchar, tohn varchar)
   RETURNS integer AS
 $$ SELECT greatest(to_number( CASE WHEN trim($1) ~ '^[0-9]+$' THEN $1 ELSE '0' END,'99999999'),to_number(CASE WHEN trim($2) ~ '^[0-9]+$' THEN $2 ELSE '0' END,'99999999') )::integer;  $$
   LANGUAGE sql IMMUTABLE
-  COST 200;
+  COST 200 PARALLEL SAFE;
 
 -- Returns an absolute difference between two zips
 -- This is generally more efficient than doing levenshtein
@@ -28,7 +28,7 @@ CREATE OR REPLACE FUNCTION diff_zip(zip1 varchar, zip2 varchar)
   RETURNS integer AS
 $$ SELECT abs(to_number( CASE WHEN trim(substring($1,1,5)) ~ '^[0-9]+$' THEN $1 ELSE '0' END,'99999')::integer - to_number( CASE WHEN trim(substring($2,1,5)) ~ '^[0-9]+$' THEN $2 ELSE '0' END,'99999')::integer )::integer;  $$
   LANGUAGE sql IMMUTABLE STRICT
-  COST 200;
+  COST 200 PARALLEL SAFE;
 
 -- function return  true or false if 2 numeric streets are equal such as 15th St, 23rd st
 -- it compares just the numeric part of the street for equality
@@ -44,8 +44,7 @@ $$
             AND  trim(substring($1, E'^[0-9\/\s]+')) = trim(substring($2, E'^[0-9\/\s]+')), false);
 $$
 LANGUAGE sql IMMUTABLE
-COST 5;
-
+COST 5 PARALLEL SAFE;
 
 -- Generate script to drop all non-primary unique indexes on tiger and tiger_data tables
 CREATE OR REPLACE FUNCTION drop_indexes_generate_script(tiger_data_schema text DEFAULT 'tiger_data')
@@ -199,7 +198,6 @@ ORDER BY 1), E'\r');
 $$
 LANGUAGE sql VOLATILE;
 
-
 CREATE OR REPLACE FUNCTION install_missing_indexes() RETURNS boolean
 AS
 $$
@@ -211,7 +209,6 @@ END
 $$
 language plpgsql;
 
-
 CREATE OR REPLACE FUNCTION drop_dupe_featnames_generate_script() RETURNS text
 AS
 $$
@@ -221,7 +218,7 @@ SELECT min(f.gid) As min_gid, f.tlid, lower(f.fullname) As fname
 	FROM ONLY ' || t.table_schema || '.' || t.table_name || ' As f
 	GROUP BY f.tlid, lower(f.fullname)
 	HAVING count(*) > 1;
-	
+
 DELETE FROM ' || t.table_schema || '.' || t.table_name || ' AS feat
 WHERE EXISTS (SELECT tlid FROM dup WHERE feat.tlid = dup.tlid AND lower(feat.fullname) = dup.fname
 		AND feat.gid > dup.min_gid);
@@ -248,4 +245,4 @@ $$
         SELECT lpad((to_number( CASE WHEN trim(substring($1,1,5)) ~ '^[0-9]+$' THEN $1 ELSE '0' END,'99999')::integer + i)::text, 5, '0')::varchar
         FROM generate_series($2, $3) As i );
 $$
-LANGUAGE sql IMMUTABLE STRICT;
+LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE;

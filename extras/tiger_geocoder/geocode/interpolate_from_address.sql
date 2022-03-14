@@ -67,13 +67,13 @@ BEGIN
     			FROM generate_series(1,ST_NPoints(road)) As i
     					WHERE part > ST_LineLocatePoint(road,ST_PointN(road,i))
     					ORDER BY i DESC;
-    		IF npos < ST_NPoints(road) THEN				
+    		IF npos < ST_NPoints(road) THEN
     			az := ST_Azimuth (ST_PointN(road,npos), ST_PointN(road, npos + 1));
     		ELSE
     			az := ST_Azimuth (center_pt, ST_PointN(road, npos));
     		END IF;
     	END IF;
-    	
+
         dir := CASE WHEN az < pi() THEN -1 ELSE 1 END;
         --dir := 1;
         var_dist := in_offset_m*CASE WHEN in_side = 'L' THEN -1 ELSE 1 END;
@@ -91,7 +91,7 @@ BEGIN
     --RAISE NOTICE 'start: %, center: %, new: %, side: %, offset: %, az: %', ST_AsText(ST_Transform(ST_StartPoint(road),ST_SRID(in_road))), ST_AsText(ST_Transform(center_pt,ST_SRID(in_road))),ST_AsText(result), in_side, in_offset_m, az;
     RETURN result;
 END;
-$_$ LANGUAGE plpgsql IMMUTABLE COST 10;
+$_$ LANGUAGE plpgsql IMMUTABLE COST 10 PARALLEL SAFE;
 -- needed to ban stupid warning about how we are using deprecated functions
 -- yada yada yada need this to work in 2.0 too bah
 ALTER FUNCTION interpolate_from_address(integer, character varying, character varying, geometry, character varying, double precision)

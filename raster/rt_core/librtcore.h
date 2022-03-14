@@ -123,12 +123,14 @@
 
 #include "liblwgeom.h"
 
-#include "gdal_alg.h"
-#include "gdal_frmts.h"
 #include "gdal.h"
+#include "gdalgrid.h" /* for ParseAlgorithmAndOptions */
+#include "gdal_frmts.h"
 #include "gdalwarper.h"
 #include "cpl_vsi.h"
 #include "cpl_conv.h"
+#include "cpl_string.h"
+#include "cpl_minixml.h"
 #include "ogr_api.h"
 #include "ogr_srs_api.h"
 
@@ -226,6 +228,7 @@ typedef enum {
 /**
 * Global functions for memory/logging handlers.
 */
+typedef char* (*rt_options)(const char* varname);
 typedef void* (*rt_allocator)(size_t size);
 typedef void* (*rt_reallocator)(void *mem, size_t size);
 typedef void  (*rt_deallocator)(void *mem);
@@ -240,7 +243,6 @@ typedef void  (*rt_message_handler)(const char* string, va_list ap)
  * Apply the default memory management (malloc() and free()) and error handlers.
  */
 extern void rt_install_default_allocators(void);
-
 
 /**
  * Wrappers used for managing memory. They simply call the functions defined by
@@ -260,6 +262,11 @@ void rterror(const char *fmt, ...);
 void rtinfo(const char *fmt, ...);
 void rtwarn(const char *fmt, ...);
 
+/**
+ * Wrappers used for options
+ */
+char* rtoptions(const char* varname);
+char* rtstrdup(const char *str);
 
 /**
 * The default memory/logging handlers installed by lwgeom_install_default_allocators()
@@ -270,7 +277,7 @@ void default_rt_deallocator(void * mem);
 void default_rt_error_handler(const char * fmt, va_list ap);
 void default_rt_warning_handler(const char * fmt, va_list ap);
 void default_rt_info_handler(const char * fmt, va_list ap);
-
+char * default_rt_options(const char* varname);
 
 /* Debugging macros */
 #if POSTGIS_DEBUG_LEVEL > 0
@@ -306,6 +313,11 @@ void default_rt_info_handler(const char * fmt, va_list ap);
 void rt_set_handlers(rt_allocator allocator, rt_reallocator reallocator,
         rt_deallocator deallocator, rt_message_handler error_handler,
         rt_message_handler info_handler, rt_message_handler warning_handler);
+
+void rt_set_handlers_options(rt_allocator allocator, rt_reallocator reallocator,
+        rt_deallocator deallocator, rt_message_handler error_handler,
+        rt_message_handler info_handler, rt_message_handler warning_handler,
+        rt_options options_handler);
 
 
 
@@ -386,7 +398,7 @@ rt_errorstate rt_pixtype_compare_clamped_values(
  * @return ES_NONE on success, ES_ERROR on error
  */
 rt_errorstate rt_pixel_set_to_array(
-	rt_pixel npixel,int count,
+	rt_pixel npixel,uint32_t count,
 	rt_mask mask,
 	int x, int y,
 	uint16_t distancex, uint16_t distancey,
@@ -451,6 +463,35 @@ rt_band rt_band_new_offline(
 );
 
 /**
+ * Create an out-db rt_band from path
+ *
+ * @param width     : number of pixel columns
+ * @param height    : number of pixel rows
+ * @param hasnodata : indicates if the band has nodata value
+ * @param nodataval : the nodata value, will be appropriately
+ * @param bandNum   : 1-based band number in the external file
+ *                    to associate this band with.
+ * @param path      : NULL-terminated path string pointing to the file
+ *                    containing band data. The string will NOT be
+ *                    copied, ownership is left to caller which is
+ *                    responsible to keep it allocated for the whole
+ *                    lifetime of the returned rt_band.
+ * @param force     : if True, ignore all validation checks
+ *
+ * @return an rt_band, or 0 on failure
+ */
+rt_band
+rt_band_new_offline_from_path(
+	uint16_t width,
+	uint16_t height,
+	int hasnodata,
+	double nodataval,
+	uint8_t bandNum,
+	const char* path,
+	int force
+);
+
+/**
  * Create a new band duplicated from source band.  Memory is allocated
  * for band path (if band is offline) or band data (if band is online).
  * The caller is responsible for freeing the memory when the returned
@@ -482,6 +523,26 @@ int rt_band_is_offline(rt_band band);
  * @return string or NULL if band is not offline
  */
 const char* rt_band_get_ext_path(rt_band band);
+
+/**
+ * Return file size in bytes.
+ *
+ * Only for out-db rasters.
+ *
+ * @param band : the band
+ * @return file size in bytes or 0 in case of error.
+ */
+uint64_t rt_band_get_file_size(rt_band band);
+
+/**
+ * Return file timestamp.
+ *
+ * Only for out-db rasters.
+ *
+ * @param band : the band
+ * @return file timestamp (Unix time) or 0 in case of error.
+ */
+uint64_t rt_band_get_file_timestamp(rt_band band);
 
 /**
  * Return bands' external band number (only valid when
@@ -725,7 +786,7 @@ rt_errorstate rt_band_get_pixel(
  * @return -1 on error, otherwise the number of rt_pixel objects
  * in npixels
  */
-int rt_band_get_nearest_pixel(
+uint32_t rt_band_get_nearest_pixel(
 	rt_band band,
 	int x, int y,
 	uint16_t distancex, uint16_t distancey,
@@ -838,7 +899,7 @@ rt_bandstats rt_band_get_summary_stats(
  */
 rt_histogram rt_band_get_histogram(
 	rt_bandstats stats,
-	int bin_count, double *bin_widths, int bin_widths_count,
+	uint32_t bin_count, double *bin_widths, uint32_t bin_widths_count,
 	int right, double min, double max,
 	uint32_t *rtn_count
 );
@@ -895,7 +956,7 @@ rt_quantile rt_band_get_quantiles_stream(
 	int exclude_nodata_value, double sample,
 	uint64_t cov_count,
 	struct quantile_llist **qlls, uint32_t *qlls_count,
-	double *quantiles, int quantiles_count,
+	double *quantiles, uint32_t quantiles_count,
 	uint32_t *rtn_count
 );
 
@@ -1012,7 +1073,7 @@ char *rt_raster_to_hexwkb(rt_raster raster, int outasin, uint32_t *hexwkbsize);
 void rt_raster_destroy(rt_raster raster);
 
 /* Get number of bands */
-int rt_raster_get_num_bands(rt_raster raster);
+uint16_t rt_raster_get_num_bands(rt_raster raster);
 
 /**
  * Return Nth band, or NULL if unavailable
@@ -1311,6 +1372,27 @@ rt_errorstate rt_raster_geopoint_to_cell(
 	double *igt
 );
 
+
+/**
+ * Convert an xw,yw map point to a xr,yr raster point
+ *
+ * @param raster : the raster to get info from
+ * @param xw : X ordinate of the geographical point
+ * @param yw : Y ordinate of the geographical point
+ * @param xr : output parameter, the x ordinate in raster space
+ * @param yr : output parameter, the y ordinate in raster space
+ * @param igt : input/output parameter, inverse geotransform matrix
+ *
+ * @return ES_NONE if success, ES_ERROR if error
+ */
+rt_errorstate rt_raster_geopoint_to_rasterpoint(
+	rt_raster raster,
+	double xw, double yw,
+	double *xr, double *yr,
+	double *igt
+);
+
+
 /**
  * Get raster's convex hull.
  *
@@ -1346,6 +1428,72 @@ rt_errorstate rt_raster_get_envelope(rt_raster raster, rt_envelope *env);
  * @return ES_NONE if success, ES_ERROR if error
  */
 rt_errorstate rt_raster_get_envelope_geom(rt_raster raster, LWGEOM **env);
+
+/**
+ * Retrieve a point value from the raster using a world coordinate
+ * and bilinear interpolation.
+ *
+ * @param band : the band to read for values
+ * @param xr : x unrounded raster coordinate
+ * @param yr : y unrounded raster coordinate
+ * @param r_value : return pointer for point value
+ * @param r_nodata : return pointer for if this is a nodata
+ *
+ * @return ES_ERROR on error, otherwise ES_NONE
+ */
+rt_errorstate rt_band_get_pixel_bilinear(
+	rt_band band,
+	double xr, double yr,
+	double *r_value, int *r_nodata
+);
+
+typedef enum {
+	RT_NEAREST,
+	RT_BILINEAR
+} rt_resample_type;
+
+/**
+ * Retrieve a point value from the raster using a world coordinate
+ * and selected resampling method.
+ *
+ * @param band : the band to read for values
+ * @param xr : x unrounded raster coordinate
+ * @param yr : y unrounded raster coordinate
+ * @param resample : algorithm for reading raster (nearest or bilinear)
+ * @param r_value : return pointer for point value
+ * @param r_nodata : return pointer for if this is a nodata
+ *
+ * @return ES_ERROR on error, otherwise ES_NONE
+ */
+rt_errorstate rt_band_get_pixel_resample(
+	rt_band band,
+	double xr, double yr,
+	rt_resample_type resample,
+	double *r_value, int *r_nodata
+);
+
+/**
+ * Copy values from a raster to the points on a geometry
+ * using the requested interpolation type.
+ * and selected interpolation.
+ *
+ * @param raster : the raster to read for values
+ * @param bandnum : the band number to read from
+ * @param dim : the geometry dimension to copy values into 'Z' or 'M'
+ * @param resample : algorithm for reading raster (nearest or bilinear)
+ * @param lwgeom_in : the input geometry
+ * @param lwgeom_out : pointer for the output geometry
+ *
+ * @return ES_ERROR on error, otherwise ES_NONE
+ */
+rt_errorstate rt_raster_copy_to_geometry(
+	rt_raster raster,
+	uint32_t bandnum,
+	char dim, /* 'Z' or 'M' */
+	rt_resample_type resample,
+	const LWGEOM *lwgeom_in,
+	LWGEOM **lwgeom_out
+);
 
 /**
  * Get raster perimeter
@@ -1400,6 +1548,17 @@ rt_raster_compute_skewed_raster(
  *
  */
 LWPOLY* rt_raster_pixel_as_polygon(rt_raster raster, int x, int y);
+
+/**
+ * Get a raster pixel centroid point.
+ *
+ * @param raster : the raster to get pixel from
+ * @param x : the column number
+ * @param y : the row number
+ *
+ * @return the pixel centroid point, or NULL on error.
+ */
+LWPOINT* rt_raster_pixel_as_centroid_point(rt_raster rast, int x, int y);
 
 /**
  * Get a raster as a surface (multipolygon).  If a band is specified,
@@ -1582,6 +1741,40 @@ GDALDatasetH rt_raster_to_gdal_mem(
 	int count,
 	GDALDriverH *rtn_drv, int *destroy_rtn_drv
 );
+
+/*
+* Generate contour vectors from a raster input
+*/
+struct rt_contour_t {
+	GSERIALIZED *geom;
+	double elevation;
+	int id;
+};
+
+/**
+ * Return palloc'ed list of contours.
+ * @param src_raster : raster to generate contour from
+ * @param options : CSList of OPTION=VALUE strings for the
+ *   contour routine, see https://gdal.org/api/gdal_alg.html?highlight=contour#_CPPv419GDALContourGenerate15GDALRasterBandHddiPdidPvii16GDALProgressFuncPv
+ * @param src_srs : Coordinate reference system string for raster
+ * @param ncontours : Output parameter for length of contour list
+ * @param contours : palloc'ed list of contours, caller to free
+ */
+int rt_raster_gdal_contour(
+	/* input parameters */
+	rt_raster src_raster,
+	int src_band,
+	int src_srid,
+	const char* src_srs,
+	double contour_interval,
+	double contour_base,
+	int fixed_level_count,
+	double *fixed_levels,
+	int polygonize,
+	/* output parameters */
+	size_t *ncontours,
+	struct rt_contour_t **contours
+	);
 
 /**
  * Return a raster from a GDAL dataset
@@ -2141,6 +2334,7 @@ rt_util_gdal_driver_registered(const char *drv);
 GDALDatasetH
 rt_util_gdal_open(const char *fn, GDALAccess fn_access, int shared);
 
+
 void
 rt_util_from_ogr_envelope(
 	OGREnvelope	env,
@@ -2179,12 +2373,13 @@ rt_util_hsv_to_rgb(
 );
 
 /*
-	helper macros for consistent floating point equality checks
+	helper macros for consistent floating point equality checks.
+	NaN equals NaN for NODATA support.
 */
-#define FLT_NEQ(x, y) (fabs(x - y) > FLT_EPSILON)
-#define FLT_EQ(x, y) (!FLT_NEQ(x, y))
-#define DBL_NEQ(x, y) (fabs(x - y) > DBL_EPSILON)
-#define DBL_EQ(x, y) (!DBL_NEQ(x, y))
+#define FLT_NEQ(x, y) ((x != y) && !(isnan(x) && isnan(y)) && (fabs(x - y) > FLT_EPSILON))
+#define FLT_EQ(x, y) ((x == y) || (isnan(x) && isnan(y)) || (fabs(x - y) <= FLT_EPSILON))
+#define DBL_NEQ(x, y) ((x != y) && !(isnan(x) && isnan(y)) && (fabs(x - y) > DBL_EPSILON))
+#define DBL_EQ(x, y) ((x == y) || (isnan(x) && isnan(y)) || (fabs(x - y) <= DBL_EPSILON))
 
 /*
 	helper macro for symmetrical rounding
@@ -2424,6 +2619,8 @@ struct rt_gdaldriver_t {
 	char *short_name;
 	char *long_name;
 	char *create_options;
+	uint8_t can_read;
+	uint8_t can_write;
 };
 
 /* raster colormap entry */

@@ -1,9 +1,3 @@
-BEGIN
-t
-9
-22
-26
-COMMIT
 T1|Edge 25 changed
 ERROR:  SQL/MM Spatial exception - start node not geometry start point.
 ERROR:  SQL/MM Spatial exception - end node not geometry end point.
@@ -41,4 +35,5 @@ T13.1|29
 T13.2|Edge 29 changed
 T13.3|26
 ERROR:  Edge motion collision at POINT(-1.1697 47.7825)
+ERROR:  Corrupted topology (see #4706)
 Topology 'city_data' dropped

@@ -10,6 +10,8 @@
  *
  **********************************************************************/
 
+#include <stdlib.h>
+
 #include "CUnit/Basic.h"
 
 #include "../lwgeom_log.h"
@@ -368,7 +370,7 @@ static void dbscan_test_3612c(void)
 void geos_cluster_suite_setup(void);
 void geos_cluster_suite_setup(void)
 {
-	CU_pSuite suite = CU_add_suite("Clustering", init_geos_cluster_suite, clean_geos_cluster_suite);
+	CU_pSuite suite = CU_add_suite("clustering", init_geos_cluster_suite, clean_geos_cluster_suite);
 	PG_ADD_TEST(suite, basic_test);
 	PG_ADD_TEST(suite, nonsequential_test);
 	PG_ADD_TEST(suite, basic_distance_test);

@@ -26,7 +26,7 @@
 /** @file
 *
 * SVG output routines.
-* Originally written by: Klaus Förster <klaus@svg.cc>
+* Originally written by: Klaus Fï¿½rster <klaus@svg.cc>
 * Refactored by: Olivier Courtin (Camptocamp)
 *
 * BNF SVG Path: <http://www.w3.org/TR/SVG/paths.html#PathDataBNF>
@@ -34,13 +34,13 @@
 
 #include "liblwgeom_internal.h"
 
-static char * assvg_point(const LWPOINT *point, int relative, int precision);
-static char * assvg_line(const LWLINE *line, int relative, int precision);
-static char * assvg_polygon(const LWPOLY *poly, int relative, int precision);
-static char * assvg_multipoint(const LWMPOINT *mpoint, int relative, int precision);
-static char * assvg_multiline(const LWMLINE *mline, int relative, int precision);
-static char * assvg_multipolygon(const LWMPOLY *mpoly, int relative, int precision);
-static char * assvg_collection(const LWCOLLECTION *col, int relative, int precision);
+static lwvarlena_t *assvg_point(const LWPOINT *point, int relative, int precision);
+static lwvarlena_t *assvg_line(const LWLINE *line, int relative, int precision);
+static lwvarlena_t *assvg_polygon(const LWPOLY *poly, int relative, int precision);
+static lwvarlena_t *assvg_multipoint(const LWMPOINT *mpoint, int relative, int precision);
+static lwvarlena_t *assvg_multiline(const LWMLINE *mline, int relative, int precision);
+static lwvarlena_t *assvg_multipolygon(const LWMPOLY *mpoly, int relative, int precision);
+static lwvarlena_t *assvg_collection(const LWCOLLECTION *col, int relative, int precision);
 
 static size_t assvg_geom_size(const LWGEOM *geom, int relative, int precision);
 static size_t assvg_geom_buf(const LWGEOM *geom, char *output, int relative, int precision);
@@ -52,18 +52,18 @@ static size_t pointArray_svg_abs(POINTARRAY *pa, char * output, int close_ring, 
 /**
  * Takes a GEOMETRY and returns a SVG representation
  */
-char *
+lwvarlena_t *
 lwgeom_to_svg(const LWGEOM *geom, int precision, int relative)
 {
-	char *ret = NULL;
+	lwvarlena_t *ret = NULL;
 	int type = geom->type;
 
-	/* Empty string for empties */
+	/* Empty varlena for empties */
 	if( lwgeom_is_empty(geom) )
 	{
-		ret = lwalloc(1);
-		ret[0] = '\0';
-		return ret;
+		lwvarlena_t *v = lwalloc(LWVARHDRSZ);
+		LWSIZE_SET(v->size, LWVARHDRSZ);
+		return v;
 	}
 
 	switch (type)
@@ -104,11 +104,11 @@ lwgeom_to_svg(const LWGEOM *geom, int precision, int relative)
  */
 
 static size_t
-assvg_point_size(const LWPOINT *point, int circle, int precision)
+assvg_point_size(__attribute__((__unused__)) const LWPOINT *point, int circle, int precision)
 {
 	size_t size;
 
-	size = (OUT_MAX_DIGS_DOUBLE + precision) * 2;
+	size = (OUT_MAX_BYTES_DOUBLE + precision) * 2;
 	if (circle) size += sizeof("cx='' cy=''");
 	else size += sizeof("x='' y=''");
 
@@ -119,24 +119,14 @@ static size_t
 assvg_point_buf(const LWPOINT *point, char * output, int circle, int precision)
 {
 	char *ptr=output;
-	char x[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
-	char y[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
+	char x[OUT_DOUBLE_BUFFER_SIZE];
+	char y[OUT_DOUBLE_BUFFER_SIZE];
 	POINT2D pt;
 
 	getPoint2d_p(point->point, 0, &pt);
 
-	if (fabs(pt.x) < OUT_MAX_DOUBLE)
-		sprintf(x, "%.*f", precision, pt.x);
-	else
-		sprintf(x, "%g", pt.x);
-	trim_trailing_zeros(x);
-
-	/* SVG Y axis is reversed, an no need to transform 0 into -0 */
-	if (fabs(pt.y) < OUT_MAX_DOUBLE)
-		sprintf(y, "%.*f", precision, fabs(pt.y) ? pt.y * -1 : pt.y);
-	else
-		sprintf(y, "%g", fabs(pt.y) ? pt.y * -1 : pt.y);
-	trim_trailing_zeros(y);
+	lwprint_double(pt.x, precision, x);
+	lwprint_double(-pt.y, precision, y);
 
 	if (circle) ptr += sprintf(ptr, "x=\"%s\" y=\"%s\"", x, y);
 	else ptr += sprintf(ptr, "cx=\"%s\" cy=\"%s\"", x, y);
@@ -144,17 +134,14 @@ assvg_point_buf(const LWPOINT *point, char * output, int circle, int precision)
 	return (ptr-output);
 }
 
-static char *
+static lwvarlena_t *
 assvg_point(const LWPOINT *point, int circle, int precision)
 {
-	char *output;
-	int size;
-
-	size = assvg_point_size(point, circle, precision);
-	output = lwalloc(size);
-	assvg_point_buf(point, output, circle, precision);
-
-	return output;
+	size_t size = assvg_point_size(point, circle, precision);
+	lwvarlena_t *v = lwalloc(LWVARHDRSZ + size);
+	size = assvg_point_buf(point, v->data, circle, precision);
+	LWSIZE_SET(v->size, LWVARHDRSZ + size);
+	return v;
 }
 
 
@@ -163,7 +150,7 @@ assvg_point(const LWPOINT *point, int circle, int precision)
  */
 
 static size_t
-assvg_line_size(const LWLINE *line, int relative, int precision)
+assvg_line_size(const LWLINE *line, __attribute__((__unused__)) int relative, int precision)
 {
 	size_t size;
 
@@ -188,17 +175,14 @@ assvg_line_buf(const LWLINE *line, char * output, int relative, int precision)
 	return (ptr-output);
 }
 
-static char *
+static lwvarlena_t *
 assvg_line(const LWLINE *line, int relative, int precision)
 {
-	char *output;
-	int size;
-
-	size = assvg_line_size(line, relative, precision);
-	output = lwalloc(size);
-	assvg_line_buf(line, output, relative, precision);
-
-	return output;
+	size_t size = assvg_line_size(line, relative, precision);
+	lwvarlena_t *v = lwalloc(LWVARHDRSZ + size);
+	size = assvg_line_buf(line, v->data, relative, precision);
+	LWSIZE_SET(v->size, LWVARHDRSZ + size);
+	return v;
 }
 
 
@@ -207,9 +191,9 @@ assvg_line(const LWLINE *line, int relative, int precision)
  */
 
 static size_t
-assvg_polygon_size(const LWPOLY *poly, int relative, int precision)
+assvg_polygon_size(const LWPOLY *poly, __attribute__((__unused__)) int relative, int precision)
 {
-	int i;
+	uint32_t i;
 	size_t size=0;
 
 	for (i=0; i<poly->nrings; i++)
@@ -222,7 +206,7 @@ assvg_polygon_size(const LWPOLY *poly, int relative, int precision)
 static size_t
 assvg_polygon_buf(const LWPOLY *poly, char * output, int relative, int precision)
 {
-	int i;
+	uint32_t i;
 	char *ptr=output;
 
 	for (i=0; i<poly->nrings; i++)
@@ -245,17 +229,14 @@ assvg_polygon_buf(const LWPOLY *poly, char * output, int relative, int precision
 	return (ptr-output);
 }
 
-static char *
+static lwvarlena_t *
 assvg_polygon(const LWPOLY *poly, int relative, int precision)
 {
-	char *output;
-	int size;
-
-	size = assvg_polygon_size(poly, relative, precision);
-	output = lwalloc(size);
-	assvg_polygon_buf(poly, output, relative, precision);
-
-	return output;
+	size_t size = assvg_polygon_size(poly, relative, precision);
+	lwvarlena_t *v = lwalloc(LWVARHDRSZ + size);
+	size = assvg_polygon_buf(poly, v->data, relative, precision);
+	LWSIZE_SET(v->size, LWVARHDRSZ + size);
+	return v;
 }
 
 
@@ -268,7 +249,7 @@ assvg_multipoint_size(const LWMPOINT *mpoint, int relative, int precision)
 {
 	const LWPOINT *point;
 	size_t size=0;
-	int i;
+	uint32_t i;
 
 	for (i=0 ; i<mpoint->ngeoms ; i++)
 	{
@@ -284,7 +265,7 @@ static size_t
 assvg_multipoint_buf(const LWMPOINT *mpoint, char *output, int relative, int precision)
 {
 	const LWPOINT *point;
-	int i;
+	uint32_t i;
 	char *ptr=output;
 
 	for (i=0 ; i<mpoint->ngeoms ; i++)
@@ -297,17 +278,14 @@ assvg_multipoint_buf(const LWMPOINT *mpoint, char *output, int relative, int pre
 	return (ptr-output);
 }
 
-static char *
+static lwvarlena_t *
 assvg_multipoint(const LWMPOINT *mpoint, int relative, int precision)
 {
-	char *output;
-	int size;
-
-	size = assvg_multipoint_size(mpoint, relative, precision);
-	output = lwalloc(size);
-	assvg_multipoint_buf(mpoint, output, relative, precision);
-
-	return output;
+	size_t size = assvg_multipoint_size(mpoint, relative, precision);
+	lwvarlena_t *v = lwalloc(LWVARHDRSZ + size);
+	size = assvg_multipoint_buf(mpoint, v->data, relative, precision);
+	LWSIZE_SET(v->size, LWVARHDRSZ + size);
+	return v;
 }
 
 
@@ -320,7 +298,7 @@ assvg_multiline_size(const LWMLINE *mline, int relative, int precision)
 {
 	const LWLINE *line;
 	size_t size=0;
-	int i;
+	uint32_t i;
 
 	for (i=0 ; i<mline->ngeoms ; i++)
 	{
@@ -336,7 +314,7 @@ static size_t
 assvg_multiline_buf(const LWMLINE *mline, char *output, int relative, int precision)
 {
 	const LWLINE *line;
-	int i;
+	uint32_t i;
 	char *ptr=output;
 
 	for (i=0 ; i<mline->ngeoms ; i++)
@@ -349,17 +327,14 @@ assvg_multiline_buf(const LWMLINE *mline, char *output, int relative, int precis
 	return (ptr-output);
 }
 
-static char *
+static lwvarlena_t *
 assvg_multiline(const LWMLINE *mline, int relative, int precision)
 {
-	char *output;
-	int size;
-
-	size = assvg_multiline_size(mline, relative, precision);
-	output = lwalloc(size);
-	assvg_multiline_buf(mline, output, relative, precision);
-
-	return output;
+	size_t size = assvg_multiline_size(mline, relative, precision);
+	lwvarlena_t *v = lwalloc(LWVARHDRSZ + size);
+	size = assvg_multiline_buf(mline, v->data, relative, precision);
+	LWSIZE_SET(v->size, LWVARHDRSZ + size);
+	return v;
 }
 
 
@@ -372,7 +347,7 @@ assvg_multipolygon_size(const LWMPOLY *mpoly, int relative, int precision)
 {
 	const LWPOLY *poly;
 	size_t size=0;
-	int i;
+	uint32_t i;
 
 	for (i=0 ; i<mpoly->ngeoms ; i++)
 	{
@@ -388,7 +363,7 @@ static size_t
 assvg_multipolygon_buf(const LWMPOLY *mpoly, char *output, int relative, int precision)
 {
 	const LWPOLY *poly;
-	int i;
+	uint32_t i;
 	char *ptr=output;
 
 	for (i=0 ; i<mpoly->ngeoms ; i++)
@@ -401,17 +376,14 @@ assvg_multipolygon_buf(const LWMPOLY *mpoly, char *output, int relative, int pre
 	return (ptr-output);
 }
 
-static char *
+static lwvarlena_t *
 assvg_multipolygon(const LWMPOLY *mpoly, int relative, int precision)
 {
-	char *output;
-	int size;
-
-	size = assvg_multipolygon_size(mpoly, relative, precision);
-	output = lwalloc(size);
-	assvg_multipolygon_buf(mpoly, output, relative, precision);
-
-	return output;
+	size_t size = assvg_multipolygon_size(mpoly, relative, precision);
+	lwvarlena_t *v = lwalloc(LWVARHDRSZ + size);
+	size = assvg_multipolygon_buf(mpoly, v->data, relative, precision);
+	LWSIZE_SET(v->size, LWVARHDRSZ + size);
+	return v;
 }
 
 
@@ -422,7 +394,7 @@ assvg_multipolygon(const LWMPOLY *mpoly, int relative, int precision)
 static size_t
 assvg_collection_size(const LWCOLLECTION *col, int relative, int precision)
 {
-	int i = 0;
+	uint32_t i = 0;
 	size_t size=0;
 	const LWGEOM *subgeom;
 
@@ -443,7 +415,7 @@ assvg_collection_size(const LWCOLLECTION *col, int relative, int precision)
 static size_t
 assvg_collection_buf(const LWCOLLECTION *col, char *output, int relative, int precision)
 {
-	int i;
+	uint32_t i;
 	char *ptr=output;
 	const LWGEOM *subgeom;
 
@@ -460,17 +432,14 @@ assvg_collection_buf(const LWCOLLECTION *col, char *output, int relative, int pr
 	return (ptr - output);
 }
 
-static char *
+static lwvarlena_t *
 assvg_collection(const LWCOLLECTION *col, int relative, int precision)
 {
-	char *output;
-	int size;
-
-	size = assvg_collection_size(col, relative, precision);
-	output = lwalloc(size);
-	assvg_collection_buf(col, output, relative, precision);
-
-	return output;
+	size_t size = assvg_collection_size(col, relative, precision);
+	lwvarlena_t *v = lwalloc(LWVARHDRSZ + size);
+	size = assvg_collection_buf(col, v->data, relative, precision);
+	LWSIZE_SET(v->size, LWVARHDRSZ + size);
+	return v;
 }
 
 
@@ -561,8 +530,8 @@ pointArray_svg_rel(POINTARRAY *pa, char *output, int close_ring, int precision)
 {
 	int i, end;
 	char *ptr;
-	char sx[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
-	char sy[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
+	char sx[OUT_DOUBLE_BUFFER_SIZE];
+	char sy[OUT_DOUBLE_BUFFER_SIZE];
 	const POINT2D *pt;
 
 	double f = 1.0;
@@ -584,18 +553,8 @@ pointArray_svg_rel(POINTARRAY *pa, char *output, int close_ring, int precision)
 	x = round(pt->x*f)/f;
 	y = round(pt->y*f)/f;
 
-	if (fabs(x) < OUT_MAX_DOUBLE)
-		sprintf(sx, "%.*f", precision, x);
-	else
-		sprintf(sx, "%g", x);
-	trim_trailing_zeros(sx);
-
-	if (fabs(y) < OUT_MAX_DOUBLE)
-		sprintf(sy, "%.*f", precision, fabs(y) ? y * -1 : y);
-	else
-		sprintf(sy, "%g", fabs(y) ? y * -1 : y);
-	trim_trailing_zeros(sy);
-
+	lwprint_double(x, precision, sx);
+	lwprint_double(-y, precision, sy);
 	ptr += sprintf(ptr,"%s %s l", sx, sy);
 
 	/* accum */
@@ -614,20 +573,8 @@ pointArray_svg_rel(POINTARRAY *pa, char *output, int close_ring, int precision)
 		dx = x - accum_x;
 		dy = y - accum_y;
 
-		if (fabs(dx) < OUT_MAX_DOUBLE)
-			sprintf(sx, "%.*f", precision, dx);
-		else
-			sprintf(sx, "%g", dx);
-		trim_trailing_zeros(sx);
-
-		/* SVG Y axis is reversed, an no need to transform 0 into -0 */
-		if (fabs(dy) < OUT_MAX_DOUBLE)
-			sprintf(sy, "%.*f", precision,
-			        fabs(dy) ? dy * -1: dy);
-		else
-			sprintf(sy, "%g",
-			        fabs(dy) ? dy * -1: dy);
-		trim_trailing_zeros(sy);
+		lwprint_double(dx, precision, sx);
+		lwprint_double(-dy, precision, sy);
 
 		accum_x += dx;
 		accum_y += dy;
@@ -647,8 +594,8 @@ pointArray_svg_abs(POINTARRAY *pa, char *output, int close_ring, int precision)
 {
 	int i, end;
 	char *ptr;
-	char x[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
-	char y[OUT_MAX_DIGS_DOUBLE+OUT_MAX_DOUBLE_PRECISION+1];
+	char x[OUT_DOUBLE_BUFFER_SIZE];
+	char y[OUT_DOUBLE_BUFFER_SIZE];
 	POINT2D pt;
 
 	ptr = output;
@@ -660,18 +607,8 @@ pointArray_svg_abs(POINTARRAY *pa, char *output, int close_ring, int precision)
 	{
 		getPoint2d_p(pa, i, &pt);
 
-		if (fabs(pt.x) < OUT_MAX_DOUBLE)
-			sprintf(x, "%.*f", precision, pt.x);
-		else
-			sprintf(x, "%g", pt.x);
-		trim_trailing_zeros(x);
-
-		/* SVG Y axis is reversed, an no need to transform 0 into -0 */
-		if (fabs(pt.y) < OUT_MAX_DOUBLE)
-			sprintf(y, "%.*f", precision, fabs(pt.y) ? pt.y * -1:pt.y);
-		else
-			sprintf(y, "%g", fabs(pt.y) ? pt.y * -1:pt.y);
-		trim_trailing_zeros(y);
+		lwprint_double(pt.x, precision, x);
+		lwprint_double(-pt.y, precision, y);
 
 		if (i == 1) ptr += sprintf(ptr, " L ");
 		else if (i) ptr += sprintf(ptr, " ");
@@ -688,6 +625,5 @@ pointArray_svg_abs(POINTARRAY *pa, char *output, int close_ring, int precision)
 static size_t
 pointArray_svg_size(POINTARRAY *pa, int precision)
 {
-	return (OUT_MAX_DIGS_DOUBLE + precision + sizeof(" "))
-	       * 2 * pa->npoints + sizeof(" L ");
+	return (OUT_MAX_BYTES_DOUBLE + precision + sizeof(" ")) * 2 * pa->npoints + sizeof(" L ");
 }

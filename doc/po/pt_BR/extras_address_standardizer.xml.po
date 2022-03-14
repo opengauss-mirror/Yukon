@@ -6,10 +6,10 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PostGIS\n"
-"Report-Msgid-Bugs-To: http://bugs.kde.org\n"
-"POT-Creation-Date: 2017-08-30 03:58+0000\n"
-"PO-Revision-Date: 2016-11-16 19:49+0000\n"
-"Last-Translator: Poliana Palhares <p.palhares@plamu.com.br>\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-09-11 01:55+0000\n"
+"PO-Revision-Date: 2018-07-23 18:00+0000\n"
+"Last-Translator: georgersilva <georger.silva@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/postgis/postgis/"
 "language/pt_BR/)\n"
 "Language: pt_BR\n"
@@ -52,9 +52,9 @@ msgstr ""
 
 #. Tag: para
 #: extras_address_standardizer.xml:6
-#, no-c-format
+#, fuzzy, no-c-format
 msgid ""
-"The code is built into a single postgresql extension library called "
+"The code is built into a single PostgreSQL extension library called "
 "<code>address_standardizer</code> which can be installed with <code>CREATE "
 "EXTENSION address_standardizer;</code>. In addition to the "
 "address_standardizer extension, a sample data extension called "
@@ -373,13 +373,11 @@ msgstr "rota rural"
 
 #. Tag: para
 #: extras_address_standardizer.xml:95
-#, fuzzy, no-c-format
+#, no-c-format
 msgid ""
 "is text (token number <code>8</code>): RURAL ROUTE . Example <emphasis>7</"
 "emphasis> in <code>RR 7</code>."
 msgstr ""
-"é um texto (número token <code>8</code>): ROTA RURAL . Exemplo <emphasis>8</"
-"emphasis> em <code>RR 7</code>."
 
 #. Tag: term
 #: extras_address_standardizer.xml:98
@@ -1254,13 +1252,11 @@ msgstr ""
 
 #. Tag: para
 #: extras_address_standardizer.xml:448
-#, fuzzy, no-c-format
+#, no-c-format
 msgid ""
 "(token number <code>14</code>): The <emphasis role=\"bold\">BOX</emphasis> "
 "in <code>BOX 3B</code>"
 msgstr ""
-"i(token number <code>14</code>): The <emphasis role=\"bold\">BOX</emphasis> "
-"in <code>BOX 3B</code>"
 
 #. Tag: term
 #: extras_address_standardizer.xml:451
@@ -1439,17 +1435,13 @@ msgstr ""
 
 #. Tag: para
 #: extras_address_standardizer.xml:529
-#, fuzzy, no-c-format
+#, no-c-format
 msgid ""
 "A gaz (short for gazeteer) table is used to standardize place names and "
 "associate that input with <xref linkend=\"rule_input_tokens\"/> and (b) "
 "standardized representations. For example if you are in US, you may load "
 "these with State Names and associated abbreviations."
 msgstr ""
-"Uma gaz (diminutivo para gazeteer) table é usada para classificar entrada "
-"alfanumérica e associar que entra com <xref linkend=\"rule_input_tokens\"/> "
-"e (b) representações padronizadas. Por exemplo se você está nos EUA, você "
-"talvez carregue isso com State Names e abreviações associadas."
 
 #. Tag: para
 #: extras_address_standardizer.xml:531
@@ -1500,7 +1492,7 @@ msgstr ""
 
 #. Tag: para
 #: extras_address_standardizer.xml:588
-#, fuzzy, no-c-format
+#, no-c-format
 msgid ""
 "Returns takes an address as input, and returns a record output consisting of "
 "fields <emphasis>num</emphasis>, <emphasis>street</emphasis>, "
@@ -1508,11 +1500,6 @@ msgid ""
 "emphasis>, <emphasis>state</emphasis>, <emphasis>zip</emphasis>, "
 "<emphasis>zipplus</emphasis>, <emphasis>country</emphasis>."
 msgstr ""
-"Retornos toma como entrada um endereço e retorna uma saída de registro "
-"consistindo de campos <emphasis>num</emphasis>, <emphasis>rua</emphasis>, "
-"<emphasis>rua2</emphasis>, <emphasis>endereço1</emphasis>, <emphasis>cidade</"
-"emphasis>, <emphasis>estado</emphasis>, <emphasis>zip</emphasis>, "
-"<emphasis>zipplus</emphasis>, <emphasis>país</emphasis>."
 
 #. Tag: para
 #: extras_address_standardizer.xml:592 extras_address_standardizer.xml:654

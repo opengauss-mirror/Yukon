@@ -5,17 +5,18 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PostGIS\n"
 "Report-Msgid-Bugs-To: http://bugs.kde.org\n"
-"POT-Creation-Date: 2017-09-21 22:52+0000\n"
-"PO-Revision-Date: 2016-02-16 08:34+0000\n"
-"Last-Translator: georgersilva <georger.silva@gmail.com>\n"
+"POT-Creation-Date: 2018-09-16 19:07+0000\n"
+"PO-Revision-Date: 2018-07-23 18:00+0000\n"
+"Last-Translator: Jakub Bobrowski <jbobrowski@geoinfor.pl>\n"
 "Language-Team: Polish (http://www.transifex.com/postgis/postgis/language/"
 "pl/)\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
-"|| n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n"
+"%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n"
+"%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
 
 #. Tag: title
 #: reference_misc.xml:3
@@ -51,7 +52,7 @@ msgstr ""
 #: reference_misc.xml:528
 #, no-c-format
 msgid "Description"
-msgstr ""
+msgstr "Opis"
 
 #. Tag: para
 #: reference_misc.xml:24
@@ -73,14 +74,14 @@ msgstr ""
 #: reference_misc.xml:486
 #, no-c-format
 msgid "&Z_support;"
-msgstr ""
+msgstr "&Z_support;"
 
 #. Tag: para
 #: reference_misc.xml:27 reference_misc.xml:69 reference_misc.xml:110
 #: reference_misc.xml:197 reference_misc.xml:396 reference_misc.xml:487
 #, no-c-format
 msgid "&curve_support;"
-msgstr ""
+msgstr "&curve_support;"
 
 #. Tag: para
 #: reference_misc.xml:28 reference_misc.xml:70 reference_misc.xml:111
@@ -88,7 +89,7 @@ msgstr ""
 #: reference_misc.xml:488
 #, no-c-format
 msgid "&P_support;"
-msgstr ""
+msgstr "&P_support;"
 
 #. Tag: para
 #: reference_misc.xml:29 reference_misc.xml:71 reference_misc.xml:112
@@ -96,7 +97,7 @@ msgstr ""
 #: reference_misc.xml:489
 #, no-c-format
 msgid "&T_support;"
-msgstr ""
+msgstr "&T_support;"
 
 #. Tag: title
 #: reference_misc.xml:34 reference_misc.xml:76 reference_misc.xml:118
@@ -105,7 +106,7 @@ msgstr ""
 #: reference_misc.xml:542
 #, no-c-format
 msgid "Examples"
-msgstr ""
+msgstr "Przykłady"
 
 #. Tag: programlisting
 #: reference_misc.xml:36
@@ -142,7 +143,7 @@ msgstr ""
 #: reference_misc.xml:549
 #, no-c-format
 msgid "See Also"
-msgstr ""
+msgstr "Zobacz także"
 
 #. Tag: refname
 #: reference_misc.xml:49
@@ -570,7 +571,7 @@ msgstr ""
 #: reference_misc.xml:344
 #, no-c-format
 msgid "Availability: 1.4.0"
-msgstr ""
+msgstr "Dostępność: 1.4.0"
 
 #. Tag: para
 #: reference_misc.xml:355

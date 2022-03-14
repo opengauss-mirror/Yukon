@@ -33,7 +33,17 @@
 #include <ctype.h>
 #include "postgres.h"
 #include "access/htup.h"
+#include <access/heapam.h>
+#include <access/skey.h>
+#include <access/genam.h>
+#include "access/tuptoaster.h" /* For toast_raw_datum_size */
+#include <access/sysattr.h>
 #include "catalog/pg_type.h"
+#include "catalog/pg_extension.h"
+#include "catalog/indexing.h"
+#include "catalog/namespace.h"
+#include "commands/extension.h"
+//#include "commands/vacuum.h"
 #include "fmgr.h"
 #include "lib/stringinfo.h"
 #include "mb/pg_wchar.h"
@@ -50,7 +60,12 @@
 #include "utils/palloc.h"
 #include "utils/syscache.h"
 #include "utils/memutils.h"
+#include "utils/builtins.h"
+#include "utils/lsyscache.h"
+#include "utils/typcache.h"
+#include "utils/fmgroids.h"
 #include "knl/knl_variable.h"
+
 
 typedef int Buffer;
 typedef uint16 StrategyNumber;
@@ -84,6 +99,13 @@ typedef uint32 BlockNumber;
 #define STARELKIND_PARTITION 'p'
 
 
+#define GIST_ROOT_BLKNO 0
+#define GistTupleIsInvalid(itup) (ItemPointerGetOffsetNumber(&((itup)->t_tid)) == TUPLE_IS_INVALID)
+#define GistTupleSetValid(itup) ItemPointerSetOffsetNumber(&((itup)->t_tid), TUPLE_IS_VALID)
+#define TUPLE_IS_VALID 0xffff
+#define TUPLE_IS_INVALID 0xfffe
+
+
 /* spi.h */
 #ifndef SPI_H
 #define SPI_OK_CONNECT 1
@@ -93,6 +115,7 @@ typedef uint32 BlockNumber;
 #define SPI_OK_SELECT 5
 #define SPI_ERROR_NOOUTFUNC (-10)
 #define SPI_ERROR_NOATTRIBUTE (-9)
+
 
 extern THR_LOCAL PGDLLIMPORT uint32 SPI_processed;
 extern THR_LOCAL int SPI_result;
@@ -552,8 +575,10 @@ typedef void (*AnalyzeAttrComputeStatsFunc)(
  */
 #define ATTRIBUTE_FIXED_PART_SIZE (offsetof(FormData_pg_attribute, attkvtype) + sizeof(Oid))
 
-typedef void (*AnalyzeAttrComputeStatsFunc)(
-    VacAttrStatsP stats, AnalyzeAttrFetchFunc fetchfunc, int samplerows, double totalrows, Relation rel);
+#define CacheMemoryContext (u_sess->cache_mem_cxt)
+
+// typedef void (*AnalyzeAttrComputeStatsFunc)(
+//     VacAttrStatsP stats, AnalyzeAttrFetchFunc fetchfunc, int samplerows, double totalrows);
 
 /* commands/vacuum.h */
 typedef struct VacAttrStats {
@@ -648,15 +673,22 @@ extern THR_LOCAL PGDLLIMPORT volatile bool InterruptPending;
 #define PageIsValid(page) PointerIsValid(page)
 #define PointerIsValid(pointer) ((const void*)(pointer) != NULL)
 typedef struct PortalData* Portal;
+
+extern bool std_typanalyze(VacAttrStats* stats);
+extern bool get_restriction_variable(
+    PlannerInfo* root, List* args, int varRelid, VariableStatData* vardata, Node** other, bool* varonleft);
+
 extern int SPI_exec(const char* src, long tcount);
 extern int SPI_connect(CommandDest dest = DestSPI, void (*spiCallbackfn)(void*) = NULL, void* clientData = NULL);
 extern int SPI_finish(void);
-extern int SPI_execute(const char* src, bool read_only, long tcount);
+extern int SPI_execute(const char* src, bool read_only, long tcount, bool isCollectParam = false);
 extern char* SPI_getvalue(HeapTuple tuple, TupleDesc tupdesc, int fnumber);
 extern int SPI_freeplan(SPIPlanPtr plan);
 extern void SPI_freetuptable(SPITupleTable *tuptable);
 extern void SPI_cursor_close(Portal portal);
 extern int SPI_execute_plan(SPIPlanPtr plan, Datum *Values, const char *Nulls, bool read_only, long tcount);
+extern int SPI_execute_with_args(const char* src, int nargs, Oid* argtypes, Datum* Values, const char* Nulls,
+    bool read_only, long tcount, Cursor_Data* cursor_data);
 extern SPIPlanPtr SPI_prepare(const char *src, int nargs, Oid *argtypes);
 extern Datum SPI_getbinval(HeapTuple tuple, TupleDesc tupdesc, int fnumber, bool *isnull);
 extern Portal SPI_cursor_open_with_args(const char* name, const char* src, int nargs, Oid* argtypes, Datum* Values,
@@ -848,6 +880,9 @@ extern void vacuum_delay_point(void);
 extern char* get_rel_name(Oid relid);
 
 extern THR_LOCAL PGDLLIMPORT int default_statistics_target;
+
+extern Datum GetAttributeByNum(HeapTupleHeader tuple, AttrNumber attrno, bool* isNull);
+extern Datum GetAttributeByName(HeapTupleHeader tuple, const char* attname, bool* isNull);
 
 #define CStringGetTextDatum(s) PointerGetDatum(cstring_to_text(s))
 

@@ -155,36 +155,36 @@ SELECT ST_Value(
 		ARRAY[1,1]
 	),
 2, 3, 3);
-SELECT ST_Value(
-	ST_Band(
-		ST_AddBand(
-			ST_AddBand(
-				ST_AddBand(
-					ST_MakeEmptyRaster(200, 200, 10, 10, 2, 2, 0, 0,0)
-					, 1, '64BF', 1234.5678, NULL
-				)
-				, '64BF', 987.654321, NULL
-			)
-			, '64BF', 9876.54321, NULL
-		),
-		'1,1'
-	),
-2, 3, 3);
-SELECT ST_Value(
-	ST_Band(
-		ST_AddBand(
-			ST_AddBand(
-				ST_AddBand(
-					ST_MakeEmptyRaster(200, 200, 10, 10, 2, 2, 0, 0,0)
-					, 1, '64BF', 1234.5678, NULL
-				)
-				, '64BF', 987.654321, NULL
-			)
-			, '64BF', 9876.54321, NULL
-		),
-		'1;1', ';'
-	),
-2, 3, 3);
+-- SELECT ST_Value(
+-- 	ST_Band(
+-- 		ST_AddBand(
+-- 			ST_AddBand(
+-- 				ST_AddBand(
+-- 					ST_MakeEmptyRaster(200, 200, 10, 10, 2, 2, 0, 0,0)
+-- 					, 1, '64BF', 1234.5678, NULL
+-- 				)
+-- 				, '64BF', 987.654321, NULL
+-- 			)
+-- 			, '64BF', 9876.54321, NULL
+-- 		),
+-- 		'1,1'
+-- 	),
+-- 2, 3, 3);
+-- SELECT ST_Value(
+-- 	ST_Band(
+-- 		ST_AddBand(
+-- 			ST_AddBand(
+-- 				ST_AddBand(
+-- 					ST_MakeEmptyRaster(200, 200, 10, 10, 2, 2, 0, 0,0)
+-- 					, 1, '64BF', 1234.5678, NULL
+-- 				)
+-- 				, '64BF', 987.654321, NULL
+-- 			)
+-- 			, '64BF', 9876.54321, NULL
+-- 		),
+-- 		'1;1', ';'
+-- 	),
+-- 2, 3, 3);
 SELECT ST_Value(
 	ST_Band(
 		ST_AddBand(
@@ -318,33 +318,33 @@ SELECT ST_NumBands(
 );
 
 -- Ticket #2812
-SELECT ST_Value(
-	ST_Band(
-		ST_AddBand(
-			ST_AddBand(
-				ST_AddBand(
-					ST_MakeEmptyRaster(200, 200, 10, 10, 2, 2, 0, 0,0)
-					, 1, '64BF', 1234.5678, NULL
-				)
-				, '64BF', 987.654321, NULL
-			)
-			, '64BF', 9876.54321, NULL
-		),
-		'1|1', '|'
-	),
-2, 3, 3);
-SELECT ST_Value(
-	ST_Band(
-		ST_AddBand(
-			ST_AddBand(
-				ST_AddBand(
-					ST_MakeEmptyRaster(200, 200, 10, 10, 2, 2, 0, 0,0)
-					, 1, '64BF', 1234.5678, NULL
-				)
-				, '64BF', 987.654321, NULL
-			)
-			, '64BF', 9876.54321, NULL
-		),
-		'1,2', ','
-	),
-2, 3, 3);
+-- SELECT ST_Value(
+-- 	ST_Band(
+-- 		ST_AddBand(
+-- 			ST_AddBand(
+-- 				ST_AddBand(
+-- 					ST_MakeEmptyRaster(200, 200, 10, 10, 2, 2, 0, 0,0)
+-- 					, 1, '64BF', 1234.5678, NULL
+-- 				)
+-- 				, '64BF', 987.654321, NULL
+-- 			)
+-- 			, '64BF', 9876.54321, NULL
+-- 		),
+-- 		'1|1', '|'
+-- 	),
+-- 2, 3, 3);
+-- SELECT ST_Value(
+-- 	ST_Band(
+-- 		ST_AddBand(
+-- 			ST_AddBand(
+-- 				ST_AddBand(
+-- 					ST_MakeEmptyRaster(200, 200, 10, 10, 2, 2, 0, 0,0)
+-- 					, 1, '64BF', 1234.5678, NULL
+-- 				)
+-- 				, '64BF', 987.654321, NULL
+-- 			)
+-- 			, '64BF', 9876.54321, NULL
+-- 		),
+-- 		'1.*.2', '.*.'
+-- 	),
+-- 2, 3, 3);

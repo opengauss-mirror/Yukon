@@ -29,7 +29,8 @@
 #include <string.h>
 #include <math.h>
 
-#include "extension_dependency.h"
+#include "postgres.h"
+#include "fmgr.h"
 
 #include "../postgis_config.h"
 #include "liblwgeom.h"

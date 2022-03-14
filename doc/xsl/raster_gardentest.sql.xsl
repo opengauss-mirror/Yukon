@@ -8,7 +8,7 @@
 			using a garden variety of rasters.  Its intent is to flag major crashes.
 	 ******************************************************************** -->
 	<xsl:output method="text" />
-	<xsl:variable name='testversion'>2.4.0</xsl:variable>
+	<xsl:variable name='testversion'>3.2.0</xsl:variable>
 	<xsl:variable name='fnexclude'>AddRasterColumn AddRasterConstraints DropRasterConstraints DropRasterColumn DropRasterTable</xsl:variable>
 	<!--This is just a place holder to state functions not supported in 1.3 or tested separately -->
 
@@ -24,31 +24,31 @@
 	<xsl:variable name='var_text'>'monkey'</xsl:variable>
 	<xsl:variable name='var_varchar'>'test'</xsl:variable>
 	<xsl:variable name='var_options'>NULL::text</xsl:variable>
-	<xsl:variable name="var_onerasteruserfunc">'monkey_oneuserfunc(float,integer[],text[])'::regprocedure</xsl:variable> 
+	<xsl:variable name="var_onerasteruserfunc">'monkey_oneuserfunc(float,integer[],text[])'::regprocedure</xsl:variable>
 	<xsl:variable name='var_pixeltype'>'1BB'</xsl:variable>
 	<xsl:variable name='var_pixeltypenoq'>8BUI</xsl:variable>
 	<xsl:variable name='var_pixelvalue'>0</xsl:variable>
 	<xsl:variable name='var_rastercolumn'>'rast'</xsl:variable>
 	<xsl:variable name='var_rastertable'>'pgis_rgarden_1bb'</xsl:variable>
 	<xsl:variable name='var_boolean'>false</xsl:variable>
-	<xsl:variable name='var_logtable'>raster_garden_log24</xsl:variable>
+	<xsl:variable name='var_logtable'>raster_garden_log32</xsl:variable>
 	<xsl:variable name='var_pixeltypes'>{8BUI,1BB}</xsl:variable>
 	<xsl:variable name='var_pixelvalues'>{255,0}</xsl:variable>
 	<xsl:variable name='var_algorithm'>'Lanczos'</xsl:variable>
 	<xsl:variable name='var_pt'>ST_Centroid(rast1.rast::geometry)</xsl:variable>
 	<xsl:variable name='var_addbandarg'>ROW(NULL, '8BUI', 255, 0)::addbandarg</xsl:variable>
 	<xsl:variable name='var_addbandargset'>ARRAY[ROW(1, '1BB'::text, 0, NULL),ROW(2, '4BUI'::text, 0, NULL)]::addbandarg[]</xsl:variable>
-	
+
 	<xsl:variable name='var_reclassarg'>ROW(2, '0-100:1-10, 101-500:11-150,501 - 10000: 151-254', '8BUI', 255)</xsl:variable>
 	<xsl:variable name='var_georefcoords'>'2 0 0 3 0.5 0.5'</xsl:variable>
-	<xsl:variable name='var_logupdatesql'>UPDATE <xsl:value-of select="$var_logtable" /> SET log_end = clock_timestamp() 
+	<xsl:variable name='var_logupdatesql'>UPDATE <xsl:value-of select="$var_logtable" /> SET log_end = clock_timestamp()
 		FROM (SELECT logid FROM <xsl:value-of select="$var_logtable" /> ORDER BY logid DESC limit 1) As foo
 		WHERE <xsl:value-of select="$var_logtable" />.logid = foo.logid  AND <xsl:value-of select="$var_logtable" />.log_end IS NULL;</xsl:variable>
-		
+
 	<xsl:variable name='var_logresultsasxml'>INSERT INTO <xsl:value-of select="$var_logtable" />_output(logid, log_output)
 				SELECT logid, query_to_xml(log_sql, false,false,'') As log_output
 				    FROM <xsl:value-of select="$var_logtable" /> ORDER BY logid DESC LIMIT 1;</xsl:variable>
-				    
+
 	<pgis:gardens>
 		<pgis:gset ID='PointSet' GeometryType='POINT'>(SELECT ST_SetSRID(ST_Point(i,j),4326) As the_geom
 		FROM (SELECT a*1.11111111 FROM generate_series(-10,50,10) As a) As i(i)
@@ -71,48 +71,52 @@
 	<!--changed all to no skew so they pass the world tests -->
 	<pgis:pixeltypes>
 		 <pgis:pixeltype ID="1BB" PixType="1BB" createtable="true" nodata="0">
-		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 100, 100, (i-1)*100, (i-1)*100, 0.0005, -0.0005, 0*i, 0*i), '1BB'), i, (i+1),0),4326) As rast
-		 		FROM generate_series(1,10) As i)
+		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 10, 10, (i-1)*10, (i-1)*10, 0.0005, -0.0005, 0*i, 0*i), '1BB'), i, (i+1),0),4326) As rast
+		 		FROM generate_series(1,2) As i)
 		 </pgis:pixeltype>
 		 <pgis:pixeltype ID="2BUI" PixType="2BUI" createtable="true" nodata="2">
-		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 100, 100, (i-1)*100, (i-1)*100, 0.0005, -0.0005, 0*i, 0*i), '2BUI'), i, (i+1),1),4326) As rast
-		 		FROM generate_series(1,10) As i)
+		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 10, 10, (i-1)*10, (i-1)*10, 0.0005, -0.0005, 0*i, 0*i), '2BUI'), i, (i+1),1),4326) As rast
+		 		FROM generate_series(1,2) As i)
 		 </pgis:pixeltype>
 		 <pgis:pixeltype ID="4BUI" PixType="4BUI" createtable="true" nodata="15">
-		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 100, 100, (i-1)*100, (i-1)*100, 0.0005, -0.0005, 0*i, 0*i), '4BUI'), i, (i+1),14),4326) As rast
-		 		FROM generate_series(1,10) As i)
+		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 10, 10, (i-1)*10, (i-1)*10, 0.0005, -0.0005, 0*i, 0*i), '4BUI'), i, (i+1),14),4326) As rast
+		 		FROM generate_series(1,2) As i)
 		 </pgis:pixeltype>
 		 <pgis:pixeltype ID="8BSI" PixType="8BSI" createtable="true" nodata="-56">
-		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 100, 100, (i-1)*100, (i-1)*100, 0.0005, -0.0005, 0*i, 0*i), '8BSI'), i, (i+1),-50),4326) As rast
-		 		FROM generate_series(1,10) As i)
+		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 10, 10, (i-1)*10, (i-1)*10, 0.0005, -0.0005, 0*i, 0*i), '8BSI'), i, (i+1),-50),4326) As rast
+		 		FROM generate_series(1,2) As i)
 		 </pgis:pixeltype>
 		 <pgis:pixeltype ID="8BUI" PixType="8BUI" createtable="true" nodata="255">
-		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 100, 100, (i-1)*100, (i-1)*100, 0.0005, -0.0005, 0*i, 0*i), '8BUI'), i, (i+1),150),4326) As rast
-		 		FROM generate_series(1,10) As i)
+		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 10, 10, (i-1)*10, (i-1)*10, 0.0005, -0.0005, 0*i, 0*i), '8BUI'), i, (i+1),150),4326) As rast
+		 		FROM generate_series(1,2) As i)
 		 </pgis:pixeltype>
 		 <pgis:pixeltype ID="16BSI" PixType="16BSI" createtable="true" nodata="0">
-		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 100, 100, (i-1)*100, (i-1)*100, 0.0005, -0.0005, 0*i, 0*i), '16BSI'), i, (i+1),-6000),4326) As rast
-		 		FROM generate_series(1,10) As i)
+		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 10, 10, (i-1)*10, (i-1)*10, 0.0005, -0.0005, 0*i, 0*i), '16BSI'), i, (i+1),-6000),4326) As rast
+		 		FROM generate_series(1,2) As i)
 		 </pgis:pixeltype>
 		 <pgis:pixeltype ID="16BUI" PixType="16BUI" createtable="true" nodata="65535">
-		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 100, 100, (i-1)*100, (i-1)*100, 0.0005, -0.0005, 0*i, 0*i), '16BUI'), i, (i+1),64567),4326) As rast
-		 		FROM generate_series(1,10) As i)
+		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 10, 10, (i-1)*10, (i-1)*10, 0.0005, -0.0005, 0*i, 0*i), '16BUI'), i, (i+1),64567),4326) As rast
+		 		FROM generate_series(1,2) As i)
 		 </pgis:pixeltype>
 		 <pgis:pixeltype ID="32BSI" PixType="32BSI" createtable="true" nodata="-4294967295">
-		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 100, 100, (i-1)*100, (i-1)*100, 0.0005, -0.0005, 0*i, 0*i), '32BSI'), i, (i+1),-429496),4326) As rast
-		 		FROM generate_series(1,10) As i)
+		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 10, 10, (i-1)*10, (i-1)*10, 0.0005, -0.0005, 0*i, 0*i), '32BSI'), i, (i+1),-429496),4326) As rast
+		 		FROM generate_series(1,2) As i)
 		 </pgis:pixeltype>
 		 <pgis:pixeltype ID="32BUI" PixType="32BUI" createtable="true" nodata="4294967295">
-		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 100, 100, (i-1)*100, (i-1)*100, 0.0005, -0.0005, 0*i, 0*i), '32BUI'), i, (i+1),42949),4326) As rast
-		 		FROM generate_series(1,10) As i)
+		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 10, 10, (i-1)*10, (i-1)*10, 0.0005, -0.0005, 0*i, 0*i), '32BUI'), i, (i+1),42949),4326) As rast
+		 		FROM generate_series(1,2) As i)
 		 </pgis:pixeltype>
 		 <pgis:pixeltype ID="32BF" PixType="32BF" createtable="true" nodata="-4294.967295">
-		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 100, 100, (i-1)*100, (i-1)*100, 0.0005, -0.0005, 0*i, 0*i), '32BF'), i, (i+1),-4294),4326) As rast
-		 		FROM generate_series(1,10) As i)
+		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 10, 10, (i-1)*10, (i-1)*10, 0.0005, -0.0005, 0*i, 0*i), '32BF'), i, (i+1),-4294),4326) As rast
+		 		FROM generate_series(1,2) As i)
 		 </pgis:pixeltype>
 		  <pgis:pixeltype ID="64BF" PixType="64BF" createtable="true" nodata="429496.7295">
-		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 100, 100, (i-1)*100, (i-1)*100, 0.0005, -0.0005, 0*i, 0*i), '64BF'), i, (i+1),42949.12345),4326) As rast
-		 		FROM generate_series(1,10) As i)
+		 	(SELECT ST_SetSRID(ST_SetValue(ST_AddBand(ST_MakeEmptyRaster( 10, 10, (i-1)*10, (i-1)*10, 0.0005, -0.0005, 0*i, 0*i), '64BF'), i, (i+1),42949.12345),4326) As rast
+		 		FROM generate_series(1,2) As i)
+		 </pgis:pixeltype>
+		 <pgis:pixeltype ID="NULLRaster" PixType="null" createtable="true" nodata="NULL">
+		 	(SELECT NULL::raster As rast
+		 		FROM generate_series(1,3) As i)
 		 </pgis:pixeltype>
 	</pgis:pixeltypes>
         <!-- We deal only with the reference chapter -->
@@ -123,7 +127,7 @@ DROP TABLE IF EXISTS <xsl:value-of select="$var_logtable" />;
 CREATE TABLE <xsl:value-of select="$var_logtable" />(logid serial PRIMARY KEY, log_label text, spatial_class text DEFAULT 'raster', func text, g1 text, g2 text, log_start timestamp, log_end timestamp, log_sql text);
 DROP TABLE IF EXISTS <xsl:value-of select="$var_logtable" />_output;
 CREATE TABLE <xsl:value-of select="$var_logtable" />_output(logid integer PRIMARY KEY, log_output xml);
-                <xsl:apply-templates select="/book/chapter[@id='RT_reference']" />
+            <xsl:apply-templates select="/book/chapter[@id='RT_reference']" />
         </xsl:template>
 	<xsl:template match='chapter'>
 <!-- define a table we call pgis_rgarden_mega that will contain a raster column with a band for all types of pixels we support -->
@@ -141,15 +145,15 @@ SELECT '<xsl:value-of select="$log_label" />: Start Testing';
 <xsl:variable name='var_sql'>CREATE TABLE pgis_rgarden_<xsl:value-of select="@ID" />(rid serial PRIMARY KEY);
    ALTER TABLE pgis_rgarden_<xsl:value-of select="@ID" /> ADD COLUMN rast raster;
    ALTER TABLE pgis_rgarden_<xsl:value-of select="@ID" /> ADD COLUMN r_rasttothrow raster;</xsl:variable>
-INSERT INTO <xsl:value-of select="$var_logtable" />(log_label,  func, g1, log_start,log_sql) 
+INSERT INTO <xsl:value-of select="$var_logtable" />(log_label,  func, g1, log_start,log_sql)
 VALUES('<xsl:value-of select="$log_label" /> add raster column','add raster column', '<xsl:value-of select="@PixType" />', clock_timestamp(),
 	  '<xsl:call-template name="escapesinglequotes"><xsl:with-param name="arg1"><xsl:value-of select="$var_sql" /></xsl:with-param></xsl:call-template>');
 BEGIN;
 	<xsl:value-of select="$var_sql" />
 	<xsl:value-of select="$var_logupdatesql" />
-COMMIT;<xsl:text> 
+COMMIT;<xsl:text>
 </xsl:text>
-INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, log_start,log_sql) 
+INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, log_start,log_sql)
 VALUES('<xsl:value-of select="$log_label" /> insert data raster','insert data', '<xsl:value-of select="@PixType" />', clock_timestamp(),
   '<xsl:call-template name="escapesinglequotes"><xsl:with-param name="arg1">INSERT INTO pgis_rgarden_<xsl:value-of select="@ID" />(rast, r_rasttothrow)
 	SELECT rast, rast
@@ -161,7 +165,7 @@ BEGIN;
 	<xsl:value-of select="$var_logupdatesql" />
 COMMIT;
 <!-- test constraints -->
-INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, log_start,log_sql) 
+INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, log_start,log_sql)
 VALUES('<xsl:value-of select="$log_label" /> apply raster constraints','apply raster constraints', '<xsl:value-of select="@PixType" />', clock_timestamp(),
   '<xsl:call-template name="escapesinglequotes"><xsl:with-param name="arg1">SELECT AddRasterConstraints(CAST(lower('pgis_rgarden_<xsl:value-of select="@ID" />') AS name), CAST('rast' AS name));</xsl:with-param></xsl:call-template>');
 BEGIN;
@@ -169,7 +173,7 @@ BEGIN;
 	<xsl:value-of select="$var_logupdatesql" />
 COMMIT;
 
-INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, log_start,log_sql) 
+INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, log_start,log_sql)
 VALUES('<xsl:value-of select="$log_label" /> drop raster constraints','drop raster constraints', '<xsl:value-of select="@PixType" />', clock_timestamp(),
   '<xsl:call-template name="escapesinglequotes"><xsl:with-param name="arg1">SELECT DropRasterConstraints(CAST(lower('pgis_rgarden_<xsl:value-of select="@ID" />') AS name), CAST('rast' AS name));</xsl:with-param></xsl:call-template>');
 BEGIN;
@@ -181,7 +185,7 @@ COMMIT;
 
 
 <!--Start test on operators  -->
-	<xsl:for-each select="sect1[contains(@id,'RT_Operator')]/refentry">
+	<xsl:for-each select="sect1[contains(@id,'RT_Operator')]//refentry">
 		<xsl:sort select="@id"/>
 		<xsl:for-each select="refsynopsisdiv/funcsynopsis/funcprototype">
 			<xsl:variable name='fnname'><xsl:value-of select="funcdef/function"/></xsl:variable>
@@ -198,7 +202,7 @@ COMMIT;
 			 SELECT 'Geometry <xsl:value-of select="$fnname" /><xsl:text> </xsl:text><xsl:value-of select="@ID" />: Start Testing <xsl:value-of select="$geom1type" />, <xsl:value-of select="@GeometryType" />';
 			 <xsl:variable name='var_sql'>SELECT foo1.the_geom <xsl:value-of select="$fnname" /> foo2.the_geom
 						FROM (<xsl:value-of select="$from1" />) As foo1 CROSS JOIN (<xsl:value-of select="." />) As foo2;</xsl:variable>
-			 INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, g2, log_start,log_sql) 
+			 INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, g2, log_start,log_sql)
 			  	VALUES('<xsl:value-of select="$log_label" /> Geometry <xsl:value-of select="$geom1type" /><xsl:text> </xsl:text><xsl:value-of select="@PixType" />','<xsl:value-of select="$fnname" />', '<xsl:value-of select="$geom1type" />','<xsl:value-of select="@GeometryType" />', clock_timestamp(),
 			  	'<xsl:call-template name="escapesinglequotes"><xsl:with-param name="arg1"><xsl:value-of select="$var_sql" /></xsl:with-param></xsl:call-template>');
 
@@ -212,7 +216,7 @@ COMMIT;
 			<xsl:variable name='var_sql'>SELECT rast1.rast <xsl:value-of select="$fnname" /> rast2.rast
 				FROM (<xsl:value-of select="$from1" />) As rast1 CROSS JOIN (<xsl:value-of select="." />) As rast2;</xsl:variable>
 			SELECT 'Raster <xsl:value-of select="$fnname" /><xsl:text> </xsl:text><xsl:value-of select="@ID" />: Start Testing <xsl:value-of select="$pix1type" />, <xsl:value-of select="@PixType" />';
-			 INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, g2, log_start, log_sql) 
+			 INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, g2, log_start, log_sql)
 			  	VALUES('<xsl:value-of select="$log_label" /> Raster <xsl:value-of select="$pix1type" /><xsl:text> </xsl:text><xsl:value-of select="@PixType" />','<xsl:value-of select="$fnname" />', '<xsl:value-of select="$pix1type" />','<xsl:value-of select="@PixType" />', clock_timestamp(),
 			  		'<xsl:call-template name="escapesinglequotes"><xsl:with-param name="arg1"><xsl:value-of select="$var_sql" /></xsl:with-param></xsl:call-template>');
 
@@ -240,10 +244,9 @@ COMMIT;
 				<xsl:variable name='fnargs'><xsl:call-template name="listparams"><xsl:with-param name="func" select="." /></xsl:call-template></xsl:variable>
 				<xsl:variable name='fnname'><xsl:value-of select="funcdef/function"/></xsl:variable>
 				<xsl:variable name='fndef'><xsl:value-of select="funcdef"/></xsl:variable>
-				-- <xsl:value-of select="funcdef"/>
 				<xsl:variable name='numparams'><xsl:value-of select="count(paramdef/parameter)" /></xsl:variable>
 				<xsl:variable name='numparamgeoms'><xsl:value-of select="count(paramdef/type[contains(text(),'geometry') or contains(text(),'geography') or contains(text(),'box') ]) + count(paramdef/parameter[contains(text(),'WKT')]) + count(paramdef/parameter[contains(text(),'geomgml')])" /></xsl:variable>
-				<xsl:variable name='numparamrasts'><xsl:value-of select="count(paramdef/type[contains(text(),'raster')] )" /></xsl:variable>
+				<xsl:variable name='numparamrasts'><xsl:value-of select="count(paramdef/type[contains(text(),'raster') ] )" /></xsl:variable>
 				<xsl:variable name='log_label'><xsl:value-of select="funcdef/function" />(<xsl:value-of select="$fnargs" />)</xsl:variable>
 
 				<xsl:variable name="geoftype">
@@ -264,15 +267,29 @@ COMMIT;
 				  </xsl:choose>
 				</xsl:variable>
 
+				<!-- is a window or aggregate function -->
+				<xsl:variable name='over_clause'>
+					 <xsl:choose>
+					 	<xsl:when test="paramdef/type[contains(text(),'set')]">
+					 		<xsl:value-of select="'OVER(ORDER BY random())'"/>
+					 	</xsl:when>
+					<xsl:otherwise>
+					  <xsl:value-of select="''"/>
+					</xsl:otherwise>
+				  </xsl:choose>
+				</xsl:variable>
+
+				SELECT 'Start Considering <xsl:value-of select="funcdef/function" /> <xsl:value-of select="$geoftype" />';
+
 				<!-- For each function prototype generate a test sql statement -->
 				<xsl:choose>
 <!--Test functions that take no arguments or take no geometries -->
 	<xsl:when test="$numparamrasts = '0' and not(contains($fnexclude,funcdef/function))">SELECT  'Starting <xsl:value-of select="funcdef/function" />(<xsl:value-of select="$fnargs" />)';
 	<xsl:variable name='var_sql'>SELECT  <xsl:value-of select="funcdef/function" />(<xsl:value-of select="$fnfakeparams" />);</xsl:variable>
-INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, log_start, log_sql) 
+INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, log_start, log_sql)
 			  	VALUES('<xsl:value-of select="$log_label" />','<xsl:value-of select="$fnname" />', clock_timestamp(),
 			  	'<xsl:call-template name="escapesinglequotes"><xsl:with-param name="arg1"><xsl:value-of select="$var_sql" /></xsl:with-param></xsl:call-template>');
-	
+
 	BEGIN;
 		<!--  log query result to output table -->
 		<xsl:value-of select="$var_logresultsasxml" />
@@ -283,36 +300,37 @@ SELECT  'Ending <xsl:value-of select="funcdef/function" />(<xsl:value-of select=
 	</xsl:when>
 <!--Start Test aggregate and unary functions -->
 <!-- put functions that take only one raster no need to cross with another raster collection, these are unary raster, aggregates, and so forth -->
-	<xsl:when test="$numparamrasts = '1' and $numparamgeoms = '0'  and not(contains($fnexclude,funcdef/function))" >
+	<xsl:when test="$numparamrasts = '1' and $numparamgeoms = '0' and not(contains($fnexclude,funcdef/function))" >
+		SELECT '<xsl:value-of select="$fnname" />';
 		<xsl:for-each select="document('')//pgis:pixeltypes/pgis:pixeltype">
-		SELECT '<xsl:value-of select="$geoftype" /> <xsl:value-of select="$fnname" /><xsl:text> </xsl:text><xsl:value-of select="@ID" />: Start Testing <xsl:value-of select="@PixType" />';
+		SELECT '<xsl:value-of select="$geoftype" /> <xsl:value-of select="$fnname" /><xsl:text> </xsl:text><xsl:value-of select="@ID" />: Start Testing <xsl:value-of select="@PixType" /> with 1 rast param';
 			<xsl:choose>
 			  <xsl:when test="contains($fndef, 'raster ') or contains($fndef, 'geometry ')">
 	 <!-- If output is raster show ewkt convexhull rep -->
-	 		INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, log_start, log_sql) 
+	 		INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, log_start, log_sql)
 			  	VALUES('<xsl:value-of select="$log_label" /> <xsl:value-of select="$geoftype" /> <xsl:text> </xsl:text><xsl:value-of select="@ID" /><xsl:text> </xsl:text><xsl:value-of select="@PixType" />','<xsl:value-of select="$fnname" />', '<xsl:value-of select="@PixType" />', clock_timestamp(),
-			  		'<xsl:call-template name="escapesinglequotes"><xsl:with-param name="arg1">SELECT ST_AsEWKT(ST_ConvexHull(<xsl:value-of select="$fnname" />(<xsl:value-of select="$fnfakeparams" />))) FROM (<xsl:value-of select="." />) As rast1 LIMIT 3;</xsl:with-param></xsl:call-template>'
+			  		'<xsl:call-template name="escapesinglequotes"><xsl:with-param name="arg1">SELECT ST_AsEWKT(ST_ConvexHull(<xsl:value-of select="$fnname" />(<xsl:value-of select="$fnfakeparams" />) <xsl:value-of select="$over_clause" />)) FROM (<xsl:value-of select="." />) As rast1 LIMIT 3;</xsl:with-param></xsl:call-template>'
 			  	);
 			  </xsl:when>
 			  <xsl:otherwise>
 				SELECT 'Other <xsl:value-of select="$fnname" /><xsl:text> </xsl:text><xsl:value-of select="@ID" />: Start Testing <xsl:value-of select="@GeometryType" />';
 				 <!-- If output is geometry show ewkt rep -->
-				INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, log_start, log_sql) 
+				INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, log_start, log_sql)
 			  	VALUES('<xsl:value-of select="$log_label" /> <xsl:value-of select="$geoftype" /> <xsl:text> </xsl:text><xsl:value-of select="@ID" /><xsl:text> </xsl:text><xsl:value-of select="@PixType" />','<xsl:value-of select="$fnname" />', '<xsl:value-of select="@PixType" />', clock_timestamp(),
 			  		'<xsl:call-template name="escapesinglequotes"><xsl:with-param name="arg1">SELECT <xsl:value-of select="$fnname" />(<xsl:value-of select="$fnfakeparams" />) FROM (<xsl:value-of select="." />) As rast1 LIMIT 3;</xsl:with-param></xsl:call-template>'
 			  	);
 			  </xsl:otherwise>
 			</xsl:choose>
-		
+
 		BEGIN;
 		<!--  log query result to output table -->
-		<xsl:value-of select="$var_logresultsasxml" />		
+		<xsl:value-of select="$var_logresultsasxml" />
 			<!-- log completion -->
 		<xsl:value-of select="$var_logupdatesql" />
 		  COMMIT;
 		  SELECT '<xsl:value-of select="$fnname" /><xsl:text> </xsl:text> <xsl:value-of select="@ID" />: End Testing <xsl:value-of select="@PixType" />';
 			<xsl:text>
-	
+
 			</xsl:text>
 		</xsl:for-each>
 	</xsl:when>
@@ -326,11 +344,11 @@ SELECT  'Ending <xsl:value-of select="funcdef/function" />(<xsl:value-of select=
 	<!--Store first garden sql rast  from -->
 					<xsl:variable name="from1"><xsl:value-of select="." /></xsl:variable>
 					<xsl:variable name='pix1type'><xsl:value-of select="@PixType"/></xsl:variable>
-					
+
 		SELECT '<xsl:value-of select="$fnname" /> <xsl:text> </xsl:text><xsl:value-of select="@ID" />(<xsl:value-of select="$fnargs" />): Start Testing <xsl:value-of select="$pix1type" /> against other types';
 						<xsl:for-each select="document('')//pgis:pixeltypes/pgis:pixeltype">
-						
-			INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, g2, log_start) 
+
+			INSERT INTO <xsl:value-of select="$var_logtable" />(log_label, func, g1, g2, log_start)
 			  	VALUES('<xsl:value-of select="$log_label" /> <xsl:value-of select="$pix1type" /> <xsl:text> </xsl:text><xsl:value-of select="@ID" /><xsl:text> </xsl:text>','<xsl:value-of select="$fnname" />', '<xsl:value-of select="$pix1type" />','<xsl:value-of select="@PixType" />', clock_timestamp());
 			BEGIN;
 					<xsl:choose>
@@ -395,7 +413,7 @@ SELECT '<xsl:value-of select="$fnname" /><xsl:text> </xsl:text><xsl:value-of sel
 				    <xsl:when test="contains(parameter, 'algorithm')">
 						<xsl:value-of select="$var_algorithm" />
 					</xsl:when>
-				    
+
 					<xsl:when test="contains(parameter, 'georefcoords')">
 						<xsl:value-of select="$var_georefcoords" />
 					</xsl:when>
@@ -450,8 +468,8 @@ SELECT '<xsl:value-of select="$fnname" /><xsl:text> </xsl:text><xsl:value-of sel
 					<xsl:when test="(type = 'geography' or type = 'geography ' or contains(type,'geography set')) and (position() = 1 or count($func/paramdef/type[contains(text(),'geography')]) = '1' )">
 						<xsl:text>rast1.rast::geometry::geography</xsl:text>
 					</xsl:when>
-	
-					
+
+
 					<xsl:when test="contains(type,'box') or type = 'geometry' or type = 'geometry '">
 						<xsl:text>rast2.rast::geometry</xsl:text>
 					</xsl:when>
@@ -464,13 +482,13 @@ SELECT '<xsl:value-of select="$fnname" /><xsl:text> </xsl:text><xsl:value-of sel
 					<xsl:when test="contains(type, 'raster[]') ">
 						<xsl:text>ARRAY[rast2.rast]</xsl:text>
 					</xsl:when>
-					<xsl:when test="(type = 'raster' or type = 'raster ' or contains(type, 'raster set') ) and (position() = 1) ">
+					<xsl:when test="(type = 'raster' or type = 'raster ' or contains(type, 'raster set') or contains(type, 'setof raster') ) and (position() = 1) ">
 						<xsl:text>rast1.rast</xsl:text>
 					</xsl:when>
-					<xsl:when test="type = 'raster' or type = 'raster ' or contains(type, 'raster set')">
+					<xsl:when test="type = 'raster' or type = 'raster ' or contains(type, 'raster set')or contains(type, 'setof raster')">
 						<xsl:text>rast2.rast</xsl:text>
 					</xsl:when>
-					<xsl:when test="type = 'raster' or type = 'raster ' or contains(type, 'raster set')">
+					<xsl:when test="type = 'raster' or type = 'raster ' or contains(type, 'raster set') or contains(type, 'setof raster')">
 						<xsl:text>rast2.rast</xsl:text>
 					</xsl:when>
 					<xsl:when test="contains(type, 'geometry[]') and count($func/paramdef/type[contains(text(),'geometry') or contains(text(),'box') or contains(text(), 'WKT') or contains(text(), 'bytea')]) = '1'">
@@ -506,7 +524,7 @@ SELECT '<xsl:value-of select="$fnname" /><xsl:text> </xsl:text><xsl:value-of sel
 					<xsl:when test="contains(type,'reclassarg')">
 						<xsl:value-of select="$var_reclassarg" />
 					</xsl:when>
-					
+
 					<xsl:when test="contains(type, 'text')">
 						<xsl:value-of select="$var_text" />
 					</xsl:when>
@@ -541,7 +559,7 @@ SELECT '<xsl:value-of select="$fnname" /><xsl:text> </xsl:text><xsl:value-of sel
 			</xsl:for-each>
 		</xsl:for-each>
 	</xsl:template>
-	
+
 	<!-- copied from http://www.thedumbterminal.co.uk/php/knowledgebase/?action=view&id=94 -->
     <xsl:template name="escapesinglequotes">
      <xsl:param name="arg1"/>

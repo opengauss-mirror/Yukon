@@ -22,7 +22,12 @@
  *
  **********************************************************************/
 
-#include "extension_dependency.h"
+
+#include "postgres.h"
+#include "fmgr.h"
+#include "utils/elog.h"
+#include "utils/array.h"
+#include "utils/geo_decls.h"
 
 #include "../postgis_config.h"
 #include "liblwgeom.h"
@@ -32,8 +37,6 @@
 #include <float.h>
 #include <string.h>
 #include <stdio.h>
-#include <errno.h>
-
 
 /*
  * Return the measure at which interpolated points on the two

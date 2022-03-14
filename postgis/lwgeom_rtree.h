@@ -26,6 +26,7 @@
 #define _LWGEOM_RTREE_H 1
 
 #include "liblwgeom.h"
+#include "lwgeom_cache.h"
 
 /**
 * Representation for the y-axis interval spanned by an edge.
@@ -59,21 +60,14 @@ typedef struct
 	RTREE_NODE **ringIndices;
 	int* ringCounts;
 	int polyCount;
-}
-RTREE_POLY_CACHE;
+} RTREE_POLY_CACHE;
 
 
-
-typedef struct {
-	int                         type;       // <GeomCache>
-	GSERIALIZED*                geom1;      //
-	GSERIALIZED*                geom2;      //
-	size_t                      geom1_size; //
-	size_t                      geom2_size; //
-	int32                       argnum;     // </GeomCache>
-	RTREE_POLY_CACHE*           index;
+typedef struct
+{
+	GeomCache             gcache;
+	RTREE_POLY_CACHE      *index;
 } RTreeGeomCache;
-
 
 /**
 * Retrieves a collection of line segments given the root and crossing value.
@@ -86,7 +80,6 @@ LWMLINE *RTreeFindLineSegments(RTREE_NODE *root, double value);
 * a pre-built index structure (RTREE_POLY_CACHE) if one exists. Otherwise
 * builds a new one and returns that.
 */
-RTREE_POLY_CACHE* GetRtreeCache(FunctionCallInfoData* fcinfo, GSERIALIZED* g1);
-
+RTREE_POLY_CACHE *GetRtreeCache(FunctionCallInfo fcinfo, SHARED_GSERIALIZED *g1);
 
 #endif /* !defined _LWGEOM_RTREE_H */

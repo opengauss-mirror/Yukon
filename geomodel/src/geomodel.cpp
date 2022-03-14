@@ -29,7 +29,7 @@
 #include "Stream/YkDefines.h"
 #include "../../postgis_config.h"
 #include "lwgeom_sfcgal.h"
-#include "../../postgis/lwgeom_sfcgal.h"
+#include "../../sfcgal/lwgeom_sfcgal.h"
 #include "../../libpgcommon/lwgeom_pg.h"
 #include <stdio.h>
 #include <string.h>
@@ -132,10 +132,10 @@ bool geomodel_isvalid(GSERIALIZED *gs)
 
 bool geomodel_reset_flags(GSERIALIZED *gs)
 {
-  FLAGS_SET_Z(gs->flags, true);
-  FLAGS_SET_M(gs->flags, false);
-  FLAGS_SET_BBOX(gs->flags, true);
-  FLAGS_SET_GEODETIC(gs->flags, true);
+  FLAGS_SET_Z(gs->gflags, true);
+  FLAGS_SET_M(gs->gflags, false);
+  FLAGS_SET_BBOX(gs->gflags, true);
+  FLAGS_SET_GEODETIC(gs->gflags, true);
   //TODO
   //geomodel 或者 element 是否要设置具体的子类型，目前还剩余两个 bit 可用
 }
@@ -156,10 +156,10 @@ GSERIALIZED *wrap_header_geomodeldata(char *pData, int nLen, YkBoundingBox& bbox
   SET_VARSIZE(result, size);  
   // 设置 flags
  // geomodel_reset_flags(result);
-  FLAGS_SET_Z(result->flags, true);
-  FLAGS_SET_M(result->flags, false);
-  FLAGS_SET_BBOX(result->flags, true);
-  FLAGS_SET_GEODETIC(result->flags, true);
+  FLAGS_SET_Z(result->gflags, true);
+  FLAGS_SET_M(result->gflags, false);
+  FLAGS_SET_BBOX(result->gflags, true);
+  FLAGS_SET_GEODETIC(result->gflags, true);
 
   gmserialized_set_bbox(result, bbox);  
   // 复制数据
@@ -358,14 +358,16 @@ bool gmserialized_set_bbox(GSERIALIZED *gms, YkBoundingBox &bbox)
 
 Datum yukon_version(PG_FUNCTION_ARGS)
 {
-  char *ver = YUKON_VERSION;
+  //char *ver = YUKON_VERSION;
+  char *ver = "Yukon-1.0-Alpha";
   text *result = cstring2text(ver);
   PG_RETURN_TEXT_P(result);
 }
 
 Datum yukon_lib_version(PG_FUNCTION_ARGS)
 {
-  char *ver = YUKON_LIB_VERSION;
+  //char *ver = YUKON_LIB_VERSION;
+   char *ver = "Yukon-1.0-Alpha";
   text *result = cstring2text(ver);
   PG_RETURN_TEXT_P(result);
 }

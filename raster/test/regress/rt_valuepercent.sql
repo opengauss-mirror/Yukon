@@ -208,9 +208,9 @@ SELECT round(ST_ValuePercent(
 		, 1, 5, 5, 3.14159
 	)
 , 3.14159)::numeric, 3);
---BEGIN;
-CREATE  TABLE test
-	AS
+BEGIN;
+CREATE TEMP TABLE test
+	ON COMMIT DELETE ROWS AS
 	SELECT
 		rast.rast
 	FROM (
@@ -243,5 +243,4 @@ SELECT round(ST_ValuePercent('test', 'rast', 1, 3.14, 1)::numeric, 3);
 SELECT round(ST_ValuePercent('test', 'rast', 1, -1)::numeric, 3);
 SELECT round(ST_ValuePercent('test', 'rast', 3.1, 0.1)::numeric, 3);
 SELECT round(ST_ValuePercent('test', 'rast', -9.)::numeric, 3);
-
-DROP TABLE test cascade;
+ROLLBACK;

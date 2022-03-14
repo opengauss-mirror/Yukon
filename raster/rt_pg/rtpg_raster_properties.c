@@ -27,58 +27,57 @@
  *
  */
 
-//#include <postgres.h>
-//#include <fmgr.h>
-//#include <funcapi.h>
-
+// #include <postgres.h>
+// #include <fmgr.h>
+// #include <funcapi.h>
 #include "extension_dependency.h"
-
 #include "../../postgis_config.h"
 
 
-//#include "access/htup_details.h" /* for heap_form_tuple() */
+// #include "access/htup_details.h" /* for heap_form_tuple() */
 
 
 #include "rtpostgis.h"
-
+extern "C"
+{
 /* Get all the properties of a raster */
-extern "C" {
-	Datum RASTER_getSRID(PG_FUNCTION_ARGS);
-	Datum RASTER_getWidth(PG_FUNCTION_ARGS);
-	Datum RASTER_getHeight(PG_FUNCTION_ARGS);
-	Datum RASTER_getNumBands(PG_FUNCTION_ARGS);
-	Datum RASTER_getXScale(PG_FUNCTION_ARGS);
-	Datum RASTER_getYScale(PG_FUNCTION_ARGS);
-	Datum RASTER_getXSkew(PG_FUNCTION_ARGS);
-	Datum RASTER_getYSkew(PG_FUNCTION_ARGS);
-	Datum RASTER_getXUpperLeft(PG_FUNCTION_ARGS);
-	Datum RASTER_getYUpperLeft(PG_FUNCTION_ARGS);
-	Datum RASTER_getPixelWidth(PG_FUNCTION_ARGS);
-	Datum RASTER_getPixelHeight(PG_FUNCTION_ARGS);
-	Datum RASTER_getGeotransform(PG_FUNCTION_ARGS);
-	Datum RASTER_isEmpty(PG_FUNCTION_ARGS);
-	Datum RASTER_hasNoBand(PG_FUNCTION_ARGS);
+Datum RASTER_getSRID(PG_FUNCTION_ARGS);
+Datum RASTER_getWidth(PG_FUNCTION_ARGS);
+Datum RASTER_getHeight(PG_FUNCTION_ARGS);
+Datum RASTER_getNumBands(PG_FUNCTION_ARGS);
+Datum RASTER_getFileSize(PG_FUNCTION_ARGS);
+Datum RASTER_getFileTimestamp(PG_FUNCTION_ARGS);
+Datum RASTER_getXScale(PG_FUNCTION_ARGS);
+Datum RASTER_getYScale(PG_FUNCTION_ARGS);
+Datum RASTER_getXSkew(PG_FUNCTION_ARGS);
+Datum RASTER_getYSkew(PG_FUNCTION_ARGS);
+Datum RASTER_getXUpperLeft(PG_FUNCTION_ARGS);
+Datum RASTER_getYUpperLeft(PG_FUNCTION_ARGS);
+Datum RASTER_getPixelWidth(PG_FUNCTION_ARGS);
+Datum RASTER_getPixelHeight(PG_FUNCTION_ARGS);
+Datum RASTER_getGeotransform(PG_FUNCTION_ARGS);
+Datum RASTER_isEmpty(PG_FUNCTION_ARGS);
+Datum RASTER_hasNoBand(PG_FUNCTION_ARGS);
 
-	/* get raster's meta data */
-	Datum RASTER_metadata(PG_FUNCTION_ARGS);
+/* get raster's meta data */
+Datum RASTER_metadata(PG_FUNCTION_ARGS);
 
-	/* convert pixel/line to spatial coordinates */
-	Datum RASTER_rasterToWorldCoord(PG_FUNCTION_ARGS);
+/* convert pixel/line to spatial coordinates */
+Datum RASTER_rasterToWorldCoord(PG_FUNCTION_ARGS);
 
-	/* convert spatial coordinates to pixel/line*/
-	Datum RASTER_worldToRasterCoord(PG_FUNCTION_ARGS);
+/* convert spatial coordinates to pixel/line*/
+Datum RASTER_worldToRasterCoord(PG_FUNCTION_ARGS);
 
-	/* Set all the properties of a raster */
-	Datum RASTER_setSRID(PG_FUNCTION_ARGS);
-	Datum RASTER_setScale(PG_FUNCTION_ARGS);
-	Datum RASTER_setScaleXY(PG_FUNCTION_ARGS);
-	Datum RASTER_setSkew(PG_FUNCTION_ARGS);
-	Datum RASTER_setSkewXY(PG_FUNCTION_ARGS);
-	Datum RASTER_setUpperLeftXY(PG_FUNCTION_ARGS);
-	Datum RASTER_setRotation(PG_FUNCTION_ARGS);
-	Datum RASTER_setGeotransform(PG_FUNCTION_ARGS);
+/* Set all the properties of a raster */
+Datum RASTER_setSRID(PG_FUNCTION_ARGS);
+Datum RASTER_setScale(PG_FUNCTION_ARGS);
+Datum RASTER_setScaleXY(PG_FUNCTION_ARGS);
+Datum RASTER_setSkew(PG_FUNCTION_ARGS);
+Datum RASTER_setSkewXY(PG_FUNCTION_ARGS);
+Datum RASTER_setUpperLeftXY(PG_FUNCTION_ARGS);
+Datum RASTER_setRotation(PG_FUNCTION_ARGS);
+Datum RASTER_setGeotransform(PG_FUNCTION_ARGS);
 }
-
 /**
  * Return the SRID associated with the raster.
  */
@@ -431,6 +430,8 @@ Datum RASTER_getPixelHeight(PG_FUNCTION_ARGS)
     PG_RETURN_FLOAT8(pheight);
 }
 
+#define VALUES_LENGTH 6
+
 /**
  * Calculates the physically relevant parameters of the supplied raster's
  * geotransform. Returns them as a set.
@@ -451,9 +452,8 @@ Datum RASTER_getGeotransform(PG_FUNCTION_ARGS)
 		*/
 
     TupleDesc result_tuple; /* for returning a composite */
-    int values_length = 6;
-    Datum values[values_length];
-    bool nulls[values_length];
+    Datum values[VALUES_LENGTH];
+    bool nulls[VALUES_LENGTH];
     HeapTuple heap_tuple ;   /* instance of the tuple to return */
     Datum result;
 
@@ -505,7 +505,7 @@ Datum RASTER_getGeotransform(PG_FUNCTION_ARGS)
     values[4] = Float8GetDatum(rt_raster_get_x_offset(raster));
     values[5] = Float8GetDatum(rt_raster_get_y_offset(raster));
 
-    memset(nulls, FALSE, sizeof(bool) * values_length);
+    memset(nulls, FALSE, sizeof(bool) * VALUES_LENGTH);
 
     /* stick em on the heap */
     heap_tuple = heap_form_tuple(result_tuple, values, nulls);
@@ -583,6 +583,9 @@ Datum RASTER_hasNoBand(PG_FUNCTION_ARGS)
     PG_RETURN_BOOL(hasnoband);
 }
 
+#undef VALUES_LENGTH
+#define VALUES_LENGTH 10
+
 /**
  * Get raster's meta data
  */
@@ -604,9 +607,8 @@ Datum RASTER_metadata(PG_FUNCTION_ARGS)
 	uint32_t height;
 
 	TupleDesc tupdesc;
-	int values_length = 10;
-	Datum values[values_length];
-	bool nulls[values_length];
+	Datum values[VALUES_LENGTH];
+	bool nulls[VALUES_LENGTH];
 	HeapTuple tuple;
 	Datum result;
 
@@ -674,7 +676,7 @@ Datum RASTER_metadata(PG_FUNCTION_ARGS)
 	values[8] = Int32GetDatum(srid);
 	values[9] = UInt32GetDatum(numBands);
 
-	memset(nulls, FALSE, sizeof(bool) * values_length);
+	memset(nulls, FALSE, sizeof(bool) * VALUES_LENGTH);
 
 	/* build a tuple */
 	tuple = heap_form_tuple(tupdesc, values, nulls);
@@ -684,6 +686,9 @@ Datum RASTER_metadata(PG_FUNCTION_ARGS)
 
 	PG_RETURN_DATUM(result);
 }
+
+#undef VALUES_LENGTH
+#define VALUES_LENGTH 2
 
 PG_FUNCTION_INFO_V1(RASTER_rasterToWorldCoord);
 Datum RASTER_rasterToWorldCoord(PG_FUNCTION_ARGS)
@@ -696,9 +701,8 @@ Datum RASTER_rasterToWorldCoord(PG_FUNCTION_ARGS)
 	double cw[2] = {0};
 
 	TupleDesc tupdesc;
-	int values_length = 2;
-	Datum values[values_length];
-	bool nulls[values_length];
+	Datum values[VALUES_LENGTH];
+	bool nulls[VALUES_LENGTH];
 	HeapTuple tuple;
 	Datum result;
 
@@ -718,8 +722,8 @@ Datum RASTER_rasterToWorldCoord(PG_FUNCTION_ARGS)
 	}
 
 	/* raster skewed? */
-	skewed[0] = FLT_NEQ(rt_raster_get_x_skew(raster), 0) ? true : false;
-	skewed[1] = FLT_NEQ(rt_raster_get_y_skew(raster), 0) ? true : false;
+	skewed[0] = FLT_NEQ(rt_raster_get_x_skew(raster), 0.0) ? true : false;
+	skewed[1] = FLT_NEQ(rt_raster_get_y_skew(raster), 0.0) ? true : false;
 
 	/* column and row */
 	for (i = 1; i <= 2; i++) {
@@ -769,7 +773,7 @@ Datum RASTER_rasterToWorldCoord(PG_FUNCTION_ARGS)
 	values[0] = Float8GetDatum(cw[0]);
 	values[1] = Float8GetDatum(cw[1]);
 
-	memset(nulls, FALSE, sizeof(bool) * values_length);
+	memset(nulls, FALSE, sizeof(bool) * VALUES_LENGTH);
 
 	/* build a tuple */
 	tuple = heap_form_tuple(tupdesc, values, nulls);
@@ -792,9 +796,8 @@ Datum RASTER_worldToRasterCoord(PG_FUNCTION_ARGS)
 	bool skewed = false;
 
 	TupleDesc tupdesc;
-	int values_length = 2;
-	Datum values[values_length];
-	bool nulls[values_length];
+	Datum values[VALUES_LENGTH];
+	bool nulls[VALUES_LENGTH];
 	HeapTuple tuple;
 	Datum result;
 
@@ -814,9 +817,9 @@ Datum RASTER_worldToRasterCoord(PG_FUNCTION_ARGS)
 	}
 
 	/* raster skewed? */
-	skewed = FLT_NEQ(rt_raster_get_x_skew(raster), 0) ? true : false;
+	skewed = FLT_NEQ(rt_raster_get_x_skew(raster), 0.0) ? true : false;
 	if (!skewed)
-		skewed = FLT_NEQ(rt_raster_get_y_skew(raster), 0) ? true : false;
+		skewed = FLT_NEQ(rt_raster_get_y_skew(raster), 0.0) ? true : false;
 
 	/* longitude and latitude */
 	for (i = 1; i <= 2; i++) {
@@ -870,7 +873,7 @@ Datum RASTER_worldToRasterCoord(PG_FUNCTION_ARGS)
 	values[0] = Int32GetDatum(cr[0]);
 	values[1] = Int32GetDatum(cr[1]);
 
-	memset(nulls, FALSE, sizeof(bool) * values_length);
+	memset(nulls, FALSE, sizeof(bool) * VALUES_LENGTH);
 
 	/* build a tuple */
 	tuple = heap_form_tuple(tupdesc, values, nulls);
@@ -923,13 +926,7 @@ Datum RASTER_setScale(PG_FUNCTION_ARGS)
 	rt_pgraster *pgraster = NULL;
 	rt_pgraster *pgrtn = NULL;
 	rt_raster raster;
-	double size;
-
-	if (PG_ARGISNULL(1)) {
-		PG_RETURN_NULL();
-	} else {
-		size = PG_GETARG_FLOAT8(1);
-	}
+	double size = PG_GETARG_FLOAT8(1);
 
 	if (PG_ARGISNULL(0))
 		PG_RETURN_NULL();
@@ -962,21 +959,11 @@ Datum RASTER_setScaleXY(PG_FUNCTION_ARGS)
 	rt_pgraster *pgraster = NULL;
 	rt_pgraster *pgrtn = NULL;
 	rt_raster raster;
-	double xscale;
-	double yscale;
-
-	if (PG_ARGISNULL(1))
-		PG_RETURN_NULL();
-
-	if (PG_ARGISNULL(2))
-		PG_RETURN_NULL();
+	double xscale = PG_GETARG_FLOAT8(1);
+	double yscale = PG_GETARG_FLOAT8(2);
 
 	if (PG_ARGISNULL(0))
 		PG_RETURN_NULL();
-
-	xscale = PG_GETARG_FLOAT8(1);
-	yscale = PG_GETARG_FLOAT8(2);
-	
 	pgraster = (rt_pgraster *) PG_DETOAST_DATUM(PG_GETARG_DATUM(0));
 	raster = rt_raster_deserialize(pgraster, FALSE);
 	if (!raster) {
@@ -1005,16 +992,10 @@ Datum RASTER_setSkew(PG_FUNCTION_ARGS)
 	rt_pgraster *pgraster = NULL;
 	rt_pgraster *pgrtn = NULL;
 	rt_raster raster;
-	double skew;
+	double skew = PG_GETARG_FLOAT8(1);
 
 	if (PG_ARGISNULL(0))
 		PG_RETURN_NULL();
-
-	if (PG_ARGISNULL(1))
-		PG_RETURN_NULL();
-
-	skew = PG_GETARG_FLOAT8(1);
-
 	pgraster = (rt_pgraster *) PG_DETOAST_DATUM(PG_GETARG_DATUM(0));
 	raster = rt_raster_deserialize(pgraster, FALSE);
 	if (!raster) {
@@ -1044,21 +1025,11 @@ Datum RASTER_setSkewXY(PG_FUNCTION_ARGS)
 	rt_pgraster *pgraster = NULL;
 	rt_pgraster *pgrtn = NULL;
 	rt_raster raster;
-	double xskew;
-	double yskew;
+	double xskew = PG_GETARG_FLOAT8(1);
+	double yskew = PG_GETARG_FLOAT8(2);
 
 	if (PG_ARGISNULL(0))
 		PG_RETURN_NULL();
-
-	if (PG_ARGISNULL(1))
-		PG_RETURN_NULL();
-
-	if (PG_ARGISNULL(2))
-		PG_RETURN_NULL();
-
-	xskew = PG_GETARG_FLOAT8(1);
-	yskew = PG_GETARG_FLOAT8(2);
-
 	pgraster = (rt_pgraster *) PG_DETOAST_DATUM(PG_GETARG_DATUM(0));
 	raster = rt_raster_deserialize(pgraster, FALSE);
 	if (!raster) {

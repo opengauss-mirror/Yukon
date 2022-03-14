@@ -192,7 +192,7 @@ rt_errorstate rt_raster_get_perimeter(
 	uint16_t trim[4] = {0}; /* top, right, bottom, left */
 	int isset[4] = {0};
 	double gt[6] = {0.0};
-	int srid = SRID_UNKNOWN;
+	int32_t srid = SRID_UNKNOWN;
 
 	POINTARRAY *pts = NULL;
 	POINT4D p4d;
@@ -612,7 +612,7 @@ rt_raster_pixel_as_polygon(rt_raster rast, int x, int y)
     double scale_x, scale_y;
     double skew_x, skew_y;
     double ul_x, ul_y;
-    int srid;
+    int32_t srid;
     POINTARRAY **points;
     POINT4D p, p0;
     LWPOLY *poly;
@@ -655,6 +655,44 @@ rt_raster_pixel_as_polygon(rt_raster rast, int x, int y)
 }
 
 /******************************************************************************
+* rt_raster_pixel_as_centroid_point()
+******************************************************************************/
+
+/**
+ * Get a raster pixel centroid point.
+ *
+ * @param raster : the raster to get pixel from
+ * @param x : the column number
+ * @param y : the row number
+ *
+ * @return the pixel centroid point, or NULL on error.
+ */
+LWPOINT*
+rt_raster_pixel_as_centroid_point(rt_raster rast, int x, int y)
+{
+    double scale_x, scale_y;
+    double skew_x, skew_y;
+    double ul_x, ul_y;
+    int32_t srid;
+    double center_x, center_y;
+    LWPOINT* point;
+
+    scale_x = rt_raster_get_x_scale(rast);
+    scale_y = rt_raster_get_y_scale(rast);
+    skew_x = rt_raster_get_x_skew(rast);
+    skew_y = rt_raster_get_y_skew(rast);
+    ul_x = rt_raster_get_x_offset(rast);
+    ul_y = rt_raster_get_y_offset(rast);
+    srid = rt_raster_get_srid(rast);
+
+    center_x = scale_x * x + skew_x * y + ul_x + (scale_x + skew_x) * 0.5;
+    center_y = scale_y * y + skew_y * x + ul_y + (scale_y + skew_y) * 0.5;
+    point = lwpoint_make2d(srid, center_x, center_y);
+
+    return point;
+}
+
+/******************************************************************************
 * rt_raster_get_envelope_geom()
 ******************************************************************************/
 
@@ -669,7 +707,7 @@ rt_raster_pixel_as_polygon(rt_raster rast, int x, int y)
 rt_errorstate
 rt_raster_get_envelope_geom(rt_raster raster, LWGEOM **env) {
 	double gt[6] = {0.0};
-	int srid = SRID_UNKNOWN;
+	int32_t srid = SRID_UNKNOWN;
 
 	POINTARRAY *pts = NULL;
 	POINT4D p4d;
@@ -802,7 +840,7 @@ rt_raster_get_envelope_geom(rt_raster raster, LWGEOM **env) {
 rt_errorstate
 rt_raster_get_convex_hull(rt_raster raster, LWGEOM **hull) {
 	double gt[6] = {0.0};
-	int srid = SRID_UNKNOWN;
+	int32_t srid = SRID_UNKNOWN;
 
 	POINTARRAY *pts = NULL;
 	POINT4D p4d;
@@ -1113,14 +1151,8 @@ rt_raster_gdal_polygonize(
 		return NULL;
 	}
 
-	/**
-	 * We don't need a raster mask band. Each band has a nodata value.
-	 **/
-#ifdef GDALFPOLYGONIZE
+	/* We don't need a raster mask band. Each band has a nodata value. */
 	cplerr = GDALFPolygonize(gdal_band, NULL, hLayer, iPixVal, NULL, NULL, NULL);
-#else
-	cplerr = GDALPolygonize(gdal_band, NULL, hLayer, iPixVal, NULL, NULL, NULL);
-#endif
 
 	if (cplerr != CE_None) {
 		rterror("rt_raster_gdal_polygonize: Could not polygonize GDAL band");
@@ -1279,10 +1311,10 @@ rt_raster_gdal_polygonize(
 			RASTER_DEBUGF(4, "LWGEOM wkt = %s", wkt);
 			rtdealloc(wkt);
 
-			size_t lwwkbsize = 0;
-			uint8_t *lwwkb = lwgeom_to_wkb(lwgeom, WKB_ISO | WKB_NDR, &lwwkbsize);
+			lwvarlena_t *lwwkb = lwgeom_to_wkb_varlena(lwgeom, WKB_ISO | WKB_NDR);
+			size_t lwwkbsize = LWSIZE_GET(lwwkb->size) - LWVARHDRSZ;
 			if (lwwkbsize) {
-				d_print_binary_hex("LWGEOM wkb", lwwkb, lwwkbsize);
+				d_print_binary_hex("LWGEOM wkb", (const uint8_t *)lwwkb->data, lwwkbsize);
 				rtdealloc(lwwkb);
 			}
 		}

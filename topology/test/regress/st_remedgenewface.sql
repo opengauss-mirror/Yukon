@@ -1,11 +1,8 @@
 \set VERBOSITY terse
 set client_min_messages to ERROR;
 
-INSERT INTO spatial_ref_sys ( auth_name, auth_srid, srid, proj4text ) VALUES ( 'EPSG', 4326, 4326, '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs' );
-
-
 -- Import city_data
-\i load_topology-4326.sql
+\i ../load_topology-4326.sql
 
 -- Utility functions for the test {
 
@@ -19,7 +16,6 @@ AS $$
     containing_face
     FROM city_data.node;
 $$ LANGUAGE 'sql';
-
 
 CREATE OR REPLACE FUNCTION check_nodes(lbl text)
 RETURNS TABLE (l text, o text, node_id int,
@@ -137,6 +133,20 @@ BEGIN
 END
 $$ language 'plpgsql';
 
+-- Runs a query and returns whether an error was thrown
+-- Useful when the error message depends on the execution plan taken (parallelism)
+CREATE OR REPLACE FUNCTION catch_error(query text)
+RETURNS bool
+AS $$
+BEGIN
+    EXECUTE query;
+    RETURN FALSE;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN TRUE;
+END
+$$ LANGUAGE 'plpgsql';
+
 -- }
 
 -- Save current state
@@ -152,7 +162,6 @@ SELECT * FROM check_nodes('bogus');
 SELECT * FROM check_edges('bogus');
 SELECT * FROM check_faces('bogus');
 -- }
-
 
 -- Remove isolated edge
 SELECT 'RN(25)', topology.ST_RemEdgeNewFace('city_data', 25);
@@ -214,7 +223,6 @@ SELECT * FROM check_nodes('RN(15)/nodes');
 SELECT * FROM check_edges('RN(15)/edges');
 SELECT * FROM check_faces('RN(15)/faces');
 SELECT save_edges(); SELECT save_faces(); SELECT save_nodes();
-
 
 -- Universe flooding existing single-edge (closed) face
 -- with dangling edge starting from the closing node and
@@ -361,16 +369,15 @@ SELECT save_edges(); SELECT save_faces(); SELECT save_nodes();
 
 SELECT topology.DropTopology('city_data');
 
-
 -------------------------------------------------------------------------
 -- Now test in presence of features
 -------------------------------------------------------------------------
 -- {
 
 -- Import city_data
-\i load_topology.sql
-\i load_features.sql
-\i cache_geometries.sql
+\i ../load_topology.sql
+\i ../load_features.sql
+\i ../cache_geometries.sql
 
 -- A city_street is defined by edge 3, can't drop
 SELECT '*RN(3)', topology.ST_RemEdgeNewFace('city_data', 3);
@@ -381,7 +388,7 @@ SELECT '*RN(5)', topology.ST_RemEdgeNewFace('city_data', 5);
 -- Two land_parcels (P2 and P3) are defined by either face
 -- 5 but not face 4 or by face 4 but not face 5, so we can't heal
 -- the faces by dropping edge 17
-SELECT '*RN(17)', topology.ST_RemEdgeNewFace('city_data', 17);
+SELECT '*RN(17)', catch_error($$SELECT topology.ST_RemEdgeNewFace('city_data', 17)$$);
 
 -- Dropping edge 11 is fine as it heals faces 5 and 8, which
 -- only serve definition of land_parcel P3 which contains both
@@ -414,6 +421,4 @@ DROP FUNCTION save_faces();
 DROP FUNCTION check_faces(text);
 DROP FUNCTION save_nodes();
 DROP FUNCTION check_nodes(text);
-DELETE FROM spatial_ref_sys where srid = 4326;
-
-
+DROP FUNCTION catch_error(text);

@@ -2,7 +2,6 @@ WITH foo AS (
 	SELECT postgis_raster_lib_version()
 )
 SELECT NULL FROM foo;
-SELECT NULL  FROM ST_GDALDrivers();
 SET postgis.enable_outdb_rasters = True;
 SET postgis.gdal_enabled_drivers = 'GTiff PNG JPEG';
 

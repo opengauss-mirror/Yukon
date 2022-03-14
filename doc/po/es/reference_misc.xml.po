@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
 #
 # Translators:
-# nramire1 nramire1 <nramire1@yahoo.com.ar>, 2017
+# nramire1 nramire1, 2017
 msgid ""
 msgstr ""
 "Project-Id-Version: PostGIS\n"
 "Report-Msgid-Bugs-To: http://bugs.kde.org\n"
-"POT-Creation-Date: 2017-09-21 22:52+0000\n"
-"PO-Revision-Date: 2017-05-31 16:03+0000\n"
-"Last-Translator: nramire1 nramire1 <nramire1@yahoo.com.ar>\n"
+"POT-Creation-Date: 2018-09-16 19:07+0000\n"
+"PO-Revision-Date: 2018-07-23 18:00+0000\n"
+"Last-Translator: nramire1 nramire1\n"
 "Language-Team: Spanish (http://www.transifex.com/postgis/postgis/language/"
 "es/)\n"
 "Language: es\n"
@@ -67,20 +67,22 @@ msgid ""
 "Enhanced: 2.0.0 support for Polyhedral surfaces, Triangles and TIN was "
 "introduced."
 msgstr ""
+"Mejorado: 2.0.0 soporte para superficies poliédricas, triángulos y TIN fue "
+"introducida."
 
 #. Tag: para
 #: reference_misc.xml:26 reference_misc.xml:113 reference_misc.xml:395
 #: reference_misc.xml:486
 #, no-c-format
 msgid "&Z_support;"
-msgstr ""
+msgstr "&Z_support;"
 
 #. Tag: para
 #: reference_misc.xml:27 reference_misc.xml:69 reference_misc.xml:110
 #: reference_misc.xml:197 reference_misc.xml:396 reference_misc.xml:487
 #, no-c-format
 msgid "&curve_support;"
-msgstr ""
+msgstr "&curve_support;"
 
 #. Tag: para
 #: reference_misc.xml:28 reference_misc.xml:70 reference_misc.xml:111
@@ -88,7 +90,7 @@ msgstr ""
 #: reference_misc.xml:488
 #, no-c-format
 msgid "&P_support;"
-msgstr ""
+msgstr "&P_support;"
 
 #. Tag: para
 #: reference_misc.xml:29 reference_misc.xml:71 reference_misc.xml:112
@@ -96,7 +98,7 @@ msgstr ""
 #: reference_misc.xml:489
 #, no-c-format
 msgid "&T_support;"
-msgstr ""
+msgstr "&T_support;"
 
 #. Tag: title
 #: reference_misc.xml:34 reference_misc.xml:76 reference_misc.xml:118

@@ -17,83 +17,18 @@
 #include "shp2pgsql-core.h"
 #include "../liblwgeom/liblwgeom.h" /* for SRID_UNKNOWN */
 
-
-#define ERR(s, c)\
-  if(pgis_opterr){\
-    fprintf(stderr, "%s%s%c\n", argv[0], s, c);\
-  }
-
-int     pgis_opterr = 1;
-int     pgis_optind = 1;
-int     pgis_optopt;
-char    *pgis_optarg;
-
-int
-pgis_getopt(int argc, char **argv, char *opts)
-{
-	static int sp = 1;
-	register int c;
-	register char *cp;
-
-	if (sp == 1)
-	{
-		if (pgis_optind >= argc ||
-		        argv[pgis_optind][0] != '-' /* && argv[pgis_optind][0] != '/' */ ||
-		        argv[pgis_optind][1] == '\0')
-		{
-			return(EOF);
-		}
-		else if (strcmp(argv[pgis_optind], "--") == 0)
-		{
-			pgis_optind++;
-			return(EOF);
-		}
-	}
-	pgis_optopt = c = argv[pgis_optind][sp];
-	if (c == ':' || (cp=strchr(opts, c)) == 0)
-	{
-		ERR(": illegal option -- ", c);
-		if (argv[pgis_optind][++sp] == '\0')
-		{
-			pgis_optind++;
-			sp = 1;
-		}
-		return('?');
-	}
-	if (*++cp == ':')
-	{
-		if (argv[pgis_optind][sp+1] != '\0')
-			pgis_optarg = &argv[pgis_optind++][sp+1];
-		else if (++pgis_optind >= argc)
-		{
-			ERR(": option requires an argument -- ", c);
-			sp = 1;
-			return('?');
-		}
-		else
-			pgis_optarg = argv[pgis_optind++];
-		sp = 1;
-	}
-	else
-	{
-		if (argv[pgis_optind][++sp] == '\0')
-		{
-			sp = 1;
-			pgis_optind++;
-		}
-		pgis_optarg = NULL;
-	}
-	return(c);
-}
+#define xstr(s) str(s)
+#define str(s) #s
 
 static void
 usage()
 {
-	printf(_( "RELEASE: %s (r%d)\n" ), POSTGIS_LIB_VERSION, POSTGIS_SVN_REVISION);
+	printf(_( "RELEASE: %s (%s)\n" ),
+		POSTGIS_LIB_VERSION, xstr(POSTGIS_REVISION));
 	printf(_( "USAGE: shp2pgsql [<options>] <shapefile> [[<schema>.]<table>]\n"
 	          "OPTIONS:\n" ));
 	printf(_( "  -s [<from>:]<srid> Set the SRID field. Defaults to %d.\n"
-	          "      Optionally reprojects from given SRID (cannot be used with -D).\n"),
+	          "      Optionally reprojects from given SRID.\n"),
 	          SRID_UNKNOWN);
 	printf(_( " (-d|a|c|p) These are mutually exclusive options:\n"
 	          "     -d  Drops the table, then recreates it and populates\n"
@@ -133,6 +68,7 @@ usage()
 	printf(_( "  -X <tablespace> Specify the tablespace for the table's indexes.\n"
                   "      This applies to the primary key, and the spatial index if\n"
                   "      the -I flag is used.\n" ));
+	printf(_( "  -Z  Prevent tables from being analyzed.\n" ));
 	printf(_( "  -?  Display this help screen.\n" ));
 	printf( "\n" );
 	printf(_( "  An argument of `--' disables further option processing.\n" ));
@@ -167,7 +103,7 @@ main (int argc, char **argv)
 	set_loader_config_defaults(config);
 
 	/* Keep the flag list alphabetic so it's easy to see what's left. */
-	while ((c = pgis_getopt(argc, argv, "-acdeg:ikm:nps:t:wDGIN:ST:W:X:")) != EOF)
+	while ((c = pgis_getopt(argc, argv, "-acdeg:ikm:nps:t:wDGIN:ST:W:X:Z")) != EOF)
 	{
 		// can not do this inside the switch case
 		if ('-' == c)
@@ -188,6 +124,10 @@ main (int argc, char **argv)
 
 		case 'G':
 			config->geography = 1;
+			break;
+
+		case 'Z':
+			config->analyze = 0;
 			break;
 
 		case 'S':
@@ -316,12 +256,6 @@ main (int argc, char **argv)
 	if (config->dump_format && !config->usetransaction)
 	{
 		fprintf(stderr, "Invalid argument combination - cannot use both -D and -e\n");
-		exit(1);
-	}
-
-	if (config->dump_format && config->shp_sr_id != SRID_UNKNOWN)
-	{
-		fprintf(stderr, "Invalid argument combination - cannot use -D with -s FROM_SRID:TO_SRID\n");
 		exit(1);
 	}
 
@@ -521,6 +455,8 @@ main (int argc, char **argv)
 		free(config->schema);
 	if (config->table)
 		free(config->table);
+	if (config->encoding)
+		free(config->encoding);
 	free(config);
 
 	return 0;

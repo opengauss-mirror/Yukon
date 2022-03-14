@@ -31,7 +31,9 @@
 #include <stdint.h>
 #include "varint.h"
 
+#include "liblwgeom_internal.h"
 #include "lwgeom_log.h"
+
 #define BYTEBUFFER_STARTSIZE 512
 #define BYTEBUFFER_STATICSIZE 1024
 
@@ -46,24 +48,30 @@ typedef struct
 bytebuffer_t;
 
 void bytebuffer_init_with_size(bytebuffer_t *b, size_t size);
-bytebuffer_t *bytebuffer_create_with_size(size_t size);
-bytebuffer_t *bytebuffer_create(void);
-void bytebuffer_destroy(bytebuffer_t *s);
 void bytebuffer_destroy_buffer(bytebuffer_t *s);
-void bytebuffer_clear(bytebuffer_t *s);
 void bytebuffer_append_byte(bytebuffer_t *s, const uint8_t val);
+void bytebuffer_append_bytebuffer(bytebuffer_t *write_to, bytebuffer_t *write_from);
 void bytebuffer_append_varint(bytebuffer_t *s, const int64_t val);
 void bytebuffer_append_uvarint(bytebuffer_t *s, const uint64_t val);
-uint64_t bytebuffer_read_uvarint(bytebuffer_t *s);
-int64_t bytebuffer_read_varint(bytebuffer_t *s);
 size_t bytebuffer_getlength(const bytebuffer_t *s);
-bytebuffer_t* bytebuffer_merge(bytebuffer_t **buff_array, int nbuffers);
-void bytebuffer_reset_reading(bytebuffer_t *s);
-uint8_t* bytebuffer_get_buffer_copy(const bytebuffer_t *s, size_t *buffer_length);
+lwvarlena_t *bytebuffer_get_buffer_varlena(const bytebuffer_t *s);
 const uint8_t* bytebuffer_get_buffer(const bytebuffer_t *s, size_t *buffer_length);
 
+/* Unused functions */
+#if 0
+void bytebuffer_destroy(bytebuffer_t *s);
+bytebuffer_t *bytebuffer_create_with_size(size_t size);
+bytebuffer_t *bytebuffer_create(void);
+void bytebuffer_clear(bytebuffer_t *s);
+uint8_t* bytebuffer_get_buffer_copy(const bytebuffer_t *s, size_t *buffer_length);
+uint64_t bytebuffer_read_uvarint(bytebuffer_t *s);
+int64_t bytebuffer_read_varint(bytebuffer_t *s);
+bytebuffer_t* bytebuffer_merge(bytebuffer_t **buff_array, int nbuffers);
+void bytebuffer_reset_reading(bytebuffer_t *s);
 void bytebuffer_append_bytebuffer(bytebuffer_t *write_to,bytebuffer_t *write_from);
 void bytebuffer_append_bulk(bytebuffer_t *s, void * start, size_t size);
 void bytebuffer_append_int(bytebuffer_t *buf, const int val, int swap);
 void bytebuffer_append_double(bytebuffer_t *buf, const double val, int swap);
+#endif
+
 #endif /* _BYTEBUFFER_H */

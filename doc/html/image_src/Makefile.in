@@ -10,13 +10,13 @@
 # **********************************************************************
 
 CC=@CC@
-CFLAGS=@CFLAGS@ @WARNFLAGS@ @PROJ_CPPFLAGS@
+CFLAGS=@CFLAGS@ @PROJ_CPPFLAGS@
 top_builddir = @top_builddir@
 SHELL = @SHELL@
 LIBTOOL = @LIBTOOL@
 
 CUNIT_LDFLAGS=@CUNIT_LDFLAGS@
-CUNIT_CPPFLAGS=@CUNIT_CPPFLAGS@ -I../../../liblwgeom
+CUNIT_CPPFLAGS=-I../../../liblwgeom @CUNIT_CPPFLAGS@
 
 IMAGES= \
 	../images/de9im01.png \
@@ -33,8 +33,12 @@ IMAGES= \
 	../images/st_buffer06.png \
 	../images/st_buffer07.png \
 	../images/st_buffer08.png \
+	../images/st_buffer09.png \
+	../images/st_buffer10.png \
+	../images/st_buffer11.png \
+	../images/st_buffer12.png \
+	../images/st_buffer13.png \
 	../images/st_buildarea01.png \
-	../images/st_buildarea02.png \
 	../images/st_closestpoint01.png \
 	../images/st_closestpoint02.png \
 	../images/st_clusterkmeans01.png \
@@ -62,9 +66,12 @@ IMAGES= \
 	../images/st_crosses02.png \
 	../images/st_crosses03.png \
 	../images/st_crosses04.png \
+	../images/st_constraineddelaunaytriangles01.png \
+	../images/st_constraineddelaunaytriangles02.png \
 	../images/st_delaunaytriangles04.png \
 	../images/st_difference01.png \
 	../images/st_dumppoints01.png \
+	../images/st_envelope01.png \
 	../images/st_extrude01.png \
 	../images/st_extrude03.png \
 	../images/st_generatepoints01.png \
@@ -91,10 +98,19 @@ IMAGES= \
 	../images/st_linecrossingdirection03.png \
 	../images/st_linecrossingdirection04.png \
 	../images/st_line_interpolate_point01.png \
+	../images/st_line_interpolate_points01.png \
 	../images/st_line_substring01.png \
 	../images/st_longestline01.png \
 	../images/st_longestline02.png \
 	../images/st_longestline03.png \
+	../images/st_makevalid01.png \
+	../images/st_makevalid02.png \
+	../images/st_makevalid03.png \
+	../images/st_makevalid04.png \
+	../images/st_makevalid05.png \
+	../images/st_makevalid06.png \
+	../images/st_maximuminscribedcircle01.png \
+	../images/st_maximuminscribedcircle02.png \
 	../images/st_minimumboundingcircle01.png \
 	../images/st_minkowskisum01.png \
 	../images/st_minkowskisum02.png \
@@ -106,6 +122,7 @@ IMAGES= \
 	../images/st_offsetcurve04.png \
 	../images/st_offsetcurve05.png \
 	../images/st_offsetcurve06.png \
+	../images/st_orientedenvelope01.png \
 	../images/st_overlaps01.png \
 	../images/st_overlaps02.png \
 	../images/st_overlaps03.png \
@@ -153,7 +170,7 @@ IMAGES_RESIZED= \
 	../images/de9im10.png \
 	../images/de9im11.png \
 	../images/de9im12.png \
-	../images/de9im13.png 
+	../images/de9im13.png
 
 OBJS=styles.o generator.o
 
@@ -165,7 +182,7 @@ images: $(IMAGES) $(IMAGES_RESIZED)
 
 # Command to build each of the .o files
 $(OBJS): %.o: %.c
-	$(CC) $(CFLAGS) $(CUNIT_CPPFLAGS) -c -o $@ $<
+	$(CC) $(CUNIT_CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 # Command to build each of the .wkt files
 $(IMAGES): ../images/%.png: %.wkt generator styles.conf
@@ -179,7 +196,7 @@ $(IMAGES_RESIZED): ../images/%.png: %.wkt generator styles.conf
 # Build the main executable
 generator: ../../../liblwgeom/.libs/liblwgeom.a $(OBJS)
 	$(LIBTOOL) --mode=link \
-	$(CC) -o $@ $(OBJS) ../../../liblwgeom/liblwgeom.la -lm $(CUNIT_LDFLAGS)
+	$(CC) -o $@ $(OBJS) ../../../liblwgeom/liblwgeom.la $(CUNIT_LDFLAGS)
 
 # Build liblwgeom
 ../../../liblwgeom/.libs/liblwgeom.a:
@@ -197,3 +214,4 @@ distclean: clean
 images-clean:
 	rm -f $(IMAGES) $(IMAGES_RESIZED)
 
+.NOTPARALLEL:

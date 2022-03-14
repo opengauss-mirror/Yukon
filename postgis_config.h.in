@@ -1,7 +1,7 @@
 #ifndef POSTGIS_CONFIG_H
 #define POSTGIS_CONFIG_H 1
 
-#include "postgis_svn_revision.h"
+#include "postgis_revision.h"
 
 /* Manually manipulate the POSTGIS_DEBUG_LEVEL, it is not affected by the
    configure process */
@@ -14,34 +14,14 @@
    language is requested. */
 #undef ENABLE_NLS
 
-/* Define to 1 if GDALFPolygonize function is available */
-#undef GDALFPOLYGONIZE
-
-/* Define to 1 if you have the MacOS X function CFLocaleCopyCurrent in the
-   CoreFoundation framework. */
-#undef HAVE_CFLOCALECOPYCURRENT
-
-/* Define to 1 if you have the MacOS X function CFPreferencesCopyAppValue in
-   the CoreFoundation framework. */
-#undef HAVE_CFPREFERENCESCOPYAPPVALUE
-
-/* Define if the GNU dcgettext() function is already present or preinstalled.
-   */
-#undef HAVE_DCGETTEXT
-
 /* Define for some functions we are interested in */
-#undef HAVE_VASPRINTF
-#undef HAVE_ASPRINTF
-#undef HAVE_ISFINITE
-#undef HAVE_GNU_ISFINITE
 #undef HAVE_FSEEKO
-#undef HAVE_STRCASESTR
-
-/* Define to 1 if you have the <dlfcn.h> header file. */
-#undef HAVE_DLFCN_H
 
 /* Define if the GNU gettext() function is already present or preinstalled. */
 #undef HAVE_GETTEXT
+
+/* Define if the build is big endian */
+#undef WORDS_BIGENDIAN
 
 /* Define if you have the iconv() function and it works. */
 #undef HAVE_ICONV
@@ -52,9 +32,6 @@
 /* ieeefp.h header */
 #undef HAVE_IEEEFP_H
 
-/* Define to 1 if you have the <inttypes.h> header file. */
-#undef HAVE_INTTYPES_H
-
 /* Define to 1 if you have the `geos_c' library (-lgeos_c). */
 #undef HAVE_LIBGEOS_C
 
@@ -64,11 +41,11 @@
 /* Define to 1 if libprotobuf-c is present */
 #undef HAVE_LIBPROTOBUF
 
+/* Numeric version number for libprotobuf */
+#undef LIBPROTOBUF_VERSION
+
 /* Define to 1 if libjson is present */
 #undef HAVE_LIBJSON
-
-/* Define to 1 if libjson resides in json-c subdir */
-#undef HAVE_LIBJSON_C
 
 /* Define to 1 if you have the `pq' library (-lpq). */
 #undef HAVE_LIBPQ
@@ -91,39 +68,17 @@
 /* Define to 1 if you have the <libxml/xpath.h> header file. */
 #undef HAVE_LIBXML_XPATH_H
 
-/* Define to 1 if you have the <memory.h> header file. */
-#undef HAVE_MEMORY_H
-
-/* Define to 1 if you have the <stdint.h> header file. */
-#undef HAVE_STDINT_H
-
-/* Define to 1 if you have the <stdlib.h> header file. */
-#undef HAVE_STDLIB_H
-
-/* Define to 1 if you have the <strings.h> header file. */
-#undef HAVE_STRINGS_H
-
-/* Define to 1 if you have the <string.h> header file. */
-#undef HAVE_STRING_H
-
-/* Define to 1 if you have the <sys/stat.h> header file. */
-#undef HAVE_SYS_STAT_H
-
-/* Define to 1 if you have the <sys/types.h> header file. */
-#undef HAVE_SYS_TYPES_H
-
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to 1 if sfcgal is being built */
+#undef HAVE_SFCGAL
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
 /* Location of PostgreSQL locale directory */
 #undef PGSQL_LOCALEDIR
-
-/* Enable caching of bounding box within geometries */
-#undef POSTGIS_AUTOCACHE_BBOX
 
 /* PostGIS build date */
 #undef POSTGIS_BUILD_DATE
@@ -158,47 +113,15 @@
 /* PROJ library version */
 #undef POSTGIS_PROJ_VERSION
 
-/* PostGIS Raster build date */
-#undef POSTGIS_RASTER_BUILD_DATE
-
-/* PostGIS Raster library version */
-#undef POSTGIS_RASTER_LIB_VERSION
-
-/* PostGIS Raster major version */
-#undef POSTGIS_RASTER_MAJOR_VERSION
-
-/* PostGIS Raster micro version */
-#undef POSTGIS_RASTER_MICRO_VERSION
-
-/* PostGIS Raster minor version */
-#undef POSTGIS_RASTER_MINOR_VERSION
-
-/* PostGIS Raster scripts version */
-#undef POSTGIS_RASTER_SCRIPTS_VERSION
-
-/* PostGIS Raster version */
-#undef POSTGIS_RASTER_VERSION
-
 /* Define to 1 if a warning is outputted every time a double is truncated */
 #undef POSTGIS_RASTER_WARN_ON_TRUNCATION
 
 /* PostGIS scripts version */
 #undef POSTGIS_SCRIPTS_VERSION
 
-/* Enable use of ANALYZE statistics */
-#undef POSTGIS_USE_STATS
 
 /* PostGIS version */
 #undef POSTGIS_VERSION
-
-/* Yukon version */
-#undef YUKON_VERSION
-
-/* Yukon Library version */
-#undef YUKON_LIB_VERSION
-
-/* Define command to determine the current directory during regression */
-#undef PWDREGRESS
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS

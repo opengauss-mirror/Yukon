@@ -52,7 +52,7 @@ char *
 rtpg_chartrim(const char* input, char *remove);
 
 char **
-rtpg_strsplit(const char *str, const char *delimiter, int *n);
+rtpg_strsplit(const char *str, const char *delimiter, uint32_t *n);
 
 char *
 rtpg_removespaces(char *str);
@@ -63,7 +63,6 @@ rtpg_trim(const char* input);
 char *
 rtpg_strrstr(const char *s1, const char *s2);
 
-char *
-rtpg_getSR(int srid);
+char *rtpg_getSR(int32_t srid);
 
 #endif /* RTPG_INTERNAL_H_INCLUDED */

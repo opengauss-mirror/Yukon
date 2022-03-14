@@ -1,25 +1,46 @@
-<img src=https://images.gitee.com/uploads/images/2021/1123/160022_8d571424_8511228.png height=250% width=25% alt=Yukon-logo align=center>  
-  
-Yukon（禹贡），基于openGauss数据库扩展地理空间数据的存储和管理能力，并提供专业的GIS（Geographic Information System）功能，赋能传统关系型数据库。
-> 注：《禹贡》是《尚书》中的一篇，是中国古代文献中最古老和最有系统性地理观念的著作。
-## 模块组织结构
+# 适配openGauss 2.1 + PostGIS 3.2
 
-目前，Yukon 基于openGauss扩展的模块包括：
-1. postgis：与openGauss适配的 PostGIS 矢量模块；
-2. postgis_raster：与 openGauss适配的PostGIS栅格模块；
-3. postgis_sfcgal：与 openGauss适配的PostGIS三维算法相关模块；
-4. yukon_geomodel：Yukon的三维模型数据模块。
+## 当前进展
+postgis模块已适配；其它模块暂未适配
 
-模块之间的依赖关系如图：
+### 遗留的问题：
 
-![模块依赖图](https://images.gitee.com/uploads/images/2021/1123/154741_6f7258fb_8511228.png "Yukon模块依赖图.png")
+1）内存管理相关
 
-帮助文档参见 [Yukon在线文档](https://yukon.supermap.io/)。
-
-## 许可说明
-参见[LICENSE.TXT](https://gitee.com/opengauss/Yukon/blob/master/LICENSE.TXT)
+libpgcommon/lwgeom_transform.c
+Line 117 
+CacheMemoryContext
+ALLOCSET_SMALL_SIZES
 
 
-## 贡献
+libpgcommon/lwgeom_pg.c
+Line 83
+F_OIDEQ
 
-PostGIS与openGauss适配的初始版本源自https://github.com/pg-extension/postgis-xc.git
+static postgisConstants *
+getPostgisConstants()
+Line 151
+CacheMemoryContext
+ALLOCSET_SMALL_SIZES
+
+postgis/lwgeom_geos_prepared.c
+lwgeom_geos_prepared.c:241:3: error: ‘MemoryContextCallback’ was not declared in this scope    MemoryContextCallback *callback;
+
+lwgeom_geos_prepared.c:252:3: error: ‘MemoryContextRegisterResetCallback’ was not declared in this scope
+   MemoryContextRegisterResetCallback(prepcache->context_callback, callback);
+
+2）Geometry brin 相关未编译
+缺少  #include "access/brin_tuple.h"
+postgis/postgis_brin.sql.in
+postgis/brin_2d.c 等未编译；从makefile中移除
+    brin_2d.o \
+    brin_nd.o \
+    brin_common.o \
+
+3） GeoJson 相关未编译
+
+postgis/lwgeom_out_geojson.c
+从makefile中移除：
+lwgeom_out_geojson.o \
+
+4）postgis--3.2.sql文件暂未处理完成，可临时用2.4.2版本的sql文件替换

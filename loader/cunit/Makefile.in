@@ -11,12 +11,12 @@
 
 top_builddir = @top_builddir@
 CC=@CC@
-CFLAGS=@CFLAGS@ @WARNFLAGS@
+CFLAGS=@CFLAGS@
 SHELL = @SHELL@
 LIBTOOL = @LIBTOOL@
 
 CUNIT_LDFLAGS=@CUNIT_LDFLAGS@
-CUNIT_CPPFLAGS=@CUNIT_CPPFLAGS@ -I..
+CUNIT_CPPFLAGS=-I.. @CUNIT_CPPFLAGS@ @CPPFLAGS@
 
 # GTK includes and libraries
 GTK_CFLAGS = @GTK_CFLAGS@ @IGE_MAC_CFLAGS@
@@ -38,11 +38,15 @@ ICONV_CFLAGS=@ICONV_CFLAGS@
 GETTEXT_CFLAGS = @GETTEXT_CFLAGS@
 GETTEXT_LDFLAGS = @GETTEXT_LDFLAGS@ @LIBINTL@
 
+# Proj flags
+PROJ_CFLAGS=@PROJ_CPPFLAGS@
+PROJ_LDFLAGS=@PROJ_LDFLAGS@
+
 # Built out CFLAGS with ICONV and GETTEXT
-CFLAGS += $(GETTEXT_CFLAGS) $(ICONV_CFLAGS)
+CFLAGS += $(GETTEXT_CFLAGS) $(ICONV_CFLAGS) $(PROJ_CFLAGS)
 
 # Build full linking line
-LDFLAGS = -lm $(GEOS_LDFLAGS) $(GETTEXT_LDFLAGS) $(PGSQL_FE_LDFLAGS) $(ICONV_LDFLAGS) $(CUNIT_LDFLAGS)
+LDFLAGS = $(GEOS_LDFLAGS) $(GETTEXT_LDFLAGS) $(PGSQL_FE_LDFLAGS) $(ICONV_LDFLAGS) $(CUNIT_LDFLAGS) $(PROJ_LDFLAGS)
 
 # Object files
 OBJS=	\
@@ -78,9 +82,9 @@ check: cu_tester
 endif
 
 # Build the main unit test executable
-cu_tester: $(LOADER_OBJS) $(OBJS) 
+cu_tester: $(LOADER_OBJS) $(OBJS)
 	$(LIBTOOL) --mode=link \
-	$(CC)  $^ -o $@ $(LIBLWGEOM) $(LDFLAGS)
+	$(CC) $(CFLAGS) $^ -o $@ $(LIBLWGEOM) $(LDFLAGS)
 
 # Command to build each of the .o files
 $(OBJS): %.o: %.c
@@ -89,7 +93,7 @@ $(OBJS): %.o: %.c
 # Clean target
 clean:
 	rm -f $(OBJS)
-	rm -f cu_tester.exe
+	rm -f cu_tester
 
 distclean: clean
 	rm -f Makefile

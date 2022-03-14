@@ -27,44 +27,45 @@
  *
  */
 
-//#include <postgres.h>
-//#include <fmgr.h>
-//#include "utils/lsyscache.h" /* for get_typlenbyvalalign */
-//#include <funcapi.h>
-//#include "utils/array.h" /* for ArrayType */
-//#include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
-
+// #include <postgres.h>
+// #include <fmgr.h>
+// #include "utils/lsyscache.h" /* for get_typlenbyvalalign */
+// #include <funcapi.h>
+// #include "utils/array.h" /* for ArrayType */
+// #include "utils/builtins.h" /* for text_to_cstring */
+// #include "utils/formatting.h" /* for asc_tolower */
+// #include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
 #include "extension_dependency.h"
-
 #include "../../postgis_config.h"
 #include "lwgeom_pg.h"
 
 
 
-//#include "access/htup_details.h" /* for heap_form_tuple() */
+// #include "access/htup_details.h" /* for heap_form_tuple() */
 
 
 #include "rtpostgis.h"
-
-/* Get pixel value */
 extern "C"
 {
-	Datum RASTER_getPixelValue(PG_FUNCTION_ARGS);
-	Datum RASTER_dumpValues(PG_FUNCTION_ARGS);
+/* Get pixel value */
+Datum RASTER_getPixelValue(PG_FUNCTION_ARGS);
+Datum RASTER_getPixelValueResample(PG_FUNCTION_ARGS);
+Datum RASTER_dumpValues(PG_FUNCTION_ARGS);
 
-	/* Set pixel value(s) */
-	Datum RASTER_setPixelValue(PG_FUNCTION_ARGS);
-	Datum RASTER_setPixelValuesArray(PG_FUNCTION_ARGS);
-	Datum RASTER_setPixelValuesGeomval(PG_FUNCTION_ARGS);
+/* Set pixel value(s) */
+Datum RASTER_setPixelValue(PG_FUNCTION_ARGS);
+Datum RASTER_setPixelValuesArray(PG_FUNCTION_ARGS);
+Datum RASTER_setPixelValuesGeomval(PG_FUNCTION_ARGS);
+Datum RASTER_getGeometryValues(PG_FUNCTION_ARGS);
 
-	/* Get pixels of value */
-	Datum RASTER_pixelOfValue(PG_FUNCTION_ARGS);
+/* Get pixels of value */
+Datum RASTER_pixelOfValue(PG_FUNCTION_ARGS);
 
-	/* Get nearest value to a point */
-	Datum RASTER_nearestValue(PG_FUNCTION_ARGS);
+/* Get nearest value to a point */
+Datum RASTER_nearestValue(PG_FUNCTION_ARGS);
 
-	/* Get the neighborhood around a pixel */
-	Datum RASTER_neighborhood(PG_FUNCTION_ARGS);
+/* Get the neighborhood around a pixel */
+Datum RASTER_neighborhood(PG_FUNCTION_ARGS);
 }
 /**
  * Return value of a single pixel.
@@ -76,80 +77,264 @@ extern "C"
 PG_FUNCTION_INFO_V1(RASTER_getPixelValue);
 Datum RASTER_getPixelValue(PG_FUNCTION_ARGS)
 {
-    rt_pgraster *pgraster = NULL;
-    rt_raster raster = NULL;
-    rt_band band = NULL;
-    double pixvalue = 0;
-    int32_t bandindex = 0;
-    int32_t x = 0;
-    int32_t y = 0;
-    int result = 0;
-    bool exclude_nodata_value = TRUE;
+	rt_pgraster *pgraster = NULL;
+	rt_raster raster = NULL;
+	rt_band band = NULL;
+	double pixvalue = 0;
+	int32_t bandindex = 0;
+	int32_t x = 0;
+	int32_t y = 0;
+	int result = 0;
+	bool exclude_nodata_value = TRUE;
 		int isnodata = 0;
 
-	if (PG_ARGISNULL(1)) {
-		elog(ERROR, "The input cannot be NULL.");
-	} else {
-		bandindex = PG_GETARG_INT32(1);
+	/* Index is 1-based */
+	bandindex = PG_GETARG_INT32(1);
+	if ( bandindex < 1 ) {
+		elog(NOTICE, "Invalid band index (must use 1-based). Returning NULL");
+		PG_RETURN_NULL();
 	}
 
-    if ( bandindex < 1 ) {
-        elog(NOTICE, "Invalid band index (must use 1-based). Returning NULL");
-        PG_RETURN_NULL();
-    }
+	x = PG_GETARG_INT32(2);
 
-	if (PG_ARGISNULL(2)) {
-		elog(ERROR, "The input cannot be NULL.");
-	} else {
-		x = PG_GETARG_INT32(2);
+	y = PG_GETARG_INT32(3);
+
+	exclude_nodata_value = PG_GETARG_BOOL(4);
+
+	POSTGIS_RT_DEBUGF(3, "Pixel coordinates (%d, %d)", x, y);
+
+	/* Deserialize raster */
+	if (PG_ARGISNULL(0)) PG_RETURN_NULL();
+	pgraster = (rt_pgraster *)PG_DETOAST_DATUM(PG_GETARG_DATUM(0));
+
+	raster = rt_raster_deserialize(pgraster, FALSE);
+	if (!raster) {
+		PG_FREE_IF_COPY(pgraster, 0);
+		elog(ERROR, "RASTER_getPixelValue: Could not deserialize raster");
+		PG_RETURN_NULL();
 	}
 
-	if (PG_ARGISNULL(3)) {
-		elog(ERROR, "The input cannot be NULL.");
-	} else {
-		y = PG_GETARG_INT32(3);
-	}	
+	/* Fetch Nth band using 0-based internal index */
+	band = rt_raster_get_band(raster, bandindex - 1);
+	if (! band) {
+		elog(NOTICE, "Could not find raster band of index %d when getting pixel "
+				"value. Returning NULL", bandindex);
+		rt_raster_destroy(raster);
+		PG_FREE_IF_COPY(pgraster, 0);
+		PG_RETURN_NULL();
+	}
+	/* Fetch pixel using 0-based coordinates */
+	result = rt_band_get_pixel(band, x - 1, y - 1, &pixvalue, &isnodata);
 
-    exclude_nodata_value = PG_GETARG_BOOL(4);
+	/* If the result is -1 or the value is nodata and we take nodata into account
+	 * then return nodata = NULL */
+	if (result != ES_NONE || (exclude_nodata_value && isnodata)) {
+		rt_raster_destroy(raster);
+		PG_FREE_IF_COPY(pgraster, 0);
+		PG_RETURN_NULL();
+	}
 
-    POSTGIS_RT_DEBUGF(3, "Pixel coordinates (%d, %d)", x, y);
+	rt_raster_destroy(raster);
+	PG_FREE_IF_COPY(pgraster, 0);
 
-    /* Deserialize raster */
-    if (PG_ARGISNULL(0)) PG_RETURN_NULL();
-    pgraster = (rt_pgraster *)PG_DETOAST_DATUM(PG_GETARG_DATUM(0));
-
-    raster = rt_raster_deserialize(pgraster, FALSE);
-    if (!raster) {
-        PG_FREE_IF_COPY(pgraster, 0);
-        elog(ERROR, "RASTER_getPixelValue: Could not deserialize raster");
-        PG_RETURN_NULL();
-    }
-
-    /* Fetch Nth band using 0-based internal index */
-    band = rt_raster_get_band(raster, bandindex - 1);
-    if (! band) {
-        elog(NOTICE, "Could not find raster band of index %d when getting pixel "
-                "value. Returning NULL", bandindex);
-        rt_raster_destroy(raster);
-        PG_FREE_IF_COPY(pgraster, 0);
-        PG_RETURN_NULL();
-    }
-    /* Fetch pixel using 0-based coordinates */
-    result = rt_band_get_pixel(band, x - 1, y - 1, &pixvalue, &isnodata);
-
-    /* If the result is -1 or the value is nodata and we take nodata into account
-     * then return nodata = NULL */
-    if (result != ES_NONE || (exclude_nodata_value && isnodata)) {
-        rt_raster_destroy(raster);
-        PG_FREE_IF_COPY(pgraster, 0);
-        PG_RETURN_NULL();
-    }
-
-    rt_raster_destroy(raster);
-    PG_FREE_IF_COPY(pgraster, 0);
-
-    PG_RETURN_FLOAT8(pixvalue);
+	PG_RETURN_FLOAT8(pixvalue);
 }
+
+static rt_resample_type resample_text_to_type(text *txt)
+{
+	//char *resample = asc_tolower(VARDATA(txt), VARSIZE_ANY_EXHDR(txt));
+	char *resample = VARDATA(txt);
+	if (strncmp(resample, "bilinear", 8) == 0)
+		return RT_BILINEAR;
+	else if (strncmp(resample, "nearest", 7) == 0)
+		return RT_NEAREST;
+	else {
+		elog(ERROR, "Unknown resample type '%s' requested", resample);
+	}
+	pfree(resample);
+	return RT_NEAREST;
+}
+
+/*
+* ST_Value(
+*   rast raster,
+*   band integer,
+*   pt geometry,
+*   exclude_nodata_value boolean DEFAULT TRUE,
+*   resample text DEFAULT 'nearest'
+*/
+PG_FUNCTION_INFO_V1(RASTER_getPixelValueResample);
+Datum RASTER_getPixelValueResample(PG_FUNCTION_ARGS)
+{
+	rt_raster raster = NULL;
+	rt_band band = NULL;
+	rt_pgraster *pgraster = (rt_pgraster *)PG_DETOAST_DATUM(PG_GETARG_DATUM(0));
+	int32_t bandnum = PG_GETARG_INT32(1);
+	GSERIALIZED *gser;
+	LWPOINT *lwpoint;
+	LWGEOM *lwgeom;
+	bool exclude_nodata_value = PG_GETARG_BOOL(3);
+	rt_resample_type resample_type = RT_NEAREST;
+	double x, y, xr, yr;
+	double pixvalue = 0.0;
+	int isnodata = 0;
+	rt_errorstate err;
+
+	/* Index is 1-based */
+	if (bandnum < 1) {
+		elog(NOTICE, "Invalid band index (must use 1-based). Returning NULL");
+		PG_RETURN_NULL();
+	}
+
+	gser = (GSERIALIZED*)PG_DETOAST_DATUM(PG_GETARG_DATUM(2));
+	if (gserialized_get_type(gser) != POINTTYPE || gserialized_is_empty(gser)) {
+		elog(ERROR, "Attempting to get the value of a pixel with a non-point geometry");
+		PG_RETURN_NULL();
+	}
+
+	raster = rt_raster_deserialize(pgraster, FALSE);
+	if (!raster) {
+		elog(ERROR, "RASTER_getPixelValue: Could not deserialize raster");
+		PG_RETURN_NULL();
+	}
+
+	if (gserialized_get_srid(gser) != rt_raster_get_srid(raster)) {
+		elog(ERROR, "Raster and geometry do not have the same SRID");
+		PG_RETURN_NULL();
+	}
+
+	if (PG_NARGS() > 4) {
+		text *resample_text = PG_GETARG_TEXT_P(4);
+		resample_type = resample_text_to_type(resample_text);
+	}
+
+	/* Fetch Nth band using 0-based internal index */
+	band = rt_raster_get_band(raster, bandnum - 1);
+	if (!band) {
+		elog(ERROR, "Could not find raster band of index %d when getting pixel "
+					"value. Returning NULL", bandnum);
+		PG_RETURN_NULL();
+	}
+
+	/* Get the X/Y coordinates */
+	lwgeom = lwgeom_from_gserialized(gser);
+	lwpoint = lwgeom_as_lwpoint(lwgeom);
+	x = lwpoint_get_x(lwpoint);
+	y = lwpoint_get_y(lwpoint);
+
+	/* Convert X/Y world coordinates into raster coordinates */
+	err = rt_raster_geopoint_to_rasterpoint(raster, x, y, &xr, &yr, NULL);
+	if (err != ES_NONE) {
+		elog(ERROR, "Could not convert world coordinate to raster coordinate");
+		PG_RETURN_NULL();
+	}
+
+	/* Use appropriate resample algorithm */
+	err = rt_band_get_pixel_resample(
+		band,
+		xr, yr,
+		resample_type,
+		&pixvalue, &isnodata
+		);
+
+	/* If the result is -1 or the value is nodata and we take nodata into account
+	 * then return nodata = NULL */
+	rt_raster_destroy(raster);
+	lwgeom_free(lwgeom);
+	if (err != ES_NONE || (exclude_nodata_value && isnodata)) {
+		PG_RETURN_NULL();
+	}
+	PG_RETURN_FLOAT8(pixvalue);
+}
+
+
+/*
+* ST_SetZ(
+*   rast raster,
+*   pt geometry,
+*   resample text DEFAULT 'nearest' ),
+*   band integer default 1,
+*   dimension text default 'z'
+*/
+PG_FUNCTION_INFO_V1(RASTER_getGeometryValues);
+Datum RASTER_getGeometryValues(PG_FUNCTION_ARGS)
+{
+	rt_raster raster = NULL;
+	rt_pgraster *pgraster = NULL;
+	GSERIALIZED *gser;
+	LWGEOM *lwgeom_in, *lwgeom_out;
+	rt_resample_type resample_type = RT_NEAREST;
+	rt_errorstate err;
+	char dimension;
+	const char *func_name;
+	uint16_t num_bands;
+	int32_t band;
+
+	text *resample_text = PG_GETARG_TEXT_P(2);
+
+	/* Dimension depends on the name of calling SQL function */
+	/* ST_SetZ()? or ST_SetM()? */
+	func_name = get_func_name(fcinfo->flinfo->fn_oid);
+	if (strcmp(func_name, "st_setz") == 0)
+		dimension = 'z';
+	else if (strcmp(func_name, "st_setm") == 0)
+		dimension = 'm';
+	else
+		elog(ERROR, "%s called from unexpected SQL signature", __func__);
+
+	/* Geometry */
+	gser = (GSERIALIZED*)PG_DETOAST_DATUM(PG_GETARG_DATUM(1));
+	if (gserialized_is_empty(gser)) {
+		elog(ERROR, "Cannot copy value into an empty geometry");
+		PG_RETURN_NULL();
+	}
+
+	/* Raster */
+	pgraster = (rt_pgraster *)PG_DETOAST_DATUM(PG_GETARG_DATUM(0));
+	raster = rt_raster_deserialize(pgraster, FALSE);
+	num_bands = rt_raster_get_num_bands(raster);
+	if (!raster) {
+		elog(ERROR, "Could not deserialize raster");
+		PG_RETURN_NULL();
+	}
+
+	/* Bandnidex is 1-based */
+	band = PG_GETARG_INT32(3);
+	if (band < 1 || band > num_bands) {
+		elog(NOTICE, "Invalid band index %d. Must be between 1 and %u", band, num_bands);
+		PG_RETURN_NULL();
+	}
+
+	/* SRID consistency */
+	if (gserialized_get_srid(gser) != rt_raster_get_srid(raster)) {
+		elog(ERROR, "Raster and geometry do not have the same SRID");
+		PG_RETURN_NULL();
+	}
+
+	/* Process arguments */
+	resample_type = resample_text_to_type(resample_text);
+
+	/* Get the geometry */
+	lwgeom_in = lwgeom_from_gserialized(gser);
+
+	/* Run the sample */
+	err = rt_raster_copy_to_geometry(
+		raster,
+		band - 1,      /* rtcore uses 0-based band number */
+		dimension,     /* 'z' or 'm' */
+		resample_type, /* bilinear or nearest */
+		lwgeom_in,
+		&lwgeom_out
+	);
+
+	rt_raster_destroy(raster);
+	lwgeom_free(lwgeom_in);
+	if (err != ES_NONE || !lwgeom_out) {
+		PG_RETURN_NULL();
+	}
+	PG_RETURN_POINTER(gserialized_from_lwgeom(lwgeom_out, NULL));
+}
+
 
 /* ---------------------------------------------------------------- */
 /*  ST_DumpValues function                                          */
@@ -212,6 +397,8 @@ static void rtpg_dumpvalues_arg_destroy(rtpg_dumpvalues_arg arg) {
 
 	pfree(arg);
 }
+
+#define VALUES_LENGTH 2
 
 PG_FUNCTION_INFO_V1(RASTER_dumpValues);
 Datum RASTER_dumpValues(PG_FUNCTION_ARGS)
@@ -530,9 +717,8 @@ Datum RASTER_dumpValues(PG_FUNCTION_ARGS)
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
-		int values_length = 2;
-		Datum values[values_length];
-		bool nulls[values_length];
+		Datum values[VALUES_LENGTH];
+		bool nulls[VALUES_LENGTH];
 		HeapTuple tuple;
 		Datum result;
 		ArrayType *mdValues = NULL;
@@ -543,7 +729,7 @@ Datum RASTER_dumpValues(PG_FUNCTION_ARGS)
 		POSTGIS_RT_DEBUGF(3, "call number %d", call_cntr);
 		POSTGIS_RT_DEBUGF(4, "dim = %d, %d", dim[0], dim[1]);
 
-		memset(nulls, FALSE, sizeof(bool) * values_length);
+		memset(nulls, FALSE, sizeof(bool) * VALUES_LENGTH);
 
 		values[0] = Int32GetDatum(arg2->nbands[call_cntr] + 1);
 
@@ -1203,7 +1389,7 @@ Datum RASTER_setPixelValuesGeomval(PG_FUNCTION_ARGS)
 	int numbands = 0;
 	int width = 0;
 	int height = 0;
-	int srid = 0;
+	int32_t srid = 0;
 	double gt[6] = {0};
 
 	rt_pixtype pixtype = PT_END;
@@ -1228,11 +1414,10 @@ Datum RASTER_setPixelValuesGeomval(PG_FUNCTION_ARGS)
 
 	GSERIALIZED *gser = NULL;
 	uint8_t gtype;
-	unsigned char *wkb = NULL;
-	size_t wkb_len;
+	lwvarlena_t *wkb = NULL;
 
 	int i = 0;
-	int j = 0;
+	uint32_t j = 0;
 	int noerr = 1;
 
 	/* pgraster is null, return null */
@@ -1387,22 +1572,29 @@ Datum RASTER_setPixelValuesGeomval(PG_FUNCTION_ARGS)
 
 		/* get wkb of geometry */
 		POSTGIS_RT_DEBUG(3, "getting wkb of geometry");
-		wkb = lwgeom_to_wkb(arg->gv[arg->ngv].geom, WKB_SFSQL, &wkb_len);
+		wkb = lwgeom_to_wkb_varlena(arg->gv[arg->ngv].geom, WKB_SFSQL);
 
 		/* rasterize geometry */
-		arg->gv[arg->ngv].mask = rt_raster_gdal_rasterize(
-			wkb, wkb_len,
-			NULL,
-			0, NULL,
-			NULL, NULL,
-			NULL, NULL,
-			NULL, NULL,
-			&(gt[1]), &(gt[5]),
-			NULL, NULL,
-			&(gt[0]), &(gt[3]),
-			&(gt[2]), &(gt[4]),
-			NULL
-		);
+		arg->gv[arg->ngv].mask = rt_raster_gdal_rasterize((unsigned char *)wkb->data,
+								  LWSIZE_GET(wkb->size) - LWVARHDRSZ,
+								  NULL,
+								  0,
+								  NULL,
+								  NULL,
+								  NULL,
+								  NULL,
+								  NULL,
+								  NULL,
+								  NULL,
+								  &(gt[1]),
+								  &(gt[5]),
+								  NULL,
+								  NULL,
+								  &(gt[0]),
+								  &(gt[3]),
+								  &(gt[2]),
+								  &(gt[4]),
+								  NULL);
 
 		pfree(wkb);
 		if (gtype != POINTTYPE && gtype != MULTIPOINTTYPE) {
@@ -1617,6 +1809,9 @@ Datum RASTER_setPixelValuesGeomval(PG_FUNCTION_ARGS)
 	PG_RETURN_POINTER(pgrtn);
 }
 
+#undef VALUES_LENGTH
+#define VALUES_LENGTH 3
+
 /**
  * Get pixels of value
  */
@@ -1696,12 +1891,7 @@ Datum RASTER_pixelOfValue(PG_FUNCTION_ARGS)
 		}
 
 		/* search values */
-		if (PG_ARGISNULL(2)) {
-			PG_RETURN_NULL();	
-		} else {
-			array = PG_GETARG_ARRAYTYPE_P(2);
-		}
-
+		array = PG_GETARG_ARRAYTYPE_P(2);
 		etype = ARR_ELEMTYPE(array);
 		get_typlenbyvalalign(etype, &typlen, &typbyval, &typalign);
 
@@ -1820,13 +2010,12 @@ Datum RASTER_pixelOfValue(PG_FUNCTION_ARGS)
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
-		int values_length = 3;
-		Datum values[values_length];
-		bool nulls[values_length];
+		Datum values[VALUES_LENGTH];
+		bool nulls[VALUES_LENGTH];
 		HeapTuple tuple;
 		Datum result;
 
-		memset(nulls, FALSE, sizeof(bool) * values_length);
+		memset(nulls, FALSE, sizeof(bool) * VALUES_LENGTH);
 
 		/* 0-based to 1-based */
 		pixels2[call_cntr].x += 1;
@@ -1897,12 +2086,7 @@ Datum RASTER_nearestValue(PG_FUNCTION_ARGS)
 	}
 
 	/* point */
-	if (PG_ARGISNULL(2)) {
-		PG_RETURN_NULL();	
-	} else {
-		geom = PG_GETARG_GSERIALIZED_P(2);
-	}
-
+	geom = PG_GETARG_GSERIALIZED_P(2);
 	if (gserialized_get_type(geom) != POINTTYPE) {
 		elog(NOTICE, "Geometry provided must be a point");
 		rt_raster_destroy(raster);
@@ -2128,28 +2312,15 @@ Datum RASTER_neighborhood(PG_FUNCTION_ARGS)
 	}
 
 	/* pixel column, 1-based */
-	if (PG_ARGISNULL(2)) {
-		PG_RETURN_NULL();
-	} else {
-		x = PG_GETARG_INT32(2);
-		_x = x - 1;
-	}
+	x = PG_GETARG_INT32(2);
+	_x = x - 1;
 
 	/* pixel row, 1-based */
-	if (PG_ARGISNULL(3)) {
-		PG_RETURN_NULL();
-	} else {
-		y = PG_GETARG_INT32(3);
-		_y = y - 1;
-	}
+	y = PG_GETARG_INT32(3);
+	_y = y - 1;
 
 	/* distance X axis */
-	if (PG_ARGISNULL(4)) {
-		PG_RETURN_NULL();
-	} else {
-		distance[0] = PG_GETARG_INT32(4);
-	}
-
+	distance[0] = PG_GETARG_INT32(4);
 	if (distance[0] < 0) {
 		elog(NOTICE, "Invalid value for distancex (must be >= zero). Returning NULL");
 		rt_raster_destroy(raster);
@@ -2159,12 +2330,7 @@ Datum RASTER_neighborhood(PG_FUNCTION_ARGS)
 	distance[0] = (uint16_t) distance[0];
 
 	/* distance Y axis */
-	if (PG_ARGISNULL(5)) {
-		PG_RETURN_NULL();
-	} else {
-		distance[1] = PG_GETARG_INT32(5);
-	}
-
+	distance[1] = PG_GETARG_INT32(5);
 	if (distance[1] < 0) {
 		elog(NOTICE, "Invalid value for distancey (must be >= zero). Returning NULL");
 		rt_raster_destroy(raster);

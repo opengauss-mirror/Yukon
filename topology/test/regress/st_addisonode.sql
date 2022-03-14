@@ -3,8 +3,7 @@ set client_min_messages to WARNING;
 
 -- Usual city_data input
 
-\i load_topology.sql
-
+\i ../load_topology.sql
 
 -- NULL exceptions
 select ST_AddIsoNode(NULL, 0, 'POINT(1 4)');
@@ -14,15 +13,17 @@ select ST_AddIsoNode(NULL, NULL, NULL);
 -- Wrong topology name
 select ST_AddIsoNode('wrong_name', 0, 'POINT(1 4)');
 select ST_AddIsoNode('', 0, 'POINT(1 4)');
--- Negative idface';
+-- Negative idface
 select ST_AddIsoNode('city_data', -1, 'POINT(1 4)');
 -- Wrong idface
 select ST_AddIsoNode('city_data', 5, 'POINT(5 33)'); -- in face 9
 select ST_AddIsoNode('city_data', 9, 'POINT(39 18)'); -- in face 5
---  Coincident nodes';
+-- Coincident nodes
 select ST_AddIsoNode('city_data', 0, 'POINT(21 22)');
 select ST_AddIsoNode('city_data', NULL, 'POINT(21 22)');
 select ST_AddIsoNode('city_data', 1, 'POINT(21 22)');
+-- Node on edge
+select 'node-on-edge', ST_AddIsoNode('city_data', NULL, 'POINT(28 14)');
 
 -- Smart creation ISO Node (without know idface)';
 
@@ -48,6 +49,9 @@ SELECT 'T'||t.id, n.node_id, n.containing_face FROM nn t, city_data.node n
 
 -- TODO: test for bug #1503
 --SELECT 'T5', st_addisonode('city_data', 22, 'POINT(28.5 32.5)');
+
+-- Test for #3234
+SELECT '#3234', topology.ST_AddIsoNode('city_data', 0, 'POINT EMPTY'::geometry);
 
 DROP TABLE nn;
 select topology.DropTopology('city_data');

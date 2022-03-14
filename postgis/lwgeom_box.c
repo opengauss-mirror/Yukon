@@ -23,18 +23,23 @@
  *
  **********************************************************************/
 
-#include "extension_dependency.h"
+
+// #include "postgres.h"
+// #include "access/gist.h"
+// #include "access/itup.h"
+// #include "fmgr.h"
+// #include "utils/elog.h"
+// #include "utils/geo_decls.h"
 
 #include "../postgis_config.h"
 #include "lwgeom_pg.h"
 #include "liblwgeom.h"
+#include "liblwgeom_internal.h"
 
 #include <math.h>
 #include <float.h>
 #include <string.h>
 #include <stdio.h>
-#include <errno.h>
-
 
 /* forward defs */
 extern "C" Datum BOX2D_in(PG_FUNCTION_ARGS);
@@ -66,7 +71,7 @@ Datum BOX2D_in(PG_FUNCTION_ARGS)
 	nitems = sscanf(str,"box(%lf %lf,%lf %lf)", &box.xmin, &box.ymin, &box.xmax, &box.ymax);
 	if (nitems != 4)
 	{
-		elog(ERROR,"box2d parser - couldnt parse.  It should look like: BOX(xmin ymin,xmax ymax)");
+		elog(ERROR,"box2d parser - couldn't parse.  It should look like: BOX(xmin ymin,xmax ymax)");
 		PG_RETURN_NULL();
 	}
 
@@ -89,16 +94,30 @@ Datum BOX2D_in(PG_FUNCTION_ARGS)
 PG_FUNCTION_INFO_V1(BOX2D_out);
 Datum BOX2D_out(PG_FUNCTION_ARGS)
 {
-	GBOX *box = (GBOX *) PG_GETARG_POINTER(0);
-	char tmp[500]; /* big enough */
+	char tmp[500] = {'B', 'O', 'X', '(', 0}; /* big enough */
+	static const int precision = 15;
 	char *result;
-	int size;
+	int size = 0;
 
-	size  = sprintf(tmp,"BOX(%.15g %.15g,%.15g %.15g)",
-	                box->xmin, box->ymin, box->xmax, box->ymax);
+	GBOX *box = (GBOX *)PG_GETARG_POINTER(0);
+	/* Avoid unaligned access to the gbox struct */
+	GBOX box_aligned;
+	memcpy(&box_aligned, box, sizeof(GBOX));
 
-	result= palloc(size+1); /* +1= null term */
-	memcpy(result,tmp,size+1);
+	size = 4;
+	size += lwprint_double(box_aligned.xmin, precision, &tmp[size]);
+	tmp[size++] = ' ';
+	size += lwprint_double(box_aligned.ymin, precision, &tmp[size]);
+	tmp[size++] = ',';
+	size += lwprint_double(box_aligned.xmax, precision, &tmp[size]);
+	tmp[size++] = ' ';
+	size += lwprint_double(box_aligned.ymax, precision, &tmp[size]);
+
+	tmp[size++] = ')';
+	size += 1;
+
+	result = palloc(size + 1); /* +1= null term */
+	memcpy(result, tmp, size + 1);
 	result[size] = '\0';
 
 	PG_RETURN_CSTRING(result);
@@ -134,17 +153,13 @@ Datum LWGEOM_to_BOX2D(PG_FUNCTION_ARGS)
 PG_FUNCTION_INFO_V1(LWGEOM_to_BOX2DF);
 Datum LWGEOM_to_BOX2DF(PG_FUNCTION_ARGS)
 {
-	GSERIALIZED *geom = PG_GETARG_GSERIALIZED_P(0);
 	GBOX gbox;
-
-	if ( gserialized_get_gbox_p(geom, &gbox) == LW_FAILURE )
+	if (gserialized_datum_get_gbox_p(PG_GETARG_DATUM(0), &gbox) == LW_FAILURE)
 		PG_RETURN_NULL();
 
 	/* Strip out higher dimensions */
 	FLAGS_SET_Z(gbox.flags, 0);
 	FLAGS_SET_M(gbox.flags, 0);
-
-	PG_FREE_IF_COPY(geom, 0);
 	PG_RETURN_POINTER(gbox_copy(&gbox));
 }
 
@@ -402,46 +417,44 @@ Datum BOX2D_to_BOX3D(PG_FUNCTION_ARGS)
 PG_FUNCTION_INFO_V1(BOX2D_combine);
 Datum BOX2D_combine(PG_FUNCTION_ARGS)
 {
-	Pointer box2d_ptr = PG_GETARG_POINTER(0);
-	Pointer geom_ptr = PG_GETARG_POINTER(1);
+	static const uint32_t box2d_idx = 0;
+	static const uint32_t geom_idx = 1;
 	GBOX *a,*b;
-	GSERIALIZED *lwgeom;
 	GBOX box, *result;
 
-	if  ( (box2d_ptr == NULL) && (geom_ptr == NULL) )
+	if (PG_ARGISNULL(box2d_idx) && PG_ARGISNULL(geom_idx))
 	{
 		PG_RETURN_NULL(); /* combine_box2d(null,null) => null */
 	}
 
 	result = (GBOX *)palloc(sizeof(GBOX));
 
-	if (box2d_ptr == NULL)
+	if (PG_ARGISNULL(box2d_idx))
 	{
-		lwgeom = PG_GETARG_GSERIALIZED_P(1);
 		/* empty geom would make getbox2d_p return NULL */
-		if ( ! gserialized_get_gbox_p(lwgeom, &box) ) PG_RETURN_NULL();
+		if (!gserialized_datum_get_gbox_p(PG_GETARG_DATUM(geom_idx), &box))
+			PG_RETURN_NULL();
 		memcpy(result, &box, sizeof(GBOX));
 		PG_RETURN_POINTER(result);
 	}
 
 	/* combine_bbox(BOX3D, null) => BOX3D */
-	if (geom_ptr == NULL)
+	if (PG_ARGISNULL(geom_idx))
 	{
-		memcpy(result, (char *)PG_GETARG_DATUM(0), sizeof(GBOX));
+		memcpy(result, (char *)PG_GETARG_DATUM(box2d_idx), sizeof(GBOX));
 		PG_RETURN_POINTER(result);
 	}
 
 	/*combine_bbox(BOX3D, geometry) => union(BOX3D, geometry->bvol) */
 
-	lwgeom = PG_GETARG_GSERIALIZED_P(1);
-	if ( ! gserialized_get_gbox_p(lwgeom, &box) )
+	if (!gserialized_datum_get_gbox_p(PG_GETARG_DATUM(geom_idx), &box))
 	{
 		/* must be the empty geom */
-		memcpy(result, (char *)PG_GETARG_DATUM(0), sizeof(GBOX));
+		memcpy(result, (char *)PG_GETARG_DATUM(box2d_idx), sizeof(GBOX));
 		PG_RETURN_POINTER(result);
 	}
 
-	a = (GBOX *)PG_GETARG_DATUM(0);
+	a = (GBOX *)PG_GETARG_DATUM(box2d_idx);
 	b = &box;
 
 	result->xmax = Max(a->xmax, b->xmax);
@@ -502,10 +515,10 @@ Datum BOX2D_to_LWGEOM(PG_FUNCTION_ARGS)
 		LWPOLY *poly;
 
 		/* Initialize the 4 vertices of the polygon */
-		points[0] = (POINT4D) { box->xmin, box->ymin };
-		points[1] = (POINT4D) { box->xmin, box->ymax };
-		points[2] = (POINT4D) { box->xmax, box->ymax };
-		points[3] = (POINT4D) { box->xmax, box->ymin };
+		points[0] = (POINT4D) { box->xmin, box->ymin, 0.0, 0.0 };
+		points[1] = (POINT4D) { box->xmin, box->ymax, 0.0, 0.0 };
+		points[2] = (POINT4D) { box->xmax, box->ymax, 0.0, 0.0 };
+		points[3] = (POINT4D) { box->xmax, box->ymin, 0.0, 0.0 };
 
 		/* Construct polygon */
 		poly = lwpoly_construct_rectangle(LW_FALSE, LW_FALSE, &points[0], &points[1],
@@ -525,19 +538,23 @@ Datum BOX2D_construct(PG_FUNCTION_ARGS)
 	GBOX *result;
 	LWPOINT *minpoint, *maxpoint;
 	double min, max, tmp;
+	gserialized_error_if_srid_mismatch(pgmin, pgmax, __func__);
 
 	minpoint = (LWPOINT*)lwgeom_from_gserialized(pgmin);
 	maxpoint = (LWPOINT*)lwgeom_from_gserialized(pgmax);
 
 	if ( (minpoint->type != POINTTYPE) || (maxpoint->type != POINTTYPE) )
 	{
-		elog(ERROR, "GBOX_construct: arguments must be points");
+		elog(ERROR, "BOX2D_construct: arguments must be points");
 		PG_RETURN_NULL();
 	}
 
-	error_if_srid_mismatch(minpoint->srid, maxpoint->srid);
+	if (lwpoint_is_empty(minpoint) || lwpoint_is_empty(maxpoint) ){
+		elog(ERROR, "BOX2D_construct: args can not be empty points");
+		PG_RETURN_NULL();
+	}
 
-	result = gbox_new(gflags(0, 0, 0));
+	result = gbox_new(lwflags(0, 0, 0));
 
 	/* Process X min/max */
 	min = lwpoint_get_x(minpoint);

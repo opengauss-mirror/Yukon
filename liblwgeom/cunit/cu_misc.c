@@ -15,31 +15,10 @@
 #include "CUnit/Basic.h"
 
 #include "liblwgeom_internal.h"
+#include "optionlist.h"
+#include "stringlist.h"
 #include "cu_tester.h"
 
-
-static void test_misc_force_2d(void)
-{
-	LWGEOM *geom;
-	LWGEOM *geom2d;
-	char *wkt_out;
-
-	geom = lwgeom_from_wkt("CIRCULARSTRINGM(-5 0 4,0 5 3,5 0 2,10 -5 1,15 0 0)", LW_PARSER_CHECK_NONE);
-	geom2d = lwgeom_force_2d(geom);
-	wkt_out = lwgeom_to_ewkt(geom2d);
-	CU_ASSERT_STRING_EQUAL("CIRCULARSTRING(-5 0,0 5,5 0,10 -5,15 0)",wkt_out);
-	lwgeom_free(geom);
-	lwgeom_free(geom2d);
-	lwfree(wkt_out);
-
-	geom = lwgeom_from_wkt("GEOMETRYCOLLECTION(POINT(0 0 0),LINESTRING(1 1 1,2 2 2),POLYGON((0 0 1,0 1 1,1 1 1,1 0 1,0 0 1)),CURVEPOLYGON(CIRCULARSTRING(0 0 0,1 1 1,2 2 2,1 1 1,0 0 0)))", LW_PARSER_CHECK_NONE);
-	geom2d = lwgeom_force_2d(geom);
-	wkt_out = lwgeom_to_ewkt(geom2d);
-	CU_ASSERT_STRING_EQUAL("GEOMETRYCOLLECTION(POINT(0 0),LINESTRING(1 1,2 2),POLYGON((0 0,0 1,1 1,1 0,0 0)),CURVEPOLYGON(CIRCULARSTRING(0 0,1 1,2 2,1 1,0 0)))",wkt_out);
-	lwgeom_free(geom);
-	lwgeom_free(geom2d);
-	lwfree(wkt_out);
-}
 
 static void test_misc_simplify(void)
 {
@@ -62,6 +41,44 @@ static void test_misc_simplify(void)
 	lwgeom_free(geom);
 	lwgeom_free(geom2d);
 	lwfree(wkt_out);
+
+	geom = lwgeom_from_wkt("POLYGON((0 0,1 1,1 3,0 4,-2 3,-1 1,0 0))", LW_PARSER_CHECK_NONE);
+	geom2d = lwgeom_simplify(geom, 1, LW_FALSE);
+	wkt_out = lwgeom_to_ewkt(geom2d);
+	CU_ASSERT_STRING_EQUAL("POLYGON((0 0,0 4,-2 3,0 0))", wkt_out);
+	lwgeom_free(geom);
+	lwgeom_free(geom2d);
+	lwfree(wkt_out);
+}
+
+static void test_misc_startpoint(void)
+{
+	LWGEOM *geom;
+	POINT4D p = {0};
+
+	geom = lwgeom_from_wkt("POINT(1 2)", LW_PARSER_CHECK_NONE);
+	CU_ASSERT(lwgeom_startpoint(geom, &p) == LW_SUCCESS);
+	CU_ASSERT_EQUAL(p.x, 1);
+	CU_ASSERT_EQUAL(p.y, 2);
+	lwgeom_free(geom);
+
+	geom = lwgeom_from_wkt("LINESTRING(10 20, 30 40)", LW_PARSER_CHECK_NONE);
+	CU_ASSERT(lwgeom_startpoint(geom, &p) == LW_SUCCESS);
+	CU_ASSERT_EQUAL(p.x, 10);
+	CU_ASSERT_EQUAL(p.y, 20);
+	lwgeom_free(geom);
+
+	geom = lwgeom_from_wkt("POLYGON((1 2, 3 4, 5 6, 1 2))", LW_PARSER_CHECK_NONE);
+	CU_ASSERT(lwgeom_startpoint(geom, &p) == LW_SUCCESS);
+	CU_ASSERT_EQUAL(p.x, 1);
+	CU_ASSERT_EQUAL(p.y, 2);
+	lwgeom_free(geom);
+
+	geom = lwgeom_from_wkt("GEOMETRYCOLLECTION(LINESTRING(100 200, 300 400), POINT(10 20))", LW_PARSER_CHECK_NONE);
+	CU_ASSERT(lwgeom_startpoint(geom, &p) == LW_SUCCESS);
+	CU_ASSERT_EQUAL(p.x, 100);
+	CU_ASSERT_EQUAL(p.y, 200);
+	lwgeom_free(geom);
 }
 
 static void test_misc_count_vertices(void)
@@ -138,6 +155,70 @@ static void test_grid(void)
 	lwgeom_free(geomgrid);
 }
 
+static void do_grid_test(const char *wkt_in, const char *wkt_out, double size)
+{
+	char *wkt_result, *wkt_norm;
+	gridspec grid;
+	LWGEOM *g = lwgeom_from_wkt(wkt_in, LW_PARSER_CHECK_ALL);
+	LWGEOM *go = lwgeom_from_wkt(wkt_out, LW_PARSER_CHECK_ALL);
+	wkt_norm = lwgeom_to_ewkt(go);
+	memset(&grid, 0, sizeof(gridspec));
+	grid.xsize = grid.ysize = grid.zsize = grid.msize = size;
+	lwgeom_grid_in_place(g, &grid);
+	wkt_result = lwgeom_to_ewkt(g);
+    // printf("%s ==%ld==> %s == %s\n", wkt_in, lround(size), wkt_result, wkt_out);
+	CU_ASSERT_STRING_EQUAL(wkt_result, wkt_norm);
+	lwfree(wkt_result);
+	lwfree(wkt_norm);
+	lwgeom_free(g);
+	lwgeom_free(go);
+}
+
+static void test_grid_in_place(void)
+{
+	do_grid_test(
+		"POINT ZM (5.1423999999 5.1423999999 5.1423999999 5.1423999999)",
+		"POINT(5.1424 5.1424 5.1424 5.1424)",
+		0.0001
+	);
+	do_grid_test(
+		"MULTIPOLYGON(((0 0,10 0,10 10,0 10,0 0)))",
+		"MULTIPOLYGON EMPTY",
+		20
+	);
+	do_grid_test(
+		"MULTIPOLYGON(((0 0,10 0,10 10,0 10,0 0)))",
+		"MULTIPOLYGON(((0 0,10 0,10 10, 0 10,0 0)))",
+		1
+	);
+	do_grid_test(
+		"LINESTRING(0 0,1 1, 2 2, 3 3, 4 4, 5 5)",
+		"LINESTRING(0 0,2 2,4 4)",
+		2
+	);
+	do_grid_test(
+		"MULTIPOINT(0 0,1 1, 2 2, 3 3, 4 4, 5 5)",
+		/* This preserves current behaviour, but is probably not right */
+		"MULTIPOINT(0 0,0 0,2 2,4 4,4 4,4 4)",
+		2
+	);
+	do_grid_test(
+		"MULTIPOLYGON(((0 0,10 0,10 10,0 10,0 0),(4 4, 4 5, 5 5, 5 4, 4 4)))",
+		"MULTIPOLYGON(((0 0,10 0,10 10, 0 10,0 0)))",
+		2
+	);
+	do_grid_test(
+		"MULTIPOLYGON(((0 0,10 0,10 10,0 10,0 0),(4 4, 4 5, 5 5, 5 4, 4 4)))",
+		"MULTIPOLYGON EMPTY",
+		20
+	);
+	do_grid_test(
+		"POINT Z (5 5 5)",
+		"POINT(0 0 0)",
+		20
+	);
+}
+
 static void test_clone(void)
 {
 	static char *wkt = "GEOMETRYCOLLECTION(MULTIPOLYGON(((0 0, 10 0, 10 10, 0 10, 0 0))),POINT(1 1),LINESTRING(2 3,4 5))";
@@ -170,6 +251,92 @@ static void test_lwmpoint_from_lwgeom(void)
 	do_fn_test(to_points, "TIN(((80 130,50 160,80 70,80 130)),((50 160,10 190,10 70,50 160)))", "MULTIPOINT (80 130, 50 160, 80 70, 80 130, 50 160, 10 190, 10 70, 50 160)");
 }
 
+static void test_gbox_serialized_size(void)
+{
+	lwflags_t flags = lwflags(0, 0, 0);
+	CU_ASSERT_EQUAL(gbox_serialized_size(flags),16);
+	FLAGS_SET_BBOX(flags, 1);
+	CU_ASSERT_EQUAL(gbox_serialized_size(flags),16);
+	FLAGS_SET_Z(flags, 1);
+	CU_ASSERT_EQUAL(gbox_serialized_size(flags),24);
+	FLAGS_SET_M(flags, 1);
+	CU_ASSERT_EQUAL(gbox_serialized_size(flags),32);
+	FLAGS_SET_GEODETIC(flags, 1);
+	CU_ASSERT_EQUAL(gbox_serialized_size(flags),24);
+}
+
+static void test_optionlist(void)
+{
+	size_t sz;
+	const char* value;
+	// zero out all the pointers so our list ends up null-terminated
+	char *olist[OPTION_LIST_SIZE];
+	char input[128];
+	memset(olist, 0, sizeof(olist));
+	// input string needs to be writeable because we are inserting nulls
+	strcpy(input, "key1=value1  key2=value2  ");
+	option_list_parse(input, olist);
+
+	value = option_list_search(olist, "key1");
+	// printf("value: %s\n", value);
+	CU_ASSERT_STRING_EQUAL("value1", value);
+	value = option_list_search(olist, "key2");
+	CU_ASSERT_STRING_EQUAL("value2", value);
+	value = option_list_search(olist, "key3");
+	CU_ASSERT_EQUAL(NULL, value);
+
+	sz = option_list_length(olist);
+	CU_ASSERT_EQUAL(4, sz);
+
+	memset(olist, 0, sizeof(olist));
+	strcpy(input, "  ");
+	option_list_parse(input, olist);
+	value = option_list_search(olist, "key1");
+	CU_ASSERT_EQUAL(NULL, value);
+
+	memset(olist, 0, sizeof(olist));
+	strcpy(input, "  key3= ");
+	option_list_parse(input, olist);
+	sz = option_list_length(olist);
+	CU_ASSERT_EQUAL(2, sz);
+
+	strcpy(input, "  key1=value1  key2='value2 value3'  ");
+	memset(olist, 0, sizeof(olist));
+	option_list_gdal_parse(input, olist);
+	sz = option_list_length(olist);
+	CU_ASSERT_EQUAL(2, sz);
+	CU_ASSERT_STRING_EQUAL("key1=value1", olist[0]);
+	CU_ASSERT_STRING_EQUAL("key2='value2 value3'", olist[1]);
+}
+
+
+static void test_stringlist(void)
+{
+	stringlist_t s;
+	stringlist_init(&s);
+
+	CU_ASSERT_EQUAL(stringlist_length(&s), 0);
+	stringlist_add_string_nosort(&s, "first string");
+	stringlist_add_string_nosort(&s, "second string");
+	stringlist_add_string_nosort(&s, "third string");
+	CU_ASSERT_EQUAL(stringlist_length(&s), 3);
+	CU_ASSERT_STRING_EQUAL(stringlist_get(&s, 0), "first string");
+	stringlist_add_string_nosort(&s, "an initial string");
+	stringlist_sort(&s);
+	CU_ASSERT_STRING_EQUAL(stringlist_get(&s, 0), "an initial string");
+	CU_ASSERT_STRING_EQUAL(stringlist_find(&s, "third string"), "third string");
+	CU_ASSERT_EQUAL(stringlist_find(&s, "nothing_matches"), NULL);
+	stringlist_add_string_nosort(&s, "fourth string");
+	stringlist_add_string_nosort(&s, "fifth string");
+	stringlist_add_string_nosort(&s, "sixth string");
+	stringlist_add_string_nosort(&s, "seventh string");
+	stringlist_add_string_nosort(&s, "eighth string");
+	stringlist_sort(&s);
+	CU_ASSERT_STRING_EQUAL(stringlist_find(&s, "fifth string"), "fifth string");
+	stringlist_release(&s);
+}
+
+
 /*
 ** Used by the test harness to register the tests in this file.
 */
@@ -177,12 +344,16 @@ void misc_suite_setup(void);
 void misc_suite_setup(void)
 {
 	CU_pSuite suite = CU_add_suite("miscellaneous", NULL, NULL);
-	PG_ADD_TEST(suite, test_misc_force_2d);
 	PG_ADD_TEST(suite, test_misc_simplify);
+	PG_ADD_TEST(suite, test_misc_startpoint);
 	PG_ADD_TEST(suite, test_misc_count_vertices);
 	PG_ADD_TEST(suite, test_misc_area);
 	PG_ADD_TEST(suite, test_misc_wkb);
 	PG_ADD_TEST(suite, test_grid);
+	PG_ADD_TEST(suite, test_grid_in_place);
 	PG_ADD_TEST(suite, test_clone);
 	PG_ADD_TEST(suite, test_lwmpoint_from_lwgeom);
+	PG_ADD_TEST(suite, test_gbox_serialized_size);
+	PG_ADD_TEST(suite, test_optionlist);
+	PG_ADD_TEST(suite, test_stringlist);
 }

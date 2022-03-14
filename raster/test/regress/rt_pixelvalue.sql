@@ -99,7 +99,7 @@ VALUES ( 2, '1x1, nbband:2 b1pixeltype:4BUI b1hasnodatavalue:true b1nodatavalue:
         2, --- nbband
         '4BUI', true, 3, 2,   --- b1pixeltype, b1hasnodatavalue, b1nodatavalue, b1val
         '16BSI', false, 13, 4, --- b2pixeltype, b2hasnodatavalue, b2nodatavalue, b2val
-        'POLYGON((-75.5533328537098 49.2824585505576,-75.5525268884758 49.2826703629415,-75.5523150760919 49.2818643977075,-75.553121041326 49.2816525853236,-75.5533328537098 49.2824585505576))',
+        'POLYGON((-75.55333285370983 49.28245855055764,-75.55252688847578 49.2826703629415,-75.55231507609193 49.28186439770746,-75.55312104132598 49.2816525853236,-75.55333285370983 49.28245855055764))',
 (
 '01' -- little endian (uint8 ndr)
 ||
@@ -148,7 +148,7 @@ VALUES ( 3, '1x1, nbband:2 b1pixeltype:4BUI b1hasnodatavalue:true b1nodatavalue:
         2, --- nbband
         '4BUI', true, 3, 3,   --- b1pixeltype, b1hasnodatavalue, b1nodatavalue, b1val
         '16BSI', false, 13, 4, --- b2pixeltype, b2hasnodatavalue, b2nodatavalue, b2val
-        'POLYGON((-75.5533328537098 49.2824585505576,-75.5525268884758 49.2826703629415,-75.5523150760919 49.2818643977075,-75.553121041326 49.2816525853236,-75.5533328537098 49.2824585505576))',
+        'POLYGON((-75.55333285370983 49.28245855055764,-75.55252688847578 49.2826703629415,-75.55231507609193 49.28186439770746,-75.55312104132598 49.2816525853236,-75.55333285370983 49.28245855055764))',
 (
 '01' -- little endian (uint8 ndr)
 ||
@@ -197,7 +197,7 @@ VALUES ( 4, '1x1, nbband:2 b1pixeltype:4BUI b1hasnodatavalue:true b1nodatavalue:
         2, --- nbband
         '4BUI', true, 3, 3,   --- b1pixeltype, b1hasnodatavalue, b1nodatavalue, b1val
         '16BSI', false, 13, 4, --- b2pixeltype, b2hasnodatavalue, b2nodatavalue, b2val
-        'POLYGON((-75.5533328537098 49.2824585505576,-75.5525268884758 49.2826703629415,-75.5523150760919 49.2818643977075,-75.553121041326 49.2816525853236,-75.5533328537098 49.2824585505576))',
+        'POLYGON((-75.55333285370983 49.28245855055764,-75.55252688847578 49.2826703629415,-75.55231507609193 49.28186439770746,-75.55312104132598 49.2816525853236,-75.55333285370983 49.28245855055764))',
 (
 '01' -- little endian (uint8 ndr)
 ||
@@ -327,3 +327,32 @@ SELECT 'test 4.4', id
     WHERE st_value(st_setvalue(st_setbandnodatavalue(rast, NULL), 1, 1, 1, NULL), 1, 1, 1) != b1val;
 
 DROP TABLE rt_band_properties_test;
+
+-----------------------------------------------------------------------
+-- Test 5 - st_setvalue(rast raster, band integer, geometry, resample)
+-----------------------------------------------------------------------
+
+WITH r AS (
+SELECT
+ST_SetValues(
+  ST_AddBand(
+    ST_MakeEmptyRaster(width => 2, height => 2,
+      upperleftx => 0, upperlefty => 2,
+      scalex => 1.0, scaley => -1.0,
+      skewx => 0, skewy => 0, srid => 4326),
+    index => 1, pixeltype => '16BSI',
+    initialvalue => 0,
+    nodataval => -999),
+  1,1,1,
+  newvalueset =>ARRAY[ARRAY[10.0::float8, 50.0::float8], ARRAY[40.0::float8, 20.0::float8]]) AS rast
+)
+SELECT
+'Test 5',
+round(ST_Value(rast, 1, 'SRID=4326;POINT(1.5 1.5)'::geometry, resample => 'nearest')) as nearest_15_15,
+round(ST_Value(rast, 1, 'SRID=4326;POINT(0.5 0.5)'::geometry, resample => 'nearest')) as nearest_05_05,
+round(ST_Value(rast, 1, 'SRID=4326;POINT(1.0 1.0)'::geometry, resample => 'bilinear')) as nearest_10_10,
+round(ST_Value(rast, 1, 'SRID=4326;POINT(1.0 0.1)'::geometry, resample => 'bilinear')) as nearest_10_00,
+round(ST_Value(rast, 1, 'SRID=4326;POINT(1.0 1.9)'::geometry, resample => 'bilinear')) as nearest_10_20
+FROM r
+
+

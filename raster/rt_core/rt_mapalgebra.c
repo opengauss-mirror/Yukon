@@ -82,7 +82,6 @@ rt_band_reclass(
 	if (NULL == exprset || exprcount == 0) {
 		rterror("rt_band_reclass: exprset cannot be NULL, exprcount cannot be 0.");
 	}
-
 	RASTER_DEBUGF(4, "exprcount = %d", exprcount);
 	RASTER_DEBUGF(4, "exprset @ %p", exprset);
 
@@ -392,7 +391,7 @@ rt_band_reclass(
 
 typedef struct _rti_iterator_arg_t* _rti_iterator_arg;
 struct _rti_iterator_arg_t {
-	int count;
+	uint32_t count;
 
 	rt_raster *raster;
 	int *isempty;
@@ -466,7 +465,7 @@ _rti_iterator_arg_init() {
 
 static void
 _rti_iterator_arg_destroy(_rti_iterator_arg _param) {
-	int i = 0;
+	uint32_t i = 0;
 
 	if (_param->raster != NULL)
 		rtdealloc(_param->raster);
@@ -676,8 +675,8 @@ _rti_iterator_arg_populate(
 
 static int
 _rti_iterator_arg_empty_init(_rti_iterator_arg _param) {
-	int x = 0;
-	int y = 0;
+	uint32_t x = 0;
+	uint32_t y = 0;
 
 	_param->empty.values = rtalloc(sizeof(double *) * _param->dimension.rows);
 	_param->empty.nodata = rtalloc(sizeof(int *) * _param->dimension.rows);
@@ -706,7 +705,7 @@ _rti_iterator_arg_empty_init(_rti_iterator_arg _param) {
 
 static int
 _rti_iterator_arg_callback_init(_rti_iterator_arg _param) {
-	int i = 0;
+	uint32_t i = 0;
 
 	_param->arg = rtalloc(sizeof(struct rt_iterator_arg_t));
 	if (_param->arg == NULL) {
@@ -752,8 +751,8 @@ _rti_iterator_arg_callback_init(_rti_iterator_arg _param) {
 
 static void
 _rti_iterator_arg_callback_clean(_rti_iterator_arg _param) {
-	int i = 0;
-	int y = 0;
+	uint32_t i = 0;
+	uint32_t y = 0;
 
 	for (i = 0; i < _param->count; i++) {
 		RASTER_DEBUGF(5, "empty at @ %p", _param->empty.values);
@@ -1031,7 +1030,7 @@ rt_raster_iterator(
 
 			for (i = 0; i < itrcount; i++) {
 				if (!_param->isempty[i]) {
-					memcpy(rtnrast, _param->raster[i], sizeof(struct rt_raster_serialized_t));
+					memcpy(rtnrast, _param->raster[i], sizeof(struct rt_raster_t));
 					break;
 				}
 			}
@@ -1078,6 +1077,7 @@ rt_raster_iterator(
 		*/
 		case ET_FIRST:
 			i = 0;
+			/* FALLTHROUGH */
 		case ET_SECOND:
 			if (i < 0) {
 				if (itrcount < 2)
@@ -1085,6 +1085,7 @@ rt_raster_iterator(
 				else
 					i = 1;
 			}
+			/* FALLTHROUGH */
 		case ET_LAST:
 			if (i < 0) i = itrcount - 1;
 
@@ -1118,6 +1119,7 @@ rt_raster_iterator(
 				*rtnraster = rtnrast;
 				return ES_NONE;
 			}
+			/* FALLTHROUGH */
 		/* copy the custom extent raster */
 		case ET_CUSTOM:
 			rtnrast = rtalloc(sizeof(struct rt_raster_t));
@@ -1131,11 +1133,11 @@ rt_raster_iterator(
 
 			switch (extenttype) {
 				case ET_CUSTOM:
-					memcpy(rtnrast, customextent, sizeof(struct rt_raster_serialized_t));
+					memcpy(rtnrast, customextent, sizeof(struct rt_raster_t));
 					break;
 				/* first, second, last */
 				default:
-					memcpy(rtnrast, _param->raster[i], sizeof(struct rt_raster_serialized_t));
+					memcpy(rtnrast, _param->raster[i], sizeof(struct rt_raster_t));
 					break;
 			}
 			rtnrast->numBands = 0;
@@ -1621,9 +1623,9 @@ rt_raster rt_raster_colormap(
 	}
 
 	/* INTERPOLATE and only one non-NODATA entry */
-	if (colormap->method == colormap->CM_INTERPOLATE && arg->npos < 2) {
+	if (colormap->method == rt_colormap_t::CM_INTERPOLATE && arg->npos < 2) {
 		rtwarn("Method INTERPOLATE requires at least two non-NODATA colormap entries. Using NEAREST instead");
-		colormap->method = colormap->CM_NEAREST;
+		colormap->method = rt_colormap_t::CM_NEAREST;
 	}
 
 	/* NODATA entry but band has no NODATA value */
@@ -1636,10 +1638,10 @@ rt_raster rt_raster_colormap(
 	arg->nexpr = arg->npos;
 
 	/* INTERPOLATE needs one less than the number of entries */
-	if (colormap->method == colormap->CM_INTERPOLATE)
+	if (colormap->method == rt_colormap_t::CM_INTERPOLATE)
 		arg->nexpr -= 1;
 	/* EXACT requires a no matching expression */
-	else if (colormap->method == colormap->CM_EXACT)
+	else if (colormap->method == rt_colormap_t::CM_EXACT)
 		arg->nexpr += 1;
 
 	/* NODATA entry exists, add expression */
@@ -1709,7 +1711,7 @@ rt_raster rt_raster_colormap(
 
 		/* by non-NODATA entry */
 		for (j = 0; j < arg->npos; j++) {
-			if (colormap->method == colormap->CM_INTERPOLATE) {
+			if (colormap->method == rt_colormap_t::CM_INTERPOLATE) {
 				if (j == arg->npos - 1)
 					continue;
 
@@ -1730,7 +1732,7 @@ rt_raster rt_raster_colormap(
 				arg->expr[k]->dst.inc_max = 1;
 				arg->expr[k]->dst.exc_max = 0;
 			}
-			else if (colormap->method == colormap->CM_NEAREST) {
+			else if (colormap->method == rt_colormap_t::CM_NEAREST) {
 
 				/* NOT last entry */
 				if (j != arg->npos - 1) {
@@ -1766,7 +1768,7 @@ rt_raster rt_raster_colormap(
 				arg->expr[k]->dst.inc_max = 1;
 				arg->expr[k]->dst.exc_max = 0;
 			}
-			else if (colormap->method == colormap->CM_EXACT) {
+			else if (colormap->method == rt_colormap_t::CM_EXACT) {
 				arg->expr[k]->src.min = colormap->entry[arg->pos[j]].value;
 				arg->expr[k]->src.inc_min = 1;
 				arg->expr[k]->src.exc_min = 0;
@@ -1808,7 +1810,7 @@ rt_raster rt_raster_colormap(
 		}
 
 		/* EXACT has one last expression for catching all uncaught values */
-		if (colormap->method == colormap->CM_EXACT) {
+		if (colormap->method == rt_colormap_t::CM_EXACT) {
 			arg->expr[k]->src.min = 0;
 			arg->expr[k]->src.inc_min = 1;
 			arg->expr[k]->src.exc_min = 1;

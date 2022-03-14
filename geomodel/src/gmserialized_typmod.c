@@ -25,8 +25,8 @@
 #include "gmserialized.h"
 #include "geomodel_util.h"
 #include "extension_dependency.h"
-#include "../libpgcommon/lwgeom_pg.h"
-#include "../liblwgeom/lwgeom_log.h"
+#include "../../libpgcommon/lwgeom_pg.h"
+#include "../../liblwgeom/lwgeom_log.h"
 #include "Geometry3D/YkWrapCGeoModel.h"
 
 #include <stdio.h>

@@ -11,8 +11,44 @@
 
 //#include "postgres.h"
 #include "extension_dependency.h"
+#include "lwgeom_log.h"
 #include "liblwgeom.h"
 #include "lwgeom_pg.h"
+
+
+/*
+* Proj4 caching has it's own mechanism, and is
+* stored globally as the cost of proj_create_crs_to_crs()
+* is so high (20-40ms) that the lifetime of fcinfo->flinfo->fn_extra
+* is too short to assist some work loads.
+*/
+
+/* An entry in the PROJ SRS cache */
+typedef struct struct_PROJSRSCacheItem
+{
+	int32_t srid_from;
+	int32_t srid_to;
+	uint64_t hits;
+	LWPROJ *projection;
+}
+PROJSRSCacheItem;
+
+/* PROJ 4 lookup transaction cache methods */
+#define PROJ_CACHE_ITEMS 128
+
+/*
+* The proj4 cache holds a fixed number of reprojection
+* entries. In normal usage we don't expect it to have
+* many entries, so we always linearly scan the list.
+*/
+typedef struct struct_PROJSRSCache
+{
+	PROJSRSCacheItem PROJSRSCache[PROJ_CACHE_ITEMS];
+	uint32_t PROJSRSCacheCount;
+	MemoryContext PROJSRSCacheContext;
+}
+PROJSRSCache;
+
 
 typedef struct srs_precision
 {
@@ -21,25 +57,18 @@ typedef struct srs_precision
 	int precision_m;
 } srs_precision;
 
-char* GetProj4StringSPI(int srid);
-void SetPROJ4LibPath(void) ;
+#if POSTGIS_PROJ_VERSION < 61
+/* Needs to call postgis_initialize_cache first */
+char *GetProj4String(int32_t srid);
+#endif
 
 
-/**
- * Opaque type to use in the projection cache API.
- */
-typedef void *Proj4Cache ;
-
-void SetPROJ4LibPath(void);
-Proj4Cache GetPROJ4Cache(FunctionCallInfo fcinfo) ;
-bool IsInPROJ4Cache(Proj4Cache cache, int srid) ;
-void AddToPROJ4Cache(Proj4Cache cache, int srid, int other_srid);
-void DeleteFromPROJ4Cache(Proj4Cache cache, int srid) ;
-projPJ GetProjectionFromPROJ4Cache(Proj4Cache cache, int srid);
-int GetProjectionsUsingFCInfo(FunctionCallInfo fcinfo, int srid1, int srid2, projPJ *pj1, projPJ *pj2);
-int spheroid_init_from_srid(FunctionCallInfo fcinfo, int srid, SPHEROID *s);
-void srid_is_latlong(FunctionCallInfo fcinfo, int srid);
-srs_precision srid_axis_precision(FunctionCallInfo fcinfo, int srid, int precision);
+/* Prototypes */
+PROJSRSCache* GetPROJSRSCache();
+int GetLWPROJ(int32_t srid_from, int32_t srid_to, LWPROJ **pj);
+int spheroid_init_from_srid(int32_t srid, SPHEROID *s);
+void srid_check_latlong(int32_t srid);
+srs_precision srid_axis_precision(int32_t srid, int precision);
 
 /**
  * Builtin SRID values

@@ -2,7 +2,7 @@
 # *
 # * PostGIS - Spatial Types for PostgreSQL
 # * http://postgis.net
-# * 
+# *
 # * Copyright (C) 2010-2011 Sandro Santilli <strk@kbt.io>
 # * Copyright (C) 2008 Mark Cave-Ayland
 # * Copyright (C) 2005 Refractions Research Inc.
@@ -18,8 +18,14 @@
 
 POSTGIS_PGSQL_VERSION=@POSTGIS_PGSQL_VERSION@
 
-MODULE_big=postgis_topology-@POSTGIS_MAJOR_VERSION@.@POSTGIS_MINOR_VERSION@
+MODULE_big=postgis_topology-@POSTGIS_MAJOR_VERSION@
 MODULEDIR=contrib/postgis-@POSTGIS_MAJOR_VERSION@.@POSTGIS_MINOR_VERSION@
+MODULEPATH=$$libdir/postgis_topology-@POSTGIS_MAJOR_VERSION@
+
+ifeq (@LIBINCLUDEMINORVERSION@,yes)
+MODULEPATH=$$libdir/postgis_topology-@POSTGIS_MAJOR_VERSION@.@POSTGIS_MINOR_VERSION@
+MODULE_big=postgis_topology-@POSTGIS_MAJOR_VERSION@.@POSTGIS_MINOR_VERSION@
+endif
 
 # Files to be copied to the contrib/ directory
 DATA_built=topology.sql topology_upgrade.sql uninstall_topology.sql
@@ -31,10 +37,11 @@ SQLPP = @SQLPP@
 SQL_OBJS = \
   topology.sql \
   topology_upgrade.sql \
-  topology_drop_before.sql \
-  topology_drop_after.sql
+  topology_before_upgrade.sql \
+  topology_after_upgrade.sql
 
 # Objects to build using PGXS
+
 OBJS = postgis_topology.o
 
 # Libraries to link into the module (proj, geos)
@@ -44,7 +51,7 @@ OBJS = postgis_topology.o
 # to an existing liblwgeom.so in the PostgreSQL $libdir supplied by an
 # older version of PostGIS, rather than with the static liblwgeom.a
 # supplied with newer versions of PostGIS
-PG_CPPFLAGS += -I../liblwgeom -I../libpgcommon @CPPFLAGS@ -fPIC
+PG_CPPFLAGS += -I../liblwgeom -I../libpgcommon @CFLAGS@ @CPPFLAGS@ @PICFLAGS@
 SHLIB_LINK_F = ../libpgcommon/libpgcommon.a ../liblwgeom/.libs/liblwgeom.a @SHLIB_LINK@
 
 # Add SFCGAL Flags if defined
@@ -58,7 +65,7 @@ endif
 EXTRA_CLEAN=$(SQL_OBJS) topology_upgrade.sql.in
 
 # PGXS information
-PG_CONFIG = @PG_CONFIG@ 
+PG_CONFIG := @PG_CONFIG@
 PGXS := @PGXS@
 # NO_TEMP_INSTALL is a workaround for a 9.5dev bug. See:
 # http://www.postgresql.org/message-id/CAB7nPqTsR5o3g-fBi6jbsVdhfPiLFWQ_0cGU5=94Rv_8W3qvFA@mail.gmail.com
@@ -74,6 +81,7 @@ SHLIB_LINK := $(SHLIB_LINK_F) $(SHLIB_LINK)
 
 $(OBJS): ../liblwgeom/.libs/liblwgeom.a ../libpgcommon/libpgcommon.a ../postgis_config.h
 
+
 # If REGRESS=1 passed as a parameter, change the default install paths
 # so that no prefix is included. This allows us to relocate to a temporary
 # directory for regression testing.
@@ -86,10 +94,10 @@ endif
 
 
 
-# Generate any .sql file from .sql.in.c files by running them through the SQL pre-processor 
+# Generate any .sql file from .sql.in files by running them through the SQL pre-processor
 %.sql: %.sql.in
 	$(SQLPP) $< | grep -v '^#' | \
-	$(PERL) -lpe "s'MODULE_PATHNAME'\$$libdir/postgis_topology-@POSTGIS_MAJOR_VERSION@.@POSTGIS_MINOR_VERSION@'g" > $@
+	$(PERL) -lpe "s'MODULE_PATHNAME'\$(MODULEPATH)'g" > $@
 
 #Generate upgrade script by stripping things that can't be reinstalled
 #e.g. don't bother with tables, types, triggers, and domains
@@ -97,7 +105,7 @@ endif
 topology_upgrade.sql.in:  topology.sql
 	$(PERL) -0777 -ne 's/^(CREATE|ALTER) (CAST|OPERATOR|TYPE|TABLE|SCHEMA|DOMAIN|TRIGGER).*?;//msg;print;' $< > $@
 
-topology_upgrade.sql: topology_drop_before.sql topology_upgrade.sql.in topology_drop_after.sql
+topology_upgrade.sql: topology_before_upgrade.sql topology_upgrade.sql.in topology_after_upgrade.sql
 	cat $^ > $@
 
 topology.sql: \
@@ -111,9 +119,14 @@ topology.sql: \
 	sql/query/getfacebypoint.sql.in \
 	sql/query/GetRingEdges.sql.in \
 	sql/query/GetNodeEdges.sql.in \
+	sql/query/GetFaceContainingPoint.sql.in \
 	sql/manage/TopologySummary.sql.in \
 	sql/manage/CopyTopology.sql.in \
+	sql/manage/FindLayer.sql.in \
+	sql/manage/FindTopology.sql.in \
 	sql/manage/ManageHelper.sql.in \
+	sql/manage/ValidateTopology.sql.in \
+	sql/manage/ValidateTopologyRelation.sql.in \
 	sql/topoelement/topoelement_agg.sql.in \
 	sql/topogeometry/type.sql.in \
 	sql/topogeometry/totopogeom.sql.in \
@@ -122,13 +135,17 @@ topology.sql: \
 	sql/topogeometry/simplify.sql.in \
 	sql/predicates.sql.in \
 	../postgis/sqldefines.h \
-	../postgis_svn_revision.h
+	../postgis_revision.h
 
-uninstall_topology.sql: topology.sql ../utils/create_undef.pl 
+uninstall_topology.sql: topology.sql ../utils/create_undef.pl
 	$(PERL) ../utils/create_undef.pl $< $(POSTGIS_PGSQL_VERSION) > $@
 
-check: topology.sql
+check-unit:
+
+check-regress: topology.sql
 	$(MAKE) -C test $@
+
+check: check-regress
 
 distclean: clean
 	rm -f Makefile test/Makefile

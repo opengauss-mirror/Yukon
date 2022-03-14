@@ -15,16 +15,20 @@ SHELL = @SHELL@
 LIBTOOL = @LIBTOOL@
 
 CUNIT_LDFLAGS=@CUNIT_LDFLAGS@
-CUNIT_CPPFLAGS=@CUNIT_CPPFLAGS@ -I..
+CUNIT_CPPFLAGS=-I.. @CUNIT_CPPFLAGS@ @CPPFLAGS@
+CFLAGS=$(CUNIT_CPPFLAGS) @CFLAGS@
+LDFLAGS = @GEOS_LDFLAGS@ $(CUNIT_LDFLAGS)
 
-CFLAGS=@CFLAGS@ @WARNFLAGS@ @GEOS_CPPFLAGS@ @PROJ_CPPFLAGS@ $(CUNIT_CPPFLAGS)
-LDFLAGS = @GEOS_LDFLAGS@ -lgeos_c $(CUNIT_LDFLAGS) -lm
+ifeq ($(CUNIT_WITH_VALGRIND), YES)
+	LIBTOOL_VALGRIND := valgrind $(CUNIT_VALGRIND_FLAGS)
+endif
 
 # ADD YOUR NEW TEST FILE HERE (1/1)
 OBJS=	\
 	cu_algorithm.o \
-	cu_bytebuffer.o \
+	cu_boundary.o \
 	cu_buildarea.o \
+	cu_bytebuffer.o \
 	cu_clean.o \
 	cu_print.o \
 	cu_minimum_bounding_circle.o \
@@ -36,14 +40,18 @@ OBJS=	\
 	cu_tree.o \
 	cu_measures.o \
 	cu_effectivearea.o \
+	cu_chaikin.o \
+	cu_filterm.o \
 	cu_node.o \
 	cu_clip_by_rect.o \
-	cu_libgeom.o \
+	cu_gserialized1.o \
+	cu_gserialized2.o \
 	cu_lwstroke.o \
 	cu_split.o \
 	cu_stringbuffer.o \
 	cu_triangulate.o \
 	cu_homogenize.o \
+	cu_force_dims.o \
 	cu_force_sfs.o \
 	cu_out_twkb.o \
 	cu_out_wkt.o \
@@ -82,14 +90,15 @@ else
 all: cu_tester
 
 # Build and run the unit tester
+.PHONY: check
 check: cu_tester
-	@./cu_tester
+	$(LIBTOOL) --mode=execute $(LIBTOOL_VALGRIND) ./cu_tester
 
 endif
 
 # Build the main unit test executable
-cu_tester: ../liblwgeom.la $(OBJS)
-	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -o $@ $(OBJS) ../liblwgeom.la $(LDFLAGS)
+cu_tester: ../liblwgeom.la $(OBJS) cu_tester.h
+	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS) -static ../liblwgeom.la
 
 # Command to build each of the .o files
 $(OBJS): %.o: %.c

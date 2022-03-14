@@ -38,10 +38,8 @@ lwcollection_release(LWCOLLECTION *lwcollection)
 	lwgeom_release(lwcollection_as_lwgeom(lwcollection));
 }
 
-
 LWCOLLECTION *
-lwcollection_construct(uint8_t type, int srid, GBOX *bbox,
-                       uint32_t ngeoms, LWGEOM **geoms)
+lwcollection_construct(uint8_t type, int32_t srid, GBOX *bbox, uint32_t ngeoms, LWGEOM **geoms)
 {
 	LWCOLLECTION *ret;
 	int hasz, hasm;
@@ -79,7 +77,7 @@ lwcollection_construct(uint8_t type, int srid, GBOX *bbox,
 
 	ret = lwalloc(sizeof(LWCOLLECTION));
 	ret->type = type;
-	ret->flags = gflags(hasz,hasm,0);
+	ret->flags = lwflags(hasz,hasm,0);
 	FLAGS_SET_BBOX(ret->flags, bbox?1:0);
 	ret->srid = srid;
 	ret->ngeoms = ngeoms;
@@ -91,15 +89,18 @@ lwcollection_construct(uint8_t type, int srid, GBOX *bbox,
 }
 
 LWCOLLECTION *
-lwcollection_construct_empty(uint8_t type, int srid, char hasz, char hasm)
+lwcollection_construct_empty(uint8_t type, int32_t srid, char hasz, char hasm)
 {
 	LWCOLLECTION *ret;
 	if( ! lwtype_is_collection(type) )
+	{
 		lwerror("Non-collection type specified in collection constructor!");
+		return NULL;
+	}
 
 	ret = lwalloc(sizeof(LWCOLLECTION));
 	ret->type = type;
-	ret->flags = gflags(hasz,hasm,0);
+	ret->flags = lwflags(hasz,hasm,0);
 	ret->srid = srid;
 	ret->ngeoms = 0;
 	ret->maxgeoms = 1; /* Allocate room for sub-members, just in case. */
@@ -171,7 +172,7 @@ lwcollection_clone_deep(const LWCOLLECTION *g)
 /**
  * Ensure the collection can hold up at least ngeoms
  */
-void lwcollection_reserve(LWCOLLECTION *col, int ngeoms)
+void lwcollection_reserve(LWCOLLECTION *col, uint32_t ngeoms)
 {
 	if ( ngeoms <= col->maxgeoms ) return;
 
@@ -186,9 +187,10 @@ void lwcollection_reserve(LWCOLLECTION *col, int ngeoms)
 */
 LWCOLLECTION* lwcollection_add_lwgeom(LWCOLLECTION *col, const LWGEOM *geom)
 {
-	if ( col == NULL || geom == NULL ) return NULL;
+	if (!col || !geom) return NULL;
 
-	if ( col->geoms == NULL && (col->ngeoms || col->maxgeoms) ) {
+	if (!col->geoms && (col->ngeoms || col->maxgeoms))
+	{
 		lwerror("Collection is in inconsistent state. Null memory but non-zero collection counts.");
 		return NULL;
 	}
@@ -200,7 +202,7 @@ LWCOLLECTION* lwcollection_add_lwgeom(LWCOLLECTION *col, const LWGEOM *geom)
 	}
 
 	/* In case this is a truly empty, make some initial space  */
-	if ( col->geoms == NULL )
+	if (!col->geoms)
 	{
 		col->maxgeoms = 2;
 		col->ngeoms = 0;
@@ -214,16 +216,15 @@ LWCOLLECTION* lwcollection_add_lwgeom(LWCOLLECTION *col, const LWGEOM *geom)
 	/* See http://trac.osgeo.org/postgis/ticket/2933 */
 	/* Make sure we don't already have a reference to this geom */
 	{
-	int i = 0;
-	for ( i = 0; i < col->ngeoms; i++ )
-	{
-		if ( col->geoms[i] == geom )
+		uint32_t i = 0;
+		for (i = 0; i < col->ngeoms; i++)
 		{
-            lwerror("%s [%d] found duplicate geometry in collection %p == %p", __FILE__, __LINE__, col->geoms[i], geom);
-			LWDEBUGF(4, "Found duplicate geometry in collection %p == %p", col->geoms[i], geom);
-			return col;
+			if (col->geoms[i] == geom)
+			{
+				lwerror("%s [%d] found duplicate geometry in collection %p == %p", __FILE__, __LINE__, col->geoms[i], geom);
+				return col;
+			}
 		}
-	}
 	}
 #endif
 
@@ -232,27 +233,43 @@ LWCOLLECTION* lwcollection_add_lwgeom(LWCOLLECTION *col, const LWGEOM *geom)
 	return col;
 }
 
-
+/**
+ * Appends all geometries from col2 to col1 in place.
+ * Caller is responsible to release col2.
+ */
 LWCOLLECTION *
-lwcollection_segmentize2d(LWCOLLECTION *col, double dist)
+lwcollection_concat_in_place(LWCOLLECTION *col1, const LWCOLLECTION *col2)
 {
 	uint32_t i;
-	LWGEOM **newgeoms;
+	if (!col1 || !col2) return NULL;
+	for (i = 0; i < col2->ngeoms; i++)
+		col1 = lwcollection_add_lwgeom(col1, col2->geoms[i]);
+	return col1;
+}
 
-	if ( ! col->ngeoms ) return lwcollection_clone(col);
+LWCOLLECTION*
+lwcollection_segmentize2d(const LWCOLLECTION* col, double dist)
+{
+	uint32_t i, j;
+	LWGEOM** newgeoms;
 
-	newgeoms = lwalloc(sizeof(LWGEOM *)*col->ngeoms);
-	for (i=0; i<col->ngeoms; i++)
+	if (!col->ngeoms) return lwcollection_clone(col);
+
+	newgeoms = lwalloc(sizeof(LWGEOM*) * col->ngeoms);
+	for (i = 0; i < col->ngeoms; i++)
 	{
 		newgeoms[i] = lwgeom_segmentize2d(col->geoms[i], dist);
-		if ( ! newgeoms[i] ) {
-			while (i--) lwgeom_free(newgeoms[i]);
+		if (!newgeoms[i])
+		{
+			for (j = 0; j < i; j++)
+				lwgeom_free(newgeoms[j]);
 			lwfree(newgeoms);
 			return NULL;
 		}
 	}
 
-	return lwcollection_construct(col->type, col->srid, NULL, col->ngeoms, newgeoms);
+	return lwcollection_construct(
+	    col->type, col->srid, NULL, col->ngeoms, newgeoms);
 }
 
 /** @brief check for same geometry composition
@@ -301,7 +318,7 @@ lwcollection_same(const LWCOLLECTION *c1, const LWCOLLECTION *c2)
 
 int lwcollection_ngeoms(const LWCOLLECTION *col)
 {
-	int i;
+	uint32_t i;
 	int ngeoms = 0;
 
 	if ( ! col )
@@ -339,7 +356,7 @@ int lwcollection_ngeoms(const LWCOLLECTION *col)
 
 void lwcollection_free(LWCOLLECTION *col)
 {
-	int i;
+	uint32_t i;
 	if ( ! col ) return;
 
 	if ( col->bbox )
@@ -359,123 +376,104 @@ void lwcollection_free(LWCOLLECTION *col)
 	lwfree(col);
 }
 
-
 /**
-* Takes a potentially heterogeneous collection and returns a homogeneous
-* collection consisting only of the specified type.
-* WARNING: the output will contain references to geometries in the input,
-* so the result must be carefully released, not freed.
+* Examines contents of collection and finds the largest coordinate
+* dimension of all components. Areal > linear > puntal.
 */
-LWCOLLECTION* lwcollection_extract(LWCOLLECTION *col, int type)
+static uint32_t
+lwcollection_largest_dimension(const LWCOLLECTION *col)
 {
-	int i = 0;
-	LWGEOM **geomlist;
-	LWCOLLECTION *outcol;
-	int geomlistsize = 16;
-	int geomlistlen = 0;
-	uint8_t outtype;
-
-	if ( ! col ) return NULL;
-
-	switch (type)
+	int largest_type = 0;
+	size_t i;
+	for (i = 0; i < col->ngeoms; i++)
 	{
-	case POINTTYPE:
-		outtype = MULTIPOINTTYPE;
-		break;
-	case LINETYPE:
-		outtype = MULTILINETYPE;
-		break;
-	case POLYGONTYPE:
-		outtype = MULTIPOLYGONTYPE;
-		break;
-	default:
-		lwerror("Only POLYGON, LINESTRING and POINT are supported by lwcollection_extract. %s requested.", lwtype_name(type));
+		LWGEOM *g = col->geoms[i];
+		int gtype = lwgeom_get_type(g);
+		if (lwgeom_is_collection(g))
+		{
+			gtype = lwcollection_largest_dimension((LWCOLLECTION*)g);
+		}
+
+		if (gtype == POINTTYPE || gtype == LINETYPE || gtype == POLYGONTYPE)
+		{
+			if (gtype > largest_type)
+				largest_type = gtype;
+		}
+	}
+	return largest_type;
+}
+
+
+static int
+lwcollection_extract_recursive(const LWCOLLECTION* col, uint32_t type, LWCOLLECTION *col_out)
+{
+	size_t i;
+	size_t geoms_added = 0;
+
+	for (i = 0; i < col->ngeoms; i++)
+	{
+		LWGEOM *g = col->geoms[i];
+		if (lwgeom_is_collection(g))
+		{
+			LWCOLLECTION *col_part = lwgeom_as_lwcollection(g);
+			geoms_added += lwcollection_extract_recursive(col_part, type, col_out);
+		}
+
+		if (lwgeom_get_type(g) == type && !lwgeom_is_empty(g))
+		{
+			lwcollection_add_lwgeom(col_out, lwgeom_clone(col->geoms[i]));
+			geoms_added++;
+		}
+	}
+	return geoms_added;
+}
+
+LWCOLLECTION*
+lwcollection_extract(const LWCOLLECTION* col, uint32_t type)
+{
+	LWCOLLECTION* outcol;
+
+	if (!col) return NULL;
+
+	/* Self-discover output type when it is not specified */
+	if (!type)
+		type = lwcollection_largest_dimension(col);
+
+	/*
+	* If self-discovery failed, there were no primitive points
+	* lines or polygons in the collection, so send back an
+	* empty collection.
+	*/
+	if (!type)
+	{
+		return lwcollection_construct_empty(COLLECTIONTYPE,
+	           col->srid,
+	           FLAGS_GET_Z(col->flags),
+	           FLAGS_GET_M(col->flags));
+	}
+
+	if (!(type == POINTTYPE || type == LINETYPE || type == POLYGONTYPE))
+	{
+		lwerror(
+		    "Only POLYGON, LINESTRING and POINT are supported by "
+		    "lwcollection_extract. %s requested.",
+		    lwtype_name(type));
 		return NULL;
 	}
 
-	geomlist = lwalloc(sizeof(LWGEOM*) * geomlistsize);
+	outcol = lwcollection_construct_empty(lwtype_multitype(type),
+	           col->srid,
+	           FLAGS_GET_Z(col->flags),
+	           FLAGS_GET_M(col->flags));
 
-	/* Process each sub-geometry */
-	for ( i = 0; i < col->ngeoms; i++ )
-	{
-		int subtype = col->geoms[i]->type;
-		/* Don't bother adding empty sub-geometries */
-		if ( lwgeom_is_empty(col->geoms[i]) )
-		{
-			continue;
-		}
-		/* Copy our sub-types into the output list */
-		if ( subtype == type )
-		{
-			/* We've over-run our buffer, double the memory segment */
-			if ( geomlistlen == geomlistsize )
-			{
-				geomlistsize *= 2;
-				geomlist = lwrealloc(geomlist, sizeof(LWGEOM*) * geomlistsize);
-			}
-			geomlist[geomlistlen] = lwgeom_clone(col->geoms[i]);
-			geomlistlen++;
-		}
-		/* Recurse into sub-collections */
-		if ( lwtype_is_collection( subtype ) )
-		{
-			int j = 0;
-			LWCOLLECTION *tmpcol = lwcollection_extract((LWCOLLECTION*)col->geoms[i], type);
-			for ( j = 0; j < tmpcol->ngeoms; j++ )
-			{
-				/* We've over-run our buffer, double the memory segment */
-				if ( geomlistlen == geomlistsize )
-				{
-					geomlistsize *= 2;
-					geomlist = lwrealloc(geomlist, sizeof(LWGEOM*) * geomlistsize);
-				}
-				geomlist[geomlistlen] = tmpcol->geoms[j];
-				geomlistlen++;
-			}
-			if (tmpcol->geoms)
-				lwfree(tmpcol->geoms);
-			if (tmpcol->bbox)
-				lwfree(tmpcol->bbox);
-			lwfree(tmpcol);
-		}
-	}
-
-	if ( geomlistlen > 0 )
-	{
-		GBOX gbox;
-		outcol = lwcollection_construct(outtype, col->srid, NULL, geomlistlen, geomlist);
-		lwgeom_calculate_gbox((LWGEOM *) outcol, &gbox);
-		outcol->bbox = gbox_copy(&gbox);
-	}
-	else
-	{
-		lwfree(geomlist);
-		outcol = lwcollection_construct_empty(outtype, col->srid, FLAGS_GET_Z(col->flags), FLAGS_GET_M(col->flags));
-	}
-
+	lwcollection_extract_recursive(col, type, outcol);
+	lwgeom_add_bbox(lwcollection_as_lwgeom(outcol));
 	return outcol;
-}
-
-LWGEOM*
-lwcollection_remove_repeated_points(const LWCOLLECTION *coll, double tolerance)
-{
-	uint32_t i;
-	LWGEOM **newgeoms;
-
-	newgeoms = lwalloc(sizeof(LWGEOM *)*coll->ngeoms);
-	for (i=0; i<coll->ngeoms; i++)
-	{
-		newgeoms[i] = lwgeom_remove_repeated_points(coll->geoms[i], tolerance);
-	}
-
-	return (LWGEOM*)lwcollection_construct(coll->type,
-	                                       coll->srid, coll->bbox ? gbox_copy(coll->bbox) : NULL,
-	                                       coll->ngeoms, newgeoms);
 }
 
 
 LWCOLLECTION*
-lwcollection_force_dims(const LWCOLLECTION *col, int hasz, int hasm)
+lwcollection_force_dims(const LWCOLLECTION *col, int hasz, int hasm, double zval, double mval)
 {
 	LWCOLLECTION *colout;
 
@@ -486,35 +484,23 @@ lwcollection_force_dims(const LWCOLLECTION *col, int hasz, int hasm)
 	}
 	else
 	{
-		int i;
+		uint32_t i;
 		LWGEOM **geoms = NULL;
 		geoms = lwalloc(sizeof(LWGEOM*) * col->ngeoms);
 		for( i = 0; i < col->ngeoms; i++ )
 		{
-			geoms[i] = lwgeom_force_dims(col->geoms[i], hasz, hasm);
+			geoms[i] = lwgeom_force_dims(col->geoms[i], hasz, hasm, zval, mval);
 		}
 		colout = lwcollection_construct(col->type, col->srid, NULL, col->ngeoms, geoms);
 	}
 	return colout;
 }
 
-int lwcollection_is_empty(const LWCOLLECTION *col)
-{
-	int i;
-	if ( (col->ngeoms == 0) || (!col->geoms) )
-		return LW_TRUE;
-	for( i = 0; i < col->ngeoms; i++ )
-	{
-		if ( ! lwgeom_is_empty(col->geoms[i]) ) return LW_FALSE;
-	}
-	return LW_TRUE;
-}
 
-
-int lwcollection_count_vertices(LWCOLLECTION *col)
+uint32_t lwcollection_count_vertices(LWCOLLECTION *col)
 {
-	int i = 0;
-	int v = 0; /* vertices */
+	uint32_t i = 0;
+	uint32_t v = 0; /* vertices */
 	assert(col);
 	for ( i = 0; i < col->ngeoms; i++ )
 	{
@@ -523,22 +509,6 @@ int lwcollection_count_vertices(LWCOLLECTION *col)
 	return v;
 }
 
-LWCOLLECTION* lwcollection_simplify(const LWCOLLECTION *igeom, double dist, int preserve_collapsed)
-{
- 	int i;
-	LWCOLLECTION *out = lwcollection_construct_empty(igeom->type, igeom->srid, FLAGS_GET_Z(igeom->flags), FLAGS_GET_M(igeom->flags));
-
-	if( lwcollection_is_empty(igeom) )
-		return out; /* should we return NULL instead ? */
-
-	for( i = 0; i < igeom->ngeoms; i++ )
-	{
-		LWGEOM *ngeom = lwgeom_simplify(igeom->geoms[i], dist, preserve_collapsed);
-		if ( ngeom ) out = lwcollection_add_lwgeom(out, ngeom);
-	}
-
-	return out;
-}
 
 int lwcollection_allows_subtype(int collectiontype, int subtype)
 {
@@ -586,19 +556,3 @@ lwcollection_startpoint(const LWCOLLECTION* col, POINT4D* pt)
 }
 
 
-LWCOLLECTION* lwcollection_grid(const LWCOLLECTION *coll, const gridspec *grid)
-{
-	uint32_t i;
-	LWCOLLECTION *newcoll;
-
-	newcoll = lwcollection_construct_empty(coll->type, coll->srid, lwgeom_has_z((LWGEOM*)coll), lwgeom_has_m((LWGEOM*)coll));
-
-	for (i=0; i<coll->ngeoms; i++)
-	{
-		LWGEOM *g = lwgeom_grid(coll->geoms[i], grid);
-		if ( g )
-			lwcollection_add_lwgeom(newcoll, g);
-	}
-
-	return newcoll;
-}

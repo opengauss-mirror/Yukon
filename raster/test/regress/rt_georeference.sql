@@ -222,18 +222,18 @@ VALUES ( 5, '1x1, ip:7.5,2.5 scale:5,5 skew:3,7, srid:-1, width:1, height:1',
 -- st_georeference (default)
 -----------------------------------------------------------------------
 
-SELECT 
-    replace(st_georeference(rast)::text, E'\n', E'EOL'), 
+SELECT
+    replace(st_georeference(rast)::text, E'\n', E'EOL'),
     replace(st_georeference(rast)::text, E'\n', E'EOL') =
-    '2.0000000000EOL0.0000000000EOL0.0000000000EOL3.0000000000EOL.5000000000EOL.5000000000EOL'
-FROM rt_properties_test 
+    '2.0000000000EOL0.0000000000EOL0.0000000000EOL3.0000000000EOL0.5000000000EOL0.5000000000EOL'
+FROM rt_properties_test
 WHERE id = 0;
 
 SELECT
     replace(st_georeference(rast)::text, E'\n', E'EOL'),
-    replace(st_georeference(rast)::text, E'\n', E'EOL') = 
-    '5.0000000000EOL0.0000000000EOL0.0000000000EOL5.0000000000EOL2.5000000000EOL2.5000000000EOL' 
-FROM rt_properties_test 
+    replace(st_georeference(rast)::text, E'\n', E'EOL') =
+    '5.0000000000EOL0.0000000000EOL0.0000000000EOL5.0000000000EOL2.5000000000EOL2.5000000000EOL'
+FROM rt_properties_test
 WHERE id = 1;
 
 SELECT
@@ -242,7 +242,6 @@ SELECT
     '5.0000000000EOL0.0000000000EOL0.0000000000EOL5.0000000000EOL7.5000000000EOL2.5000000000EOL'
 FROM rt_properties_test
 WHERE id = 2;
-
 
 SELECT
     replace(st_georeference(rast)::text, E'\n', E'EOL'),
@@ -271,9 +270,9 @@ WHERE id = 5;
 
 SELECT
     replace(st_georeference(rast,'GDAL')::text, E'\n', E'EOL'),
-    replace(st_georeference(rast,'GDAL')::text, E'\n', E'EOL') = 
-    '2.0000000000EOL0.0000000000EOL0.0000000000EOL3.0000000000EOL.5000000000EOL.5000000000EOL'
-FROM rt_properties_test 
+    replace(st_georeference(rast,'GDAL')::text, E'\n', E'EOL') =
+    '2.0000000000EOL0.0000000000EOL0.0000000000EOL3.0000000000EOL0.5000000000EOL0.5000000000EOL'
+FROM rt_properties_test
 WHERE id = 0;
 
 SELECT
@@ -356,7 +355,6 @@ SELECT
     '5.0000000000EOL7.0000000000EOL3.0000000000EOL5.0000000000EOL10.0000000000EOL5.0000000000EOL'
 FROM rt_properties_test
 WHERE id = 5;
-
 
 -----------------------------------------------------------------------
 -- st_setgeoreference (error conditions)

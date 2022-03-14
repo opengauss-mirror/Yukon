@@ -1,8 +1,8 @@
+invalid_path
+ENABLE_ALL
 t
 t
 DISABLE_ALL
-ENABLE_ALL
-t
 GTiff PNG JPEG
 t
 DISABLE_ALL

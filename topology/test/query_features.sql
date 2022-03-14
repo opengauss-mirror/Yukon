@@ -15,34 +15,32 @@
 --ORA---- 7. Query the data.
 --ORA---- 8. Optionally, edit data using the PL/SQL or Java API.
 
-
 BEGIN;
 
 -- 7. Query the data.
 SELECT a.feature_name, id(a.feature) as tg_id,
-	ST_AsText(topology.Geometry(a.feature)) as geom
+	ST_AsText(ST_Normalize(topology.Geometry(a.feature)) ) as geom
 FROM features.land_parcels a;
 
 -- Query not in original example --strk;
 SELECT a.feature_name, id(a.feature) as tg_id,
-	ST_AsText(topology.Geometry(a.feature)) as geom
+	ST_AsText(ST_Normalize(topology.Geometry(a.feature)) ) as geom
 FROM features.traffic_signs a;
 
 -- Query not in original example --strk;
 SELECT a.feature_name, id(a.feature) as tg_id,
-	ST_AsText(topology.Geometry(a.feature)) as geom
+	ST_AsText(ST_Normalize(topology.Geometry(a.feature)) ) as geom
 FROM features.city_streets a;
 
 -- Query hierarchical feautures
-SELECT feature_name, ST_AsText(topology.geometry(feature))
+SELECT feature_name, ST_AsText(ST_Normalize(topology.geometry(feature)))
 FROM features.big_signs;
 
-SELECT feature_name,ST_AsText(topology.geometry(feature))
+SELECT feature_name,ST_AsText(ST_Normalize(topology.geometry(feature)))
 FROM features.big_streets;
 
-SELECT feature_name,ST_AsText(topology.geometry(feature))
+SELECT feature_name,ST_AsText(ST_Normalize(topology.geometry(feature)))
 FROM features.big_parcels;
-
 
 --NOTYET--
 --NOTYET--/* Window is city_streets */

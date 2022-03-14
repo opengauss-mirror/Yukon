@@ -29,7 +29,7 @@
 
 #include "../liblwgeom/stringbuffer.h"
 
-#define S2P_RCSID "$Id: shp2pgsql-core.h 15731 2017-09-14 15:56:58Z strk $"
+#define S2P_RCSID "$Id$"
 
 /* Number of digits of precision in WKT produced. */
 #define WKT_PRECISION 15
@@ -114,6 +114,9 @@ typedef struct shp_loader_config
 	/* 0 = no index, 1 = create index after load */
 	int createindex;
 
+    /* 0 = don't analyze tables , 1 = analyze tables */
+	int analyze;
+
 	/* 0 = load DBF file only, 1 = load everything */
 	int readshape;
 
@@ -189,7 +192,7 @@ typedef struct shp_loader_state
 	/* Pointer to an array of PostgreSQL field types */
 	char **pgfieldtypes;
 
-	/* String containing colume name list in the form "(col1, col2, col3 ... , colN)" */
+	/* String containing colume name list in the form "col1, col2, col3 ... , colN" */
 	char *col_names;
 
 	/* String containing the PostGIS geometry type, e.g. POINT, POLYGON etc. */

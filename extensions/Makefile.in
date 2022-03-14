@@ -9,11 +9,11 @@
 #
 #############################################################################
 
-SUBDIRS = postgis 
+SUBDIRS = postgis
 SUBDIRS += postgis_tiger_geocoder
 ifeq (@RASTER@,raster)
 	SUBDIRS += postgis_raster
-endif 
+endif
 ifeq (@TOPOLOGY@,topology)
 	SUBDIRS += postgis_topology
 endif
@@ -37,6 +37,6 @@ distclean-local:
 	rm -f Makefile
 
 
-check:
+check check-unit check-regress:
 	@echo "Nothing to check"
 

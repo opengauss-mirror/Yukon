@@ -20,7 +20,7 @@ LD_FLAGS += $(LD_FLAGS.$(uname_m))
 	g++ $(CFLAGS) $(IS_DEBUG) -c $^ -o $@
 
 $(TARGET) : $(objects)
-	g++ -L$(LD_FLAGS) $(IS_DEBUG) $(CFLAGS.$(uname_m)) -Wl,-soname,$(TARGET) -Wl,--hash-style=sysv  -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack \
+	g++ -L$(LD_FLAGS) $(IS_DEBUG)  $(CFLAGS.$(uname_m)) -Wl,-soname,$(TARGET) -Wl,--hash-style=sysv  -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack \
 	-shared -rdynamic -lz -lpthread -lrt -lQt5Core -lstdc++ -o $@ $(objects) -lYkBase -lYkToolkit 
 	cp $(TARGET) $(LD_FLAGS)
 

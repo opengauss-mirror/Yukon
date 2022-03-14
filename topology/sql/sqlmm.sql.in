@@ -13,7 +13,7 @@
 --
 --
 
-/* #define POSTGIS_TOPOLOGY_DEBUG 1 */
+/*#define POSTGIS_TOPOLOGY_DEBUG 1*/
 
 --={ ----------------------------------------------------------------
 --  SQL/MM block
@@ -29,7 +29,6 @@ CREATE TYPE topology.GetFaceEdges_ReturnType AS (
   sequence integer,
   edge integer
 );
-
 
 --{
 -- Topo-Geo and Topo-Net 3: Routine Details
@@ -129,7 +128,6 @@ CREATE OR REPLACE FUNCTION topology.ST_RemEdgeModFace(toponame varchar, e1id int
   LANGUAGE 'c' VOLATILE;
 --} ST_RemEdgeModFace
 
-
 --{
 -- Topo-Geo and Topo-Net 3: Routine Details
 -- X.3.16
@@ -141,7 +139,6 @@ CREATE OR REPLACE FUNCTION topology.ST_GetFaceGeometry(toponame varchar, aface i
 	'MODULE_PATHNAME', 'ST_GetFaceGeometry'
   LANGUAGE 'c' STABLE;
 --} ST_GetFaceGeometry
-
 
 --{
 -- Topo-Geo and Topo-Net 3: Routine Details
@@ -483,7 +480,6 @@ BEGIN
   RAISE DEBUG 'Merged edges: %', ST_NumGeometries(nodededges);
 #endif
 
-
   --
   -- Collect input points and input lines endpoints
   --
@@ -501,22 +497,15 @@ BEGIN
 #endif
 
   --
-  -- Further split edges by points
-  -- TODO: optimize this adding ST_Split support for multiline/multipoint
+  -- Further split edges by points, if needed
   --
-  FOR rec IN SELECT geom FROM ST_Dump(points)
-  LOOP
-    -- Use the node to split edges
-    SELECT ST_Collect(geom)
-    FROM ST_Dump(ST_Split(nodededges, rec.geom))
-    INTO STRICT nodededges;
-  END LOOP;
-  SELECT ST_UnaryUnion(nodededges) INTO STRICT nodededges;
-
+  IF points IS NOT NULL THEN
+    nodededges := ST_Split(nodededges, points);
 #ifdef POSTGIS_TOPOLOGY_DEBUG
-  RAISE DEBUG 'Noded edges became % after point-split',
-    ST_NumGeometries(nodededges);
+    RAISE DEBUG 'Noded edges became % after point-split',
+      ST_NumGeometries(nodededges);
 #endif
+  END IF; -- points is not null
 
   --
   -- Collect all nodes (from points and noded linework endpoints)
@@ -548,7 +537,6 @@ BEGIN
   LOOP
     PERFORM topology.ST_AddIsoNode(atopology, 0, rec.geom);
   END LOOP;
-
 
   FOR rec IN SELECT geom FROM ST_Dump(nodededges)
   LOOP

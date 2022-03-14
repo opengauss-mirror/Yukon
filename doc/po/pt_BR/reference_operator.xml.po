@@ -5,9 +5,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PostGIS\n"
-"Report-Msgid-Bugs-To: http://bugs.kde.org\n"
-"POT-Creation-Date: 2017-09-14 18:44+0000\n"
-"PO-Revision-Date: 2016-11-29 18:23+0000\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-09-11 01:55+0000\n"
+"PO-Revision-Date: 2018-07-23 18:00+0000\n"
 "Last-Translator: Poliana Palhares <p.palhares@plamu.com.br>\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/postgis/postgis/"
 "language/pt_BR/)\n"
@@ -23,14 +23,20 @@ msgstr ""
 msgid "Operators"
 msgstr "Operadores"
 
-#. Tag: refname
+#. Tag: title
 #: reference_operator.xml:6
+#, no-c-format
+msgid "Bounding Box Operators"
+msgstr ""
+
+#. Tag: refname
+#: reference_operator.xml:10
 #, no-c-format
 msgid "&amp;&amp;"
 msgstr "&amp;&amp;"
 
 #. Tag: refpurpose
-#: reference_operator.xml:8
+#: reference_operator.xml:12
 #, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if A's 2D bounding box intersects B's 2D "
@@ -40,7 +46,7 @@ msgstr ""
 "a caixa limitadora 2D de B. "
 
 #. Tag: funcsynopsis
-#: reference_operator.xml:12
+#: reference_operator.xml:16
 #, no-c-format
 msgid ""
 "<funcprototype> <funcdef>boolean <function>&amp;&amp;</function></funcdef> "
@@ -60,28 +66,28 @@ msgstr ""
 "parameter> </paramdef> </funcprototype>"
 
 #. Tag: title
-#: reference_operator.xml:50 reference_operator.xml:111
-#: reference_operator.xml:172 reference_operator.xml:233
-#: reference_operator.xml:294 reference_operator.xml:356
-#: reference_operator.xml:413 reference_operator.xml:470
-#: reference_operator.xml:530 reference_operator.xml:588
-#: reference_operator.xml:649 reference_operator.xml:707
-#: reference_operator.xml:760 reference_operator.xml:830
-#: reference_operator.xml:902 reference_operator.xml:955
-#: reference_operator.xml:1007 reference_operator.xml:1068
-#: reference_operator.xml:1129 reference_operator.xml:1193
-#: reference_operator.xml:1251 reference_operator.xml:1304
-#: reference_operator.xml:1354 reference_operator.xml:1415
-#: reference_operator.xml:1476 reference_operator.xml:1540
-#: reference_operator.xml:1619 reference_operator.xml:1694
-#: reference_operator.xml:1755 reference_operator.xml:1809
-#: reference_operator.xml:1874
+#: reference_operator.xml:54 reference_operator.xml:118
+#: reference_operator.xml:179 reference_operator.xml:240
+#: reference_operator.xml:301 reference_operator.xml:363
+#: reference_operator.xml:420 reference_operator.xml:477
+#: reference_operator.xml:537 reference_operator.xml:595
+#: reference_operator.xml:656 reference_operator.xml:714
+#: reference_operator.xml:767 reference_operator.xml:837
+#: reference_operator.xml:909 reference_operator.xml:962
+#: reference_operator.xml:1014 reference_operator.xml:1075
+#: reference_operator.xml:1136 reference_operator.xml:1200
+#: reference_operator.xml:1258 reference_operator.xml:1311
+#: reference_operator.xml:1361 reference_operator.xml:1422
+#: reference_operator.xml:1483 reference_operator.xml:1547
+#: reference_operator.xml:1633 reference_operator.xml:1708
+#: reference_operator.xml:1769 reference_operator.xml:1823
+#: reference_operator.xml:1888
 #, no-c-format
 msgid "Description"
 msgstr "Descrição"
 
 #. Tag: para
-#: reference_operator.xml:52
+#: reference_operator.xml:56
 #, no-c-format
 msgid ""
 "The <varname>&amp;&amp;</varname> operator returns <varname>TRUE</varname> "
@@ -93,13 +99,13 @@ msgstr ""
 "geometria B."
 
 #. Tag: para
-#: reference_operator.xml:54 reference_operator.xml:298
-#: reference_operator.xml:536 reference_operator.xml:597
-#: reference_operator.xml:655 reference_operator.xml:712
-#: reference_operator.xml:765 reference_operator.xml:907
-#: reference_operator.xml:961 reference_operator.xml:1199
-#: reference_operator.xml:1256 reference_operator.xml:1309
-#: reference_operator.xml:1545
+#: reference_operator.xml:58 reference_operator.xml:305
+#: reference_operator.xml:543 reference_operator.xml:604
+#: reference_operator.xml:662 reference_operator.xml:719
+#: reference_operator.xml:772 reference_operator.xml:914
+#: reference_operator.xml:968 reference_operator.xml:1206
+#: reference_operator.xml:1263 reference_operator.xml:1316
+#: reference_operator.xml:1552
 #, no-c-format
 msgid ""
 "This operand will make use of any indexes that may be available on the "
@@ -109,65 +115,65 @@ msgstr ""
 "disponíveis nas geometrias. "
 
 #. Tag: para
-#: reference_operator.xml:57
+#: reference_operator.xml:61
 #, no-c-format
 msgid "Enhanced: 2.0.0 support for Polyhedral surfaces was introduced."
 msgstr "Melhorias: 2.0.0 suporte a superfícies poliédricas foi introduzido."
 
 #. Tag: para
-#: reference_operator.xml:58
+#: reference_operator.xml:62
 #, no-c-format
 msgid "Availability: 1.5.0 support for geography was introduced."
 msgstr "Disponibilidade: 1.5.0 Suporte para geografia foi introduzido"
 
 #. Tag: para
-#: reference_operator.xml:59 reference_operator.xml:119
-#: reference_operator.xml:180 reference_operator.xml:241
-#: reference_operator.xml:302 reference_operator.xml:364
-#: reference_operator.xml:421 reference_operator.xml:478
-#: reference_operator.xml:594 reference_operator.xml:852
-#: reference_operator.xml:1015 reference_operator.xml:1076
-#: reference_operator.xml:1137 reference_operator.xml:1362
-#: reference_operator.xml:1423 reference_operator.xml:1484
+#: reference_operator.xml:63 reference_operator.xml:126
+#: reference_operator.xml:187 reference_operator.xml:248
+#: reference_operator.xml:309 reference_operator.xml:371
+#: reference_operator.xml:428 reference_operator.xml:485
+#: reference_operator.xml:601 reference_operator.xml:859
+#: reference_operator.xml:1022 reference_operator.xml:1083
+#: reference_operator.xml:1144 reference_operator.xml:1369
+#: reference_operator.xml:1430 reference_operator.xml:1491
 #, no-c-format
 msgid "&curve_support;"
 msgstr "&curve_support;"
 
 #. Tag: para
-#: reference_operator.xml:60 reference_operator.xml:120
-#: reference_operator.xml:181 reference_operator.xml:242
-#: reference_operator.xml:303 reference_operator.xml:365
-#: reference_operator.xml:422 reference_operator.xml:479
-#: reference_operator.xml:595 reference_operator.xml:853
-#: reference_operator.xml:1016 reference_operator.xml:1077
-#: reference_operator.xml:1138 reference_operator.xml:1363
-#: reference_operator.xml:1424 reference_operator.xml:1485
-#: reference_operator.xml:1549
+#: reference_operator.xml:64 reference_operator.xml:127
+#: reference_operator.xml:188 reference_operator.xml:249
+#: reference_operator.xml:310 reference_operator.xml:372
+#: reference_operator.xml:429 reference_operator.xml:486
+#: reference_operator.xml:602 reference_operator.xml:860
+#: reference_operator.xml:1023 reference_operator.xml:1084
+#: reference_operator.xml:1145 reference_operator.xml:1370
+#: reference_operator.xml:1431 reference_operator.xml:1492
+#: reference_operator.xml:1556
 #, no-c-format
 msgid "&P_support;"
 msgstr "&P_support;"
 
 #. Tag: title
-#: reference_operator.xml:64 reference_operator.xml:124
-#: reference_operator.xml:185 reference_operator.xml:246
-#: reference_operator.xml:371 reference_operator.xml:428
-#: reference_operator.xml:485 reference_operator.xml:541
-#: reference_operator.xml:602 reference_operator.xml:660
-#: reference_operator.xml:717 reference_operator.xml:770
-#: reference_operator.xml:858 reference_operator.xml:912
-#: reference_operator.xml:967 reference_operator.xml:1020
-#: reference_operator.xml:1081 reference_operator.xml:1142
-#: reference_operator.xml:1204 reference_operator.xml:1261
-#: reference_operator.xml:1314 reference_operator.xml:1367
-#: reference_operator.xml:1428 reference_operator.xml:1489
-#: reference_operator.xml:1564 reference_operator.xml:1642
-#: reference_operator.xml:1712 reference_operator.xml:1769
+#: reference_operator.xml:68 reference_operator.xml:131
+#: reference_operator.xml:192 reference_operator.xml:253
+#: reference_operator.xml:378 reference_operator.xml:435
+#: reference_operator.xml:492 reference_operator.xml:548
+#: reference_operator.xml:609 reference_operator.xml:667
+#: reference_operator.xml:724 reference_operator.xml:777
+#: reference_operator.xml:865 reference_operator.xml:919
+#: reference_operator.xml:974 reference_operator.xml:1027
+#: reference_operator.xml:1088 reference_operator.xml:1149
+#: reference_operator.xml:1211 reference_operator.xml:1268
+#: reference_operator.xml:1321 reference_operator.xml:1374
+#: reference_operator.xml:1435 reference_operator.xml:1496
+#: reference_operator.xml:1571 reference_operator.xml:1656
+#: reference_operator.xml:1726 reference_operator.xml:1783
 #, no-c-format
 msgid "Examples"
 msgstr "Exemplos"
 
 #. Tag: programlisting
-#: reference_operator.xml:66
+#: reference_operator.xml:70
 #, no-c-format
 msgid ""
 "SELECT tbl1.column1, tbl2.column1, tbl1.column2 &amp;&amp; tbl2.column2 AS "
@@ -199,31 +205,32 @@ msgstr ""
 "(2 rows)"
 
 #. Tag: title
-#: reference_operator.xml:71 reference_operator.xml:130
-#: reference_operator.xml:191 reference_operator.xml:252
-#: reference_operator.xml:322 reference_operator.xml:377
-#: reference_operator.xml:434 reference_operator.xml:491
-#: reference_operator.xml:547 reference_operator.xml:608
-#: reference_operator.xml:666 reference_operator.xml:723
-#: reference_operator.xml:776 reference_operator.xml:864
-#: reference_operator.xml:918 reference_operator.xml:973
-#: reference_operator.xml:1026 reference_operator.xml:1087
-#: reference_operator.xml:1148 reference_operator.xml:1210
-#: reference_operator.xml:1267 reference_operator.xml:1320
-#: reference_operator.xml:1373 reference_operator.xml:1434
-#: reference_operator.xml:1495 reference_operator.xml:1568
-#: reference_operator.xml:1658 reference_operator.xml:1716
-#: reference_operator.xml:1773 reference_operator.xml:1836
-#: reference_operator.xml:1892
+#: reference_operator.xml:75 reference_operator.xml:137
+#: reference_operator.xml:198 reference_operator.xml:259
+#: reference_operator.xml:329 reference_operator.xml:384
+#: reference_operator.xml:441 reference_operator.xml:498
+#: reference_operator.xml:554 reference_operator.xml:615
+#: reference_operator.xml:673 reference_operator.xml:730
+#: reference_operator.xml:783 reference_operator.xml:871
+#: reference_operator.xml:925 reference_operator.xml:980
+#: reference_operator.xml:1033 reference_operator.xml:1094
+#: reference_operator.xml:1155 reference_operator.xml:1217
+#: reference_operator.xml:1274 reference_operator.xml:1327
+#: reference_operator.xml:1380 reference_operator.xml:1441
+#: reference_operator.xml:1502 reference_operator.xml:1575
+#: reference_operator.xml:1672 reference_operator.xml:1730
+#: reference_operator.xml:1787 reference_operator.xml:1850
+#: reference_operator.xml:1906
 #, no-c-format
 msgid "See Also"
 msgstr "Veja também."
 
 #. Tag: para
-#: reference_operator.xml:73
-#, no-c-format
+#: reference_operator.xml:77
+#, fuzzy, no-c-format
 msgid ""
-", <xref linkend=\"ST_Geometry_Overright\"/>, <xref linkend="
+", <xref linkend=\"ST_Extent\"/>, <xref linkend=\"ST_Geometry_Overabove\"/>, "
+"<xref linkend=\"ST_Geometry_Overright\"/>, <xref linkend="
 "\"ST_Geometry_Overbelow\"/>, <xref linkend=\"ST_Geometry_Overleft\"/>, <xref "
 "linkend=\"ST_Geometry_Contain\"/>, <xref linkend=\"ST_Geometry_Contained\"/>"
 msgstr ""
@@ -232,36 +239,31 @@ msgstr ""
 "linkend=\"ST_Geometry_Contain\"/>, <xref linkend=\"ST_Geometry_Contained\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:85
+#: reference_operator.xml:92
 #, no-c-format
 msgid "&amp;&amp;(geometry,box2df)"
 msgstr ""
 
 #. Tag: refpurpose
-#: reference_operator.xml:87
-#, fuzzy, no-c-format
+#: reference_operator.xml:94
+#, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if a geometry's (cached) 2D bounding box "
 "intersects a 2D float precision bounding box (BOX2DF)."
 msgstr ""
-"Retorna <varname>VERDADE</varname> se a caixa limitadora 2D de A intersecta "
-"a caixa limitadora 2D de B. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:92
-#, fuzzy, no-c-format
+#: reference_operator.xml:99
+#, no-c-format
 msgid ""
 "<funcdef>boolean <function>&amp;&amp;</function></funcdef> <paramdef> "
 "<type>geometry </type> <parameter>A</parameter> </paramdef> <paramdef> "
 "<type>box2df</type> <parameter>B</parameter> </paramdef>"
 msgstr ""
-"<funcdef>boolean <function>&amp;&amp;&amp;</function></funcdef> <paramdef> "
-"<type>geometry </type> <parameter>A</parameter> </paramdef> <paramdef> "
-"<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:113
-#, fuzzy, no-c-format
+#: reference_operator.xml:120
+#, no-c-format
 msgid ""
 "The <varname>&amp;&amp;</varname> operator returns <varname>TRUE</varname> "
 "if the cached 2D bounding box of geometry A intersects the 2D bounding box "
@@ -269,15 +271,12 @@ msgid ""
 "box2d, it will be internally converted to a float precision 2D bounding box "
 "(BOX2DF)"
 msgstr ""
-"O operador <varname>&amp;&amp;</varname> retorna <varname>VERDADE</varname> "
-"se a caixa limitadora 2D da geometria A intersecta a caixa limitadora 2D da "
-"geometria B."
 
 #. Tag: para
-#: reference_operator.xml:115 reference_operator.xml:176
-#: reference_operator.xml:1011 reference_operator.xml:1072
-#: reference_operator.xml:1133 reference_operator.xml:1358
-#: reference_operator.xml:1419 reference_operator.xml:1480
+#: reference_operator.xml:122 reference_operator.xml:183
+#: reference_operator.xml:1018 reference_operator.xml:1079
+#: reference_operator.xml:1140 reference_operator.xml:1365
+#: reference_operator.xml:1426 reference_operator.xml:1487
 #, no-c-format
 msgid ""
 "This operand is intended to be used internally by BRIN indexes, more than by "
@@ -285,24 +284,24 @@ msgid ""
 msgstr ""
 
 #. Tag: para
-#: reference_operator.xml:118 reference_operator.xml:179
-#: reference_operator.xml:240 reference_operator.xml:363
-#: reference_operator.xml:420 reference_operator.xml:477
-#: reference_operator.xml:1014 reference_operator.xml:1075
-#: reference_operator.xml:1136 reference_operator.xml:1361
-#: reference_operator.xml:1422 reference_operator.xml:1483
-#, fuzzy, no-c-format
+#: reference_operator.xml:125 reference_operator.xml:186
+#: reference_operator.xml:247 reference_operator.xml:370
+#: reference_operator.xml:427 reference_operator.xml:484
+#: reference_operator.xml:1021 reference_operator.xml:1082
+#: reference_operator.xml:1143 reference_operator.xml:1368
+#: reference_operator.xml:1429 reference_operator.xml:1490
+#, no-c-format
 msgid ""
 "Availability: 2.3.0 support for Block Range INdexes (BRIN) was introduced. "
 "Requires PostgreSQL 9.5+."
-msgstr "Disponibilidade: 1.5.0 Suporte para geografia foi introduzido"
+msgstr ""
 
 #. Tag: programlisting
-#: reference_operator.xml:126
+#: reference_operator.xml:133
 #, no-c-format
 msgid ""
-"SELECT ST_MakePoint(1,1) &amp;&amp; ST_MakeBox2D(ST_MakePoint(0,0), "
-"ST_MakePoint(2,2)) AS overlaps;\n"
+"SELECT ST_Point(1,1) &amp;&amp; ST_MakeBox2D(ST_Point(0,0), ST_Point(2,2)) "
+"AS overlaps;\n"
 "\n"
 " overlaps\n"
 "----------\n"
@@ -311,7 +310,7 @@ msgid ""
 msgstr ""
 
 #. Tag: para
-#: reference_operator.xml:132 reference_operator.xml:193
+#: reference_operator.xml:139 reference_operator.xml:200
 #, no-c-format
 msgid ""
 ", <xref linkend=\"overlaps_box2df_box2df\"/>, <xref linkend="
@@ -323,36 +322,31 @@ msgid ""
 msgstr ""
 
 #. Tag: refname
-#: reference_operator.xml:146
+#: reference_operator.xml:153
 #, no-c-format
 msgid "&amp;&amp;(box2df,geometry)"
 msgstr ""
 
 #. Tag: refpurpose
-#: reference_operator.xml:148
-#, fuzzy, no-c-format
+#: reference_operator.xml:155
+#, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if a 2D float precision bounding box "
 "(BOX2DF) intersects a geometry's (cached) 2D bounding box."
 msgstr ""
-"Retorna <varname>VERDADE</varname> se a caixa limitadora 2D de A intersecta "
-"a caixa limitadora 2D de B. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:153
-#, fuzzy, no-c-format
+#: reference_operator.xml:160
+#, no-c-format
 msgid ""
 "<funcdef>boolean <function>&amp;&amp;</function></funcdef> <paramdef> "
 "<type>box2df </type> <parameter>A</parameter> </paramdef> <paramdef> "
 "<type>geometry </type> <parameter>B</parameter> </paramdef>"
 msgstr ""
-"<funcdef>boolean <function>&amp;&amp;&amp;</function></funcdef> <paramdef> "
-"<type>geometry </type> <parameter>A</parameter> </paramdef> <paramdef> "
-"<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:174
-#, fuzzy, no-c-format
+#: reference_operator.xml:181
+#, no-c-format
 msgid ""
 "The <varname>&amp;&amp;</varname> operator returns <varname>TRUE</varname> "
 "if the 2D bounding box A intersects the cached 2D bounding box of geometry "
@@ -360,17 +354,13 @@ msgid ""
 "box2d, it will be internally converted to a float precision 2D bounding box "
 "(BOX2DF)"
 msgstr ""
-"O operador <varname>&amp;&lt;</varname> retorna <varname>VERDADE</varname> "
-"se a caixa limitadora da geometria A sobrepõe ou está à esquerda da caixa da "
-"geometria B, ou mais precisamente, sobrepõe ou NÃO está à direita da caixa "
-"limitadora da geometria B. "
 
 #. Tag: programlisting
-#: reference_operator.xml:187
+#: reference_operator.xml:194
 #, no-c-format
 msgid ""
-"SELECT ST_MakeBox2D(ST_MakePoint(0,0), ST_MakePoint(2,2)) &amp;&amp; "
-"ST_MakePoint(1,1) AS overlaps;\n"
+"SELECT ST_MakeBox2D(ST_Point(0,0), ST_Point(2,2)) &amp;&amp; ST_Point(1,1) "
+"AS overlaps;\n"
 "\n"
 " overlaps\n"
 "----------\n"
@@ -379,50 +369,41 @@ msgid ""
 msgstr ""
 
 #. Tag: refname
-#: reference_operator.xml:207
+#: reference_operator.xml:214
 #, no-c-format
 msgid "&amp;&amp;(box2df,box2df)"
 msgstr ""
 
 #. Tag: refpurpose
-#: reference_operator.xml:209
-#, fuzzy, no-c-format
+#: reference_operator.xml:216
+#, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if two 2D float precision bounding boxes "
 "(BOX2DF) intersect each other."
 msgstr ""
-"Retorna <varname>VERDADE</varname> se a caixa limitadora 2D de A intersecta "
-"a caixa limitadora 2D de B. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:214
-#, fuzzy, no-c-format
+#: reference_operator.xml:221
+#, no-c-format
 msgid ""
 "<funcdef>boolean <function>&amp;&amp;</function></funcdef> <paramdef> "
 "<type>box2df </type> <parameter>A</parameter> </paramdef> <paramdef> "
 "<type>box2df </type> <parameter>B</parameter> </paramdef>"
 msgstr ""
-"<funcdef>boolean <function>&amp;&amp;&amp;</function></funcdef> <paramdef> "
-"<type>geometry </type> <parameter>A</parameter> </paramdef> <paramdef> "
-"<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:235
-#, fuzzy, no-c-format
+#: reference_operator.xml:242
+#, no-c-format
 msgid ""
 "The <varname>&amp;&amp;</varname> operator returns <varname>TRUE</varname> "
 "if two 2D bounding boxes A and B intersect each other, using float "
 "precision. This means that if A (or B) is a (double precision) box2d, it "
 "will be internally converted to a float precision 2D bounding box (BOX2DF)"
 msgstr ""
-"O operador <varname>&amp;&lt;</varname> retorna <varname>VERDADE</varname> "
-"se a caixa limitadora da geometria A sobrepõe ou está à esquerda da caixa da "
-"geometria B, ou mais precisamente, sobrepõe ou NÃO está à direita da caixa "
-"limitadora da geometria B. "
 
 #. Tag: para
-#: reference_operator.xml:237 reference_operator.xml:360
-#: reference_operator.xml:417 reference_operator.xml:474
+#: reference_operator.xml:244 reference_operator.xml:367
+#: reference_operator.xml:424 reference_operator.xml:481
 #, no-c-format
 msgid ""
 "This operator is intended to be used internally by BRIN indexes, more than "
@@ -430,11 +411,11 @@ msgid ""
 msgstr ""
 
 #. Tag: programlisting
-#: reference_operator.xml:248
+#: reference_operator.xml:255
 #, no-c-format
 msgid ""
-"SELECT ST_MakeBox2D(ST_MakePoint(0,0), ST_MakePoint(2,2)) &amp;&amp; "
-"ST_MakeBox2D(ST_MakePoint(1,1), ST_MakePoint(3,3)) AS overlaps;\n"
+"SELECT ST_MakeBox2D(ST_Point(0,0), ST_Point(2,2)) &amp;&amp; "
+"ST_MakeBox2D(ST_Point(1,1), ST_Point(3,3)) AS overlaps;\n"
 "\n"
 " overlaps\n"
 "----------\n"
@@ -443,8 +424,8 @@ msgid ""
 msgstr ""
 
 #. Tag: para
-#: reference_operator.xml:254
-#, fuzzy, no-c-format
+#: reference_operator.xml:261
+#, no-c-format
 msgid ""
 ", <xref linkend=\"overlaps_box2df_geometry\"/>, <xref linkend="
 "\"contains_geometry_box2df\"/>, <xref linkend=\"contains_box2df_geometry\"/"
@@ -453,18 +434,15 @@ msgid ""
 "\"is_contained_box2df_geometry\"/>, <xref linkend="
 "\"is_contained_box2df_box2df\"/>"
 msgstr ""
-", <xref linkend=\"ST_Geometry_Overright\"/>, <xref linkend="
-"\"ST_Geometry_Overbelow\"/>, <xref linkend=\"ST_Geometry_Overleft\"/>, <xref "
-"linkend=\"ST_Geometry_Contain\"/>, <xref linkend=\"ST_Geometry_Contained\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:268
+#: reference_operator.xml:275
 #, no-c-format
 msgid "&amp;&amp;&amp;"
 msgstr "&amp;&amp;&amp;"
 
 #. Tag: refpurpose
-#: reference_operator.xml:270
+#: reference_operator.xml:277
 #, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if A's n-D bounding box intersects B's n-D "
@@ -474,7 +452,7 @@ msgstr ""
 "a caixa limitadora n-D de B. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:275
+#: reference_operator.xml:282
 #, no-c-format
 msgid ""
 "<funcdef>boolean <function>&amp;&amp;&amp;</function></funcdef> <paramdef> "
@@ -486,7 +464,7 @@ msgstr ""
 "<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:296
+#: reference_operator.xml:303
 #, no-c-format
 msgid ""
 "The <varname>&amp;&amp;&amp;</varname> operator returns <varname>TRUE</"
@@ -498,33 +476,33 @@ msgstr ""
 "limitadora n-D da geometria B."
 
 #. Tag: para
-#: reference_operator.xml:301
+#: reference_operator.xml:308
 #, no-c-format
 msgid "Availability: 2.0.0"
 msgstr "Disponibilidade: 2.0.0"
 
 #. Tag: para
-#: reference_operator.xml:304 reference_operator.xml:366
-#: reference_operator.xml:423 reference_operator.xml:480
+#: reference_operator.xml:311 reference_operator.xml:373
+#: reference_operator.xml:430 reference_operator.xml:487
 #, no-c-format
 msgid "&T_support;"
 msgstr "&T_support;"
 
 #. Tag: para
-#: reference_operator.xml:305 reference_operator.xml:367
-#: reference_operator.xml:424 reference_operator.xml:481
+#: reference_operator.xml:312 reference_operator.xml:374
+#: reference_operator.xml:431 reference_operator.xml:488
 #, no-c-format
 msgid "&Z_support;"
 msgstr "&Z_support;"
 
 #. Tag: title
-#: reference_operator.xml:309
+#: reference_operator.xml:316
 #, no-c-format
 msgid "Examples: 3D LineStrings"
 msgstr "Exemplos: LineStrings 3D"
 
 #. Tag: programlisting
-#: reference_operator.xml:311
+#: reference_operator.xml:318
 #, no-c-format
 msgid ""
 "SELECT tbl1.column1, tbl2.column1, tbl1.column2 &amp;&amp;&amp; tbl2.column2 "
@@ -558,13 +536,13 @@ msgstr ""
 "       2 |       3 | f           | t"
 
 #. Tag: title
-#: reference_operator.xml:315
+#: reference_operator.xml:322
 #, no-c-format
 msgid "Examples: 3M LineStrings"
 msgstr "Exemplos: LineStrings 3M"
 
 #. Tag: programlisting
-#: reference_operator.xml:317
+#: reference_operator.xml:324
 #, no-c-format
 msgid ""
 "SELECT tbl1.column1, tbl2.column1, tbl1.column2 &amp;&amp;&amp; tbl2.column2 "
@@ -598,36 +576,31 @@ msgstr ""
 "       2 |       3 | f           | t"
 
 #. Tag: refname
-#: reference_operator.xml:330
-#, fuzzy, no-c-format
+#: reference_operator.xml:337
+#, no-c-format
 msgid "&amp;&amp;&amp;(geometry,gidx)"
-msgstr "&amp;&amp;&amp;"
+msgstr ""
 
 #. Tag: refpurpose
-#: reference_operator.xml:332
-#, fuzzy, no-c-format
+#: reference_operator.xml:339
+#, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if a geometry's (cached) n-D bounding box "
 "intersects a n-D float precision bounding box (GIDX)."
 msgstr ""
-"Retorna <varname>VERDADE</varname> se a caixa limitadora n-D de A intersecta "
-"a caixa limitadora n-D de B. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:337
-#, fuzzy, no-c-format
+#: reference_operator.xml:344
+#, no-c-format
 msgid ""
 "<funcdef>boolean <function>&amp;&amp;&amp;</function></funcdef> <paramdef> "
 "<type>geometry </type> <parameter>A</parameter> </paramdef> <paramdef> "
 "<type>gidx </type> <parameter>B</parameter> </paramdef>"
 msgstr ""
-"<funcdef>boolean <function>&amp;&amp;&amp;</function></funcdef> <paramdef> "
-"<type>geometry </type> <parameter>A</parameter> </paramdef> <paramdef> "
-"<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:358
-#, fuzzy, no-c-format
+#: reference_operator.xml:365
+#, no-c-format
 msgid ""
 "The <varname>&amp;&amp;&amp;</varname> operator returns <varname>TRUE</"
 "varname> if the cached n-D bounding box of geometry A intersects the n-D "
@@ -635,12 +608,9 @@ msgid ""
 "precision) box3d, it will be internally converted to a float precision 3D "
 "bounding box (GIDX)"
 msgstr ""
-"O operador  <varname>&amp;&amp;&amp;</varname> retorna <varname>VERDADE</"
-"varname> se a caixa limitadora n-D da geometria A intersecta a caixa "
-"limitadora n-D da geometria B."
 
 #. Tag: programlisting
-#: reference_operator.xml:373
+#: reference_operator.xml:380
 #, no-c-format
 msgid ""
 "SELECT ST_MakePoint(1,1,1) &amp;&amp;&amp; ST_3DMakeBox(ST_MakePoint(0,0,0), "
@@ -653,42 +623,37 @@ msgid ""
 msgstr ""
 
 #. Tag: para
-#: reference_operator.xml:379 reference_operator.xml:436
-#, fuzzy, no-c-format
+#: reference_operator.xml:386 reference_operator.xml:443
+#, no-c-format
 msgid ", <xref linkend=\"overlaps_nd_gidx_gidx\"/>"
-msgstr ", <xref linkend=\"geometry_overlaps\"/>"
+msgstr ""
 
 #. Tag: refname
-#: reference_operator.xml:387
-#, fuzzy, no-c-format
+#: reference_operator.xml:394
+#, no-c-format
 msgid "&amp;&amp;&amp;(gidx,geometry)"
-msgstr "&amp;&amp;&amp;"
+msgstr ""
 
 #. Tag: refpurpose
-#: reference_operator.xml:389
-#, fuzzy, no-c-format
+#: reference_operator.xml:396
+#, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if a n-D float precision bounding box (GIDX) "
 "intersects a geometry's (cached) n-D bounding box."
 msgstr ""
-"Retorna <varname>VERDADE</varname> se a caixa limitadora n-D de A intersecta "
-"a caixa limitadora n-D de B. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:394
-#, fuzzy, no-c-format
+#: reference_operator.xml:401
+#, no-c-format
 msgid ""
 "<funcdef>boolean <function>&amp;&amp;&amp;</function></funcdef> <paramdef> "
 "<type>gidx </type> <parameter>A</parameter> </paramdef> <paramdef> "
 "<type>geometry </type> <parameter>B</parameter> </paramdef>"
 msgstr ""
-"<funcdef>boolean <function>&amp;&amp;&amp;</function></funcdef> <paramdef> "
-"<type>geometry </type> <parameter>A</parameter> </paramdef> <paramdef> "
-"<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:415
-#, fuzzy, no-c-format
+#: reference_operator.xml:422
+#, no-c-format
 msgid ""
 "The <varname>&amp;&amp;&amp;</varname> operator returns <varname>TRUE</"
 "varname> if the n-D bounding box A intersects the cached n-D bounding box of "
@@ -696,12 +661,9 @@ msgid ""
 "precision) box3d, it will be internally converted to a float precision 3D "
 "bounding box (GIDX)"
 msgstr ""
-"O operador  <varname>&amp;&amp;&amp;</varname> retorna <varname>VERDADE</"
-"varname> se a caixa limitadora n-D da geometria A intersecta a caixa "
-"limitadora n-D da geometria B."
 
 #. Tag: programlisting
-#: reference_operator.xml:430
+#: reference_operator.xml:437
 #, no-c-format
 msgid ""
 "SELECT ST_3DMakeBox(ST_MakePoint(0,0,0), ST_MakePoint(2,2,2)) &amp;&amp;"
@@ -714,48 +676,40 @@ msgid ""
 msgstr ""
 
 #. Tag: refname
-#: reference_operator.xml:444
-#, fuzzy, no-c-format
+#: reference_operator.xml:451
+#, no-c-format
 msgid "&amp;&amp;&amp;(gidx,gidx)"
-msgstr "&amp;&amp;&amp;"
+msgstr ""
 
 #. Tag: refpurpose
-#: reference_operator.xml:446
-#, fuzzy, no-c-format
+#: reference_operator.xml:453
+#, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if two n-D float precision bounding boxes "
 "(GIDX) intersect each other."
 msgstr ""
-"Retorna <varname>VERDADE</varname> se a caixa limitadora n-D de A intersecta "
-"a caixa limitadora n-D de B. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:451
-#, fuzzy, no-c-format
+#: reference_operator.xml:458
+#, no-c-format
 msgid ""
 "<funcdef>boolean <function>&amp;&amp;&amp;</function></funcdef> <paramdef> "
 "<type>gidx </type> <parameter>A</parameter> </paramdef> <paramdef> "
 "<type>gidx </type> <parameter>B</parameter> </paramdef>"
 msgstr ""
-"<funcdef>boolean <function>&amp;&amp;&amp;</function></funcdef> <paramdef> "
-"<type>geometry </type> <parameter>A</parameter> </paramdef> <paramdef> "
-"<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:472
-#, fuzzy, no-c-format
+#: reference_operator.xml:479
+#, no-c-format
 msgid ""
 "The <varname>&amp;&amp;&amp;</varname> operator returns <varname>TRUE</"
 "varname> if two n-D bounding boxes A and B intersect each other, using float "
 "precision. This means that if A (or B) is a (double precision) box3d, it "
 "will be internally converted to a float precision 3D bounding box (GIDX)"
 msgstr ""
-"O operador  <varname>&amp;&amp;&amp;</varname> retorna <varname>VERDADE</"
-"varname> se a caixa limitadora n-D da geometria A intersecta a caixa "
-"limitadora n-D da geometria B."
 
 #. Tag: programlisting
-#: reference_operator.xml:487
+#: reference_operator.xml:494
 #, no-c-format
 msgid ""
 "SELECT ST_3DMakeBox(ST_MakePoint(0,0,0), ST_MakePoint(2,2,2)) &amp;&amp;"
@@ -768,19 +722,19 @@ msgid ""
 msgstr ""
 
 #. Tag: para
-#: reference_operator.xml:493
-#, fuzzy, no-c-format
+#: reference_operator.xml:500
+#, no-c-format
 msgid ", <xref linkend=\"overlaps_nd_gidx_geometry\"/>"
-msgstr ", <xref linkend=\"geometry_overlaps\"/>"
+msgstr ""
 
 #. Tag: refname
-#: reference_operator.xml:501
+#: reference_operator.xml:508
 #, no-c-format
 msgid "&amp;&lt;"
 msgstr "&amp;&lt;"
 
 #. Tag: refpurpose
-#: reference_operator.xml:503
+#: reference_operator.xml:510
 #, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if A's bounding box overlaps or is to the "
@@ -790,7 +744,7 @@ msgstr ""
 "está à esquerda de B. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:508
+#: reference_operator.xml:515
 #, no-c-format
 msgid ""
 "<funcdef>boolean <function>&amp;&lt;</function></funcdef> <paramdef> "
@@ -802,7 +756,7 @@ msgstr ""
 "<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:532
+#: reference_operator.xml:539
 #, no-c-format
 msgid ""
 "The <varname>&amp;&lt;</varname> operator returns <varname>TRUE</varname> if "
@@ -816,7 +770,7 @@ msgstr ""
 "limitadora da geometria B. "
 
 #. Tag: programlisting
-#: reference_operator.xml:543
+#: reference_operator.xml:550
 #, no-c-format
 msgid ""
 "SELECT tbl1.column1, tbl2.column1, tbl1.column2 &amp;&lt; tbl2.column2 AS "
@@ -854,7 +808,7 @@ msgstr ""
 "(3 rows)"
 
 #. Tag: para
-#: reference_operator.xml:549
+#: reference_operator.xml:556
 #, no-c-format
 msgid ""
 ", <xref linkend=\"ST_Geometry_Overabove\"/>, <xref linkend="
@@ -864,13 +818,13 @@ msgstr ""
 "\"ST_Geometry_Overright\"/>, <xref linkend=\"ST_Geometry_Overbelow\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:559
+#: reference_operator.xml:566
 #, no-c-format
 msgid "&amp;&lt;|"
 msgstr "&amp;&lt;|"
 
 #. Tag: refpurpose
-#: reference_operator.xml:561
+#: reference_operator.xml:568
 #, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if A's bounding box overlaps or is below B's."
@@ -879,7 +833,7 @@ msgstr ""
 "está abaixo de B. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:566
+#: reference_operator.xml:573
 #, no-c-format
 msgid ""
 "<funcdef>boolean <function>&amp;&lt;|</function></funcdef> <paramdef> "
@@ -891,7 +845,7 @@ msgstr ""
 "<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:590
+#: reference_operator.xml:597
 #, no-c-format
 msgid ""
 "The <varname>&amp;&lt;|</varname> operator returns <varname>TRUE</varname> "
@@ -905,7 +859,7 @@ msgstr ""
 "limitadora da geometria B. "
 
 #. Tag: programlisting
-#: reference_operator.xml:604
+#: reference_operator.xml:611
 #, no-c-format
 msgid ""
 "SELECT tbl1.column1, tbl2.column1, tbl1.column2 &amp;&lt;| tbl2.column2 AS "
@@ -943,7 +897,7 @@ msgstr ""
 "(3 rows)"
 
 #. Tag: para
-#: reference_operator.xml:610
+#: reference_operator.xml:617
 #, no-c-format
 msgid ""
 ", <xref linkend=\"ST_Geometry_Overabove\"/>, <xref linkend="
@@ -953,13 +907,13 @@ msgstr ""
 "\"ST_Geometry_Overright\"/>, <xref linkend=\"ST_Geometry_Overleft\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:620
+#: reference_operator.xml:627
 #, no-c-format
 msgid "&amp;&gt;"
 msgstr "&amp;&gt;"
 
 #. Tag: refpurpose
-#: reference_operator.xml:622
+#: reference_operator.xml:629
 #, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if A' bounding box overlaps or is to the "
@@ -969,7 +923,7 @@ msgstr ""
 "está à direita de B. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:627
+#: reference_operator.xml:634
 #, no-c-format
 msgid ""
 "<funcdef>boolean <function>&amp;&gt;</function></funcdef> <paramdef> "
@@ -981,7 +935,7 @@ msgstr ""
 "<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:651
+#: reference_operator.xml:658
 #, no-c-format
 msgid ""
 "The <varname>&amp;&gt;</varname> operator returns <varname>TRUE</varname> if "
@@ -995,7 +949,7 @@ msgstr ""
 "limitadora da geometria B. "
 
 #. Tag: programlisting
-#: reference_operator.xml:662
+#: reference_operator.xml:669
 #, no-c-format
 msgid ""
 "SELECT tbl1.column1, tbl2.column1, tbl1.column2 &amp;&gt; tbl2.column2 AS "
@@ -1033,7 +987,7 @@ msgstr ""
 "(3 rows)"
 
 #. Tag: para
-#: reference_operator.xml:668
+#: reference_operator.xml:675
 #, no-c-format
 msgid ""
 ", <xref linkend=\"ST_Geometry_Overabove\"/>, <xref linkend="
@@ -1043,13 +997,13 @@ msgstr ""
 "\"ST_Geometry_Overbelow\"/>, <xref linkend=\"ST_Geometry_Overleft\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:678
+#: reference_operator.xml:685
 #, no-c-format
 msgid "&lt;&lt;"
 msgstr "&lt;&lt;"
 
 #. Tag: refpurpose
-#: reference_operator.xml:680
+#: reference_operator.xml:687
 #, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if A's bounding box is strictly to the left "
@@ -1059,7 +1013,7 @@ msgstr ""
 "estritamente à esquerda da de B."
 
 #. Tag: funcprototype
-#: reference_operator.xml:685
+#: reference_operator.xml:692
 #, no-c-format
 msgid ""
 "<funcdef>boolean <function>&lt;&lt;</function></funcdef> <paramdef> "
@@ -1071,7 +1025,7 @@ msgstr ""
 "<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:709
+#: reference_operator.xml:716
 #, no-c-format
 msgid ""
 "The <varname>&lt;&lt;</varname> operator returns <varname>TRUE</varname> if "
@@ -1083,7 +1037,7 @@ msgstr ""
 "limitadora da geometria B. "
 
 #. Tag: programlisting
-#: reference_operator.xml:719
+#: reference_operator.xml:726
 #, no-c-format
 msgid ""
 "SELECT tbl1.column1, tbl2.column1, tbl1.column2 &lt;&lt; tbl2.column2 AS "
@@ -1121,7 +1075,7 @@ msgstr ""
 "(3 rows)"
 
 #. Tag: para
-#: reference_operator.xml:725 reference_operator.xml:920
+#: reference_operator.xml:732 reference_operator.xml:927
 #, no-c-format
 msgid ""
 ", <xref linkend=\"ST_Geometry_Above\"/>, <xref linkend=\"ST_Geometry_Below\"/"
@@ -1131,13 +1085,13 @@ msgstr ""
 ">"
 
 #. Tag: refname
-#: reference_operator.xml:731
+#: reference_operator.xml:738
 #, no-c-format
 msgid "&lt;&lt;|"
 msgstr "&lt;&lt;|"
 
 #. Tag: refpurpose
-#: reference_operator.xml:733
+#: reference_operator.xml:740
 #, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if A's bounding box is strictly below B's."
@@ -1146,7 +1100,7 @@ msgstr ""
 "estritamente abaixo da de B."
 
 #. Tag: funcprototype
-#: reference_operator.xml:738
+#: reference_operator.xml:745
 #, no-c-format
 msgid ""
 "<funcdef>boolean <function>&lt;&lt;|</function></funcdef> <paramdef> "
@@ -1158,7 +1112,7 @@ msgstr ""
 "<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:762
+#: reference_operator.xml:769
 #, no-c-format
 msgid ""
 "The <varname>&lt;&lt;|</varname> operator returns <varname>TRUE</varname> if "
@@ -1170,7 +1124,7 @@ msgstr ""
 "limitadora da geometria B. "
 
 #. Tag: programlisting
-#: reference_operator.xml:772
+#: reference_operator.xml:779
 #, no-c-format
 msgid ""
 "SELECT tbl1.column1, tbl2.column1, tbl1.column2 &lt;&lt;| tbl2.column2 AS "
@@ -1208,7 +1162,7 @@ msgstr ""
 "(3 rows)"
 
 #. Tag: para
-#: reference_operator.xml:778
+#: reference_operator.xml:785
 #, no-c-format
 msgid ""
 ", <xref linkend=\"ST_Geometry_Right\"/>, <xref linkend=\"ST_Geometry_Above\"/"
@@ -1218,25 +1172,22 @@ msgstr ""
 ">"
 
 #. Tag: refname
-#: reference_operator.xml:784
+#: reference_operator.xml:791
 #, no-c-format
 msgid "&#61;"
 msgstr "&#61;"
 
 #. Tag: refpurpose
-#: reference_operator.xml:786
-#, fuzzy, no-c-format
+#: reference_operator.xml:793
+#, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if the coordinates and coordinate order "
 "geometry/geography A are the same as the coordinates and coordinate order of "
 "geometry/geography B."
 msgstr ""
-"O operador <varname>~</varname> retorna <varname>VERDADE</varname> se a "
-"caixa limitadora da geometria/geografia A for a mesma da caixa limitadora da "
-"geometria/geografia B."
 
 #. Tag: funcsynopsis
-#: reference_operator.xml:791
+#: reference_operator.xml:798
 #, no-c-format
 msgid ""
 "<funcprototype> <funcdef>boolean <function>&#61;</function></funcdef> "
@@ -1256,8 +1207,8 @@ msgstr ""
 "paramdef> </funcprototype>"
 
 #. Tag: para
-#: reference_operator.xml:832
-#, fuzzy, no-c-format
+#: reference_operator.xml:839
+#, no-c-format
 msgid ""
 "The <varname>&#61;</varname> operator returns <varname>TRUE</varname> if the "
 "coordinates and coordinate order geometry/geography A are the same as the "
@@ -1266,14 +1217,9 @@ msgid ""
 "orderings and comparison of geometries (ie. in a GROUP BY or ORDER BY "
 "clause)."
 msgstr ""
-"O operador <varname>&#61;</varname> retorna <varname>VERDADE</varname> se a "
-"caixa limitadora da geometria/geografia A é a mesma da de B. O PostgreSQL "
-"usa o operadores =, &lt;, e &gt; definidos para geometrias para representar "
-"ordens e comparações internas de geometrias (ex. em um GRUPO ou ORDEM por "
-"oração)."
 
 #. Tag: para
-#: reference_operator.xml:837
+#: reference_operator.xml:844
 #, no-c-format
 msgid ""
 "Only geometry/geography that are exactly equal in all respects, with the "
@@ -1285,18 +1231,16 @@ msgid ""
 msgstr ""
 
 #. Tag: para
-#: reference_operator.xml:846
-#, fuzzy, no-c-format
+#: reference_operator.xml:853
+#, no-c-format
 msgid ""
 "This operand will NOT make use of any indexes that may be available on the "
 "geometries. For an index assisted exact equality test, combine &#61; with "
 "&amp;&amp;."
 msgstr ""
-"Esse operador NÃO fará uso de qualquer um dos indexes que talvez estejam "
-"disponíveis nas geometrias. "
 
 #. Tag: para
-#: reference_operator.xml:850
+#: reference_operator.xml:857
 #, no-c-format
 msgid ""
 "Changed: 2.4.0, in prior versions this was bounding box equality not a "
@@ -1305,8 +1249,8 @@ msgid ""
 msgstr ""
 
 #. Tag: programlisting
-#: reference_operator.xml:860
-#, fuzzy, no-c-format
+#: reference_operator.xml:867
+#, no-c-format
 msgid ""
 "SELECT 'LINESTRING(0 0, 0 1, 1 0)'::geometry = 'LINESTRING(1 1, 0 0)'::"
 "geometry;\n"
@@ -1344,57 +1288,22 @@ msgid ""
 "--pt_intersect --\n"
 "f"
 msgstr ""
-"SELECT 'LINESTRING(0 0, 0 1, 1 0)'::geometry = 'LINESTRING(1 1, 0 0)'::"
-"geometry;\n"
-" ?column?\n"
-"----------\n"
-" t\n"
-"(1 row)\n"
-"\n"
-"SELECT ST_AsText(column1)\n"
-"FROM ( VALUES\n"
-"        ('LINESTRING(0 0, 1 1)'::geometry),\n"
-"        ('LINESTRING(1 1, 0 0)'::geometry)) AS foo;\n"
-"          st_astext\n"
-"---------------------\n"
-" LINESTRING(0 0,1 1)\n"
-" LINESTRING(1 1,0 0)\n"
-"(2 rows)\n"
-"\n"
-"-- Note: the GROUP BY uses the \"=\" to compare for geometry equivalency.\n"
-"SELECT ST_AsText(column1)\n"
-"FROM ( VALUES\n"
-"        ('LINESTRING(0 0, 1 1)'::geometry),\n"
-"        ('LINESTRING(1 1, 0 0)'::geometry)) AS foo\n"
-"GROUP BY column1;\n"
-"          st_astext\n"
-"---------------------\n"
-" LINESTRING(0 0,1 1)\n"
-"(1 row)\n"
-"\n"
-"-- In versions prior to 2.0, this used to return true --\n"
-" SELECT ST_GeomFromText('POINT(1707296.37 4820536.77)') =\n"
-"        ST_GeomFromText('POINT(1707296.27 4820536.87)') As pt_intersect;\n"
-"\n"
-"--pt_intersect --\n"
-"f"
 
 #. Tag: para
-#: reference_operator.xml:866
-#, fuzzy, no-c-format
+#: reference_operator.xml:873
+#, no-c-format
 msgid ""
 ", <xref linkend=\"ST_OrderingEquals\"/>, <xref linkend=\"ST_Geometry_Same\"/>"
 msgstr ""
-", <xref linkend=\"ST_OrderingEquals\"/>, <xref linkend=\"ST_Geometry_EQ\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:873
+#: reference_operator.xml:880
 #, no-c-format
 msgid "&gt;&gt;"
 msgstr "&gt;&gt;"
 
 #. Tag: refpurpose
-#: reference_operator.xml:875
+#: reference_operator.xml:882
 #, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if A's bounding box is strictly to the right "
@@ -1404,7 +1313,7 @@ msgstr ""
 "of B's."
 
 #. Tag: funcprototype
-#: reference_operator.xml:880
+#: reference_operator.xml:887
 #, no-c-format
 msgid ""
 "<funcdef>boolean <function>&gt;&gt;</function></funcdef> <paramdef> "
@@ -1416,7 +1325,7 @@ msgstr ""
 "<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:904
+#: reference_operator.xml:911
 #, no-c-format
 msgid ""
 "The <varname>&gt;&gt;</varname> operator returns <varname>TRUE</varname> if "
@@ -1428,7 +1337,7 @@ msgstr ""
 "limitadora da geometria B. "
 
 #. Tag: programlisting
-#: reference_operator.xml:914
+#: reference_operator.xml:921
 #, no-c-format
 msgid ""
 "SELECT tbl1.column1, tbl2.column1, tbl1.column2 &gt;&gt; tbl2.column2 AS "
@@ -1466,13 +1375,13 @@ msgstr ""
 "(3 rows)"
 
 #. Tag: refname
-#: reference_operator.xml:926
+#: reference_operator.xml:933
 #, no-c-format
 msgid "<refname>@</refname>"
 msgstr "<refname>@</refname>"
 
 #. Tag: refpurpose
-#: reference_operator.xml:928
+#: reference_operator.xml:935
 #, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if A's bounding box is contained by B's."
@@ -1481,7 +1390,7 @@ msgstr ""
 "pela de B."
 
 #. Tag: funcprototype
-#: reference_operator.xml:933
+#: reference_operator.xml:940
 #, no-c-format
 msgid ""
 "<funcdef>boolean <function>@</function></funcdef> <paramdef> <type>geometry "
@@ -1493,7 +1402,7 @@ msgstr ""
 "type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:957
+#: reference_operator.xml:964
 #, no-c-format
 msgid ""
 "The <varname>@</varname> operator returns <varname>TRUE</varname> if the "
@@ -1505,7 +1414,7 @@ msgstr ""
 "limitadora da geometria B."
 
 #. Tag: programlisting
-#: reference_operator.xml:969
+#: reference_operator.xml:976
 #, no-c-format
 msgid ""
 "SELECT tbl1.column1, tbl2.column1, tbl1.column2 @ tbl2.column2 AS contained\n"
@@ -1541,41 +1450,36 @@ msgstr ""
 "(3 rows)"
 
 #. Tag: para
-#: reference_operator.xml:975 reference_operator.xml:1322
+#: reference_operator.xml:982 reference_operator.xml:1329
 #, no-c-format
 msgid ", <xref linkend=\"geometry_overlaps\"/>"
 msgstr ", <xref linkend=\"geometry_overlaps\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:981
+#: reference_operator.xml:988
 #, no-c-format
 msgid "@(geometry,box2df)"
 msgstr ""
 
 #. Tag: refpurpose
-#: reference_operator.xml:983
-#, fuzzy, no-c-format
+#: reference_operator.xml:990
+#, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if a geometry's 2D bounding box is contained "
 "into a 2D float precision bounding box (BOX2DF)."
 msgstr ""
-"Retorna <varname>VERDADE</varname>se a caixa limitadora de A for a mesma de "
-"B. Utiliza precisão dupla de caixa limitadora."
 
 #. Tag: funcprototype
-#: reference_operator.xml:988
-#, fuzzy, no-c-format
+#: reference_operator.xml:995
+#, no-c-format
 msgid ""
 "<funcdef>boolean <function>@</function></funcdef> <paramdef> <type>geometry "
 "</type> <parameter>A</parameter> </paramdef> <paramdef> <type>box2df </type> "
 "<parameter>B</parameter> </paramdef>"
 msgstr ""
-"<funcdef>boolean <function>@</function></funcdef> <paramdef> <type>geometry "
-"</type> <parameter>A</parameter> </paramdef> <paramdef> <type>geometry </"
-"type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:1009
+#: reference_operator.xml:1016
 #, no-c-format
 msgid ""
 "The <varname>@</varname> operator returns <varname>TRUE</varname> if the A "
@@ -1585,11 +1489,11 @@ msgid ""
 msgstr ""
 
 #. Tag: programlisting
-#: reference_operator.xml:1022
+#: reference_operator.xml:1029
 #, no-c-format
 msgid ""
 "SELECT ST_Buffer(ST_GeomFromText('POINT(2 2)'), 1) @ "
-"ST_MakeBox2D(ST_MakePoint(0,0), ST_MakePoint(5,5)) AS is_contained;\n"
+"ST_MakeBox2D(ST_Point(0,0), ST_Point(5,5)) AS is_contained;\n"
 "\n"
 " is_contained\n"
 "--------------\n"
@@ -1598,8 +1502,8 @@ msgid ""
 msgstr ""
 
 #. Tag: para
-#: reference_operator.xml:1028
-#, fuzzy, no-c-format
+#: reference_operator.xml:1035
+#, no-c-format
 msgid ""
 ", <xref linkend=\"overlaps_box2df_geometry\"/>, <xref linkend="
 "\"overlaps_box2df_box2df\"/>, <xref linkend=\"contains_geometry_box2df\"/>, "
@@ -1607,57 +1511,45 @@ msgid ""
 "\"contains_box2df_box2df\"/>, <xref linkend=\"is_contained_box2df_geometry\"/"
 ">, <xref linkend=\"is_contained_box2df_box2df\"/>"
 msgstr ""
-", <xref linkend=\"ST_Geometry_Overright\"/>, <xref linkend="
-"\"ST_Geometry_Overbelow\"/>, <xref linkend=\"ST_Geometry_Overleft\"/>, <xref "
-"linkend=\"ST_Geometry_Contain\"/>, <xref linkend=\"ST_Geometry_Contained\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:1042
+#: reference_operator.xml:1049
 #, no-c-format
 msgid "@(box2df,geometry)"
 msgstr ""
 
 #. Tag: refpurpose
-#: reference_operator.xml:1044
-#, fuzzy, no-c-format
+#: reference_operator.xml:1051
+#, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if a 2D float precision bounding box "
 "(BOX2DF) is contained into a geometry's 2D bounding box."
 msgstr ""
-"Retorna <varname>VERDADE</varname> se a caixa limitadora 2D de A intersecta "
-"a caixa limitadora 2D de B. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:1049
-#, fuzzy, no-c-format
+#: reference_operator.xml:1056
+#, no-c-format
 msgid ""
 "<funcdef>boolean <function>@</function></funcdef> <paramdef> <type>box2df </"
 "type> <parameter>A</parameter> </paramdef> <paramdef> <type>geometry </type> "
 "<parameter>B</parameter> </paramdef>"
 msgstr ""
-"<funcdef>boolean <function>@</function></funcdef> <paramdef> <type>geometry "
-"</type> <parameter>A</parameter> </paramdef> <paramdef> <type>geometry </"
-"type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:1070
-#, fuzzy, no-c-format
+#: reference_operator.xml:1077
+#, no-c-format
 msgid ""
 "The <varname>@</varname> operator returns <varname>TRUE</varname> if the 2D "
 "bounding box A is contained into the B geometry's 2D bounding box, using "
 "float precision. This means that if B is a (double precision) box2d, it will "
 "be internally converted to a float precision 2D bounding box (BOX2DF)"
 msgstr ""
-"O operador <varname>&amp;&lt;</varname> retorna <varname>VERDADE</varname> "
-"se a caixa limitadora da geometria A sobrepõe ou está à esquerda da caixa da "
-"geometria B, ou mais precisamente, sobrepõe ou NÃO está à direita da caixa "
-"limitadora da geometria B. "
 
 #. Tag: programlisting
-#: reference_operator.xml:1083
+#: reference_operator.xml:1090
 #, no-c-format
 msgid ""
-"SELECT ST_MakeBox2D(ST_MakePoint(2,2), ST_MakePoint(3,3)) @ "
+"SELECT ST_MakeBox2D(ST_Point(2,2), ST_Point(3,3)) @ "
 "ST_Buffer(ST_GeomFromText('POINT(1 1)'), 10) AS is_contained;\n"
 "\n"
 " is_contained\n"
@@ -1667,8 +1559,8 @@ msgid ""
 msgstr ""
 
 #. Tag: para
-#: reference_operator.xml:1089
-#, fuzzy, no-c-format
+#: reference_operator.xml:1096
+#, no-c-format
 msgid ""
 ", <xref linkend=\"overlaps_box2df_geometry\"/>, <xref linkend="
 "\"overlaps_box2df_box2df\"/>, <xref linkend=\"contains_geometry_box2df\"/>, "
@@ -1676,58 +1568,46 @@ msgid ""
 "\"contains_box2df_box2df\"/>, <xref linkend=\"is_contained_geometry_box2df\"/"
 ">, <xref linkend=\"is_contained_box2df_box2df\"/>"
 msgstr ""
-", <xref linkend=\"ST_Geometry_Overright\"/>, <xref linkend="
-"\"ST_Geometry_Overbelow\"/>, <xref linkend=\"ST_Geometry_Overleft\"/>, <xref "
-"linkend=\"ST_Geometry_Contain\"/>, <xref linkend=\"ST_Geometry_Contained\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:1103
+#: reference_operator.xml:1110
 #, no-c-format
 msgid "@(box2df,box2df)"
 msgstr ""
 
 #. Tag: refpurpose
-#: reference_operator.xml:1105
-#, fuzzy, no-c-format
+#: reference_operator.xml:1112
+#, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if a 2D float precision bounding box "
 "(BOX2DF) is contained into another 2D float precision bounding box."
 msgstr ""
-"Retorna <varname>VERDADE</varname>se a caixa limitadora de A for a mesma de "
-"B. Utiliza precisão dupla de caixa limitadora."
 
 #. Tag: funcprototype
-#: reference_operator.xml:1110
-#, fuzzy, no-c-format
+#: reference_operator.xml:1117
+#, no-c-format
 msgid ""
 "<funcdef>boolean <function>@</function></funcdef> <paramdef> <type>box2df </"
 "type> <parameter>A</parameter> </paramdef> <paramdef> <type>box2df </type> "
 "<parameter>B</parameter> </paramdef>"
 msgstr ""
-"<funcdef>boolean <function>@</function></funcdef> <paramdef> <type>geometry "
-"</type> <parameter>A</parameter> </paramdef> <paramdef> <type>geometry </"
-"type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:1131
-#, fuzzy, no-c-format
+#: reference_operator.xml:1138
+#, no-c-format
 msgid ""
 "The <varname>@</varname> operator returns <varname>TRUE</varname> if the 2D "
 "bounding box A is contained into the 2D bounding box B, using float "
 "precision. This means that if A (or B) is a (double precision) box2d, it "
 "will be internally converted to a float precision 2D bounding box (BOX2DF)"
 msgstr ""
-"O operador <varname>&amp;&lt;</varname> retorna <varname>VERDADE</varname> "
-"se a caixa limitadora da geometria A sobrepõe ou está à esquerda da caixa da "
-"geometria B, ou mais precisamente, sobrepõe ou NÃO está à direita da caixa "
-"limitadora da geometria B. "
 
 #. Tag: programlisting
-#: reference_operator.xml:1144
+#: reference_operator.xml:1151
 #, no-c-format
 msgid ""
-"SELECT ST_MakeBox2D(ST_MakePoint(2,2), ST_MakePoint(3,3)) @ "
-"ST_MakeBox2D(ST_MakePoint(0,0), ST_MakePoint(5,5)) AS is_contained;\n"
+"SELECT ST_MakeBox2D(ST_Point(2,2), ST_Point(3,3)) @ "
+"ST_MakeBox2D(ST_Point(0,0), ST_Point(5,5)) AS is_contained;\n"
 "\n"
 " is_contained\n"
 "--------------\n"
@@ -1736,8 +1616,8 @@ msgid ""
 msgstr ""
 
 #. Tag: para
-#: reference_operator.xml:1150
-#, fuzzy, no-c-format
+#: reference_operator.xml:1157
+#, no-c-format
 msgid ""
 ", <xref linkend=\"overlaps_box2df_geometry\"/>, <xref linkend="
 "\"overlaps_box2df_box2df\"/>, <xref linkend=\"contains_geometry_box2df\"/>, "
@@ -1745,18 +1625,15 @@ msgid ""
 "\"contains_box2df_box2df\"/>, <xref linkend=\"is_contained_geometry_box2df\"/"
 ">, <xref linkend=\"is_contained_box2df_geometry\"/>"
 msgstr ""
-", <xref linkend=\"ST_Geometry_Overright\"/>, <xref linkend="
-"\"ST_Geometry_Overbelow\"/>, <xref linkend=\"ST_Geometry_Overleft\"/>, <xref "
-"linkend=\"ST_Geometry_Contain\"/>, <xref linkend=\"ST_Geometry_Contained\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:1164
+#: reference_operator.xml:1171
 #, no-c-format
 msgid "|&amp;&gt;"
 msgstr "|&amp;&gt;"
 
 #. Tag: refpurpose
-#: reference_operator.xml:1166
+#: reference_operator.xml:1173
 #, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if A's bounding box overlaps or is above B's."
@@ -1765,7 +1642,7 @@ msgstr ""
 "está acima de B. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:1171
+#: reference_operator.xml:1178
 #, no-c-format
 msgid ""
 "<funcdef>boolean <function>|&amp;&gt;</function></funcdef> <paramdef> "
@@ -1777,7 +1654,7 @@ msgstr ""
 "<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:1195
+#: reference_operator.xml:1202
 #, no-c-format
 msgid ""
 "The <varname>|&amp;&gt;</varname> operator returns <varname>TRUE</varname> "
@@ -1791,7 +1668,7 @@ msgstr ""
 "limitadora da geometria B. "
 
 #. Tag: programlisting
-#: reference_operator.xml:1206
+#: reference_operator.xml:1213
 #, no-c-format
 msgid ""
 "SELECT tbl1.column1, tbl2.column1, tbl1.column2 |&amp;&gt; tbl2.column2 AS "
@@ -1829,7 +1706,7 @@ msgstr ""
 "(3 rows)"
 
 #. Tag: para
-#: reference_operator.xml:1212
+#: reference_operator.xml:1219
 #, no-c-format
 msgid ""
 ", <xref linkend=\"ST_Geometry_Overright\"/>, <xref linkend="
@@ -1839,13 +1716,13 @@ msgstr ""
 "\"ST_Geometry_Overbelow\"/>, <xref linkend=\"ST_Geometry_Overleft\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:1222
+#: reference_operator.xml:1229
 #, no-c-format
 msgid "|&gt;&gt;"
 msgstr "|&gt;&gt;"
 
 #. Tag: refpurpose
-#: reference_operator.xml:1224
+#: reference_operator.xml:1231
 #, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if A's bounding box is strictly above B's."
@@ -1854,7 +1731,7 @@ msgstr ""
 "estritamente acima da de B."
 
 #. Tag: funcprototype
-#: reference_operator.xml:1229
+#: reference_operator.xml:1236
 #, no-c-format
 msgid ""
 "<funcdef>boolean <function>|&gt;&gt;</function></funcdef> <paramdef> "
@@ -1866,19 +1743,16 @@ msgstr ""
 "<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:1253
-#, fuzzy, no-c-format
+#: reference_operator.xml:1260
+#, no-c-format
 msgid ""
 "The <varname>|&gt;&gt;</varname> operator returns <varname>TRUE</varname> if "
 "the bounding box of geometry A is strictly above the bounding box of "
 "geometry B."
 msgstr ""
-"O operador <varname>&lt;&lt;|</varname> retorna <varname>VERDADE</varname> "
-"se a caixa limitadora  da geometria A está estritamente à esquerda da caixa "
-"limitadora da geometria B. "
 
 #. Tag: programlisting
-#: reference_operator.xml:1263
+#: reference_operator.xml:1270
 #, no-c-format
 msgid ""
 "SELECT tbl1.column1, tbl2.column1, tbl1.column2 |&gt;&gt; tbl2.column2 AS "
@@ -1916,7 +1790,7 @@ msgstr ""
 "(3 rows)"
 
 #. Tag: para
-#: reference_operator.xml:1269
+#: reference_operator.xml:1276
 #, no-c-format
 msgid ""
 ", <xref linkend=\"ST_Geometry_Right\"/>, <xref linkend=\"ST_Geometry_Below\"/"
@@ -1926,13 +1800,13 @@ msgstr ""
 ">"
 
 #. Tag: refname
-#: reference_operator.xml:1275
+#: reference_operator.xml:1282
 #, no-c-format
 msgid "<refname>~</refname>"
 msgstr "<refname>~</refname>"
 
 #. Tag: refpurpose
-#: reference_operator.xml:1277
+#: reference_operator.xml:1284
 #, no-c-format
 msgid "Returns <varname>TRUE</varname> if A's bounding box contains B's."
 msgstr ""
@@ -1940,7 +1814,7 @@ msgstr ""
 "B."
 
 #. Tag: funcprototype
-#: reference_operator.xml:1282
+#: reference_operator.xml:1289
 #, no-c-format
 msgid ""
 "<funcdef>boolean <function>~</function></funcdef> <paramdef> <type>geometry "
@@ -1952,7 +1826,7 @@ msgstr ""
 "type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:1306
+#: reference_operator.xml:1313
 #, no-c-format
 msgid ""
 "The <varname>~</varname> operator returns <varname>TRUE</varname> if the "
@@ -1964,7 +1838,7 @@ msgstr ""
 "limitadora da geometria B."
 
 #. Tag: programlisting
-#: reference_operator.xml:1316
+#: reference_operator.xml:1323
 #, no-c-format
 msgid ""
 "SELECT tbl1.column1, tbl2.column1, tbl1.column2 ~ tbl2.column2 AS contains\n"
@@ -2000,53 +1874,44 @@ msgstr ""
 "(3 rows)"
 
 #. Tag: refname
-#: reference_operator.xml:1328
+#: reference_operator.xml:1335
 #, no-c-format
 msgid "~(geometry,box2df)"
 msgstr ""
 
 #. Tag: refpurpose
-#: reference_operator.xml:1330
-#, fuzzy, no-c-format
+#: reference_operator.xml:1337
+#, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if a geometry's 2D bonding box contains a 2D "
 "float precision bounding box (GIDX)."
 msgstr ""
-"Retorna <varname>VERDADE</varname> se a caixa limitadora 2D de A intersecta "
-"a caixa limitadora 2D de B. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:1335
-#, fuzzy, no-c-format
+#: reference_operator.xml:1342
+#, no-c-format
 msgid ""
 "<funcdef>boolean <function>~</function></funcdef> <paramdef> <type>geometry "
 "</type> <parameter>A</parameter> </paramdef> <paramdef> <type>box2df </type> "
 "<parameter>B</parameter> </paramdef>"
 msgstr ""
-"<funcdef>boolean <function>~</function></funcdef> <paramdef> <type>geometry "
-"</type> <parameter>A</parameter> </paramdef> <paramdef> <type>geometry </"
-"type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:1356
-#, fuzzy, no-c-format
+#: reference_operator.xml:1363
+#, no-c-format
 msgid ""
 "The <varname>~</varname> operator returns <varname>TRUE</varname> if the 2D "
 "bounding box of a geometry A contains the 2D bounding box B, using float "
 "precision. This means that if B is a (double precision) box2d, it will be "
 "internally converted to a float precision 2D bounding box (BOX2DF)"
 msgstr ""
-"O operador <varname>|&amp;&gt;</varname> retorna <varname>VERDADE</varname> "
-"se a caixa limitadora da geometria A sobrepõe ou está acima da caixa da "
-"geometria B, ou mais precisamente, sobrepõe ou NÃO está abaixo da caixa "
-"limitadora da geometria B. "
 
 #. Tag: programlisting
-#: reference_operator.xml:1369
+#: reference_operator.xml:1376
 #, no-c-format
 msgid ""
 "SELECT ST_Buffer(ST_GeomFromText('POINT(1 1)'), 10) ~ "
-"ST_MakeBox2D(ST_MakePoint(0,0), ST_MakePoint(2,2)) AS contains;\n"
+"ST_MakeBox2D(ST_Point(0,0), ST_Point(2,2)) AS contains;\n"
 "\n"
 " contains\n"
 "----------\n"
@@ -2055,7 +1920,7 @@ msgid ""
 msgstr ""
 
 #. Tag: para
-#: reference_operator.xml:1375
+#: reference_operator.xml:1382
 #, no-c-format
 msgid ""
 ", <xref linkend=\"overlaps_box2df_geometry\"/>, <xref linkend="
@@ -2067,51 +1932,43 @@ msgid ""
 msgstr ""
 
 #. Tag: refname
-#: reference_operator.xml:1389
+#: reference_operator.xml:1396
 #, no-c-format
 msgid "~(box2df,geometry)"
 msgstr ""
 
 #. Tag: refpurpose
-#: reference_operator.xml:1391
-#, fuzzy, no-c-format
+#: reference_operator.xml:1398
+#, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if a 2D float precision bounding box "
 "(BOX2DF) contains a geometry's 2D bonding box."
 msgstr ""
-"Retorna <varname>VERDADE</varname> se a caixa limitadora 2D de A intersecta "
-"a caixa limitadora 2D de B. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:1396
-#, fuzzy, no-c-format
+#: reference_operator.xml:1403
+#, no-c-format
 msgid ""
 "<funcdef>boolean <function>~</function></funcdef> <paramdef> <type>box2df </"
 "type> <parameter>A</parameter> </paramdef> <paramdef> <type>geometry </type> "
 "<parameter>B</parameter> </paramdef>"
 msgstr ""
-"<funcdef>boolean <function>~</function></funcdef> <paramdef> <type>geometry "
-"</type> <parameter>A</parameter> </paramdef> <paramdef> <type>geometry </"
-"type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:1417
-#, fuzzy, no-c-format
+#: reference_operator.xml:1424
+#, no-c-format
 msgid ""
 "The <varname>~</varname> operator returns <varname>TRUE</varname> if the 2D "
 "bounding box A contains the B geometry's bounding box, using float "
 "precision. This means that if A is a (double precision) box2d, it will be "
 "internally converted to a float precision 2D bounding box (BOX2DF)"
 msgstr ""
-"O operador <varname>@</varname> retorna <varname>VERDADE</varname> se a "
-"caixa limitadora da geometria A estiver completamente contida pela caixa "
-"limitadora da geometria B."
 
 #. Tag: programlisting
-#: reference_operator.xml:1430
+#: reference_operator.xml:1437
 #, no-c-format
 msgid ""
-"SELECT ST_MakeBox2D(ST_MakePoint(0,0), ST_MakePoint(5,5)) ~ "
+"SELECT ST_MakeBox2D(ST_Point(0,0), ST_Point(5,5)) ~ "
 "ST_Buffer(ST_GeomFromText('POINT(2 2)'), 1) AS contains;\n"
 "\n"
 " contains\n"
@@ -2121,7 +1978,7 @@ msgid ""
 msgstr ""
 
 #. Tag: para
-#: reference_operator.xml:1436
+#: reference_operator.xml:1443
 #, no-c-format
 msgid ""
 ", <xref linkend=\"overlaps_box2df_geometry\"/>, <xref linkend="
@@ -2133,52 +1990,44 @@ msgid ""
 msgstr ""
 
 #. Tag: refname
-#: reference_operator.xml:1450
+#: reference_operator.xml:1457
 #, no-c-format
 msgid "~(box2df,box2df)"
 msgstr ""
 
 #. Tag: refpurpose
-#: reference_operator.xml:1452
-#, fuzzy, no-c-format
+#: reference_operator.xml:1459
+#, no-c-format
 msgid ""
 "Returns <varname>TRUE</varname> if a 2D float precision bounding box "
 "(BOX2DF) contains another 2D float precision bounding box (BOX2DF)."
 msgstr ""
-"Retorna <varname>VERDADE</varname>se a caixa limitadora de A for a mesma de "
-"B. Utiliza precisão dupla de caixa limitadora."
 
 #. Tag: funcprototype
-#: reference_operator.xml:1457
-#, fuzzy, no-c-format
+#: reference_operator.xml:1464
+#, no-c-format
 msgid ""
 "<funcdef>boolean <function>~</function></funcdef> <paramdef> <type>box2df </"
 "type> <parameter>A</parameter> </paramdef> <paramdef> <type>box2df </type> "
 "<parameter>B</parameter> </paramdef>"
 msgstr ""
-"<funcdef>boolean <function>~</function></funcdef> <paramdef> <type>geometry "
-"</type> <parameter>A</parameter> </paramdef> <paramdef> <type>geometry </"
-"type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:1478
-#, fuzzy, no-c-format
+#: reference_operator.xml:1485
+#, no-c-format
 msgid ""
 "The <varname>~</varname> operator returns <varname>TRUE</varname> if the 2D "
 "bounding box A contains the 2D bounding box B, using float precision. This "
 "means that if A is a (double precision) box2d, it will be internally "
 "converted to a float precision 2D bounding box (BOX2DF)"
 msgstr ""
-"O operador <varname>@</varname> retorna <varname>VERDADE</varname> se a "
-"caixa limitadora da geometria A estiver completamente contida pela caixa "
-"limitadora da geometria B."
 
 #. Tag: programlisting
-#: reference_operator.xml:1491
+#: reference_operator.xml:1498
 #, no-c-format
 msgid ""
-"SELECT ST_MakeBox2D(ST_MakePoint(0,0), ST_MakePoint(5,5)) ~ "
-"ST_MakeBox2D(ST_MakePoint(2,2), ST_MakePoint(3,3)) AS contains;\n"
+"SELECT ST_MakeBox2D(ST_Point(0,0), ST_Point(5,5)) ~ "
+"ST_MakeBox2D(ST_Point(2,2), ST_Point(3,3)) AS contains;\n"
 "\n"
 " contains\n"
 "----------\n"
@@ -2187,8 +2036,8 @@ msgid ""
 msgstr ""
 
 #. Tag: para
-#: reference_operator.xml:1497
-#, fuzzy, no-c-format
+#: reference_operator.xml:1504
+#, no-c-format
 msgid ""
 ", <xref linkend=\"overlaps_box2df_geometry\"/>, <xref linkend="
 "\"overlaps_box2df_box2df\"/>, <xref linkend=\"contains_geometry_box2df\"/>, "
@@ -2197,25 +2046,22 @@ msgid ""
 "\"is_contained_box2df_geometry\"/>, <xref linkend="
 "\"is_contained_box2df_box2df\"/>"
 msgstr ""
-", <xref linkend=\"ST_Geometry_Overright\"/>, <xref linkend="
-"\"ST_Geometry_Overbelow\"/>, <xref linkend=\"ST_Geometry_Overleft\"/>, <xref "
-"linkend=\"ST_Geometry_Contain\"/>, <xref linkend=\"ST_Geometry_Contained\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:1511
+#: reference_operator.xml:1518
 #, no-c-format
 msgid "<refname>~=</refname>"
 msgstr "<refname>~=</refname>"
 
 #. Tag: refpurpose
-#: reference_operator.xml:1513
+#: reference_operator.xml:1520
 #, no-c-format
 msgid "Returns <varname>TRUE</varname> if A's bounding box is the same as B's."
 msgstr ""
 "Retorna <varname>VERDADE</varname> se a caixa limitadora de A é a mesma de B."
 
 #. Tag: funcprototype
-#: reference_operator.xml:1518
+#: reference_operator.xml:1525
 #, no-c-format
 msgid ""
 "<funcdef>boolean <function>~=</function></funcdef> <paramdef> <type>geometry "
@@ -2227,7 +2073,7 @@ msgstr ""
 "type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:1542
+#: reference_operator.xml:1549
 #, no-c-format
 msgid ""
 "The <varname>~=</varname> operator returns <varname>TRUE</varname> if the "
@@ -2239,14 +2085,14 @@ msgstr ""
 "geometria/geografia B."
 
 #. Tag: para
-#: reference_operator.xml:1548
+#: reference_operator.xml:1555
 #, no-c-format
 msgid "Availability: 1.5.0 changed behavior"
 msgstr "Disponibilidade: 1.5.0 comportamento alterado"
 
 #. Tag: para
-#: reference_operator.xml:1552
-#, fuzzy, no-c-format
+#: reference_operator.xml:1559
+#, no-c-format
 msgid ""
 "This operator has changed behavior in PostGIS 1.5 from testing for actual "
 "geometric equality to only checking for bounding box equality. To complicate "
@@ -2255,18 +2101,9 @@ msgid ""
 "can run the query below. To check for true equality use <xref linkend="
 "\"ST_OrderingEquals\"/> or <xref linkend=\"ST_Equals\"/>."
 msgstr ""
-"Esse operador mudou seu comportamento no PostGIS 1.5 de teste para igualdade "
-"geométrica de verdade, de apenas checar para igualdade de caixa limitadora. "
-"Para complicar as coisas, ele também depende se você fez uma atualização "
-"hard ou soft e qual comportamento seu banco de dados tem. Para encontrar "
-"qual comportamento seu banco de dados, você pode executar a pesquisa abaixo. "
-"Para verificar igualdade verdadeira, use: <xref linkend=\"ST_OrderingEquals"
-"\"/> or <xref linkend=\"ST_Equals\"/> e para verificar igualdade de caixas "
-"limitadoras: <xref linkend=\"ST_Geometry_EQ\"/>; operador é uma opção mais "
-"segura.  "
 
 #. Tag: programlisting
-#: reference_operator.xml:1565
+#: reference_operator.xml:1572
 #, no-c-format
 msgid ""
 "select 'LINESTRING(0 0, 1 1)'::geometry ~= 'LINESTRING(0 1, 1 0)'::geometry "
@@ -2282,27 +2119,33 @@ msgstr ""
 "          t    |"
 
 #. Tag: para
-#: reference_operator.xml:1569
+#: reference_operator.xml:1576
 #, no-c-format
 msgid ""
 ", <xref linkend=\"ST_OrderingEquals\"/>, <xref linkend=\"ST_Geometry_EQ\"/>"
 msgstr ""
 ", <xref linkend=\"ST_OrderingEquals\"/>, <xref linkend=\"ST_Geometry_EQ\"/>"
 
+#. Tag: title
+#: reference_operator.xml:1584
+#, fuzzy, no-c-format
+msgid "Distance Operators"
+msgstr "Operadores"
+
 #. Tag: refname
-#: reference_operator.xml:1575
+#: reference_operator.xml:1589
 #, no-c-format
 msgid "&lt;-&gt;"
 msgstr "&lt;-&gt;"
 
 #. Tag: refpurpose
-#: reference_operator.xml:1577
+#: reference_operator.xml:1591
 #, no-c-format
 msgid "Returns the 2D distance between A and B."
 msgstr "Retorna a distância 2D entre A e B."
 
 #. Tag: funcsynopsis
-#: reference_operator.xml:1583
+#: reference_operator.xml:1597
 #, no-c-format
 msgid ""
 "<funcprototype> <funcdef>double precision <function>&lt;-&gt;</function></"
@@ -2322,7 +2165,7 @@ msgstr ""
 "<parameter>B</parameter> </paramdef> </funcprototype>"
 
 #. Tag: para
-#: reference_operator.xml:1621
+#: reference_operator.xml:1635
 #, no-c-format
 msgid ""
 "The <varname>&lt;-&gt;</varname> operator returns the 2D distance between "
@@ -2340,7 +2183,7 @@ msgstr ""
 "distâncias entre geometrias, e distância esférica para geografias. "
 
 #. Tag: para
-#: reference_operator.xml:1630
+#: reference_operator.xml:1644
 #, no-c-format
 msgid ""
 "This operand will make use of 2D GiST indexes that may be available on the "
@@ -2353,7 +2196,7 @@ msgstr ""
 "que eles só são usados quando o operador está na oração ORDEM. "
 
 #. Tag: para
-#: reference_operator.xml:1631 reference_operator.xml:1824
+#: reference_operator.xml:1645 reference_operator.xml:1838
 #, no-c-format
 msgid ""
 "Index only kicks in if one of the geometries is a constant (not in a "
@@ -2365,11 +2208,11 @@ msgstr ""
 "uma .geom"
 
 #. Tag: para
-#: reference_operator.xml:1632
-#, no-c-format
+#: reference_operator.xml:1646
+#, fuzzy, no-c-format
 msgid ""
-"Refer to <ulink url=\"http://workshops.opengeo.org/postgis-intro/knn.html"
-"\">OpenGeo workshop: Nearest-Neighbour Searching</ulink> for real live "
+"Refer to <ulink url=\"https://postgis.net/workshops/postgis-intro/knn.html"
+"\">PostGIS workshop: Nearest-Neighbor Searching</ulink> for a detailed "
 "example."
 msgstr ""
 "Vá para <ulink url=\"http://workshops.opengeo.org/postgis-intro/knn.html"
@@ -2377,7 +2220,7 @@ msgstr ""
 "real. "
 
 #. Tag: para
-#: reference_operator.xml:1634
+#: reference_operator.xml:1648
 #, no-c-format
 msgid ""
 "Enhanced: 2.2.0 -- True KNN (\"K nearest neighbor\") behavior for geometry "
@@ -2391,7 +2234,7 @@ msgstr ""
 "menor, o suporte para geografia é novo, mas só suporta caixa centroide. "
 
 #. Tag: para
-#: reference_operator.xml:1635
+#: reference_operator.xml:1649
 #, no-c-format
 msgid ""
 "Changed: 2.2.0 -- For PostgreSQL 9.5 users, old Hybrid syntax may be slower, "
@@ -2404,7 +2247,7 @@ msgstr ""
 "abaixo. "
 
 #. Tag: para
-#: reference_operator.xml:1636
+#: reference_operator.xml:1650
 #, no-c-format
 msgid ""
 "Availability: 2.0.0 -- Weak KNN provides nearest neighbors based on geometry "
@@ -2417,7 +2260,7 @@ msgstr ""
 "tipos. Disponível para PostgreSQL 9.1+"
 
 #. Tag: programlisting
-#: reference_operator.xml:1643
+#: reference_operator.xml:1657
 #, no-c-format
 msgid ""
 "<![CDATA[SELECT ST_Distance(geom, 'SRID=3005;POINT(1011102 450541)'::"
@@ -2459,13 +2302,13 @@ msgstr ""
 "(10 rows)"
 
 #. Tag: para
-#: reference_operator.xml:1644
+#: reference_operator.xml:1658
 #, no-c-format
 msgid "Then the KNN raw answer:"
 msgstr "Então, a resposta KNN crua:"
 
 #. Tag: programlisting
-#: reference_operator.xml:1647
+#: reference_operator.xml:1661
 #, no-c-format
 msgid ""
 "<![CDATA[SELECT st_distance(geom, 'SRID=3005;POINT(1011102 450541)'::"
@@ -2507,7 +2350,7 @@ msgstr ""
 "(10 rows)"
 
 #. Tag: para
-#: reference_operator.xml:1648
+#: reference_operator.xml:1662
 #, no-c-format
 msgid ""
 "If you run \"EXPLAIN ANALYZE\" on the two queries you would see a "
@@ -2517,7 +2360,7 @@ msgstr ""
 "apresentação melhorada para a segunda."
 
 #. Tag: para
-#: reference_operator.xml:1652
+#: reference_operator.xml:1666
 #, no-c-format
 msgid ""
 "For users running with PostgreSQL &lt; 9.5, use a hybrid query to find the "
@@ -2530,7 +2373,7 @@ msgstr ""
 "certa: "
 
 #. Tag: programlisting
-#: reference_operator.xml:1655
+#: reference_operator.xml:1669
 #, no-c-format
 msgid ""
 "<![CDATA[WITH index_query AS (\n"
@@ -2580,7 +2423,7 @@ msgstr ""
 "(10 rows)"
 
 #. Tag: para
-#: reference_operator.xml:1659
+#: reference_operator.xml:1673
 #, no-c-format
 msgid ""
 ", <xref linkend=\"ST_Distance\"/>, <xref linkend=\"geometry_distance_box\"/>"
@@ -2588,13 +2431,13 @@ msgstr ""
 ", <xref linkend=\"ST_Distance\"/>, <xref linkend=\"geometry_distance_box\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:1665
+#: reference_operator.xml:1679
 #, no-c-format
 msgid "<refname>|=|</refname>"
 msgstr "<refname>|=|</refname>"
 
 #. Tag: refpurpose
-#: reference_operator.xml:1667
+#: reference_operator.xml:1681
 #, no-c-format
 msgid ""
 "Returns the distance between A and B trajectories at their closest point of "
@@ -2604,7 +2447,7 @@ msgstr ""
 "perto. "
 
 #. Tag: funcprototype
-#: reference_operator.xml:1674
+#: reference_operator.xml:1688
 #, no-c-format
 msgid ""
 "<funcdef>double precision <function>|=|</function></funcdef> <paramdef> "
@@ -2616,13 +2459,13 @@ msgstr ""
 "<type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:1696
-#, no-c-format
+#: reference_operator.xml:1710
+#, fuzzy, no-c-format
 msgid ""
 "The <varname>|=|</varname> operator returns the 3D distance between two "
 "trajectories (See <xref linkend=\"ST_IsValidTrajectory\"/>). This is the "
 "same as <xref linkend=\"ST_DistanceCPA\"/> but as an operator it can be used "
-"for doing nearest neightbor searches using an N-dimensional index (requires "
+"for doing nearest neighbor searches using an N-dimensional index (requires "
 "PostgreSQL 9.5.0 or higher)."
 msgstr ""
 "O operador <varname>|=|</varname> retorna a distância 3D entre duas "
@@ -2632,7 +2475,7 @@ msgstr ""
 "(requer PostgreSQL 9.5.0 ou superior). "
 
 #. Tag: para
-#: reference_operator.xml:1704
+#: reference_operator.xml:1718
 #, no-c-format
 msgid ""
 "This operand will make use of ND GiST indexes that may be available on the "
@@ -2645,7 +2488,7 @@ msgstr ""
 "que eles só são usados quando o operador está na oração ORDEM. "
 
 #. Tag: para
-#: reference_operator.xml:1705
+#: reference_operator.xml:1719
 #, no-c-format
 msgid ""
 "Index only kicks in if one of the geometries is a constant (not in a "
@@ -2657,7 +2500,7 @@ msgstr ""
 "de uma .geom"
 
 #. Tag: para
-#: reference_operator.xml:1707
+#: reference_operator.xml:1721
 #, no-c-format
 msgid "Availability: 2.2.0. Index-supported only available for PostgreSQL 9.5+"
 msgstr ""
@@ -2665,7 +2508,7 @@ msgstr ""
 "9.5+"
 
 #. Tag: programlisting
-#: reference_operator.xml:1713
+#: reference_operator.xml:1727
 #, no-c-format
 msgid ""
 "-- Save a literal query trajectory in a psql variable...\n"
@@ -2707,7 +2550,7 @@ msgstr ""
 "(5 rows)"
 
 #. Tag: para
-#: reference_operator.xml:1717
+#: reference_operator.xml:1731
 #, no-c-format
 msgid ""
 ", <xref linkend=\"ST_ClosestPointOfApproach\"/>, <xref linkend="
@@ -2717,19 +2560,19 @@ msgstr ""
 "\"ST_IsValidTrajectory\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:1727
+#: reference_operator.xml:1741
 #, no-c-format
 msgid "&lt;#&gt;"
 msgstr "&lt;#&gt;"
 
 #. Tag: refpurpose
-#: reference_operator.xml:1729
+#: reference_operator.xml:1743
 #, no-c-format
 msgid "Returns the 2D distance between A and B bounding boxes."
 msgstr "Retorna a distância 2D entre as caixas limitadoras de A e B."
 
 #. Tag: funcprototype
-#: reference_operator.xml:1736
+#: reference_operator.xml:1750
 #, no-c-format
 msgid ""
 "<funcdef>double precision <function>&lt;#&gt;</function></funcdef> "
@@ -2741,7 +2584,7 @@ msgstr ""
 "<paramdef> <type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:1757
+#: reference_operator.xml:1771
 #, no-c-format
 msgid ""
 "The <varname>&lt;#&gt;</varname> operator returns distance between two "
@@ -2755,7 +2598,7 @@ msgstr ""
 "\"strong\">aproximar</emphasis> a distância pedida. "
 
 #. Tag: para
-#: reference_operator.xml:1759 reference_operator.xml:1878
+#: reference_operator.xml:1773 reference_operator.xml:1892
 #, no-c-format
 msgid ""
 "This operand will make use of any indexes that may be available on the "
@@ -2768,7 +2611,7 @@ msgstr ""
 "que eles só são usados quando o operador está na oração ORDEM. "
 
 #. Tag: para
-#: reference_operator.xml:1762
+#: reference_operator.xml:1776
 #, no-c-format
 msgid ""
 "Index only kicks in if one of the geometries is a constant e.g. ORDER BY "
@@ -2779,13 +2622,13 @@ msgstr ""
 "#&gt;."
 
 #. Tag: para
-#: reference_operator.xml:1764
+#: reference_operator.xml:1778
 #, no-c-format
 msgid "Availability: 2.0.0 -- KNN only available for PostgreSQL 9.1+"
 msgstr "Disponibilidade: 2.0.0 -- KNN só está disponível para PostgreSQL 9.1+"
 
 #. Tag: programlisting
-#: reference_operator.xml:1770
+#: reference_operator.xml:1784
 #, no-c-format
 msgid ""
 "<![CDATA[SELECT *\n"
@@ -2849,7 +2692,7 @@ msgstr ""
 "(10 rows)"
 
 #. Tag: para
-#: reference_operator.xml:1774
+#: reference_operator.xml:1788
 #, no-c-format
 msgid ""
 ", <xref linkend=\"ST_Distance\"/>, <xref linkend=\"geometry_distance_knn\"/>"
@@ -2857,13 +2700,13 @@ msgstr ""
 ", <xref linkend=\"ST_Distance\"/>, <xref linkend=\"geometry_distance_knn\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:1780
+#: reference_operator.xml:1794
 #, no-c-format
 msgid "&lt;&lt;-&gt;&gt;"
 msgstr "&lt;&lt;-&gt;&gt;"
 
 #. Tag: refpurpose
-#: reference_operator.xml:1782
+#: reference_operator.xml:1796
 #, no-c-format
 msgid ""
 "Returns the n-D distance between the centroids of A and B bounding boxes."
@@ -2871,7 +2714,7 @@ msgstr ""
 "Retorna a distância n-D entre as centroides das caixas limitadoras de A e B."
 
 #. Tag: funcprototype
-#: reference_operator.xml:1790
+#: reference_operator.xml:1804
 #, no-c-format
 msgid ""
 "<funcdef>double precision <function>&lt;&lt;-&gt;&gt;</function></funcdef> "
@@ -2883,7 +2726,7 @@ msgstr ""
 "<paramdef> <type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:1811
+#: reference_operator.xml:1825
 #, no-c-format
 msgid ""
 "The <varname>&lt;&lt;-&gt;&gt;</varname> operator returns the n-D "
@@ -2897,7 +2740,7 @@ msgstr ""
 "\"strong\">aproximar</emphasis> a distância perdida."
 
 #. Tag: para
-#: reference_operator.xml:1818
+#: reference_operator.xml:1832
 #, no-c-format
 msgid ""
 "This operand will make use of n-D GiST indexes that may be available on the "
@@ -2910,31 +2753,31 @@ msgstr ""
 "que eles só são usados quando o operador está na oração ORDEM. "
 
 #. Tag: para
-#: reference_operator.xml:1830 reference_operator.xml:1887
+#: reference_operator.xml:1844 reference_operator.xml:1901
 #, no-c-format
 msgid "Availability: 2.2.0 -- KNN only available for PostgreSQL 9.1+"
 msgstr "Disponibilidade: 2.2.0 -- KNN só está disponível para PostgreSQL 9.1+"
 
 #. Tag: para
-#: reference_operator.xml:1837
+#: reference_operator.xml:1851
 #, no-c-format
 msgid ", <xref linkend=\"geometry_distance_knn\"/>"
 msgstr ", <xref linkend=\"geometry_distance_knn\"/>"
 
 #. Tag: refname
-#: reference_operator.xml:1846
+#: reference_operator.xml:1860
 #, no-c-format
 msgid "&lt;&lt;#&gt;&gt;"
 msgstr "&lt;&lt;#&gt;&gt;"
 
 #. Tag: refpurpose
-#: reference_operator.xml:1848
+#: reference_operator.xml:1862
 #, no-c-format
 msgid "Returns the n-D distance between A and B bounding boxes."
 msgstr "Retorna a distância n-D entre as caixas limitadoras de A e B."
 
 #. Tag: funcprototype
-#: reference_operator.xml:1855
+#: reference_operator.xml:1869
 #, no-c-format
 msgid ""
 "<funcdef>double precision <function>&lt;&lt;#&gt;&gt;</function></funcdef> "
@@ -2946,7 +2789,7 @@ msgstr ""
 "<paramdef> <type>geometry </type> <parameter>B</parameter> </paramdef>"
 
 #. Tag: para
-#: reference_operator.xml:1876
+#: reference_operator.xml:1890
 #, no-c-format
 msgid ""
 "The <varname>&lt;&lt;#&gt;&gt;</varname> operator returns distance between "
@@ -2960,7 +2803,7 @@ msgstr ""
 "<emphasis role=\"strong\">aproximar</emphasis> uma distância pedida. "
 
 #. Tag: para
-#: reference_operator.xml:1881
+#: reference_operator.xml:1895
 #, no-c-format
 msgid ""
 "Index only kicks in if one of the geometries is a constant e.g. ORDER BY "
@@ -2972,60 +2815,7 @@ msgstr ""
 "&lt;&lt;#&gt;&gt;."
 
 #. Tag: para
-#: reference_operator.xml:1893
+#: reference_operator.xml:1907
 #, no-c-format
 msgid ", <xref linkend=\"geometry_distance_box\"/>"
 msgstr ", <xref linkend=\"geometry_distance_box\"/>"
-
-#~ msgid ""
-#~ "Returns <varname>TRUE</varname> if A's bounding box is the same as B's. "
-#~ "Uses double precision bounding box."
-#~ msgstr ""
-#~ "Retorna <varname>VERDADE</varname>se a caixa limitadora de A for a mesma "
-#~ "de B. Utiliza precisão dupla de caixa limitadora."
-
-#~ msgid ""
-#~ "This is cause for a lot of confusion. When you compare geometryA = "
-#~ "geometryB it will return true even when the geometries are clearly "
-#~ "different IF their bounding boxes are the same. To check for true "
-#~ "equality use <xref linkend=\"ST_OrderingEquals\"/> or <xref linkend="
-#~ "\"ST_Equals\"/>"
-#~ msgstr ""
-#~ "Isso é a razão para muita confusão. Quando você compara geometryA = "
-#~ "geometryB se tornará verdade mesmo quando as geometrias são claramente "
-#~ "diferentes SE as caixas limitadoras delas são as mesmas. Para verificar "
-#~ "de são de igualdade verdadeira, use: <xref linkend=\"ST_OrderingEquals\"/"
-#~ "> ou <xref linkend=\"ST_Equals\"/>"
-
-#~ msgid ""
-#~ "Changed: 2.0.0 , the bounding box of geometries was changed to use double "
-#~ "precision instead of float4 precision of prior. The side effect of this "
-#~ "is that in particular points in prior versions that were a little "
-#~ "different may have returned true in prior versions and false in 2.0+ "
-#~ "since their float4 boxes would be the same but there float8 (double "
-#~ "precision), would be different."
-#~ msgstr ""
-#~ "Alterações: 2.0.0, a caixa limitadora de geometrias foi alterada para "
-#~ "usar precisão dupla ao invés de precisão float4. O efeito colateral é que "
-#~ "em pontos particulares em versões anteriores que foram um pouco "
-#~ "diferentes podem ter retornado verdade e falso em 2.0+ suas caixas float4 "
-#~ "seriam as mesmas, mas as float8 (precisão dupla) seriam diferentes. "
-
-#~ msgid ", <xref linkend=\"ST_OrderingEquals\"/>"
-#~ msgstr ", <xref linkend=\"ST_OrderingEquals\"/>"
-
-#~ msgid ""
-#~ "The above can be used to test if you have the new or old behavior of ~= "
-#~ "operator."
-#~ msgstr ""
-#~ "Aquele acima pode ser usado para testar se você tem o comportamento do ~= "
-#~ "operador novo ou antigo."
-
-#~ msgid ""
-#~ "The <varname>|&gt;&gt;</varname> operator returns <varname>TRUE</varname> "
-#~ "if the bounding box of geometry A is strictly to the right of the "
-#~ "bounding box of geometry B."
-#~ msgstr ""
-#~ "O operador <varname>|&gt;&gt;</varname> retorna <varname>VERDADE</"
-#~ "varname> se a caixa limitadora  da geometria A está estritamente à "
-#~ "direita da caixa limitadora da geometria B. "

@@ -113,7 +113,7 @@ rt_band_get_summary_stats(
 	uint64_t *cK, double *cM, double *cQ
 ) {
 	uint32_t x = 0;
-	uint32_t y = 0;
+	int64_t y = 0;
 	uint32_t z = 0;
 	uint32_t offset = 0;
 	uint32_t diff = 0;
@@ -271,7 +271,6 @@ rt_band_get_summary_stats(
 	stats->min = stats->max = 0;
 	stats->values = NULL;
 	stats->sorted = 0;
-	int values_size = sample_size;
 
 	for (x = 0, j = 0, k = 0; x < band->width; x++) {
 		y = -1;
@@ -298,10 +297,6 @@ rt_band_get_summary_stats(
 
 				/* average */
 				k++;
-				if (k == values_size) {
-					values = rtrealloc(values, 2 * k * sizeof(double));
-					values_size *= 2;
-				}
 				sum += value;
 
 				/*
@@ -419,14 +414,14 @@ rt_band_get_summary_stats(
 rt_histogram
 rt_band_get_histogram(
 	rt_bandstats stats,
-	int bin_count, double *bin_width, int bin_width_count,
+	uint32_t bin_count, double *bin_width, uint32_t bin_width_count,
 	int right, double min, double max,
 	uint32_t *rtn_count
 ) {
 	rt_histogram bins = NULL;
 	int init_width = 0;
-	int i;
-	int j;
+	uint32_t i;
+	uint32_t j;
 	double tmp;
 	double value;
 	int sum = 0;
@@ -556,7 +551,7 @@ rt_band_get_histogram(
 	}
 
 	/* initialize bins */
-	bins = rtalloc((bin_count + 1) * sizeof(struct rt_histogram_t));
+	bins = rtalloc(bin_count * sizeof(struct rt_histogram_t));
 	if (NULL == bins) {
 		rterror("rt_util_get_histogram: Could not allocate memory for histogram");
 		if (init_width) rtdealloc(bin_width);
@@ -587,11 +582,8 @@ rt_band_get_histogram(
 				bins[i].inc_min = 0;
 				bins[i].inc_max = 1;
 			}
+
 			i++;
-			if (i == bin_count) {
-				break;
-			}
-				
 		}
 	}
 	if (!right) {
@@ -951,7 +943,7 @@ static void quantile_llist_index_delete(struct quantile_llist *qll, struct quant
 		}
 
 		RASTER_DEBUGF(5, "deleting index: %d => %f", i, qle->value);
-		qll->index[i].index = -1;
+		qll->index[i].index = UINT32_MAX;
 		qll->index[i].element = NULL;
 	}
 }
@@ -996,7 +988,7 @@ static void quantile_llist_index_reset(struct quantile_llist *qll) {
 
 	RASTER_DEBUG(5, "resetting index");
 	for (i = 0; i < qll->index_max; i++) {
-		qll->index[i].index = -1;
+		qll->index[i].index = UINT32_MAX;
 		qll->index[i].element = NULL;
 	}
 }
@@ -1035,7 +1027,7 @@ rt_band_get_quantiles_stream(
 	int exclude_nodata_value, double sample,
 	uint64_t cov_count,
 	struct quantile_llist **qlls, uint32_t *qlls_count,
-	double *quantiles, int quantiles_count,
+	double *quantiles, uint32_t quantiles_count,
 	uint32_t *rtn_count
 ) {
 	rt_quantile rtn = NULL;
@@ -1055,7 +1047,7 @@ rt_band_get_quantiles_stream(
 	uint32_t j = 0;
 	uint32_t k = 0;
 	uint32_t x = 0;
-	uint32_t y = 0;
+	int64_t y = 0;
 	uint32_t z = 0;
 	uint32_t idx = 0;
 	uint32_t offset = 0;
@@ -1082,7 +1074,6 @@ rt_band_get_quantiles_stream(
 	if (cov_count <= 1) {
 		rterror("rt_band_get_quantiles_stream: cov_count must bigger than 1.");
 	}
-
 	RASTER_DEBUGF(3, "cov_count = %d", cov_count);
 
 	data = rt_band_get_data(band);
@@ -1651,7 +1642,7 @@ rt_band_get_value_count(
 	int scale = 0;
 	int doround = 0;
 	double tmpd = 0;
-	int i = 0;
+	uint32_t i = 0;
 
 	uint32_t x = 0;
 	uint32_t y = 0;
@@ -1660,8 +1651,8 @@ rt_band_get_value_count(
 	int isnodata = 0;
 	double rpxlval;
 	uint32_t total = 0;
-	int vcnts_count = 0;
-	int new_valuecount = 0;
+	uint32_t vcnts_count = 0;
+	uint32_t new_valuecount = 0;
 
 #if POSTGIS_DEBUG_LEVEL > 0
 	clock_t start, stop;
@@ -1708,7 +1699,7 @@ rt_band_get_value_count(
 	}
 	/* tenths, hundredths, thousandths, etc */
 	else if (roundto < 1) {
-    switch (pixtype) {
+	switch (pixtype) {
 			/* integer band types don't have digits after the decimal place */
 			case PT_1BB:
 			case PT_2BUI:

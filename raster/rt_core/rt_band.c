@@ -3,6 +3,7 @@
  * WKTRaster - Raster Types for PostGIS
  * http://trac.osgeo.org/postgis/wiki/WKTRaster
  *
+ * Copyright (C) 2018 Bborie Park <dustymugs@gmail.com>
  * Copyright (C) 2011-2013 Regents of the University of California
  *   <bkpark@ucdavis.edu>
  * Copyright (C) 2010-2011 Jorge Arevalo <jorge.arevalo@deimos-space.com>
@@ -27,11 +28,15 @@
  *
  */
 
+// For stat64()
+#define _LARGEFILE64_SOURCE 1
+
 #include <stdio.h>
 
 #include "librtcore.h"
 #include "librtcore_internal.h"
 
+#include "cpl_vsi.h"
 #include "gdal_vrt.h"
 
 /**
@@ -179,6 +184,102 @@ rt_band_new_offline(
 }
 
 /**
+ * Create an out-db rt_band from path
+ *
+ * @param width     : number of pixel columns
+ * @param height    : number of pixel rows
+ * @param hasnodata : indicates if the band has nodata value
+ * @param nodataval : the nodata value, will be appropriately
+ * @param bandNum   : 1-based band number in the external file
+ *                    to associate this band with.
+ * @param path      : NULL-terminated path string pointing to the file
+ *                    containing band data. The string will NOT be
+ *                    copied, ownership is left to caller which is
+ *                    responsible to keep it allocated for the whole
+ *                    lifetime of the returned rt_band.
+ * @param force     : if True, ignore all validation checks
+ *
+ * @return an rt_band, or 0 on failure
+ */
+rt_band
+rt_band_new_offline_from_path(
+	uint16_t width,
+	uint16_t height,
+	int hasnodata,
+	double nodataval,
+	uint8_t bandNum,
+	const char* path,
+	int force
+) {
+	GDALDatasetH hdsSrc = NULL;
+	int nband = 0;
+	GDALRasterBandH hbandSrc = NULL;
+
+	GDALDataType gdpixtype;
+	rt_pixtype pt = PT_END;
+
+	/* open outdb raster file */
+	rt_util_gdal_register_all(0);
+	hdsSrc = rt_util_gdal_open(path, GA_ReadOnly, 1);
+	if (hdsSrc == NULL && !force) {
+		rterror("rt_band_new_offline_from_path: Cannot open offline raster: %s", path);
+		return NULL;
+	}
+
+	nband = GDALGetRasterCount(hdsSrc);
+	if (!nband && !force) {
+		rterror("rt_band_new_offline_from_path: No bands found in offline raster: %s", path);
+		GDALClose(hdsSrc);
+		return NULL;
+	}
+	/* bandNum is 1-based */
+	else if (bandNum > nband && !force) {
+		rterror(
+			"rt_band_new_offline_from_path: Specified band %d not found in offline raster: %s",
+			bandNum,
+			path
+		);
+		GDALClose(hdsSrc);
+		return NULL;
+	}
+
+	hbandSrc = GDALGetRasterBand(hdsSrc, bandNum);
+	if (hbandSrc == NULL && !force) {
+		rterror(
+			"rt_band_new_offline_from_path: Cannot get band %d from GDAL dataset",
+			bandNum
+		);
+		GDALClose(hdsSrc);
+		return NULL;
+	}
+
+	gdpixtype = GDALGetRasterDataType(hbandSrc);
+	pt = rt_util_gdal_datatype_to_pixtype(gdpixtype);
+	if (pt == PT_END && !force) {
+		rterror(
+			"rt_band_new_offline_from_path: Unsupported pixel type %s of band %d from GDAL dataset",
+			GDALGetDataTypeName(gdpixtype),
+			bandNum
+		);
+		GDALClose(hdsSrc);
+		return NULL;
+	}
+
+	/* use out-db band's nodata value if nodataval not already set */
+	if (!hasnodata)
+		nodataval = GDALGetRasterNoDataValue(hbandSrc, &hasnodata);
+
+	GDALClose(hdsSrc);
+
+	return rt_band_new_offline(
+		width, height,
+		pt,
+		hasnodata, nodataval,
+		bandNum - 1, path
+	);
+}
+
+/**
  * Create a new band duplicated from source band.  Memory is allocated
  * for band path (if band is offline) or band data (if band is online).
  * The caller is responsible for freeing the memory when the returned
@@ -235,14 +336,11 @@ rt_band_duplicate(rt_band band) {
 
 int
 rt_band_is_offline(rt_band band) {
-
-    //assert(NULL != band);
+  //assert(NULL != band);
 	if (NULL == band) {
 		rterror("rt_band_is_offline: band cannot be NULL.");
 	}
-
-
-    return band->offline ? 1 : 0;
+	return band->offline ? 1 : 0;
 }
 
 /**
@@ -359,7 +457,6 @@ rt_band_load_offline_data(rt_band band) {
 	int nband = 0;
 	VRTDatasetH hdsDst = NULL;
 	VRTSourcedRasterBandH hbandDst = NULL;
-	double gt[6] = {0.};
 	double ogt[6] = {0};
 	double offset[2] = {0};
 
@@ -395,10 +492,7 @@ rt_band_load_offline_data(rt_band band) {
 	}
 
 	rt_util_gdal_register_all(0);
-	/*
 	hdsSrc = rt_util_gdal_open(band->data.offline.path, GA_ReadOnly, 1);
-	*/
-	hdsSrc = rt_util_gdal_open(band->data.offline.path, GA_ReadOnly, 0);
 	if (hdsSrc == NULL) {
 		rterror("rt_band_load_offline_data: Cannot open offline raster: %s", band->data.offline.path);
 		return ES_ERROR;
@@ -417,11 +511,6 @@ rt_band_load_offline_data(rt_band band) {
 		GDALClose(hdsSrc);
 		return ES_ERROR;
 	}
-
-	/* get raster's geotransform */
-	rt_raster_get_geotransform_matrix(band->raster, gt);
-	RASTER_DEBUGF(3, "Raster geotransform (%f, %f, %f, %f, %f, %f)",
-		gt[0], gt[1], gt[2], gt[3], gt[4], gt[5]);
 
 	/* get offline raster's geotransform */
 	if (GDALGetGeoTransform(hdsSrc, ogt) != CE_None) {
@@ -464,7 +553,7 @@ rt_band_load_offline_data(rt_band band) {
 
 	/* create VRT dataset */
 	hdsDst = VRTCreate(band->width, band->height);
-	GDALSetGeoTransform(hdsDst, gt);
+	GDALSetGeoTransform(hdsDst, ogt);
 	/*
 	GDALSetDescription(hdsDst, "/tmp/offline.vrt");
 	*/
@@ -526,6 +615,50 @@ rt_band_load_offline_data(rt_band band) {
 	rt_raster_destroy(_rast);
 
 	return ES_NONE;
+}
+
+uint64_t rt_band_get_file_size(rt_band band) {
+    VSIStatBufL sStat;
+
+    assert(NULL != band);
+    if (!band->offline) {
+        rterror("rt_band_get_file_size: Band is not offline");
+        return 0;
+    }
+    /* offline_data is disabled */
+    if (!enable_outdb_rasters) {
+        rterror("rt_band_get_file_size: Access to offline bands disabled");
+        return 0;
+    }
+
+    if( VSIStatL(band->data.offline.path, &sStat) != 0 ) {
+        rterror("rt_band_get_file_size: Cannot access file");
+        return 0;
+    }
+
+    return sStat.st_size;
+}
+
+uint64_t rt_band_get_file_timestamp(rt_band band) {
+    VSIStatBufL sStat;
+
+    assert(NULL != band);
+    if (!band->offline) {
+        rterror("rt_band_get_file_timestamp: Band is not offline");
+        return 0;
+    }
+    /* offline_data is disabled */
+    if (!enable_outdb_rasters) {
+        rterror("rt_band_get_file_timestamp: Access to offline bands disabled");
+        return 0;
+    }
+
+    if( VSIStatL(band->data.offline.path, &sStat) != 0 ) {
+        rterror("rt_band_get_file_timestamp: Cannot access file");
+        return 0;
+    }
+
+    return sStat.st_mtime;
 }
 
 rt_pixtype
@@ -592,7 +725,6 @@ rt_band_get_hasnodata_flag(rt_band band) {
 	if (NULL == band) {
 		rterror("rt_band_get_hasnodata_flag: band cannot be NULL.");
 	}
-
 
 	return band->hasnodata ? 1 : 0;
 }
@@ -918,7 +1050,7 @@ rt_band_set_pixel(
 	int *converted
 ) {
 	rt_pixtype pixtype = PT_END;
-	unsigned char* data = NULL;
+	uint8_t *data = NULL;
 	uint32_t offset = 0;
 
 	int32_t checkvalint = 0;
@@ -987,7 +1119,7 @@ rt_band_set_pixel(
 			break;
 		}
 		case PT_8BSI: {
-			data[offset] = rt_util_clamp_to_8BSI(val);
+			data[offset] = (uint8_t)rt_util_clamp_to_8BSI(val);
 			checkvalint = (int8_t) data[offset];
 			break;
 		}
@@ -1157,6 +1289,160 @@ rt_errorstate rt_band_get_pixel_line(
 }
 
 /**
+ * Retrieve a point value from the raster using a world coordinate
+ * and selected interpolation.
+ *
+ * @param band : the band to read for values
+ * @param xr : x unrounded raster coordinate
+ * @param yr : y unrounded raster coordinate
+ * @param r_value : return pointer for point value
+ * @param r_nodata : return pointer for if this is a nodata
+ *
+ * @return ES_ERROR on error, otherwise ES_NONE
+ */
+rt_errorstate
+rt_band_get_pixel_resample(
+	rt_band band,
+	double xr, double yr,
+	rt_resample_type resample,
+	double *r_value, int *r_nodata
+)
+{
+	if (resample == RT_BILINEAR) {
+		return rt_band_get_pixel_bilinear(
+			band, xr, yr, r_value, r_nodata
+			);
+	}
+	else if (resample == RT_NEAREST) {
+		return rt_band_get_pixel(
+			band, floor(xr), floor(yr),
+			r_value, r_nodata
+			);
+	}
+	else {
+		rtwarn("Invalid resample type requested %d", resample);
+		return ES_ERROR;
+	}
+
+}
+
+/**
+ * Retrieve a point value from the raster using a world coordinate
+ * and bilinear interpolation.
+ *
+ * @param rast : the raster to read for values
+ * @param bandnum : the band to read for the values
+ * @param xw : x world coordinate in
+ * @param yw : y world coordinate in
+ * @param r_value : return pointer for point value
+ * @param r_nodata : return pointer for if this is a nodata
+ *
+ * @return ES_ERROR on error, otherwise ES_NONE
+ */
+rt_errorstate
+rt_band_get_pixel_bilinear(
+	rt_band band,
+	double xr, double yr,
+	double *r_value, int *r_nodata)
+{
+	rt_errorstate err;
+	double xcenter, ycenter;
+	double values[2][2];
+	double nodatavalue = 0.0;
+	int   nodatas[2][2];
+	int x[2][2];
+	int y[2][2];
+	int xcell, ycell;
+	int xdir, ydir;
+	int i, j;
+	uint16_t width, height;
+
+	/* Cell coordinates */
+	xcell = (int)floor(xr);
+	ycell = (int)floor(yr);
+	xcenter = xcell + 0.5;
+	ycenter = ycell + 0.5;
+
+	/* Raster geometry */
+	width = rt_band_get_width(band);
+	height = rt_band_get_height(band);
+
+	/* Reject out-of-range sample */
+	if(xcell < 0 || ycell < 0 || xcell >= width || ycell >= height) {
+		rtwarn("Attempting to get pixel value with out of range raster coordinates: (%d, %d)", xcell, ycell);
+		return ES_ERROR;
+	}
+
+	/* Quadrant of 2x2 grid the raster coordinate falls in */
+	xdir = xr < xcenter ? 1 : 0;
+	ydir = yr < ycenter ? 1 : 0;
+
+	err = rt_band_get_nodata(band, &nodatavalue);
+	if (err != ES_NONE) {
+		nodatavalue = 0.0;
+	}
+
+	/* Read the 2x2 values from the band */
+	for (i = 0; i < 2; i++) {
+		for (j = 0; j < 2; j++) {
+			double value = nodatavalue;
+			int nodata = 0;
+			int xij = xcell + (i - xdir);
+			int yij = ycell + (j - ydir);
+
+			if(xij < 0 || yij < 0 || xij >= width || yij >= height) {
+				nodata = 1;
+			}
+			else {
+				rt_errorstate err = rt_band_get_pixel(
+					band, xij, yij,
+					&value, &nodata
+					);
+				if (err != ES_NONE)
+					nodata = 1;
+			}
+			x[i][j] = xij;
+			y[i][j] = yij;
+			values[i][j] = value;
+			nodatas[i][j] = nodata;
+		}
+	}
+
+	/* Point falls in nodata cell, just return nodata */
+	if (nodatas[xdir][ydir]) {
+		*r_value = nodatavalue;
+		*r_nodata = 1;
+		return ES_NONE;
+	}
+
+	/* Normalize raster coordinate to the bottom left */
+	/* so we are working on a unit square */
+	xr = xr - (x[0][0] + 0.5);
+	yr = yr - (y[0][0] + 0.5);
+
+	/* Point is in cell with values, so we take nodata */
+	/* neighbors off the table by matching them to the */
+	/* most controlling cell */
+	for (i = 0; i < 2; i++) {
+		for (j = 0; j < 2; j++) {
+			if (nodatas[i][j])
+				values[i][j] = values[xdir][ydir];
+		}
+	}
+
+	/* Calculate bilinear value */
+	/* https://en.wikipedia.org/wiki/Bilinear_interpolation#Unit_square */
+	*r_nodata = 0;
+	*r_value = values[0][0] * (1-xr) * (1-yr) +
+	           values[1][0] * (1-yr) * xr +
+	           values[0][1] * (1-xr) * yr +
+	           values[1][1] * xr * yr;
+
+	return ES_NONE;
+}
+
+
+/**
  * Get pixel value. If band's isnodata flag is TRUE, value returned
  * will be the band's NODATA value
  *
@@ -1259,7 +1545,7 @@ rt_band_get_pixel(
 			}
 #endif
 		case PT_8BSI: {
-			int8_t val = data[offset];
+			int8_t val = (int8_t)data[offset];
 			*value = val;
 			break;
 		}
@@ -1330,7 +1616,7 @@ rt_band_get_pixel(
  * @return -1 on error, otherwise the number of rt_pixel objects
  * in npixels
  */
-int rt_band_get_nearest_pixel(
+uint32_t rt_band_get_nearest_pixel(
 	rt_band band,
 	int x, int y,
 	uint16_t distancex, uint16_t distancey,
@@ -1341,7 +1627,7 @@ int rt_band_get_nearest_pixel(
 	int extent[4] = {0};
 	int max_extent[4] = {0};
 	int d0 = 0;
-	int distance[2] = {0};
+	uint32_t distance[2] = {0};
 	uint32_t _d[2] = {0};
 	uint32_t i = 0;
 	uint32_t j = 0;
@@ -1406,8 +1692,8 @@ int rt_band_get_nearest_pixel(
 			if distances won't capture extent of band, return 0
 		*/
 		else if (
-			((x < 0 && abs(x) > distance[0]) || (x - band->width >= distance[0])) ||
-			((y < 0 && abs(y) > distance[1]) || (y - band->height >= distance[1]))
+			((x < 0 && (uint32_t) abs(x) > distance[0]) || (x - band->width >= (int)distance[0])) ||
+			((y < 0 && (uint32_t) abs(y) > distance[1]) || (y - band->height >= (int)distance[1]))
 		) {
 			RASTER_DEBUG(4, "No nearest pixels possible for provided pixel and distances");
 			return 0;
@@ -1457,10 +1743,10 @@ int rt_band_get_nearest_pixel(
 	*npixels = NULL;
 
 	/* maximum extent */
-	max_extent[0] = x - distance[0]; /* min X */
-	max_extent[1] = y - distance[1]; /* min Y */
-	max_extent[2] = x + distance[0]; /* max X */
-	max_extent[3] = y + distance[1]; /* max Y */
+	max_extent[0] = x - (int)distance[0]; /* min X */
+	max_extent[1] = y - (int)distance[1]; /* min Y */
+	max_extent[2] = x + (int)distance[0]; /* max X */
+	max_extent[3] = y + (int)distance[1]; /* max Y */
 	RASTER_DEBUGF(4, "Maximum Extent: (%d, %d, %d, %d)",
 		max_extent[0], max_extent[1], max_extent[2], max_extent[3]);
 
@@ -1470,10 +1756,10 @@ int rt_band_get_nearest_pixel(
 		_d[0]++;
 		_d[1]++;
 
-		extent[0] = x - _d[0]; /* min x */
-		extent[1] = y - _d[1]; /* min y */
-		extent[2] = x + _d[0]; /* max x */
-		extent[3] = y + _d[1]; /* max y */
+		extent[0] = x - (int)_d[0]; /* min x */
+		extent[1] = y - (int)_d[1]; /* min y */
+		extent[2] = x + (int)_d[0]; /* max x */
+		extent[3] = y + (int)_d[1]; /* max y */
 
 		RASTER_DEBUGF(4, "Processing distances: %d x %d", _d[0], _d[1]);
 		RASTER_DEBUGF(4, "Extent: (%d, %d, %d, %d)",
@@ -1518,7 +1804,7 @@ int rt_band_get_nearest_pixel(
 				}
 
 				RASTER_DEBUGF(4, "_min, _max: %d, %d", *_min, _max);
-				for (k = 0; k < _max; k++) {
+				for (k = 0; k < (uint32_t) _max; k++) {
 					/* check that _x and _y are not outside max extent */
 					if (
 						_x < max_extent[0] || _x > max_extent[2] ||
@@ -1602,6 +1888,8 @@ int rt_band_get_nearest_pixel(
 
 	return count;
 }
+
+
 
 /**
  * Search band for pixel(s) with search values
@@ -1747,11 +2035,11 @@ rt_band_check_is_nodata(rt_band band) {
 	if (NULL == band) {
 		rterror("rt_band_check_is_nodata: band cannot be NULL.");
 	}
+	band->isnodata = FALSE;
 
 	/* Check if band has nodata value */
 	if (!band->hasnodata) {
 		RASTER_DEBUG(3, "Band has no NODATA value");
-		band->isnodata = FALSE;
 		return FALSE;
 	}
 

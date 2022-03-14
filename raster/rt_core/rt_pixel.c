@@ -78,7 +78,7 @@ rt_pixtype_alignment(rt_pixtype pixtype) {
 
 rt_pixtype
 rt_pixtype_index_from_name(const char* pixname) {
-	assert(pixname && strlen(pixname) > 0);
+	assert(pixname);
 
 	if (strcmp(pixname, "1BB") == 0)
 		return PT_1BB;
@@ -108,6 +108,8 @@ rt_pixtype_index_from_name(const char* pixname) {
 
 const char*
 rt_pixtype_name(rt_pixtype pixtype) {
+
+
 	switch (pixtype) {
 		case PT_1BB:
 			return "1BB";
@@ -151,13 +153,13 @@ rt_pixtype_get_min_value(rt_pixtype pixtype) {
 			return (double) rt_util_clamp_to_1BB((double) CHAR_MIN);
 		}
 		case PT_2BUI: {
-			return (double) rt_util_clamp_to_2BUI((double) CHAR_MIN);
+			return 0;
 		}
 		case PT_4BUI: {
-			return (double) rt_util_clamp_to_4BUI((double) CHAR_MIN);
+			return 0;
 		}
 		case PT_8BUI: {
-			return (double) rt_util_clamp_to_8BUI((double) CHAR_MIN);
+			return 0;
 		}
 		case PT_8BSI: {
 			return (double) rt_util_clamp_to_8BSI((double) SCHAR_MIN);
@@ -166,13 +168,13 @@ rt_pixtype_get_min_value(rt_pixtype pixtype) {
 			return (double) rt_util_clamp_to_16BSI((double) SHRT_MIN);
 		}
 		case PT_16BUI: {
-			return (double) rt_util_clamp_to_16BUI((double) SHRT_MIN);
+			return 0;
 		}
 		case PT_32BSI: {
 			return (double) rt_util_clamp_to_32BSI((double) INT_MIN);
 		}
 		case PT_32BUI: {
-			return (double) rt_util_clamp_to_32BUI((double) INT_MIN);
+			return 0;
 		}
 		case PT_32BF: {
 			return (double) -FLT_MAX;
@@ -284,7 +286,7 @@ rt_errorstate rt_pixtype_compare_clamped_values(
  * @return ES_NONE on success, ES_ERROR on error
  */
 rt_errorstate rt_pixel_set_to_array(
-	rt_pixel npixel, int count, rt_mask mask,
+	rt_pixel npixel, uint32_t count, rt_mask mask,
 	int x, int y,
 	uint16_t distancex, uint16_t distancey,
 	double ***value,
@@ -393,7 +395,8 @@ rt_errorstate rt_pixel_set_to_array(
 			/* unweighted (boolean) mask */
 			if (mask->weighted == 0) {
 				/* pixel is set to zero or nodata */
-				if (FLT_EQ(mask->values[_y][_x],0) || mask->nodata[_y][_x] == 1) {
+				if (FLT_EQ(mask->values[_y][_x], 0.0) || mask->nodata[_y][_x] == 1)
+				{
 					values[_y][_x] = 0;
 					nodatas[_y][_x] = 1;
 				}

@@ -1,8 +1,8 @@
 set client_min_messages to WARNING;
 
-\i load_topology.sql
-\i load_features.sql
-\i hierarchy.sql
+\i ../load_topology.sql
+\i ../load_features.sql
+\i ../hierarchy.sql
 
 -- This edges perturbate the topology so that walking around the boundaries
 -- of P1 and P2 may require walking on some of them
@@ -80,7 +80,7 @@ SELECT 'E' || TopoGeo_addLinestring('city_data', 'LINESTRING(10 48, 16 48, 16 50
 
 -- And this defines a new feature including both face 1and the new
 -- wrapping face 11 plus the new (holed) face 12
-INSERT INTO features.land_parcels VALUES ('P6',
+INSERT INTO features.land_parcels(feature_name, feature) VALUES ('P6',
   topology.CreateTopoGeom(
     'city_data', -- Topology name
     3, -- Topology geometry type (polygon/multipolygon)

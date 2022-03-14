@@ -22,7 +22,7 @@
 #include "postgres.h"
 #include "fmgr.h"
 #include <stdio.h>
-#include "../liblwgeom/liblwgeom.h"
+#include "../../liblwgeom/liblwgeom.h"
 #include "Base3D/YkBoundingBox.h"
 using namespace Yk;
 

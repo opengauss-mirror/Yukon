@@ -2,18 +2,18 @@
 #
 # Translators:
 # Dauro Lima Sobrinho <daurolima@gmail.com>, 2013-2014
-# georgersilva <georger.silva@gmail.com>, 2013
-# georgersilva <georger.silva@gmail.com>, 2013-2014
+# George Silva <georger.silva@gmail.com>, 2013
+# George Silva <georger.silva@gmail.com>, 2013-2014
 # Marcelo Soares Souza <marcelo@juntadados.org>, 2014
 # Omar Fernando Pessoa <omar.pessoa@gmail.com>, 2013
 # Poliana Palhares <p.palhares@plamu.com.br>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: PostGIS\n"
-"Report-Msgid-Bugs-To: http://bugs.kde.org\n"
-"POT-Creation-Date: 2017-09-07 07:22+0000\n"
-"PO-Revision-Date: 2016-11-16 16:33+0000\n"
-"Last-Translator: Poliana Palhares <p.palhares@plamu.com.br>\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-11-08 06:12+0000\n"
+"PO-Revision-Date: 2021-11-28 21:23+0000\n"
+"Last-Translator: Regina Obe\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/postgis/postgis/"
 "language/pt_BR/)\n"
 "Language: pt_BR\n"
@@ -41,15 +41,11 @@ msgstr ""
 #: faq.xml:12
 #, no-c-format
 msgid ""
-"OpenGeo has a step by step tutorial guide workshop <ulink url=\"http://"
-"workshops.boundlessgeo.com/postgis-intro/\">Introduction to PostGIS</ulink>. "
-"It includes packaged data as well as intro to working with OpenGeo Suite. It "
-"is probably the best tutorial on PostGIS."
+"A step by step tutorial guide workshop <ulink url=\"http://postgis.net/"
+"workshops/postgis-intro/\">Introduction to PostGIS</ulink>. It includes "
+"packaged data as well as intro to working with OpenGeo Suite. It is probably "
+"the best tutorial on PostGIS."
 msgstr ""
-"OpenGeo tem uma oficina passo a passo <ulink url=\"http://workshops."
-"boundlessgeo.com/postgis-intro/\">Introdução ao PostGIS</ulink>. Inclui "
-"dados para testes e uma introdução sobre como trabalhar com a OpenGeo Suite. "
-"Possivelmente o melhor tutorial sobre PostGIS."
 
 #. Tag: para
 #: faq.xml:13
@@ -467,13 +463,9 @@ msgstr "Como insiro um objeto GIS dentro do banco de dados?"
 msgid ""
 "First, you need to create a table with a column of type \"geometry\" or "
 "\"geography\" to hold your GIS data. Storing geography type data is a little "
-"different than storing geometry. Refer to <xref linkend=\"Geography_Basics\"/"
-"> for details on storing geography."
+"different than storing geometry. Refer to <xref linkend=\"PostGIS_Geography"
+"\"/> for details on storing geography."
 msgstr ""
-"Primeiramente, você precisa criar uma tabela com uma coluna do tipo "
-"\"geometry\" ou \"geography\" para armazenar seus dados GIS. O armazenamento "
-"do dado do tipo \"geography\" é um pouco diferente do tipo \"geometry\". "
-"Consulte o documento <xref linkend=\"Geography_Basics\"/> para detalhes."
 
 #. Tag: para
 #: faq.xml:152
@@ -489,11 +481,9 @@ msgstr ""
 #: faq.xml:156
 #, no-c-format
 msgid ""
-"CREATE TABLE gtest ( gid serial primary key, name varchar(20)\n"
-"        , geom geometry(LINESTRING) );"
+"CREATE TABLE gtest (id serial primary key, name varchar(20), geom "
+"geometry(LINESTRING));"
 msgstr ""
-"CREATE TABLE gtest ( gid serial primary key, name varchar(20)\n"
-"        , geom geometry(LINESTRING) );"
 
 #. Tag: para
 #: faq.xml:158
@@ -649,15 +639,11 @@ msgstr ""
 #: faq.xml:210
 #, no-c-format
 msgid ""
-"SELECT id, the_geom\n"
+"SELECT id, geom\n"
 "FROM thetable\n"
 "WHERE\n"
-"  ST_Contains(the_geom,'POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))');"
+"  ST_Contains(geom,'POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))');"
 msgstr ""
-"SELECT id, the_geom\n"
-"FROM thetable\n"
-"WHERE\n"
-"  ST_Contains(the_geom,'POLYGON((0 0, 0 10, 10 10, 10 0, 0 0))');"
 
 #. Tag: para
 #: faq.xml:216
@@ -921,20 +907,14 @@ msgid ""
 "being reprojected must already have an SRID set on them. Once that is done, "
 "a reprojection is as simple as referring to the desired destination SRID. "
 "The below projects a geometry to NAD 83 long lat. The below will only work "
-"if the srid of the_geom is not -1 (not undefined spatial ref)"
+"if the srid of geom is not -1 (not undefined spatial ref)"
 msgstr ""
-"Para realizar uma reprojeção, ambos as coordenadas fonte e destino devem "
-"estar definidas na tabela SPATIAL_REF_SYS, e a geometria reprojetada deve já "
-"ter um SRID setado para ela. Uma vez isso feito, a reprojeção é taõ simples "
-"quanto referenciar um SRID de destino desejado. The below projects a "
-"geometry to NAD 83 long lat. Abaixo apenas trabalhará se o srid do the_geom "
-"não for -1 (não indefinido spatial ref)"
 
 #. Tag: programlisting
 #: faq.xml:348
 #, no-c-format
-msgid "SELECT ST_Transform(the_geom,4269) FROM geotable;"
-msgstr "SELECT ST_Transform(the_geom,4269) FROM geotable;"
+msgid "SELECT ST_Transform(geom,4269) FROM geotable;"
+msgstr ""
 
 #. Tag: para
 #: faq.xml:354
@@ -964,12 +944,9 @@ msgstr ""
 #, no-c-format
 msgid ""
 "--To check number of geometries are really blank\n"
-"                                SELECT count(gid) FROM geotable WHERE "
-"the_geom IS NULL;"
+"                                SELECT count(gid) FROM geotable WHERE geom "
+"IS NULL;"
 msgstr ""
-"Para verificar o de geometrias que realmente estão vazias:\n"
-"\n"
-"SELECT count(gid) FROM geotable WHERE the_geom IS NULL;"
 
 #. Tag: para
 #: faq.xml:367
@@ -1009,22 +986,17 @@ msgstr ""
 
 #. Tag: para
 #: faq.xml:383
-#, fuzzy, no-c-format
+#, no-c-format
 msgid ""
 "Almost certainly not. As an example, consider Oracle database running on "
 "Linux. Linux is GPL, Oracle is not: does Oracle running on Linux have to be "
 "distributed using the GPL? No. Similarly your software can use a PostgreSQL/"
 "PostGIS database as much as it wants and be under any license you like."
 msgstr ""
-"Com certeza não. Como exemplo, considere uma base de dados Oracle rodando no "
-"Linux. Linux é GPL. Oracle não, com o Oracle rodando no Linux tenho que "
-"distribuí-lo usando GPL? Não. Então seu software pode utilizar bases de "
-"dados PostgreSQL/PostGIS o quanto quiser e estar sob qualquer licença que "
-"queira."
 
 #. Tag: para
 #: faq.xml:384
-#, fuzzy, no-c-format
+#, no-c-format
 msgid ""
 "The only exception would be if you made changes to the PostGIS source code, "
 "and <emphasis>distributed your changed version</emphasis> of PostGIS. In "
@@ -1035,13 +1007,6 @@ msgid ""
 "<emphasis>publish</emphasis> your source code, only that you share it with "
 "people you give binaries to."
 msgstr ""
-"A única exceção seria se você fizer mudanças no código fonte do PostGIS, e "
-"distribuir a versão da sua mudança do PostGIS. Neste caso você teria que "
-"cmpartilhar o código da sua mudança do PostGIS (mas não o código da "
-"aplicação que está rodando). Mesmo neste caso limitado, você apenas teria "
-"que distribuir o código fonte para pessoas que também distribuem binários. A "
-"GPL não exige que você <emphasis>publique</emphasis> seu código fonte, "
-"apenas que compartilhe com pessoas que distribuem binários também."
 
 #. Tag: para
 #: faq.xml:385
@@ -1051,4 +1016,77 @@ msgid ""
 "optional CGAL-enabled functions. Portions of CGAL are GPL, but so is all of "
 "PostGIS already: using CGAL does not make PostGIS any more GPL than it was "
 "to start with."
+msgstr ""
+
+#. Tag: para
+#: faq.xml:391
+#, no-c-format
+msgid ""
+"Why are the results of overlay operations and spatial predicates sometimes "
+"inconsistent?"
+msgstr ""
+
+#. Tag: para
+#: faq.xml:395
+#, no-c-format
+msgid "This is usually presented as a specific case, such as"
+msgstr ""
+
+#. Tag: para
+#: faq.xml:399
+#, no-c-format
+msgid ""
+"Why is <varname>ST_Contains( A, ST_Intersection(A, B) )</varname> false ?"
+msgstr ""
+
+#. Tag: para
+#: faq.xml:402
+#, no-c-format
+msgid "Why is <varname>ST_Contains( ST_Union(A, B), A ) )</varname> false ?"
+msgstr ""
+
+#. Tag: para
+#: faq.xml:405
+#, no-c-format
+msgid ""
+"Why is <varname>ST_Union( A, ST_Difference(A, B) )</varname> not equal to A ?"
+msgstr ""
+
+#. Tag: para
+#: faq.xml:408
+#, no-c-format
+msgid ""
+"Why does <varname>ST_Difference(A, B)</varname> intersect the interior of "
+"<varname>B</varname> ?"
+msgstr ""
+
+#. Tag: para
+#: faq.xml:412
+#, no-c-format
+msgid ""
+"The reason is that PostGIS represents geometry and performs operations using "
+"finite-precision floating-point numbers. This provides the illusion of "
+"computing using real numbers - but it's only an illusion. Inevitably, small "
+"inaccuracies occur, which cause results of different operations to be "
+"slightly inconsistent."
+msgstr ""
+
+#. Tag: para
+#: faq.xml:417
+#, no-c-format
+msgid ""
+"Furthermore, PostGIS operations contain error-prevention code which may "
+"perturb input geometries by tiny amounts in order to prevent robustness "
+"errors from occurring. These minor alterations also may produce computed "
+"results which are not fully consistent."
+msgstr ""
+
+#. Tag: para
+#: faq.xml:422
+#, no-c-format
+msgid ""
+"The discrepancy between results should always be very small. But queries "
+"should not rely on exact consistency when comparing overlay results. "
+"Instead, consider using an area or distance-based tolerance in geometric "
+"comparisons."
 msgstr ""

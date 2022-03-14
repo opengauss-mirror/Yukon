@@ -240,8 +240,8 @@ static int testRasterIterator3_callback(rt_iterator_arg arg, void *userarg, doub
 	}
 	/* 0,2 */
 	else if (
-		arg->dst_pixel[0] == 3 &&
-		arg->dst_pixel[1] == 3
+		arg->dst_pixel[0] == 0 &&
+		arg->dst_pixel[1] == 2
 	) {
 		CU_ASSERT_DOUBLE_EQUAL(arg->values[0][0][0], 16, DBL_EPSILON);
 		CU_ASSERT_EQUAL(arg->nodata[0][0][0], 0);
@@ -930,7 +930,7 @@ static void test_raster_colormap() {
 
 	/* 2 colors, 3 entries, INTERPOLATE */
 	colormap->ncolor = 2;
-	colormap->method = rt_colormap_t::CM_INTERPOLATE;
+	colormap->method = CM_INTERPOLATE;
 
 	rtn = rt_raster_colormap(
 		raster, 0,
@@ -962,7 +962,7 @@ static void test_raster_colormap() {
 	cu_free_raster(rtn);
 
 	/* 4 colors, 3 entries, EXACT */
-	colormap->method = rt_colormap_t::CM_EXACT;
+	colormap->method = CM_EXACT;
 
 	rtn = rt_raster_colormap(
 		raster, 0,
@@ -987,7 +987,7 @@ static void test_raster_colormap() {
 	cu_free_raster(rtn);
 
 	/* 4 colors, 3 entries, NEAREST */
-	colormap->method = rt_colormap_t::CM_NEAREST;
+	colormap->method = CM_NEAREST;
 
 	rtn = rt_raster_colormap(
 		raster, 0,
@@ -1017,7 +1017,7 @@ static void test_raster_colormap() {
 
 	/* 4 colors, 2 entries, NEAREST */
 	colormap->nentry = 2;
-	colormap->method = rt_colormap_t::CM_NEAREST;
+	colormap->method = CM_NEAREST;
 
 	rtn = rt_raster_colormap(
 		raster, 0,
@@ -1141,7 +1141,7 @@ static void test_raster_colormap() {
 
 	/* 2 colors, 3 entries, INTERPOLATE */
 	colormap->ncolor = 4;
-	colormap->method = rt_colormap_t::CM_INTERPOLATE;
+	colormap->method = CM_INTERPOLATE;
 
 	rtn = rt_raster_colormap(
 		raster, 0,

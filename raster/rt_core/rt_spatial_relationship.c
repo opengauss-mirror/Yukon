@@ -761,11 +761,9 @@ int rt_raster_intersects_algorithm(
 		gt2
 	);
 
-	/* parallel vertically */
-	if (FLT_EQ(line1[X2] - line1[X1], 0.) && FLT_EQ(line2[X2] - line2[X1], 0.))
-		byHeight = 0;
-	/* parallel */
-	else if (FLT_EQ(((line1[Y2] - line1[Y1]) / (line1[X2] - line1[X1])), ((line2[Y2] - line2[Y1]) / (line2[X2] - line2[X1]))))
+	/* Parallel lines */
+	if (FLT_EQ(((line1[X2] - line1[X1]) * (line2[Y2] - line2[Y1])),
+		   ((line2[X2] - line2[X1]) * (line1[Y2] - line1[Y1]))))
 		byHeight = 0;
 
 	if (byHeight)
@@ -923,10 +921,9 @@ int rt_raster_intersects_algorithm(
 								noval1 = 1;
 							}
 							/* cell is outside bounds of grid */
-							else if (
-								(Qr[pX] < 0 || Qr[pX] > width1 || FLT_EQ(Qr[pX], width1)) ||
-								(Qr[pY] < 0 || Qr[pY] > height1 || FLT_EQ(Qr[pY], height1))
-							) {
+							else if ((Qr[pX] < 0 || Qr[pX] >= width1) ||
+								 (Qr[pY] < 0 || Qr[pY] >= height1))
+							{
 								noval1 = 1;
 							}
 							else if (hasnodata1 == FALSE)
@@ -946,10 +943,9 @@ int rt_raster_intersects_algorithm(
 								noval2 = 1;
 							}
 							/* cell is outside bounds of grid */
-							else if (
-								(Qr[pX] < 0 || Qr[pX] > width2 || FLT_EQ(Qr[pX], width2)) ||
-								(Qr[pY] < 0 || Qr[pY] > height2 || FLT_EQ(Qr[pY], height2))
-							) {
+							else if ((Qr[pX] < 0 || Qr[pX] >= width2) ||
+								 (Qr[pY] < 0 || Qr[pY] >= height2))
+							{
 								noval2 = 1;
 							}
 							else if (hasnodata2 == FALSE)
@@ -1041,7 +1037,6 @@ rt_raster_intersects(
 	int *intersects
 ) {
 	int i;
-	int j;
 	int within = 0;
 
 	LWGEOM *hull[2] = {NULL};
@@ -1127,27 +1122,28 @@ rt_raster_intersects(
 		initGEOS(rtinfo, lwgeom_geos_error);
 
 		rtn = 1;
-		for (i = 0; i < 2; i++) {
-			if ((rt_raster_get_convex_hull(i < 1 ? rast1 : rast2, &(hull[i])) != ES_NONE) || NULL == hull[i]) {
-				for (j = 0; j < i; j++) {
-					GEOSGeom_destroy(ghull[j]);
-					lwgeom_free(hull[j]);
-				}
-				rtn = 0;
-				break;
-			}
-			ghull[i] = (GEOSGeometry *) LWGEOM2GEOS(hull[i], 0);
-			if (NULL == ghull[i]) {
-				for (j = 0; j < i; j++) {
-					GEOSGeom_destroy(ghull[j]);
-					lwgeom_free(hull[j]);
-				}
-				lwgeom_free(hull[i]);
-				rtn = 0;
-				break;
-			}
+
+		if ((rt_raster_get_convex_hull(rast1, &(hull[0])) != ES_NONE) || !hull[0]) {
+			break;
 		}
-		if (!rtn) break;
+		ghull[0] = (GEOSGeometry *) LWGEOM2GEOS(hull[0], 0);
+		if (!ghull[0]) {
+			lwgeom_free(hull[0]);
+			break;
+		}
+
+		if ((rt_raster_get_convex_hull(rast2, &(hull[1])) != ES_NONE) || !hull[1]) {
+			GEOSGeom_destroy(ghull[0]);
+			lwgeom_free(hull[0]);
+			break;
+		}
+		ghull[1] = (GEOSGeometry *) LWGEOM2GEOS(hull[1], 0);
+		if (!ghull[0]) {
+			GEOSGeom_destroy(ghull[0]);
+			lwgeom_free(hull[1]);
+			lwgeom_free(hull[0]);
+			break;
+		}
 
 		/* test to see if raster within the other */
 		within = 0;
@@ -1305,10 +1301,9 @@ rt_raster_intersects(
 								continue;
 							}
 
-							if (
-								(Qr[pX] < 0 || Qr[pX] > *widthL || FLT_EQ(Qr[pX], *widthL)) ||
-								(Qr[pY] < 0 || Qr[pY] > *heightL || FLT_EQ(Qr[pY], *heightL))
-							) {
+							if ((Qr[pX] < 0 || Qr[pX] >= *widthL) ||
+							    (Qr[pY] < 0 || Qr[pY] >= *heightL))
+							{
 								continue;
 							}
 

@@ -14,5 +14,9 @@ t
 test_raster_columns|rast|0|||2|2|t|f|1||{0}|POLYGON((-2 -2,-2 4,4 4,4 -2,-2 -2))
 WARNING:  Unable to drop constraint: 'regular_blocking'.  Skipping
 t
+WARNING:  Unable to drop constraint: 'regular_blocking'.  Skipping
+ERROR:  None of the constraints specified could be dropped.  Is the schema name, table name or column name incorrect?
+test_raster_columns|rast|0|||||f|f||||
 t
-t
+WARNING:  Unable to add constraint: 'regular_blocking'.  Skipping
+ERROR:  None of the constraints specified could be added.  Is the schema name, table name or column name incorrect?

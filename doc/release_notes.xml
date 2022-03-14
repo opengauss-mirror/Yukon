@@ -2,6 +2,948 @@
 <appendix id="release_notes">
   <title>Appendix</title>
     <subtitle>Release Notes</subtitle>
+    <sect1>
+        <title>PostGIS 3.2.0 (Olivier Courtin Edition)</title>
+        <para>2021/12/18</para>
+        <para>This version requires PostgreSQL 9.6 or higher, GEOS 3.6 or higher, and Proj 4.9+
+            Additional features are enabled if you are running GEOS 3.9+
+            (and ST_MakeValid enhancements with 3.10+),
+            Proj 6.1+, and PostgreSQL 14+.</para>
+        <para>Due to some query performance degradation
+        with the new PG14 fast index build ,
+        we have decided to disable the feature by default
+        until we get more user testing
+        as to the true impact of real-world queries.
+        If you are running PG14+, you can reenable it by doing:</para>
+        <programlisting>ALTER OPERATOR FAMILY gist_geometry_ops_2d USING gist
+            ADD FUNCTION 11 (geometry)
+            geometry_gist_sortsupport_2d (internal);
+        </programlisting>
+        <para>To revert the change:</para>
+        <programlisting>ALTER OPERATOR FAMILY gist_geometry_ops_2d using gist
+        DROP FUNCTION 11 (geometry);</programlisting>
+        <para>and then reindex your gist indexes</para>
+
+        <simplesect>
+            <title>Breaking changes</title>
+            <para>5008, Empty geometries are not reported as being within Infinite
+                    distance by ST_DWithin (Sandro Santilli)</para>
+            <para>4824, Removed <code>--without-wagyu</code> build option. Using Wagyu is now mandatory to build with MVT support.</para>
+            <para>4933, topology.GetFaceByPoint will not work with topologies having invalid edge linking.</para>
+            <para>4981, ST_StartPoint support any geometry. No longer returns null for non-linestrings.</para>
+            <para>4149, ST_AsMVTGeom now preserves more of original geometry's details at scale close to target extent.
+                    If you need previous simplifying behaviour, you can ST_Simplify the geometry in advance.
+                    (Darafei Praliaskouski)</para>
+            <para>- Proj 4.9 or higher is required</para>
+            <para>5000, Turn off Window support in ST_AsMVT aggregate
+                    as no real use-case for it and it crashes with random input
+                    (Paul Ramsey)</para>
+        </simplesect>
+
+        <simplesect>
+            <title>Enhancements</title>
+            <para>4997, FlatGeobuf format input/output (Björn Harrtell)</para>
+            <para>4575, GRANT SELECT on topology metadata tables to PUBLIC (Sandro Santilli)</para>
+            <para>2592, Do not allow CreateTopology to define topologies with SRID &lt; 0
+                    (Sandro Santilli)</para>
+            <para>3232, Prevent moving an isolated node to different face
+                    (Sandro Santilli)</para>
+            <para>- Consider collection TopoGeometries while editing topology primitives.
+                    (Sandro Santilli)</para>
+            <para>3248, Prevent removing isolated edges if used in a TopoGeometry
+                    (Sandro Santilli)</para>
+            <para>3231, Prevent removing isolated nodes if used in a TopoGeometry
+                    (Sandro Santilli)</para>
+            <para>3239, Prevent headling topology edges if the connecting node is
+                    used in the definition of a TopoGeometry (Sandro Santilli)</para>
+            <para>4950, Speed up checking containing_face for nodes in ValidateTopology
+                    (Sandro Santilli)</para>
+            <para>4945, Multi-shell face check in ValidateTopology (Sandro Santilli)</para>
+            <para>4944, Side-location conflict check in ValidateTopology (Sandro Santilli)</para>
+            <para>3042, ValidateTopology check for edge linking (Sandro Santilli)</para>
+            <para>3276, ValidateTopology check for face's mbr (Sandro Santilli)</para>
+            <para>4936, Bounding box limited ValidateTopology (Sandro Santilli)</para>
+            <para>4933, Speed up topology building in presence of big faces (Sandro Santilli)</para>
+            <para>3233, ValidateTopology check for node's containing_face (Sandro Santilli)</para>
+            <para>4830, ValidateTopology check for edges side face containment
+                    (Sandro Santilli)</para>
+            <para>4827, Allow NaN coordinates in WKT input (Paul Ramsey)</para>
+            <para>- ST_Value() accepts resample parameter to add bilinear option (Paul Ramsey)</para>
+            <para>3778, #4401, ST_Boundary now works for TIN and does not linearize curves (Aliaksandr Kalenik)</para>
+            <para>4881, #4884, Store sign of edge_id for lineal TopoGeometry in relation table
+                    to retain direction (Sandro Santilli)</para>
+            <para>4628, Add an option to disable ANALYZE when loading shapefiles (Stefan Corneliu Petrea)</para>
+            <para>4924, Faster ST_RemoveRepeatedPoints on large multipoints, O(NlogN) instead of O(N^2)
+                    (Aliaksandr Kalenik, Darafei Praliaskouski)</para>
+            <para>4925, fix ST_DumpPoints to not overlook points (Aliaksandr Kalenik)</para>
+            <para>- ST_SRID(topogeometry) override, to speedup lookups (Sandro Santilli)</para>
+            <para>2175, Avoid creating additional nodes when adding same closed
+                    line to topology (Sandro Santilli)</para>
+            <para>4974, Upgrade path for address_standardizer_data_us
+                    (Jan Katins of Aiven, Regina Obe)</para>
+            <para>4975, PostGIS upgrade change to not use temp tables (Jan Katins of Aiven)</para>
+            <para>4981, ST_StartPoint support any geometry (Aliaksandr Kalenik)</para>
+            <para>4799, Include srs in GeoJSON where it exists in spatial_ref_sys.</para>
+            <para>4986, GIST indexes on Postgres 14 are now created faster using Hilbert-sorting method.
+                    (Han Wang, Aliaksandr Kalenik, Darafei Praliaskouski, Giuseppe Broccolo)</para>
+            <para>4949, Use proj_normalize_for_visualization to hand "axis swap" decisions (Paul Ramsey)</para>
+            <para>- GH647, ST_PixelAsCentroids, ST_PixelAsCentroid reimplemented on top of a C function (Sergei Shoulbakov)</para>
+            <para>- GH648, ST_AsMVTGeom now uses faster clipping (Aliaksandr Kalenik)</para>
+            <para>5018, pgsql2shp basic support for WITH CTE clause (Regina Obe)</para>
+            <para>5019, address_standardizer: Add support for pcre2 (Paul Ramsey)</para>
+        </simplesect>
+
+        <simplesect>
+            <title>New features</title>
+            <para>4923, topology.ValidateTopologyRelation (Sandro Santilli)</para>
+            <para>4933, topology.GetFaceContainingPoint (Sandro Santilli)</para>
+            <para>2175, ST_Scroll (Sandro Santilli)</para>
+            <para>4841, FindTopology to quickly get a topology record (Sandro Santilli)</para>
+            <para>4869, FindLayer to quickly get a layer record (Sandro Santilli)</para>
+            <para>4851, TopoGeom_addTopoGeom function (Sandro Santilli)</para>
+            <para>ST_MakeValid(geometry, options) allows alternative validity building
+                algorithms with GEOS 3.10 (Paul Ramsey)</para>
+            <para>ST_InterpolateRaster() fills in raster cells between sample points
+                using one of a number of algorithms (inverse weighted distance, average, etc)
+                using algorithms from GDAL
+                (Paul Ramsey)</para>
+            <para>ST_Contour() generates contour lines from raster values
+                using algorithms from GDAL (Paul Ramsey)</para>
+            <para>ST_SetZ()/ST_SetM() fills in z/m coordinates of a geometry using data read
+                from a raster (Paul Ramsey)</para>
+            <para>New postgis.gdal_vsi_options GUC allows out-db rasters on VSI network
+                services to be accessed with authentication keys, etc. (Paul Ramsey)</para>
+            <para>ST_DumpSegments returns a set of segments of input geometry (Aliaksandr Kalenik)</para>
+            <para>4859, ST_Point, ST_PointZ, ST_PointM, ST_PointZM, constructors
+                with SRID parameter (Paul Ramsey)</para>
+            <para>4808, ST_ClusterKMeans now supports max_radius argument. Use it when you're not sure what is
+                the number of clusters but you know what the size of clusters should be. (Darafei Praliaskouski)</para>
+        </simplesect>
+    </sect1>
+    <sect1>
+        <title>PostGIS 3.2.0beta3</title>
+        <para>2021/12/04</para>
+        <para>This version requires PostgreSQL 9.6 or higher, GEOS 3.6 or higher, and Proj 4.9+
+Additional features are enabled if you are running GEOS 3.9+
+(and ST_MakeValid enhancements with 3.10+),
+Proj 6.1+, and PostgreSQL 14+.</para>
+    <para>Due to some query performance degradation
+    with the new PG14 fast index build ,
+    we have decided to disable the feature by default
+    until we get more user testing
+    as to the true impact of real-world queries.
+    If you are running PG14+, you can reenable it by doing:</para>
+
+    <programlisting>ALTER OPERATOR FAMILY gist_geometry_ops_2d USING gist
+        ADD FUNCTION 11 (geometry)
+        geometry_gist_sortsupport_2d (internal);
+    </programlisting>
+    <para>To revert the change:</para>
+    <programlisting>ALTER OPERATOR FAMILY gist_geometry_ops_2d using gist
+     DROP FUNCTION 11 (geometry);</programlisting>
+
+    <para>and then reindex your gist indexes</para>
+
+    <para>Changes since PostGIS 3.2.0beta2 release:</para>
+    <simplesect>
+        <title>Breaking changes / fixes</title>
+        <para>5028, ST_AsFlatGeobuf crashes on mixed geometry input
+            (Björn Harrtell)</para>
+        <para>5029, ST_AsFlatGeobuf indexed output corruption
+            (Björn Harrtell)</para>
+        <para>5014, Crash on ST_TableFromFlatGeobuf (Björn Harrtell)</para>
+        <para>Rename ST_TableFromFlatGeobuf to ST_FromFlatGeobufToTable
+                (Björn Harrtell)</para>
+         <para>PG14 fast index building disabled by default. (Paul Ramsey)</para>
+    </simplesect>
+    </sect1>
+
+    <sect1>
+        <title>Release 3.2.0beta2</title>
+        <para>Release date: 2021/11/26</para>
+        <para>This version requires PostgreSQL 9.6 or higher, GEOS 3.6 or higher, and Proj 4.9+
+Additional features are enabled if you are running GEOS 3.9+
+(and ST_MakeValid enhancements with 3.10+),
+Proj 6.1+, and PostgreSQL 14+.
+
+Changes since PostGIS 3.2.0beta1 release:</para>
+        <simplesect>
+            <title>Breaking changes / fixes</title>
+            <para>5016, loader (shp2pgsq): Respect LDFLAGS (Greg Troxel)</para>
+            <para>5005, ST_AsFlatGeoBuf crashes on tables when geometry
+                    column is not the first column (Björn Harrtell)</para>
+            <para>5017, topology.ValidateTopology error relation "shell_check"
+                    already exists (Sandro Santilli)</para>
+        </simplesect>
+
+        <simplesect>
+            <title>Enhancements</title>
+            <para>5018, pgsql2shp basic support for WITH CTE clause (Regina Obe)</para>
+            <para>5019, address_standardizer: Add support for pcre2 (Paul Ramsey)</para>
+            <para>GH647, ST_AsMVTGeom now uses faster clipping (Aliaksandr Kalenik)</para>
+            <para>GH648, ST_PixelAsCentroids, ST_PixelAsCentroid reimplemented on top of a C function (Sergei Shoulbakov)</para>
+        </simplesect>
+    </sect1>
+
+    <sect1>
+        <title>Release 3.2.0beta1</title>
+        <para>Release date: 2021/10/23</para>
+        <para>This version requires PostgreSQL 9.6 or higher, GEOS 3.6 or higher, and Proj 4.9+
+Additional features are enabled if you are running GEOS 3.9+
+(and ST_MakeValid enhancements with 3.10+),
+Proj 6.1+, and PostgreSQL 14+.</para>
+        <simplesect>
+            <title>Bug Fixes and Breaking Changes</title>
+            <para>5012, Clean regress against released GEOS 3.10.0
+                (Regina Obe, Paul Ramsey)</para>
+            <para>5000, Turn off Window support in ST_AsMVT aggregate
+                    as no real use-case for it and it crashes with random input
+                    (Paul Ramsey)</para>
+            <para>4994, shp2pgsql is sometimes missing the INSERT statements
+                (Sandro Santilli)</para>
+            <para>4990, getfacecontainingpoint fails on i386 (Sandro Santilli)</para>
+            <para>5008, Have ST_DWithin with EMPTY operand always return false
+                (Sandro Santilli)</para>
+            <para>5002, liblwgeom should build with warning flags by default
+                (Sandro Santilli)</para>
+        </simplesect>
+        <simplesect>
+            <title>Enhancements</title>
+                <para>4997, FlatGeobuf format input/output (Björn Harrtell)</para>
+        </simplesect>
+    </sect1>
+    <sect1>
+        <title>Release 3.2.0alpha1</title>
+        <para>Release date: 2021/09/10</para>
+        <para>This version requires PostgreSQL 9.6 or higher, GEOS 3.6 or higher, and Proj 4.9 or higher
+            Additional features are enabled if you are running GEOS 3.9+ (more with GEOS 3.10+), Proj 6.1+, or PostgreSQL 14+.</para>
+        <simplesect>
+            <title>Breaking changes</title>
+            <para>#4824, Removed `--without-wagyu` build option. Using Wagyu is now mandatory to build with MVT support.</para>
+            <para>#4933, topology.GetFaceByPoint will not work with topologies having invalid edge linking.</para>
+            <para>#4981, ST_StartPoint support any geometry. No longer returns null for non-linestrings.</para>
+            <para>#4149, ST_AsMVTGeom now preserves more of original geometry's details at scale close to target extent.
+                If you need previous simplifying behaviour, you can ST_Simplify the geometry in advance.
+                (Darafei Praliaskouski)</para>
+            <para>Proj 4.9 or higher is required.</para>
+        </simplesect>
+        <simplesect>
+            <title>Enhancements</title>
+             <para>#2592, Do not allow CreateTopology to define topologies with SRID &gt; 0
+                        (Sandro Santilli)</para>
+             <para>#3232, Prevent moving an isolated node to different face
+                        (Sandro Santilli)</para>
+             <para>Consider collection TopoGeometries while editing topology primitives.
+                        (Sandro Santilli)</para>
+             <para>#3248, Prevent removing isolated edges if used in a TopoGeometry
+                        (Sandro Santilli)</para>
+             <para>#3231, Prevent removing isolated nodes if used in a TopoGeometry
+                        (Sandro Santilli)</para>
+             <para>#3239, Prevent headling topology edges if the connecting node is
+                        used in the definition of a TopoGeometry (Sandro Santilli)</para>
+             <para>#4950, Speed up checking containing_face for nodes in ValidateTopology
+                        (Sandro Santilli)</para>
+             <para>#4945, Multi-shell face check in ValidateTopology (Sandro Santilli)</para>
+             <para>#4944, Side-location conflict check in ValidateTopology (Sandro Santilli)</para>
+             <para>#3042, ValidateTopology check for edge linking (Sandro Santilli)</para>
+             <para>#3276, ValidateTopology check for face's mbr (Sandro Santilli)</para>
+             <para>#4936, Bounding box limited ValidateTopology (Sandro Santilli)</para>
+             <para>#4933, Speed up topology building in presence of big faces (Sandro Santilli)</para>
+             <para>#3233, ValidateTopology check for node's containing_face (Sandro Santilli)</para>
+             <para>#4830, ValidateTopology check for edges side face containment
+                        (Sandro Santilli)</para>
+             <para>#4827, Allow NaN coordinates in WKT input (Paul Ramsey)</para>
+             <para>ST_Value() accepts resample parameter to add bilinear option (Paul Ramsey)</para>
+             <para>#3778, #4401, ST_Boundary now works for TIN and does not linearize curves (Aliaksandr Kalenik)</para>
+             <para>#4881, #4884, Store sign of edge_id for lineal TopoGeometry in relation table
+                        to retain direction (Sandro Santilli)</para>
+             <para>#4628, Add an option to disable ANALYZE when loading shapefiles (Stefan Corneliu Petrea)</para>
+             <para>#4924, Faster ST_RemoveRepeatedPoints on large multipoints, O(NlogN) instead of O(N^2)
+                        (Aliaksandr Kalenik, Darafei Praliaskouski)</para>
+             <para>#4925, fix ST_DumpPoints to not overlook points (Aliaksandr Kalenik)</para>
+             <para>ST_SRID(topogeometry) override, to speedup lookups (Sandro Santilli)</para>
+             <para>#2175, Avoid creating additional nodes when adding same closed
+                        line to topology (Sandro Santilli)</para>
+             <para>#4974, Upgrade path for address_standardizer_data_us
+                        (Jan Katins of Aiven, Regina Obe)</para>
+             <para>#4975, PostGIS upgrade change to not use temp tables (Jan Katins of Aiven)</para>
+             <para>#4981, ST_StartPoint support any geometry (Aliaksandr Kalenik)</para>
+             <para>#4799, Include srs in GeoJSON where it exists in spatial_ref_sys.</para>
+             <para>#4986, GIST indexes on Postgres 14 are now created faster using Hilbert-sorting method.
+                        (Han Wang, Aliaksandr Kalenik, Darafei Praliaskouski, Giuseppe Broccolo)</para>
+             <para>#4949, Use proj_normalize_for_visualization to hand "axis swap" decisions (Paul Ramsey)</para>
+        </simplesect>
+        <simplesect>
+             <title>New features</title>
+                <para>#4923, topology.ValidateTopologyRelation (Sandro Santilli)</para>
+                <para>#4933, topology.GetFaceContainingPoint (Sandro Santilli)</para>
+                <para>#2175, ST_Scroll (Sandro Santilli)</para>
+                <para>#4841, FindTopology to quickly get a topology record (Sandro Santilli)</para>
+                <para>#4869, FindLayer to quickly get a layer record (Sandro Santilli)</para>
+                <para>#4851, TopoGeom_addTopoGeom function (Sandro Santilli)</para>
+                <para>ST_MakeValid(geometry, options) allows alternative validity building
+                    algorithms with GEOS 3.10 (Paul Ramsey)</para>
+                <para>ST_InterpolateRaster() fills in raster cells between sample points
+                    using one of a number of algorithms (inverse weighted distance, average, etc)
+                    using algorithms from GDAL
+                    (Paul Ramsey)</para>
+               <para>ST_Contour() generates contour lines from raster values
+                    using algorithms from GDAL (Paul Ramsey)</para>
+                <para>ST_SetZ()/ST_SetM() fills in z/m coordinates of a geometry using data read
+                    from a raster (Paul Ramsey)</para>
+                <para>New postgis.gdal_vsi_options GUC allows out-db rasters on VSI network
+                    services to be accessed with authentication keys, etc. (Paul Ramsey)</para>
+                <para>ST_DumpSegments returns a set of segments of input geometry (Aliaksandr Kalenik)</para>
+                <para>#4859, ST_Point, ST_PointZ, ST_PointM, ST_PointZM, constructors
+                    with SRID parameter (Paul Ramsey)</para>
+                <para>#4808, ST_ClusterKMeans now supports max_radius argument. Use it when you're not sure what is
+                    the number of clusters but you know what the size of clusters should be. (Darafei Praliaskouski)</para>
+        </simplesect>
+    </sect1>
+
+    <sect1>
+        <title>Release 3.1.0beta1</title>
+        <para>Release date: 2020/12/09</para>
+        <para>Only changes since 3.1.0alpha2 are listed.
+            This version requires PostgreSQL 9.6-13 and GEOS >= 3.6+
+            Additional features and enhancements enabled if you are
+            running Proj6+, PostgreSQL 12+, and GEOS 3.9.0dev</para>
+        <simplesect>
+            <title>Breaking changes</title>
+            <para>4214, Deprecated ST_Count(tablename,...),
+                ST_ApproxCount(tablename, ...)
+                ST_SummaryStats(tablename, ..),
+                ST_Histogram(tablename, ...), ST_ApproxHistogram(tablename, ...),
+                ST_Quantile(tablename, ...),
+                ST_ApproxQuantile(tablename, ...) removed.
+                (Darafei Praliaskouski)</para>
+        </simplesect>
+
+        <simplesect>
+            <title>Enhancements</title>
+            <para>4801, ST_ClusterKMeans supports weights in POINT[Z]M
+                geometries (Darafei Praliaskouski)</para>
+            <para>4804, ST_ReducePrecision (GEOS 3.9+) allows
+                valid precision reduction (Paul Ramsey)</para>
+            <para>4805, _ST_SortableHash exposed to work around
+                parallel soring performance issue in Postgres.
+                If your table is huge, use ORDER BY _ST_SortableHash(geom)
+                instead of ORDER BY geom to make parallel sort faster
+                (Darafei Praliaskouski)</para>
+            <para>4625, Correlation statistics now calculated.
+                Run ANALYZE for BRIN indexes to start kicking in.
+                (Darafei Praliaskouski)</para>
+            <para>Fix axis order issue with urn:ogc:def:crs:EPSG
+                in ST_GeomFromGML() (Even Roualt)</para>
+        </simplesect>
+    </sect1>
+    <sect1>
+        <title>Release 3.1.0alpha3</title>
+        <para>Release date: 2020/11/19</para>
+        <para>Only changes since 3.1.0alpah2 are listed. This version requires PostgreSQL 9.6-13 and GEOS >= 3.6+
+                Additional features and enhancements enabled if you are running Proj6+, PostgreSQL 12+, and GEOS 3.9.0dev</para>
+        <simplesect>
+            <title>Breaking changes</title>
+            <para>4737, Bump minimum protobuf-c requirement to 1.1.0 (Raúl Marín)
+                    The configure step will now fail if the requirement isn't
+                    met or explicitly disabled (--without-protobuf)</para>
+            <para>4258, Untangle postgis_sfcgal from postgis
+                    into its own lib file (Regina Obe)</para>
+        </simplesect>
+
+        <simplesect>
+            <title>New features</title>
+            <para>4698, Add a precision parameter to ST_AsEWKT (Raúl Marín)</para>
+            <para>Add a gridSize optional parameter to ST_Union, ST_UnaryUnion,
+                ST_Difference, ST_Intersection, ST_SymDifference, ST_Subdivide
+                Requires GEOS 3.9 (Sandro Santilli)</para>
+        </simplesect>
+
+        <simplesect>
+            <title>Enhancements</title>
+            <para>4789, Speed up TopoJSON output for areal TopoGeometry with
+                    many holes (Sandro Santilli)</para>
+            <para>4758, Improve topology noding robustness (Sandro Santilli)</para>
+            <para>Make ST_Subdivide interruptable (Sandro Santilli)</para>
+            <para>4660, Changes in double / coordinate printing (Raúl Marín)
+                - Use the shortest representation (enough to guarantee roundtrip).
+                - Uses scientific notation for absolute numbers smaller than 1e-8.
+                The previous behaviour was to output 0 for absolute values smaller than
+                1e-12 and fixed notation for anything bigger than that.
+                - Uses scientific notation for absolute numbers greater than 1e+15 (same behaviour).
+                - The precision parameter now also affects the scientific notation (before it was fixed [5-8]).
+                - All output functions now respect the requested precision (without any limits).
+                - The default precision is the same (9 for GeoJSON, 15 for everything else).</para>
+            <para>4729, WKT/KML: Print doubles directly into stringbuffers (Raúl Marín)</para>
+            <para>4533, Use the standard coordinate printing system for box types (Raúl Marín)</para>
+            <para>4686, Avoid decompressing geographies when possible (Raúl Marín)
+                Affects ANALYZE, _ST_PointOutside, postgis_geobbox, ST_CombineBbox(box2d, geometry),
+                ST_ClipByBox2D when the geometry is fully inside or outside the bbox and
+                ST_BoundingDiagonal.</para>
+            <para>4741, Don't use ST_PointInsideCircle if you need indexes, use ST_DWithin instead.
+                    Documentation adjusted (Darafei Praliaskouski)</para>
+            <para>4737, Improve performance and reduce memory usage in ST_AsMVT, especially in
+                    queries involving parallelism (Raúl Marín)</para>
+            <para>4746, Micro optimizations to the serialization process (Raúl Marín)</para>
+            <para>4719, Fail fast when srids don't match ST_Intersection(geometry,raster)
+            Also schema qualify calls in function. (Regina Obe)</para>
+            <para>4784, Add ST_CollectionExtract(geometry) with default behaviour of
+           extracting the components of highest coordinate dimension. (Paul Ramsey)</para>
+        </simplesect>
+
+        <simplesect>
+            <title>Bug Fixes</title>
+            <para>4691, Fix segfault during gist index creation with
+                empty geometries (Raúl Marín)</para>
+            <para>Fix handling of bad WKB inputs (Oracle types) and unit tests for
+                malformed WKB. Remove memory leaks in malformed WKB cases.
+                (Paul Ramsey)</para>
+            <para>4740, Round values in geography_distance_tree
+                as we do on geography_distance (Raúl Marín, Paul Ramsey,
+                Regina Obe)</para>
+            <para>4739, Ensure all functions using postgis_oid initialize
+                the internal cache (Raúl Marín)</para>
+            <para>4767, #4768, #4771, #4772, Fix segfault when parsing
+                invalid WKB (Raúl Marín)</para>
+            <para>4769, Fix segfault in st_addband (Raúl Marín)</para>
+            <para>4790, Fix ST_3dintersects calculations with identical
+                vertices (Nicklas Avén)</para>
+            <para>4742, tiger geocoder reverted to 2018 version on tiger
+                upgrade (Regina Obe)</para>
+            <para>3372, TopoElementArray cannot be null - change
+                domain constraint (Regina Obe)</para>
+        </simplesect>
+    </sect1>
+    <sect1>
+        <title>Release 3.1.0alpha2</title>
+        <para>Release date: 2020/07/18</para>
+        <para>Only changes since 3.1.0alpah1 are listed. This version requires PostgreSQL 9.6-13 and GEOS >= 3.6+
+                Additional features and enhancements enabled if you are running Proj6+, PostgreSQL 12+, and GEOS 3.9.0dev</para>
+        <simplesect>
+            <title>New Features</title>
+            <para>4656, Cast a geojson_text::geometry for implicit GeoJSON ingestion (Raúl Marín)</para>
+            <para>4687, Expose GEOS MaximumInscribedCircle (Paul Ramsey)</para>
+            <para>4710, ST_ClusterKMeans now works with 3D geometries (Darafei Praliaskouski)</para>
+        </simplesect>
+
+        <simplesect>
+            <title>Enhancements</title>
+            <para>4675, topology.GetRingEdges now implemented in C (Sandro Santilli)</para>
+            <para>4681, ST_GetFaceGeometry: print corruption information (Sandro Santilli)</para>
+            <para>4651, ST_Simplify: Don't copy if nothing is removed (Raúl Marín)</para>
+            <para>4657, Avoid De-TOASTing where possible (Paul Ramsey)</para>
+            <para>4490, Tweak function costs (Raúl Marín)</para>
+            <para>4672, Cache getSRSbySRID and getSRIDbySRS (Raúl Marín)</para>
+            <para>4676, Avoid decompressing toasted geometries to read only the header (Raúl Marín)
+                    Optimize cast to Postgresql point type (Raúl Marín)</para>
+            <para>4620, Update internal wagyu to 0.5.0 (Raúl Marín)</para>
+            <para>4623, Optimize varlena returning functions (Raúl Marín)</para>
+            <para>4677, Share gserialized objects between different cache types (Raúl Marín)</para>
+            <para>Fix compilation with MSVC compiler / Standardize shebangs (Loïc Bartoletti)</para>
+        </simplesect>
+
+        <simplesect>
+            <title>Bug fixes </title>
+            <para>4652, Fix several memory related bugs in ST_GeomFromGML (Raúl Marín)</para>
+            <para>4661, Fix access to spatial_ref_sys with a non default schema (Raúl Marín)</para>
+            <para>4670, ST_AddPoint: Fix bug when a positive position is requested (Raúl Marín)</para>
+            <para>4699, crash on null input to ST_Union(raster, otherarg) (Jaime Casanova, 2ndQuadrant)</para>
+            <para>4716, Fix several issues with pkg-config in the configure script (Raúl Marín)</para>
+        </simplesect>
+    </sect1>
+
+    <sect1>
+        <title>Release 3.1.0alpha1</title>
+        <para>Release date: 2020/02/01</para>
+        <para>This version requires PostgreSQL 9.6+-13 and GEOS >= 3.6+
+              Additional features and enhancements enabled if you are running Proj6+, PostgreSQL 12+, and GEOS 3.8.0</para>
+        <simplesect>
+          <title>Breaking Changes</title>
+            <para>svn number replaced by git hash in version output
+                  (Sandro Santilli, Raúl Marín)</para>
+            <para>4577, Drop support for PostgreSQL 9.5 (Raúl Marín)</para>
+            <para>4579, Drop postgis_proc_set_search_path.pl (Raúl Marín)</para>
+            <para>4601, ST_TileEnvelope signature changed.</para>
+            <para>3057, ST_Force3D, ST_Force3DZ, ST_Force3DM and ST_Force4D signatures changed.</para>
+        </simplesect>
+
+        <simplesect>
+          <title>New features</title>
+          <para>4601, Add ST_TileEnvelope margin argument (Yuri Astrakhan)</para>
+          <para>2972, Add quiet mode (-q) to pgsql2shp (Kristian Thy)</para>
+          <para>4617, Add configure switch `--without-phony-revision` (Raúl Marín)</para>
+          <para>3057, Optional value params for Force3D*, Force4D functions (Kristian Thy)</para>
+          <para>4624, ST_HexagonGrid and ST_SquareGrid, set returning functions to
+              generate tilings of the plane (Paul Ramsey)</para>
+        </simplesect>
+
+        <simplesect>
+          <title>Enhancements</title>
+            <para>4539, Unify libm includes (Raúl Marín)</para>
+            <para>4569, Allow unknown SRID geometry insertion into typmod SRID column (Paul Ramsey)</para>
+            <para>4149, ST_Simplify(geom, 0) is now O(N).
+                      ST_Affine (ST_Translate, ST_TransScale, ST_Rotate) optimized.
+                      ST_SnapToGrid optimized. (Darafei Praliaskouski)</para>
+            <para>4574, Link Time Optimizations enabled (Darafei Praliaskouski)</para>
+            <para>4578, Add parallellism and cost properties to brin functions (Raúl Marín)</para>
+            <para>4473, Silence yacc warnings (Raúl Marín)</para>
+            <para>4589, Disable C asserts when building without "--enable-debug" (Raúl Marín)</para>
+            <para>4543, Introduce ryu to print doubles (Raúl Marín)</para>
+            <para>4626, Support pkg-config for libxml2 (Bas Couwenberg)</para>
+            <para>4615, Speed up geojson output (Raúl Marín)</para>
+        </simplesect>
+    </sect1>
+
+    <sect1>
+        <title>Release 3.0.0</title>
+        <para>Release date: 2019/10/20</para>
+        <para>This version requires PostgreSQL 9.5+-12 and GEOS >= 3.6+
+              Additional features and enhancements enabled if you are running Proj6+, PostgreSQL 12, and GEOS 3.8.0</para>
+      <simplesect>
+        <title>New Features</title>
+          <para>2902, postgis_geos_noop (Sandro Santilli)</para>
+          <para>4128, ST_AsMVT support for Feature ID (Stepan Kuzmin)</para>
+          <para>4230, SP-GiST and GiST support for ND box operators overlaps, contains,
+                    within, equals (Esteban Zimányi and Arthur Lesuisse from Université
+                    Libre de Bruxelles (ULB), Darafei Praliaskouski)</para>
+          <para>4171, ST_3DLineInterpolatePoint (Julien Cabieces, Vincent Mora)</para>
+          <para>4311, Introduce WAGYU to validate MVT polygons. This option requires a C++11
+                    compiler and will use CXXFLAGS (not CFLAGS). Add `--without-wagyu`
+                    to disable this option and keep the behaviour from 2.5 (Raúl Marín)</para>
+          <para>1833, ST_AsGeoJSON(row) generates full GeoJSON Features (Joe Conway)</para>
+          <para>3687, Casts json(geometry) and jsonb(geometry) for implicit GeoJSON
+                    generation (Paul Ramsey)</para>
+          <para>4198, Add ST_ConstrainedDelaunayTriangles SFCGAL function (Darafei
+                    Praliaskouski)</para>
+        </simplesect>
+
+      <simplesect>
+        <title>Breaking Changes</title>
+          <para>4267, Bump minimum GEOS version to 3.6 (Regina Obe, Darafei Praliaskouski)</para>
+          <para>3888, Raster support now available as a separate extension
+                    (Sandro Santilli)</para>
+          <para>3807, Extension library files no longer include the minor version.
+                    Use New configure switch --with-library-minor-version
+                    if you need the old behavior (Regina Obe)</para>
+          <para>4230, ND box operators (overlaps, contains, within, equals) now don't look on
+                    dimensions that aren't present in both operands.
+                    Please REINDEX your ND indexes after upgrade. (Darafei Praliaskouski)</para>
+          <para>4229, Dropped support for PostgreSQL &lt; 9.5. (Darafei Praliaskouski)</para>
+          <para>4260, liblwgeom headers are not installed anymore.
+                    If your project depends on them available, please use
+                    librttopo instead. (Darafei Praliaskouski)</para>
+          <para>4258, Remove SFCGAL support for ST_Area, ST_Distance, ST_Intersection,
+                    ST_Difference, ST_Union, ST_Intersects, ST_3DIntersects, ST_3DDistance
+                    and postgis.backend switch (Darafei Praliaskouski)</para>
+          <para>4267, Enable Proj 6 deprecated APIs (Darafei Praliaskouski, Raúl Marín)</para>
+          <para>4268, Bump minimum SFCGAL version to 1.3.1 (Darafei Praliaskouski)</para>
+          <para>4331, ST_3DMakeBox now returns error instead of a miniscule box (Regina Obe)</para>
+          <para>4342, Removed "versioned" variants of ST_AsGeoJSON and ST_AsKML (Paul Ramsey)</para>
+          <para>4356, ST_Accum removed. Use array_agg instead. (Darafei Praliaskouski)</para>
+          <para>4414, Include version number in address_standardizer lib (Raúl Marín)</para>
+          <para>4334, Fix upgrade issues related to renamed function parameters (Raúl Marín)</para>
+          <para>4442, raster2pgsql now skips NODATA tiles. Use -k option if you still want
+                    them in database for some reason. (Darafei Praliaskouski)</para>
+          <para>4433, 32-bit hash fix (requires reindexing hash(geometry) indexes) (Raúl Marín)</para>
+          <para>3383, Sorting now uses Hilbert curve and Postgres Abbreviated Compare.
+                    You need to REINDEX your btree indexes if you had them.
+                    (Darafei Praliaskouski)</para>
+      </simplesect>
+
+      <simplesect>
+          <title>Enhancements</title>
+          <para>4341, Using "support function" API in PgSQL 12+ to replace SQL inlining
+           as the mechanism for providing index support under ST_Intersects, et al</para>
+          <para>4330, postgis_restore OOM when output piped to an intermediate process
+                    (Hugh Ranalli)</para>
+          <para>4322, Support for Proj 6+ API, bringing more accurate datum transforms
+                    and support for WKT projections</para>
+          <para>4153, ST_Segmentize now splits segments proportionally (Darafei
+                    Praliaskouski).</para>
+          <para>4162, ST_DWithin documentation examples for storing geometry and
+                    radius in table (Darafei Praliaskouski, github user Boscop).</para>
+          <para>4161 and #4294, ST_AsMVTGeom: Shortcut geometries smaller than the
+                    resolution (Raúl Marín)</para>
+          <para>4176, ST_Intersects supports GEOMETRYCOLLECTION (Darafei Praliaskouski)</para>
+          <para>4181, ST_AsMVTGeom: Avoid type changes due to validation (Raúl Marín)</para>
+          <para>4183, ST_AsMVTGeom: Drop invalid geometries after simplification (Raúl Marín)</para>
+          <para>4196, Have postgis_extensions_upgrade() package unpackaged extensions
+                    (Sandro Santilli)</para>
+          <para>4215, Use floating point compare in ST_DumpAsPolygons (Darafei Praliaskouski)</para>
+          <para>4155, Support for GEOMETRYCOLLECTION, POLYGON, TIN, TRIANGLE in
+                    ST_LocateBetween and ST_LocateBetweenElevations (Darafei Praliaskouski)</para>
+          <para>2767, Documentation for AddRasterConstraint optional parameters (Sunveer Singh)</para>
+          <para>4244, Avoid unaligned memory access in BOX2D_out (Raúl Marín)</para>
+          <para>4139, Make mixed-dimension ND index build tree correctly (Darafei Praliaskouski,
+                    Arthur Lesuisse, Andrew Gierth, Raúl Marín)</para>
+          <para>4262, Document MULTISURFACE compatibility of ST_LineToCurve (Steven Ottens)</para>
+          <para>4276, ST_AsGeoJSON documentation refresh (Darafei Praliaskouski)</para>
+          <para>4292, ST_AsMVT: parse JSON numeric values with decimals as doubles (Raúl Marín)</para>
+          <para>4300, ST_AsMVTGeom: Always return the simplest geometry (Raúl Marín)</para>
+          <para>4301, ST_Subdivide: fix endless loop on coordinates near coincident to bounds
+                    (Darafei Praliaskouski)</para>
+          <para>4289, ST_AsMVTGeom: Transform coordinates space before clipping (Raúl Marín)</para>
+          <para>4272, Improve notice message when unable to compute stats (Raúl Marín)</para>
+          <para>4313, #4307, PostgreSQL 12 compatibility (Laurenz Albe, Raúl Marín)</para>
+          <para>4299, #4304, ST_GeneratePoints is now VOLATILE. IMMUTABLE version with
+                    seed parameter added. (Mike Taves)</para>
+          <para>4278, ST_3DDistance and ST_3DIntersects now support Solid TIN and Solid
+                    POLYHEDRALSURFACE (Darafei Praliaskouski)</para>
+          <para>4348, ST_AsMVTGeom (GEOS): Enforce validation at all times (Raúl Marín)</para>
+          <para>4295, Allow GEOMETRYCOLLECTION in ST_Overlaps, ST_Contains, ST_ContainsProperly,
+                    ST_Covers, ST_CoveredBy, ST_Crosses, ST_Touches, ST_Disjoint, ST_Relate,
+                    ST_Equals (Esteban Zimányi)</para>
+          <para>4340, ST_Union aggregate now can handle more than 1 GB of geometries
+                    (Darafei Praliaskouski)</para>
+          <para>4378, Allow passing TINs as input to GEOS-backed functions (Darafei
+                    Praliaskouski)</para>
+          <para>4368, Reorder LWGEOM struct members to minimize extra padding (Raúl Marín)</para>
+          <para>4141, Use uint64 to handle row counts in the topology extension (Raúl Marín)</para>
+          <para>4412, Support ingesting rasters with NODATA=NaN (Darafei Praliaskouski)</para>
+          <para>4413, Raster tile size follows GeoTIFF block size on raster2pgsql -t auto
+                    (Darafei Praliaskouski)</para>
+          <para>4422, Modernize Python 2 code to get ready for Python 3 (Christian Clauss)</para>
+          <para>4352, Use CREATE OR REPLACE AGGREGATE for PG12+ (Raúl Marín)</para>
+          <para>4394, Allow FULL OUTER JOIN on geometry equality operator (Darafei Praliaskouski)</para>
+          <para>4441, Make GiST penalty friendly to multi-column indexes and build single-column
+                    ones faster. (Darafei Praliaskouski)</para>
+          <para>4403, Support for shp2pgsql ability to reproject with copy mode (-D) (Regina Obe)</para>
+          <para>4410, More descriptive error messages about SRID mismatch (Darafei Praliaskouski)</para>
+          <para>4399, TIN and Triangle output support in all output functions (Darafei
+                    Praliaskouski)</para>
+          <para>3719, Impose minimum number of segments per arc during linearization
+                    (Dan Baston / City of Helsinki, Raúl Marín)</para>
+          <para>4277, ST_GeomFromGeoJSON now marks SRID=4326 by default as per RFC7946,
+                    ST_AsGeoJSON sets SRID in JSON output if it differs from 4326.
+                    (Darafei Praliaskouski)</para>
+          <para>3979, postgis_sfcgal_noop() round trip function (Lucas C. Villa Real)</para>
+          <para>4328, ST_3DIntersects for 2D TINs. (Darafei Praliaskouski)</para>
+          <para>4509, Update geocoder for tiger 2019 (Regina Obe)</para>
+      </simplesect>
+    </sect1>
+
+    <sect1>
+      <title>Release 3.0.0rc2</title>
+      <para>Release date: 2019/10/13</para>
+      <para>If compiling with PostgreSQL+JIT, LLVM >= 6 is required</para>
+      <para>Supported PostgreSQL versions for this release are:
+      PostgreSQL 9.5 - PostgreSQL 12
+      GEOS &gt;= 3.6. Additional features enabled if you running Proj6+ and/or PostgreSQL 12.
+      Performance enhancements if running GEOS 3.8+</para>
+      <simplesect>
+        <title>Major highlights</title>
+            <para>4534, Fix leak in lwcurvepoly_from_wkb_state (Raúl Marín)</para>
+            <para>4536, Fix leak in lwcollection_from_wkb_state (Raúl Marín)</para>
+            <para>4537, Fix leak in WKT collection parser (Raúl Marín)</para>
+            <para>4535, WKB: Avoid buffer overflow (Raúl Marín)</para>
+      </simplesect>
+    </sect1>
+
+
+    <sect1>
+      <title>Release 3.0.0rc1</title>
+      <para>Release date: 2019/10/08</para>
+      <para>If compiling with PostgreSQL+JIT, LLVM >= 6 is required</para>
+      <para>Supported PostgreSQL versions for this release are:
+      PostgreSQL 9.5 - PostgreSQL 12
+      GEOS &gt;= 3.6. Additional features enabled if you running Proj6+ and/or PostgreSQL 12.
+      Performance enhancements if running GEOS 3.8+</para>
+      <simplesect>
+        <title>Major highlights</title>
+            <para>4519, Fix getSRIDbySRS crash (Raúl Marín)</para>
+            <para>4520, Use a clean environment when detecting C++ libraries (Raúl Marín)</para>
+            <para>Restore ST_Union() aggregate signature so drop agg not required and re-work
+                  performance/size enhancement to continue to avoid
+                  using Array type during ST_Union(), hopefully
+                  avoiding Array size limitations. (Paul Ramsey)</para>
+      </simplesect>
+    </sect1>
+
+    <sect1>
+      <title>Release 3.0.0beta1</title>
+      <para>Release date: 2019/09/28</para>
+      <para>If compiling with PostgreSQL+JIT, LLVM >= 6 is required</para>
+      <para>Supported PostgreSQL versions for this release are:
+      PostgreSQL 9.5 - PostgreSQL 12
+      GEOS &gt;= 3.6. Additional features enabled if you running Proj6+ and/or PostgreSQL 12.
+      Performance enhancements if running GEOS 3.8+</para>
+      <simplesect>
+        <title>Major highlights</title>
+          <para>4492, Fix ST_Simplify ignoring the value of the 3rd parameter (Raúl Marín)</para>
+          <para>4494, Fix ST_Simplify output having an outdated bbox (Raúl Marín)</para>
+          <para>4493, Fix ST_RemoveRepeatedPoints output having an outdated bbox (Raúl Marín)</para>
+          <para>4495, Fix ST_SnapToGrid output having an outdated bbox (Raúl Marín)</para>
+          <para>4496, Make ST_Simplify(TRIANGLE) collapse if requested (Raúl Marín)</para>
+          <para>4501, Allow postgis_tiger_geocoder to be installable by non-super users (Regina Obe)</para>
+          <para>4503, Speed up the calculation of cartesian bbox (Raúl Marín)</para>
+          <para>4504, shp2pgsql -D not working with schema qualified tables (Regina Obe)</para>
+          <para>4505, Speed up conversion of geometries to/from GEOS (Dan Baston)</para>
+          <para>4507, Use GEOSMakeValid and GEOSBuildArea for GEOS 3.8+ (Dan Baston)</para>
+          <para>4491, Speed up ST_RemoveRepeatedPoints (Raúl Marín)</para>
+          <para>4509, Update geocoder for tiger 2019 (Regina Obe)</para>
+          <para>4338, Census block level data (tabblock table) not loading (Regina Obe)</para>
+      </simplesect>
+    </sect1>
+
+    <sect1>
+      <title>Release 3.0.0alpha4</title>
+      <para>Release date: 2019/08/11</para>
+      <para>If compiling with PostgreSQL+JIT, LLVM >= 6 is required</para>
+      <para>Supported PostgreSQL versions for this release are:
+      PostgreSQL 9.5 - PostgreSQL 12
+      GEOS &gt;= 3.6. Additional features enabled if you running Proj6+ and/or PostgreSQL 12</para>
+      <simplesect>
+        <title>Major highlights</title>
+          <para>4433, 32-bit hash fix (requires reindexing hash(geometry) indexes) (Raúl Marín)</para>
+          <para>4445, Fix a bug in geometry_le (Raúl Marín)</para>
+          <para>4451, Fix the calculation of gserialized_max_header_size (Raúl Marín)</para>
+          <para>4450, Speed up ST_GeometryType (Raúl Marín)</para>
+          <para>4452, Add ST_TileEnvelope() (Paul Ramsey)</para>
+          <para>4403, Support for shp2pgsql ability to reproject with copy mode (-D) (Regina Obe)</para>
+          <para>4417, Update spatial_ref_sys with new entries (Paul Ramsey)</para>
+          <para>4449, Speed up ST_X, ST_Y, ST_Z and ST_M (Raúl Marín)</para>
+          <para>4454, Speed up _ST_OrderingEquals (Raúl Marín)</para>
+          <para>4453, Speed up ST_IsEmpty (Raúl Marín)</para>
+          <para>4271, postgis_extensions_upgrade() also updates after pg_upgrade (Raúl Marín)</para>
+          <para>4466, Fix undefined behaviour in _postgis_gserialized_stats (Raúl Marín)</para>
+          <para>4209, Handle NULL geometry values in pgsql2shp (Paul Ramsey)</para>
+          <para>4419, Use protobuf version to enable/disable mvt/geobuf (Paul Ramsey)</para>
+          <para>4437, Handle POINT EMPTY in shape loader/dumper (Paul Ramsey)</para>
+          <para>4456, add Rasbery Pi 32-bit jenkins bot for testing (Bruce Rindahl,Regina Obe)</para>
+          <para>4420, update path does not exists for address_standardizer extension (Regina Obe)</para>
+      </simplesect>
+    </sect1>
+
+    <sect1>
+      <title>Release 3.0.0alpha3</title>
+      <para>Release date: 2019/07/01</para>
+      <para>If compiling with PostgreSQL+JIT, LLVM >= 6 is required</para>
+      <para>Supported PostgreSQL versions for this release are:
+      PostgreSQL 9.5 - PostgreSQL 12
+      GEOS &gt;= 3.6</para>
+      <simplesect>
+        <title>Major highlights</title>
+          <para>4414, Include version number in address_standardizer lib (Raúl Marín)</para>
+          <para>4352, Use CREATE OR REPLACE AGGREGATE for PG12+ (Raúl Marín)</para>
+          <para>4334, Fix upgrade issues related to renamed parameters (Raúl Marín)</para>
+          <para>4388, AddRasterConstraints: Ignore NULLs when generating constraints (Raúl Marín)</para>
+          <para>4327, Avoid pfree'ing the result of getenv (Raúl Marín)</para>
+          <para>4406, Throw on invalid characters when decoding geohash (Raúl Marín)</para>
+          <para>4429, Avoid resource leaks with PROJ6 (Raúl Marín)</para>
+          <para>4372, PROJ6: Speed improvements (Raúl Marín)</para>
+          <para>3437, Speed up ST_Intersects with Points (Raúl Marín)</para>
+          <para>4438, Update serialization to support extended flags area (Paul Ramsey)</para>
+          <para>4443, Fix wagyu configure dropping CPPFLAGS (Raúl Marín)</para>
+          <para>4440, Type lookups in FDW fail (Paul Ramsey)</para>
+          <para>4442, raster2pgsql now skips NODATA tiles. Use -k option if you still want
+                    them in database for some reason. (Darafei Praliaskouski)</para>
+          <para>4441, Make GiST penalty friendly to multi-column indexes and build single-column
+                    ones faster. (Darafei Praliaskouski)</para>
+      </simplesect>
+    </sect1>
+
+    <sect1>
+      <title>Release 3.0.0alpha2</title>
+      <para>Release date: 2019/06/02</para>
+      <para>If compiling with PostgreSQL+JIT, LLVM >= 6 is required</para>
+      <para>Supported PostgreSQL versions for this release are:
+      PostgreSQL 9.5 - PostgreSQL 12
+      GEOS &gt;= 3.6</para>
+      <simplesect>
+        <title>Major highlights</title>
+         <para>#4404, Fix selectivity issue with support functions (Paul Ramsey)</para>
+         <para>#4311, Make wagyu the default option to validate polygons.
+          This option requires a C++11 compiler and will use CXXFLAGS (not CFLAGS).
+          It is only enabled if built with MVT support (protobuf)
+          Add `--without-wagyu` to disable this option and keep the behaviour
+          from 2.5 (Raúl Marín)</para>
+        <para>#4198, Add ST_ConstrainedDelaunayTriangles SFCGAL function (Darafei
+           Praliaskouski)</para>
+      </simplesect>
+    </sect1>
+    <sect1>
+      <title>Release 3.0.0alpha1</title>
+      <para>Release date: 2019/05/26</para>
+      <para>If compiling with PostgreSQL+JIT, LLVM >= 6 is required</para>
+      <para>Supported PostgreSQL versions for this release are:
+      PostgreSQL 9.5 - PostgreSQL 12
+      GEOS &gt;= 3.6</para>
+      <simplesect>
+        <title>New Features</title>
+         <para>additional features enabled if you are running Proj6+</para>
+         <para>Read the NEWS file in the included tarball for more details</para>
+      </simplesect>
+    </sect1>
+
+    <sect1>
+      <title>Release 2.5.0</title>
+      <para>Release date: 2018/09/23</para>
+      <para>If compiling with PostgreSQL+JIT, LLVM >= 6 is required</para>
+      <para>Supported PostgreSQL versions for this release are:
+      PostgreSQL 9.4 - PostgreSQL 12 (in development)
+      GEOS &gt;= 3.5</para>
+      <simplesect>
+        <title>New Features</title>
+        <para>#1847, spgist 2d and 3d support for PG 11+
+    (Esteban Zimányi and Arthur Lesuisse from Université Libre de Bruxelles (ULB),
+      Darafei Praliaskouski)</para>
+        <para>#4056, ST_FilterByM (Nicklas Avén)</para>
+        <para>#4050, ST_ChaikinSmoothing (Nicklas Avén)</para>
+        <para>#3989, ST_Buffer single sided option (Stephen Knox)</para>
+        <para>#3876, ST_Angle function (Rémi Cura)</para>
+        <para>#3564, ST_LineInterpolatePoints (Dan Baston)</para>
+        <para>#3896, PostGIS_Extensions_Upgrade() (Regina Obe)</para>
+        <para>#3913, Upgrade when creating extension from unpackaged (Sandro Santilli)</para>
+        <para>#2256, _postgis_index_extent() for extent from index (Paul Ramsey)</para>
+        <para>#3176, Add ST_OrientedEnvelope (Dan Baston)</para>
+        <para>#4029, Add ST_QuantizeCoordinates (Dan Baston)</para>
+        <para>#4063, Optional false origin point for ST_Scale (Paul Ramsey)</para>
+        <para>#4082, Add ST_BandFileSize and ST_BandFileTimestamp,
+                  extend ST_BandMetadata (Even Rouault)</para>
+        <para>#2597, Add ST_Grayscale (Bborie Park)</para>
+        <para>#4007, Add ST_SetBandPath (Bborie Park)</para>
+        <para>#4008, Add ST_SetBandIndex (Bborie Park)</para>
+      </simplesect>
+
+      <simplesect>
+        <title>Breaking Changes</title>
+        <para>Upgrade scripts from multiple old versions are now all symlinks
+          to a single upgrade script (Sandro Santilli)</para>
+        <para>#3944, Update to EPSG register v9.2 (Even Rouault)</para>
+        <para>#3927, Parallel implementation of ST_AsMVT</para>
+        <para>#3925, Simplify geometry using map grid cell size before generating MVT</para>
+        <para>#3899, BTree sort order is now defined on collections of EMPTY and
+                same-prefix geometries (Darafei Praliaskouski)</para>
+        <para>#3864, Performance improvement for sorting POINT geometries
+                (Darafei Praliaskouski)</para>
+        <para>#3900, GCC warnings fixed, make -j is now working (Darafei Praliaskouski)
+        - TopoGeo_addLinestring robustness improvements (Sandro Santilli)
+          #1855, #1946, #3718, #3838</para>
+        <para>#3234, Do not accept EMPTY points as topology nodes (Sandro Santilli)</para>
+        <para>#1014, Hashable geometry, allowing direct use in CTE signatures (Paul Ramsey)</para>
+        <para>#3097, Really allow MULTILINESTRING blades in ST_Split() (Paul Ramsey)</para>
+        <para>#3942, geojson: Do not include private header for json-c &gt;= 0.13 (Björn Esser)</para>
+        <para>#3954, ST_GeometricMedian now supports point weights (Darafei Praliaskouski)</para>
+        <para>#3965, #3971, #3977, #4071 ST_ClusterKMeans rewritten: better initialization,
+                faster convergence, K=2 even faster (Darafei Praliaskouski)</para>
+        <para>#3982, ST_AsEncodedPolyline supports LINESTRING EMPTY and MULTIPOINT EMPTY
+                (Darafei Praliaskouski)</para>
+        <para>#3986, ST_AsText now has second argument to limit decimal digits
+                (Marc Ducobu, Darafei Praliaskouski)</para>
+        <para>#4020, Casting from box3d to geometry now returns correctly connected
+                PolyhedralSurface (Matthias Bay)</para>
+        <para>#2508, ST_OffsetCurve now works with collections (Darafei Praliaskouski)</para>
+        <para>#4006, ST_GeomFromGeoJSON support for json and jsonb as input
+                (Paul Ramsey, Regina Obe)</para>
+        <para>#4038, ST_Subdivide now selects pivot for geometry split that reuses input
+                vertices. (Darafei Praliaskouski)</para>
+        <para>#4025, #4032 Fixed precision issue in ST_ClosestPointOfApproach,
+                ST_DistanceCPA, and ST_CPAWithin (Paul Ramsey, Darafei Praliaskouski)</para>
+        <para>#4076, Reduce use of GEOS in topology implementation (Björn Harrtell)</para>
+        <para>#4080, Add external raster band index to ST_BandMetaData
+        - Add Raster Tips section to Documentation for information about
+          Raster behavior (e.g. Out-DB performance, maximum open files)</para>
+        <para>#4084: Fixed wrong code-comment regarding front/back of BOX3D (Matthias Bay)</para>
+        <para>#4060, #4094, PostgreSQL JIT support (Raúl Marín, Laurenz Albe)</para>
+        <para>#3960, ST_Centroid now uses lwgeom_centroid (Darafei Praliaskouski)</para>
+        <para>#4027, Remove duplicated code in lwgeom_geos (Darafei Praliaskouski,
+                Daniel Baston)</para>
+        <para>#4115, Fix a bug that created MVTs with incorrect property values under
+          parallel plans (Raúl Marín).</para>
+        <para>#4120, ST_AsMVTGeom: Clip using tile coordinates (Raúl Marín).</para>
+        <para>#4132, ST_Intersection on Raster now works without throwing TopologyException
+                (Vinícius A.B. Schmidt, Darafei Praliaskouski)</para>
+        <para>#4177, #4180 Support for PostgreSQL 12 dev branch (Laurenz Albe, Raúl Marín)</para>
+        <para>#4156, ST_ChaikinSmoothing: also smooth start/end point of
+        polygon by default (Darafei Praliaskouski)</para>
+      </simplesect>
+    </sect1>
+
+    <sect1>
+      <title>Release 2.4.5</title>
+      <para>Release date: 2018/09/12</para>
+      <para>This is a bug fix and performance improvement release.</para>
+      <simplesect><title>Bug Fixes</title>
+        <para>#4031, Survive to big MaxError tolerances passed to ST_CurveToLine (Sandro Santilli)</para>
+        <para>#4058, Fix infinite loop in linearization of a big radius small arc (Sandro Santilli)</para>
+        <para>#4071, ST_ClusterKMeans crash on NULL/EMPTY fixed (Darafei Praliaskouski)</para>
+        <para>#4079, ensure St_AsMVTGeom outputs CW oriented polygons (Paul Ramsey)</para>
+        <para>#4070, use standard interruption error code on GEOS interruptions (Paul Ramsey)</para>
+        <para>#3980, delay freeing input until processing complete (lucasvr)</para>
+        <para>#4090, PG 11 support (Paul Ramsey, Raúl Marín)</para>
+        <para>#4077, Serialization failure for particular empty geometry cases (Paul Ramsey)</para>
+        <para>#3997, fix bug in lwgeom_median and avoid division by zero (Raúl Marín)</para>
+        <para>#4093, Inconsistent results from qsort callback (yugr)</para>
+        <para>#4081, Geography DWithin() issues for certain cases (Paul Ramsey)</para>
+        <para>#4105, Parallel build of tarball (Bas Couwenberg)</para>
+        <para>#4163, MVT: Fix resource leak when the first geometry is NULL (Raúl Marín)</para>
+      </simplesect>
+    </sect1>
+
+    <sect1>
+      <title>Release 2.4.4</title>
+      <para>Release date: 2018/04/08</para>
+      <para>This is a bug fix and performance improvement release.</para>
+      <simplesect><title>Bug Fixes</title>
+      <para>#3055, [raster] ST_Clip() on a raster without band crashes the server
+                (Regina Obe)</para>
+      <para>#3942, geojson: Do not include private header for json-c >= 0.13
+                (Björn Esser)</para>
+      <para>#3952, ST_Transform fails in parallel mode (Paul Ramsey)</para>
+      <para>#3978, Fix KNN when upgrading from 2.1 or older (Sandro Santilli)</para>
+      <para>#4003, lwpoly_construct_circle: Avoid division by zero (Raúl Marín Rodríguez)</para>
+      <para>#4004, Avoid memory exhaustion when building a btree index (Edmund Horner)</para>
+      <para>#4016, proj 5.0.0 support (Raúl Marín Rodríguez)</para>
+      <para>#4017, lwgeom lexer memory corruption (Peter E)</para>
+      <para>#4020, Casting from box3d to geometry now returns correctly connected
+                PolyhedralSurface (Matthias Bay)</para>
+      <para>#4025, #4032 Incorrect answers for temporally "almost overlapping" ranges
+                (Paul Ramsey, Darafei Praliaskouski)</para>
+      <para>#4052, schema qualify several functions in geography (Regina Obe)</para>
+      <para>#4055, ST_ClusterIntersecting drops SRID (Daniel Baston)</para>
+      </simplesect>
+
+      <simplesect><title>Enhancements</title>
+      <para>#3946, Compile support for PgSQL 11 (Paul Ramsey)</para>
+      <para>#3992, Use PKG_PROG_PKG_CONFIG macro from pkg.m4 to detect pkg-config
+                (Bas Couwenberg)</para>
+      <para>#4044, Upgrade support for PgSQL 11 (Regina Obe)</para>
+      </simplesect>
+    </sect1>
+
+
+    <sect1>
+      <title>Release 2.4.3</title>
+      <para>Release date: 2018/01/17</para>
+      <para>This is a bug fix and performance improvement release.</para>
+      <simplesect>
+        <title>Bug Fixes and Enhancements</title>
+        <para>#3713, Support encodings that happen to output a '\' character</para>
+        <para>#3827, Set configure default to not do interrupt testing,
+                  was causing false negatives for many people. (Regina Obe)
+                 revised to be standards compliant in #3988 (Greg Troxel)</para>
+        <para>#3930, Minimum bounding circle issues on 32-bit platforms</para>
+        <para>#3965, ST_ClusterKMeans used to lose some clusters on initialization
+                  (Darafei Praliaskouski)</para>
+        <para>#3956, Brin opclass object does not upgrade properly (Sandro Santilli)</para>
+        <para>#3982, ST_AsEncodedPolyline supports LINESTRING EMPTY and MULTIPOINT EMPTY
+                  (Darafei Praliaskouski)</para>
+        <para>#3975, ST_Transform runs query on spatial_ref_sys without schema
+                  qualification. Was causing restore issues. (Paul Ramsey)</para>
+      </simplesect>
+    </sect1>
+
+   <sect1>
+      <title>Release 2.4.2</title>
+      <para>Release date: 2017/11/15</para>
+      <para>This is a bug fix and performance improvement release.</para>
+      <simplesect>
+        <title>Bug Fixes and Enhancements</title>
+        <para>#3917, Fix zcta5 load</para>
+        <para>#3667, Fix for bug in geography ST_Segmentize</para>
+        <para>#3926, Add missing 2.2.6 and 2.3.4 upgrade paths (Muhammad Usama)</para>
+      </simplesect>
+    </sect1>
 
     <sect1>
       <title>Release 2.4.1</title>
@@ -26,54 +968,73 @@
         <para>#3907, Allocate enough space for all possible GBOX string outputs (Raúl Marín Rodríguez)</para>
       </simplesect>
     </sect1>
-
     <sect1>
         <title>Release 2.4.0</title>
         <para>Release date: 2017/09/30</para>
-        <simplesect>
-            <title>New Features</title>
-            <para>#3822, Have postgis_full_version() also show and check version of PostgreSQL the scripts were built against (Sandro Santilli)</para>
-            <para>#2411, curves support in ST_Reverse (Sandro Santilli)</para>
-            <para>#2951, ST_Centroid for geography (Danny Götte)</para>
-            <para>#3788, Allow postgis_restore.pl to work on directory-style (-Fd) dumps (Roger Crew)</para>
-            <para>#3772, Direction agnostic ST_CurveToLine output (Sandro Santilli / KKGeo)</para>
-            <para>#2464, ST_CurveToLine with MaxError tolerance (Sandro Santilli / KKGeo)</para>
-            <para>#3599, Geobuf output support via ST_AsGeobuf (Björn Harrtell)</para>
-            <para>#3661, Mapbox vector tile output support via ST_AsMVT (Björn Harrtell / CartoDB)</para>
-            <para>#3689, Add orientation checking and forcing functions (Dan Baston)</para>
-            <para>#3753, Gist penalty speed improvements for 2D and ND points (Darafei Praliaskouski, Andrey Borodin)</para>
-            <para>#3677, ST_FrechetDistance (Shinichi Sugiyama)</para>
-            <para>Most aggregates (raster and geometry), and all stable / immutable (raster and geometry) marked as parallel safe</para>
-            <para>#2249, ST_MakeEmptyCoverage for raster (David Zwarg, ainomieli)</para>
-            <para>#3709, Allow signed distance for ST_Project (Darafei Praliaskouski)</para>
-            <para>#524, Covers support for polygon on polygon, line on line, point on line for geography (Danny Götte)</para>
+        <simplesect><title>New Features</title>
+<para>#3822, Have postgis_full_version() also show and check version of
+           PostgreSQL the scripts were built against (Sandro Santilli)</para>
+<para>#2411, curves support in ST_Reverse (Sandro Santilli)</para>
+<para>#2951, ST_Centroid for geography (Danny Götte)</para>
+<para>#3788, Allow postgis_restore.pl to work on directory-style (-Fd) dumps
+           (Roger Crew)</para>
+<para>#3772, Direction agnostic ST_CurveToLine output (Sandro Santilli / KKGeo)</para>
+<para>#2464, ST_CurveToLine with MaxError tolerance (Sandro Santilli / KKGeo)</para>
+<para>#3599, Geobuf output support via ST_AsGeobuf (Björn Harrtell)</para>
+<para>#3661, Mapbox vector tile output support via ST_AsMVT (Björn Harrtell / CartoDB)</para>
+<para>#3689, Add orientation checking and forcing functions (Dan Baston)</para>
+<para>#3753, Gist penalty speed improvements for 2D and ND points
+           (Darafei Praliaskouski, Andrey Borodin)</para>
+<para>#3677, ST_FrechetDistance (Shinichi Sugiyama)</para>
+<para>Most aggregates (raster and geometry),
+    and all stable / immutable (raster and geometry) marked as parallel safe</para>
+<para>#2249, ST_MakeEmptyCoverage for raster (David Zwarg, ainomieli)</para>
+<para>#3709, Allow signed distance for ST_Project (Darafei Praliaskouski)</para>
+<para>#524, Covers support for polygon on polygon, line on line,
+          point on line for geography (Danny Götte)</para>
         </simplesect>
-        <simplesect>
-            <title>Enhancements and Fixes</title>
-            <para>Many corrections to docs and several translations almost complete. Andreas Schild who provided many corrections to core docs. PostGIS Japanese translation team first to reach completion of translation.</para>
-            <para>Support for PostgreSQL 10</para>
-            <para>Preliminary support for PostgreSQL 11</para>
-            <para>#3645, Avoid loading logically deleted records from shapefiles</para>
-            <para>#3747, Add zip4 and address_alphanumeric as attributes to norm_addy tiger_geocoder type.</para>
-            <para>#3748, address_standardizer lookup tables update so pagc_normalize_address better standardizes abbreviations</para>
-            <para>#3647, better handling of noding in ST_Node using GEOSNode (Wouter Geraedts)</para>
-            <para>#3684, Update to EPSG register v9 (Even Rouault)</para>
-            <para>#3830, Fix initialization of incompatible type (>=9.6) address_standardizer</para>
-            <para>#3662, Make shp2pgsql work in debug mode by sending debug to stderr</para>
-            <para>#3405, Fixed memory leak in lwgeom_to_points</para>
-            <para>#3832, Support wide integer fields as int8 in shp2pgsql</para>
-            <para>#3841, Deterministic sorting support for empty geometries in btree geography</para>
-            <para>#3844, Make = operator a strict equality test, and &lt; &gt; to rough "spatial sorting"</para>
-            <para>#3855, ST_AsTWKB memory and speed improvements</para>
+
+        <simplesect><title>Enhancements and Fixes</title>
+<para>Many corrections to docs and several translations almost complete.
+    Andreas Schild who provided many corrections to core docs.
+    PostGIS Japanese translation team first to reach completion of translation.</para>
+
+<para>Support for PostgreSQL 10</para>
+<para>Preliminary support for PostgreSQL 11</para>
+<para>#3645, Avoid loading logically deleted records from shapefiles</para>
+<para>#3747, Add zip4 and address_alphanumeric as attributes
+           to norm_addy tiger_geocoder type.</para>
+<para>#3748, address_standardizer lookup tables update
+           so pagc_normalize_address better standardizes abbreviations</para>
+<para>#3647, better handling of noding in ST_Node using GEOSNode
+          (Wouter Geraedts)</para>
+<para>#3684, Update to EPSG register v9
+          (Even Rouault)</para>
+<para>#3830, Fix initialization of incompatible type (>=9.6) address_standardizer</para>
+<para>#3662, Make shp2pgsql work in debug mode by sending debug to stderr</para>
+<para>#3405, Fixed memory leak in lwgeom_to_points</para>
+<para>#3832, Support wide integer fields as int8 in shp2pgsql</para>
+<para>#3841, Deterministic sorting support for empty geometries in btree geography</para>
+<para>#3844, Make = operator a strict equality test, and &lt; &gt; to rough "spatial sorting"</para>
+<para>#3855, ST_AsTWKB memory and speed improvements</para>
         </simplesect>
-        <simplesect>
-            <title>Breaking Changes</title>
-            <para>Dropped support for PostgreSQL 9.2.</para>
-            <para>#3810, GEOS 3.4.0 or above minimum required to compile</para>
-            <para>Most aggregates now marked as parallel safe, which means most aggs have to be dropped / recreated. If you have views that utilize PostGIS aggs, you'll need to drop before upgrade and recreate after upgrade</para>
-            <para>#3578, ST_NumInteriorRings(POLYGON EMPTY) now returns 0 instead of NULL</para>
-            <para>_ST_DumpPoints removed, was no longer needed after PostGIS 2.1.0 when ST_DumpPoints got reimplemented in C</para>
-            <para>B-Tree index operators &lt; = &gt; changed to provide better spatial locality on sorting and have expected behavior on GROUP BY. If you have btree index for geometry or geography, you need to REINDEX it, or review if it was created by accident and needs to be replaced with GiST index. If your code relies on old left-to-right box compare ordering, update it to use &lt;&lt; &gt;&gt; operators.</para>
+
+        <simplesect><title>Breaking Changes</title>
+<para>Dropped support for PostgreSQL 9.2.</para>
+<para>#3810, GEOS 3.4.0 or above minimum required to compile</para>
+<para>Most aggregates now marked as parallel safe,
+    which means most aggs have to be dropped / recreated.
+    If you have views that utilize PostGIS aggs,
+    you'll need to drop before upgrade and recreate after upgrade</para>
+<para>#3578, ST_NumInteriorRings(POLYGON EMPTY) now returns 0 instead of NULL</para>
+<para>_ST_DumpPoints removed, was no longer needed after PostGIS 2.1.0
+    when ST_DumpPoints got reimplemented in C</para>
+<para>B-Tree index operators &lt; = &gt; changed to provide better spatial locality on sorting
+    and have expected behavior on GROUP BY.
+    If you have btree index for geometry or geography, you need to REINDEX it, or review
+    if it was created by accident and needs to be replaced with GiST index.
+    If your code relies on old left-to-right box compare ordering,
+    update it to use &lt;&lt; &gt;&gt; operators.</para>
         </simplesect>
     </sect1>
 
@@ -143,6 +1104,7 @@
       <title>Release 2.3.0</title>
           <para>Release date: 2016/09/26</para>
           <para>This is a new feature release, with new functions, improved performance, all relevant bug fixes from PostGIS 2.2.3,and other goodies.</para>
+
         <simplesect>
           <title>Important / Breaking Changes</title>
             <para>#3466, Casting from box3d to geometry now returns a 3D
@@ -150,6 +1112,8 @@
             <para>#3396, ST_EstimatedExtent, throw WARNING instead of ERROR
                      (Regina Obe)</para>
         </simplesect>
+
+
         <simplesect>
             <title>New Features</title>
               <para>Add support for custom TOC in postgis_restore.pl
@@ -190,6 +1154,7 @@
               <para>#3613, Segmentize geography using equal length segments
                        (Hugo Mercier of Oslandia)</para>
         </simplesect>
+
         <simplesect>
             <title>Bug Fixes</title>
                <para>All relevant bug fixes from PostGIS 2.2.3</para>
@@ -197,6 +1162,7 @@
                <para>#3604, pgcommon/Makefile.in orders CFLAGS incorrectly leading to
                        wrong liblwgeom.h (Greg Troxel)</para>
         </simplesect>
+
         <simplesect>
             <title>Performance Enhancements</title>
               <para>#75, Enhancement to PIP short circuit (Dan Baston)</para>
@@ -206,6 +1172,7 @@
               <para>Make adding a line to topology interruptible (Sandro Santilli)</para>
               <para>Documentation updates from Mike Toews</para>
       </simplesect>
+
    </sect1>
 
    <sect1>

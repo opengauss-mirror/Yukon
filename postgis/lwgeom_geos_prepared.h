@@ -26,11 +26,17 @@
 #ifndef LWGEOM_GEOS_PREPARED_H_
 #define LWGEOM_GEOS_PREPARED_H_ 1
 
-#include "extension_dependency.h"
+#include "postgres.h"
+#include "fmgr.h"
+#include "miscadmin.h"
+#include "utils/hsearch.h"
+#include "utils/memutils.h"
+#include "access/hash.h"
 
 #include "lwgeom_pg.h"
 #include "liblwgeom.h"
 #include "lwgeom_geos.h"
+#include "lwgeom_cache.h"
 
 /*
 * Cache structure. We use GSERIALIZED as keys so no transformations
@@ -48,12 +54,7 @@
 * prepared geometry, circtrees, recttrees, and rtrees).
 */
 typedef struct {
-	int                         type;       // <GeomCache>
-	GSERIALIZED*                geom1;      //
-	GSERIALIZED*                geom2;      //
-	size_t                      geom1_size; //
-	size_t                      geom2_size; //
-	int32                       argnum;     // </GeomCache>
+	GeomCache                   gcache;
 	MemoryContext               context_statement;
 	MemoryContext               context_callback;
 	const GEOSPreparedGeometry* prepared_geom;
@@ -69,6 +70,6 @@ typedef struct {
 ** If you are only caching one argument (e.g., in contains) supply 0 as the
 ** value for pg_geom2.
 */
-PrepGeomCache *GetPrepGeomCache(FunctionCallInfoData *fcinfo, GSERIALIZED *pg_geom1, GSERIALIZED *pg_geom2);
+PrepGeomCache *GetPrepGeomCache(FunctionCallInfo fcinfo, SHARED_GSERIALIZED *pg_geom1, SHARED_GSERIALIZED *pg_geom2);
 
 #endif /* LWGEOM_GEOS_PREPARED_H_ */

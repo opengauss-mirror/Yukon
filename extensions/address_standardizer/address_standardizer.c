@@ -1,8 +1,8 @@
-//#include "postgres.h"
-//#include "funcapi.h"
-//#include "catalog/pg_type.h"
-//#include "fmgr.h"
-#include "extension_dependency.h"
+#include "postgres.h"
+#include "fmgr.h"
+#include "funcapi.h"
+#include "catalog/pg_type.h"
+#include "utils/builtins.h"
 
 #undef DEBUG
 //#define DEBUG 1
@@ -19,14 +19,6 @@ PG_MODULE_MAGIC;
 Datum standardize_address(PG_FUNCTION_ARGS);
 Datum standardize_address1(PG_FUNCTION_ARGS);
 
-
-static char *text2char(text *in)
-{
-    char *out = palloc(VARSIZE(in));
-    memcpy(out, VARDATA(in), VARSIZE(in) - VARHDRSZ);
-    out[VARSIZE(in) - VARHDRSZ] = '\0';
-    return out;
-}
 
 /*
  * The signature for standardize_address follows. The lextab, gaztab and
@@ -81,11 +73,11 @@ Datum standardize_address(PG_FUNCTION_ARGS)
 
     DBG("Start standardize_address");
 
-    lextab = text2char(PG_GETARG_TEXT_P(0));
-    gaztab = text2char(PG_GETARG_TEXT_P(1));
-    rultab = text2char(PG_GETARG_TEXT_P(2));
-    micro  = text2char(PG_GETARG_TEXT_P(3));
-    macro  = text2char(PG_GETARG_TEXT_P(4));
+    lextab = text_to_cstring(PG_GETARG_TEXT_P(0));
+    gaztab = text_to_cstring(PG_GETARG_TEXT_P(1));
+    rultab = text_to_cstring(PG_GETARG_TEXT_P(2));
+    micro  = text_to_cstring(PG_GETARG_TEXT_P(3));
+    macro  = text_to_cstring(PG_GETARG_TEXT_P(4));
 
     DBG("calling RelationNameGetTupleDesc");
     if (get_call_result_type( fcinfo, NULL, &tuple_desc ) != TYPEFUNC_COMPOSITE ) {
@@ -168,10 +160,10 @@ Datum standardize_address1(PG_FUNCTION_ARGS)
 
     DBG("Start standardize_address");
 
-    lextab = text2char(PG_GETARG_TEXT_P(0));
-    gaztab = text2char(PG_GETARG_TEXT_P(1));
-    rultab = text2char(PG_GETARG_TEXT_P(2));
-    addr   = text2char(PG_GETARG_TEXT_P(3));
+    lextab = text_to_cstring(PG_GETARG_TEXT_P(0));
+    gaztab = text_to_cstring(PG_GETARG_TEXT_P(1));
+    rultab = text_to_cstring(PG_GETARG_TEXT_P(2));
+    addr   = text_to_cstring(PG_GETARG_TEXT_P(3));
 
     DBG("calling RelationNameGetTupleDesc");
     if (get_call_result_type( fcinfo, NULL, &tuple_desc ) != TYPEFUNC_COMPOSITE ) {

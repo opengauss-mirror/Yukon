@@ -489,7 +489,7 @@ BEGIN
 	SELECT postgis_libxml_version() INTO libxmlver;
 	SELECT postgis_scripts_installed() INTO dbproc;
 	SELECT postgis_scripts_released() INTO relproc;
-	select postgis_svn_version() INTO svnver;
+	select postgis_lib_version() INTO svnver;
 
 	fullver = 'YUKON="' || libver;
 	fullver = fullver || '"';
@@ -735,13 +735,13 @@ CREATE OR REPLACE FUNCTION ST_GeoModelType(geomodel)
 ----------------------------------------- {{ -- Gist (wrap) for geomodel --  ------------------------------------------------------
 CREATE OR REPLACE FUNCTION geomodel_gist_consistent(internal,geomodel,int4) 
 	RETURNS bool 
-	AS '$libdir/postgis-2.4' ,'gserialized_gist_consistent'
+	AS '$libdir/postgis-3' ,'gserialized_gist_consistent'
 	LANGUAGE 'c' NOT FENCED;
 
 ------ overlaps ------ 
 CREATE OR REPLACE FUNCTION geomodel_overlaps(geomodel, geometry) 
 	RETURNS boolean 
-	AS '$libdir/postgis-2.4' ,'gserialized_overlaps'
+	AS '$libdir/postgis-3' ,'gserialized_overlaps'
 	LANGUAGE 'c' NOT FENCED IMMUTABLE STRICT ;
 
 CREATE OPERATOR && (

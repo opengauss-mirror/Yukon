@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 #
 # PostGIS - Spatial Types for PostgreSQL
@@ -28,9 +28,9 @@ my $extname = shift(@ARGV);
 # drops are in the following order:
 #	1. Indexing system stuff
 #	2. Meta datatables <not done>
-#	3. Aggregates 
+#	3. Aggregates
 #	3. Casts
-#	4. Operators 
+#	4. Operators
 #	5. Functions
 #	6. Types
 #	7. Tables
@@ -44,6 +44,7 @@ my @ops = ();
 my @opcs = ();
 my @views = ();
 my @tables = ();
+my @sequences = ();
 my @schemas = ();
 
 sub strip_default {
@@ -68,7 +69,19 @@ while( my $line = <>)
 		push (@views, $1);
 	}
 	elsif ($line =~ /^create table \s*([\w\.]+)/i) {
-		push (@tables, $1);
+		#print STDERR "XXX table $1\n";
+		my $fqtn = $1;
+		push (@tables, $fqtn);
+		my $defn = $line;
+		while( not $defn =~ /\)/ ) {
+			#print STDERR "XXX defn $defn\n";
+			if ($defn =~ /([\w]+) serial\b/i) {
+				my $seq = "${fqtn}_$1_seq";
+				#print STDERR "XXX serial field [$seq]\n";
+				push (@sequences, $seq);
+			}
+			$defn = <>;
+		}
 	}
 	elsif ($line =~ /^create schema \s*([\w\.]+)/i) {
 		push (@schemas, $1);
@@ -125,26 +138,44 @@ while( my $line = <>)
 
 #close( INPUT );
 
-my $addprefix = "ALTER EXTENSION $extname ADD";
+sub add_if_not_exists
+{
+  my $obj = shift;
+  print <<"EOF"
+DO \$\$
+BEGIN
+ ALTER EXTENSION $extname ADD $obj;
+ RAISE NOTICE 'newly registered $obj';
+EXCEPTION WHEN object_not_in_prerequisite_state THEN
+  IF SQLERRM ~ '\\m$extname\\M'
+  THEN
+    RAISE NOTICE 'already registered $obj';
+  ELSE
+    RAISE EXCEPTION '%', SQLERRM;
+  END IF;
+END;
+\$\$ LANGUAGE 'plpgsql';
+EOF
+}
 
-my $time = POSIX::strftime("%c", localtime);
+my $time = POSIX::strftime("%F %T", gmtime(defined($ENV{SOURCE_DATE_EPOCH}) ? $ENV{SOURCE_DATE_EPOCH} : time));
 print "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --\n";
-print "-- \n";
-print "-- PostGIS - Spatial Types for PostgreSQL \n";
-print "-- http://postgis.net \n";
-print "-- \n";
-print "-- This is free software; you can redistribute and/or modify it under \n";
-print "-- the terms of the GNU General Public Licence. See the COPYING file. \n";
-print "-- \n";
+print "--\n";
+print "-- PostGIS - Spatial Types for PostgreSQL\n";
+print "-- http://postgis.net\n";
+print "--\n";
+print "-- This is free software; you can redistribute and/or modify it under\n";
+print "-- the terms of the GNU General Public Licence. See the COPYING file.\n";
+print "--\n";
 print "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --\n";
-print "-- \n";
+print "--\n";
 print "-- Generated on: " . $time . "\n";
 print "--           by: " . $0 . "\n";
 print "--          for: " . $extname . "\n";
 print "--         from: " . ( @ARGV ? $ARGV[0] : '-' ) . "\n";
-print "-- \n";
+print "--\n";
 print "-- Do not edit manually, your changes will be lost.\n";
-print "-- \n";
+print "--\n";
 print "-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --\n";
 print "\n";
 
@@ -156,7 +187,7 @@ print "\n\n";
 print "-- Register all views.\n";
 foreach my $view (@views)
 {
-	print "$addprefix VIEW $view;\n";
+	add_if_not_exists("VIEW $view");
 }
 
 print "-- Register all tables.\n";
@@ -165,7 +196,13 @@ print "-- Register all tables.\n";
 @tables = reverse(@tables);
 foreach my $table (@tables)
 {
-	print "$addprefix TABLE $table;\n";
+	add_if_not_exists("TABLE $table");
+}
+
+print "-- Register all sequences.\n";
+foreach my $seq (@sequences)
+{
+	add_if_not_exists("SEQUENCE $seq");
 }
 
 
@@ -174,13 +211,13 @@ foreach my $agg (@aggs)
 {
 	if ( $agg =~ /create aggregate\s*([\w\.]+)\s*\(\s*.*basetype = ([\w\.]+)/ism )
 	{
-		print "$addprefix AGGREGATE $1 ($2);\n";
+		add_if_not_exists("AGGREGATE $1 ($2)");
 	}
 	elsif ( $agg =~ /create aggregate\s*([\w\.]+)\s*\(\s*([\w,\.\s\[\]]+)\s*\)/ism )
 	{
-		print "$addprefix AGGREGATE $1 ($2);\n";
+		add_if_not_exists("AGGREGATE $1 ($2)");
 	}
-	else 
+	else
 	{
 		die "Couldn't parse AGGREGATE line: $agg\n";
 	}
@@ -189,8 +226,8 @@ foreach my $agg (@aggs)
 print "-- Register all operators classes and families.\n";
 foreach my $opc (@opcs)
 {
-	print "$addprefix OPERATOR CLASS $opc;\n";
-	print "$addprefix OPERATOR FAMILY $opc;\n";
+	add_if_not_exists("OPERATOR CLASS $opc");
+	add_if_not_exists("OPERATOR FAMILY $opc");
 }
 
 print "-- Register all operators.\n";
@@ -198,7 +235,7 @@ foreach my $op (@ops)
 {
 	if ($op =~ /create operator ([^(]+)\s*\(.*LEFTARG\s*=\s*(\w+),\s*RIGHTARG\s*=\s*(\w+).*/ism )
 	{
-		print "$addprefix OPERATOR $1 ($2,$3);\n";
+		add_if_not_exists("OPERATOR $1 ($2,$3)");
 	}
 	else
 	{
@@ -206,13 +243,13 @@ foreach my $op (@ops)
 	}
 }
 
-	
+
 print "-- Register all casts.\n";
 foreach my $cast (@casts)
 {
 	if ($cast =~ /create cast\s*\((.+?)\)/i )
 	{
-		print "$addprefix CAST ($1);\n";
+		add_if_not_exists("CAST ($1)");
 	}
 	else
 	{
@@ -232,8 +269,8 @@ foreach my $fn (@funcs)
 		$fn_arg = strip_default($fn_arg);
 		if ( ! exists($type_funcs{$fn_nm}) )
 		{
-			print "$addprefix FUNCTION $fn_nm ($fn_arg);\n";
-		} 
+			add_if_not_exists("FUNCTION $fn_nm ($fn_arg)");
+		}
 		else
 		{
 			push(@type_funcs, $fn);
@@ -255,7 +292,7 @@ foreach my $fn (@type_funcs)
 
 		$fn_arg =~ s/DEFAULT [\w']+//ig;
 
-		print "$addprefix FUNCTION $fn_nm ($fn_arg);\n";
+		add_if_not_exists("FUNCTION $fn_nm ($fn_arg)");
 	}
 	else
 	{
@@ -266,7 +303,7 @@ foreach my $fn (@type_funcs)
 print "-- Register all types.\n";
 foreach my $type (@types)
 {
-	print "$addprefix TYPE $type;\n";
+	add_if_not_exists("TYPE $type");
 }
 
 
@@ -278,7 +315,7 @@ foreach my $type (@types)
 #{
 #  foreach my $schema (@schemas)
 #  {
-#    print "$addprefix SCHEMA \"$schema\";\n";
+#    add_if_not_exists("SCHEMA \"$schema\"");
 #  }
 #}
 

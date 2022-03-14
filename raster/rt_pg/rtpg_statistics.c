@@ -27,46 +27,44 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  */
-
-//#include <postgres.h>
-//#include <fmgr.h>
-//#include <utils/builtins.h> /* for text_to_cstring() */
-//#include "utils/lsyscache.h" /* for get_typlenbyvalalign */
-//#include "utils/array.h" /* for ArrayType */
-//#include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
-//#include <executor/spi.h>
-//#include <funcapi.h> /* for SRF */
+#include "extension_dependency.h"
+// #include <postgres.h>
+// #include <fmgr.h>
+// #include <utils/builtins.h> /* for text_to_cstring() */
+// #include "utils/lsyscache.h" /* for get_typlenbyvalalign */
+// #include "utils/array.h" /* for ArrayType */
+// #include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
+// #include <executor/spi.h>
+// #include <funcapi.h> /* for SRF */
 
 #include "../../postgis_config.h"
-#include "extension_dependency.h"
 
 
-//#include "access/htup_details.h" /* for heap_form_tuple() */
+// #include "access/htup_details.h" /* for heap_form_tuple() */
 
 
 #include "rtpostgis.h"
 
-/* Get summary stats */
 extern "C"
 {
-	Datum RASTER_summaryStats(PG_FUNCTION_ARGS);
-	Datum RASTER_summaryStatsCoverage(PG_FUNCTION_ARGS);
+/* Get summary stats */
+Datum RASTER_summaryStats(PG_FUNCTION_ARGS);
+Datum RASTER_summaryStatsCoverage(PG_FUNCTION_ARGS);
 
-	Datum RASTER_summaryStats_transfn(PG_FUNCTION_ARGS);
-	Datum RASTER_summaryStats_finalfn(PG_FUNCTION_ARGS);
+Datum RASTER_summaryStats_transfn(PG_FUNCTION_ARGS);
+Datum RASTER_summaryStats_finalfn(PG_FUNCTION_ARGS);
 
-	/* get histogram */
-	Datum RASTER_histogram(PG_FUNCTION_ARGS);
-	Datum RASTER_histogramCoverage(PG_FUNCTION_ARGS);
+/* get histogram */
+Datum RASTER_histogram(PG_FUNCTION_ARGS);
 
-	/* get quantiles */
-	Datum RASTER_quantile(PG_FUNCTION_ARGS);
-	Datum RASTER_quantileCoverage(PG_FUNCTION_ARGS);
+/* get quantiles */
+Datum RASTER_quantile(PG_FUNCTION_ARGS);
 
-	/* get counts of values */
-	Datum RASTER_valueCount(PG_FUNCTION_ARGS);
-	Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS);
+/* get counts of values */
+Datum RASTER_valueCount(PG_FUNCTION_ARGS);
+Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS);
 }
+#define VALUES_LENGTH 6
 
 /**
  * Get summary stats of a band
@@ -84,9 +82,8 @@ Datum RASTER_summaryStats(PG_FUNCTION_ARGS)
 	rt_bandstats stats = NULL;
 
 	TupleDesc tupdesc;
-	int values_length = 6;
-	Datum values[values_length];
-	bool nulls[values_length];
+	Datum values[VALUES_LENGTH];
+	bool nulls[VALUES_LENGTH];
 	HeapTuple tuple;
 	Datum result;
 
@@ -164,7 +161,7 @@ Datum RASTER_summaryStats(PG_FUNCTION_ARGS)
 
 	BlessTupleDesc(tupdesc);
 
-	memset(nulls, FALSE, sizeof(bool) * values_length);
+	memset(nulls, FALSE, sizeof(bool) * VALUES_LENGTH);
 
 	values[0] = Int64GetDatum(stats->count);
 	if (stats->count > 0) {
@@ -228,9 +225,8 @@ Datum RASTER_summaryStatsCoverage(PG_FUNCTION_ARGS)
 	rt_bandstats stats = NULL;
 	rt_bandstats rtn = NULL;
 
-	int values_length = 6;
-	Datum values[values_length];
-	bool nulls[values_length];
+	Datum values[VALUES_LENGTH];
+	bool nulls[VALUES_LENGTH];
 	Datum result;
 
 	/* tablename is null, return null */
@@ -313,13 +309,11 @@ Datum RASTER_summaryStatsCoverage(PG_FUNCTION_ARGS)
 	SPI_cursor_fetch(portal, TRUE, 1);
 	while (SPI_processed == 1 && SPI_tuptable != NULL) {
 		tupdesc = SPI_tuptable->tupdesc;
-		tuptable = SPI_tuptable;
-		tuple = tuptable->vals[0];
+		tuple = SPI_tuptable->vals[0];
 
 		datum = SPI_getbinval(tuple, tupdesc, 1, &isNull);
 		if (SPI_result == SPI_ERROR_NOATTRIBUTE) {
-
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
+			SPI_freetuptable(SPI_tuptable);
 			SPI_cursor_close(portal);
 			SPI_finish();
 
@@ -336,8 +330,7 @@ Datum RASTER_summaryStatsCoverage(PG_FUNCTION_ARGS)
 
 		raster = rt_raster_deserialize(pgraster, FALSE);
 		if (!raster) {
-
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
+			SPI_freetuptable(SPI_tuptable);
 			SPI_cursor_close(portal);
 			SPI_finish();
 
@@ -353,7 +346,7 @@ Datum RASTER_summaryStatsCoverage(PG_FUNCTION_ARGS)
 
 			rt_raster_destroy(raster);
 
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
+			SPI_freetuptable(SPI_tuptable);
 			SPI_cursor_close(portal);
 			SPI_finish();
 
@@ -368,7 +361,7 @@ Datum RASTER_summaryStatsCoverage(PG_FUNCTION_ARGS)
 
 			rt_raster_destroy(raster);
 
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
+			SPI_freetuptable(SPI_tuptable);
 			SPI_cursor_close(portal);
 			SPI_finish();
 
@@ -385,7 +378,7 @@ Datum RASTER_summaryStatsCoverage(PG_FUNCTION_ARGS)
 		if (NULL == stats) {
 			elog(NOTICE, "Cannot compute summary statistics for band at index %d. Returning NULL", bandindex);
 
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
+			SPI_freetuptable(SPI_tuptable);
 			SPI_cursor_close(portal);
 			SPI_finish();
 
@@ -398,8 +391,7 @@ Datum RASTER_summaryStatsCoverage(PG_FUNCTION_ARGS)
 			if (NULL == rtn) {
 				rtn = (rt_bandstats) SPI_palloc(sizeof(struct rt_bandstats_t));
 				if (NULL == rtn) {
-
-					if (SPI_tuptable) SPI_freetuptable(tuptable);
+					SPI_freetuptable(SPI_tuptable);
 					SPI_cursor_close(portal);
 					SPI_finish();
 
@@ -435,7 +427,7 @@ Datum RASTER_summaryStatsCoverage(PG_FUNCTION_ARGS)
 		SPI_cursor_fetch(portal, TRUE, 1);
 	}
 
-	if (SPI_tuptable) SPI_freetuptable(tuptable);
+	if (SPI_tuptable) SPI_freetuptable(SPI_tuptable);
 	SPI_cursor_close(portal);
 	SPI_finish();
 
@@ -466,7 +458,7 @@ Datum RASTER_summaryStatsCoverage(PG_FUNCTION_ARGS)
 
 	BlessTupleDesc(tupdesc);
 
-	memset(nulls, FALSE, sizeof(bool) * values_length);
+	memset(nulls, FALSE, sizeof(bool) * VALUES_LENGTH);
 
 	values[0] = Int64GetDatum(rtn->count);
 	if (rtn->count > 0) {
@@ -837,9 +829,8 @@ Datum RASTER_summaryStats_finalfn(PG_FUNCTION_ARGS)
 
 	TupleDesc tupdesc;
 	HeapTuple tuple;
-	int values_length = 6;
-	Datum values[values_length];
-	bool nulls[values_length];
+	Datum values[VALUES_LENGTH];
+	bool nulls[VALUES_LENGTH];
 	Datum result;
 
 	POSTGIS_RT_DEBUG(3, "Starting...");
@@ -886,7 +877,7 @@ Datum RASTER_summaryStats_finalfn(PG_FUNCTION_ARGS)
 
 	BlessTupleDesc(tupdesc);
 
-	memset(nulls, FALSE, sizeof(bool) * values_length);
+	memset(nulls, FALSE, sizeof(bool) * VALUES_LENGTH);
 
 	values[0] = Int64GetDatum(state->stats->count);
 	if (state->stats->count > 0) {
@@ -911,10 +902,17 @@ Datum RASTER_summaryStats_finalfn(PG_FUNCTION_ARGS)
 	result = HeapTupleGetDatum(tuple);
 
 	/* clean up */
-	//rtpg_summarystats_arg_destroy(state);
+	/* For Windowing functions, it is important to leave */
+	/* the state intact, knowing that the aggcontext will be */
+	/* freed by PgSQL when the statement is complete. */
+	/* https://trac.osgeo.org/postgis/ticket/4770 */
+	// rtpg_summarystats_arg_destroy(state);
 
 	PG_RETURN_DATUM(result);
 }
+
+#undef VALUES_LENGTH
+#define VALUES_LENGTH 4
 
 /**
  * Returns histogram for a band
@@ -1117,7 +1115,7 @@ Datum RASTER_histogram(PG_FUNCTION_ARGS)
 		}
 
 		/* get histogram */
-		hist = rt_band_get_histogram(stats, bin_count, bin_width, bin_width_count, right, min, max, &count);
+		hist = rt_band_get_histogram(stats, (uint32_t)bin_count, bin_width, bin_width_count, right, min, max, &count);
 		if (bin_width_count) pfree(bin_width);
 		pfree(stats);
 		if (NULL == hist || !count) {
@@ -1147,6 +1145,7 @@ Datum RASTER_histogram(PG_FUNCTION_ARGS)
 
 		BlessTupleDesc(tupdesc);
 		funcctx->tuple_desc = tupdesc;
+
 		MemoryContextSwitchTo(oldcontext);
 	}
 
@@ -1160,15 +1159,14 @@ Datum RASTER_histogram(PG_FUNCTION_ARGS)
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
-		int values_length = 4;
-		Datum values[values_length];
-		bool nulls[values_length];
+		Datum values[VALUES_LENGTH];
+		bool nulls[VALUES_LENGTH];
 		HeapTuple tuple;
 		Datum result;
 
 		POSTGIS_RT_DEBUGF(3, "Result %d", call_cntr);
 
-		memset(nulls, FALSE, sizeof(bool) * values_length);
+		memset(nulls, FALSE, sizeof(bool) * VALUES_LENGTH);
 
 		values[0] = Float8GetDatum(hist2[call_cntr].min);
 		values[1] = Float8GetDatum(hist2[call_cntr].max);
@@ -1190,536 +1188,8 @@ Datum RASTER_histogram(PG_FUNCTION_ARGS)
 	}
 }
 
-/**
- * Returns histogram of a coverage for a specified band
- */
-PG_FUNCTION_INFO_V1(RASTER_histogramCoverage);
-Datum RASTER_histogramCoverage(PG_FUNCTION_ARGS)
-{
-	FuncCallContext *funcctx;
-	TupleDesc tupdesc;
-
-	int i;
-	rt_histogram covhist = NULL;
-	rt_histogram covhist2;
-	int call_cntr;
-	int max_calls;
-
-	POSTGIS_RT_DEBUG(3, "RASTER_histogramCoverage: Starting");
-
-	/* first call of function */
-	if (SRF_IS_FIRSTCALL()) {
-		MemoryContext oldcontext;
-
-		text *tablenametext = NULL;
-		char *tablename = NULL;
-		text *colnametext = NULL;
-		char *colname = NULL;
-		int32_t bandindex = 1;
-		bool exclude_nodata_value = TRUE;
-		double sample = 0;
-		uint32_t bin_count = 0;
-		double *bin_width = NULL;
-		uint32_t bin_width_count = 0;
-		double width = 0;
-		bool right = FALSE;
-		uint32_t count;
-
-		int len = 0;
-		char *sql = NULL;
-		char *tmp = NULL;
-		double min = 0;
-		double max = 0;
-		int spi_result;
-		Portal portal;
-		SPITupleTable *tuptable = NULL;
-		HeapTuple tuple;
-		Datum datum;
-		bool isNull = FALSE;
-
-		rt_pgraster *pgraster = NULL;
-		rt_raster raster = NULL;
-		rt_band band = NULL;
-		int num_bands = 0;
-		rt_bandstats stats = NULL;
-		rt_histogram hist;
-		uint64_t sum = 0;
-
-		int j;
-		int n;
-
-		ArrayType *array;
-		Oid etype;
-		Datum *e;
-		bool *nulls;
-		int16 typlen;
-		bool typbyval;
-		char typalign;
-
-		POSTGIS_RT_DEBUG(3, "RASTER_histogramCoverage: first call of function");
-
-		/* create a function context for cross-call persistence */
-		funcctx = SRF_FIRSTCALL_INIT();
-
-		/* switch to memory context appropriate for multiple function calls */
-		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
-
-		/* tablename is null, return null */
-		if (PG_ARGISNULL(0)) {
-			elog(NOTICE, "Table name must be provided");
-			MemoryContextSwitchTo(oldcontext);
-			SRF_RETURN_DONE(funcctx);
-		}
-		tablenametext = PG_GETARG_TEXT_P(0);
-		tablename = text_to_cstring(tablenametext);
-		if (!strlen(tablename)) {
-			elog(NOTICE, "Table name must be provided");
-			MemoryContextSwitchTo(oldcontext);
-			SRF_RETURN_DONE(funcctx);
-		}
-		POSTGIS_RT_DEBUGF(3, "RASTER_histogramCoverage: tablename = %s", tablename);
-
-		/* column name is null, return null */
-		if (PG_ARGISNULL(1)) {
-			elog(NOTICE, "Column name must be provided");
-			MemoryContextSwitchTo(oldcontext);
-			SRF_RETURN_DONE(funcctx);
-		}
-		colnametext = PG_GETARG_TEXT_P(1);
-		colname = text_to_cstring(colnametext);
-		if (!strlen(colname)) {
-			elog(NOTICE, "Column name must be provided");
-			MemoryContextSwitchTo(oldcontext);
-			SRF_RETURN_DONE(funcctx);
-		}
-		POSTGIS_RT_DEBUGF(3, "RASTER_histogramCoverage: colname = %s", colname);
-
-		/* band index is 1-based */
-		if (!PG_ARGISNULL(2))
-			bandindex = PG_GETARG_INT32(2);
-
-		/* exclude_nodata_value flag */
-		if (!PG_ARGISNULL(3))
-			exclude_nodata_value = PG_GETARG_BOOL(3);
-
-		/* sample % */
-		if (!PG_ARGISNULL(4)) {
-			sample = PG_GETARG_FLOAT8(4);
-			if (sample < 0 || sample > 1) {
-				elog(NOTICE, "Invalid sample percentage (must be between 0 and 1). Returning NULL");
-				MemoryContextSwitchTo(oldcontext);
-				SRF_RETURN_DONE(funcctx);
-			}
-			else if (FLT_EQ(sample, 0.0))
-				sample = 1;
-		}
-		else
-			sample = 1;
-
-		/* bin_count */
-		if (!PG_ARGISNULL(5)) {
-			bin_count = PG_GETARG_INT32(5);
-			if (bin_count < 1) bin_count = 0;
-		}
-
-		/* bin_width */
-		if (!PG_ARGISNULL(6)) {
-			array = PG_GETARG_ARRAYTYPE_P(6);
-			etype = ARR_ELEMTYPE(array);
-			get_typlenbyvalalign(etype, &typlen, &typbyval, &typalign);
-
-			switch (etype) {
-				case FLOAT4OID:
-				case FLOAT8OID:
-					break;
-				default:
-					MemoryContextSwitchTo(oldcontext);
-					elog(ERROR, "RASTER_histogramCoverage: Invalid data type for width");
-					SRF_RETURN_DONE(funcctx);
-					break;
-			}
-
-			deconstruct_array(array, etype, typlen, typbyval, typalign, &e,
-				&nulls, &n);
-
-			bin_width = palloc(sizeof(double) * n);
-			for (i = 0, j = 0; i < n; i++) {
-				if (nulls[i]) continue;
-
-				switch (etype) {
-					case FLOAT4OID:
-						width = (double) DatumGetFloat4(e[i]);
-						break;
-					case FLOAT8OID:
-						width = (double) DatumGetFloat8(e[i]);
-						break;
-				}
-
-				if (width < 0 || FLT_EQ(width, 0.0)) {
-					elog(NOTICE, "Invalid value for width (must be greater than 0). Returning NULL");
-					pfree(bin_width);
-					MemoryContextSwitchTo(oldcontext);
-					SRF_RETURN_DONE(funcctx);
-				}
-
-				bin_width[j] = width;
-				POSTGIS_RT_DEBUGF(5, "bin_width[%d] = %f", j, bin_width[j]);
-				j++;
-			}
-			bin_width_count = j;
-
-			if (j < 1) {
-				pfree(bin_width);
-				bin_width = NULL;
-			}
-		}
-
-		/* right */
-		if (!PG_ARGISNULL(7))
-			right = PG_GETARG_BOOL(7);
-
-		/* connect to database */
-		spi_result = SPI_connect();
-		if (spi_result != SPI_OK_CONNECT) {
-
-			if (bin_width_count) pfree(bin_width);
-
-			MemoryContextSwitchTo(oldcontext);
-			elog(ERROR, "RASTER_histogramCoverage: Cannot connect to database using SPI");
-			SRF_RETURN_DONE(funcctx);
-		}
-
-		/* coverage stats */
-		len = sizeof(char) * (strlen("SELECT min, max FROM _st_summarystats('','',,::boolean,)") + strlen(tablename) + strlen(colname) + (MAX_INT_CHARLEN * 2) + MAX_DBL_CHARLEN + 1);
-		sql = (char *) palloc(len);
-		if (NULL == sql) {
-
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
-			SPI_finish();
-
-			if (bin_width_count) pfree(bin_width);
-
-			MemoryContextSwitchTo(oldcontext);
-			elog(ERROR, "RASTER_histogramCoverage: Cannot allocate memory for sql");
-			SRF_RETURN_DONE(funcctx);
-		}
-
-		/* get stats */
-		snprintf(sql, len, "SELECT min, max FROM _st_summarystats('%s','%s',%d,%d::boolean,%f)", tablename, colname, bandindex, (exclude_nodata_value ? 1 : 0), sample);
-		POSTGIS_RT_DEBUGF(3, "RASTER_histogramCoverage: %s", sql);
-		spi_result = SPI_execute(sql, TRUE, 0);
-		pfree(sql);
-		if (spi_result != SPI_OK_SELECT || SPI_tuptable == NULL || SPI_processed != 1) {
-
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
-			SPI_finish();
-
-			if (bin_width_count) pfree(bin_width);
-
-			MemoryContextSwitchTo(oldcontext);
-			elog(ERROR, "RASTER_histogramCoverage: Cannot get summary stats of coverage");
-			SRF_RETURN_DONE(funcctx);
-		}
-
-		tupdesc = SPI_tuptable->tupdesc;
-		tuptable = SPI_tuptable;
-		tuple = tuptable->vals[0];
-
-		tmp = SPI_getvalue(tuple, tupdesc, 1);
-		if (NULL == tmp || !strlen(tmp)) {
-
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
-			SPI_finish();
-
-			if (bin_width_count) pfree(bin_width);
-
-			MemoryContextSwitchTo(oldcontext);
-			elog(ERROR, "RASTER_histogramCoverage: Cannot get summary stats of coverage");
-			SRF_RETURN_DONE(funcctx);
-		}
-		min = strtod(tmp, NULL);
-		POSTGIS_RT_DEBUGF(3, "RASTER_histogramCoverage: min = %f", min);
-		pfree(tmp);
-
-		tmp = SPI_getvalue(tuple, tupdesc, 2);
-		if (NULL == tmp || !strlen(tmp)) {
-
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
-			SPI_finish();
-
-			if (bin_width_count) pfree(bin_width);
-
-			MemoryContextSwitchTo(oldcontext);
-			elog(ERROR, "RASTER_histogramCoverage: Cannot get summary stats of coverage");
-			SRF_RETURN_DONE(funcctx);
-		}
-		max = strtod(tmp, NULL);
-		POSTGIS_RT_DEBUGF(3, "RASTER_histogramCoverage: max = %f", max);
-		pfree(tmp);
-
-		/* iterate through rasters of coverage */
-		/* create sql */
-		len = sizeof(char) * (strlen("SELECT \"\" FROM \"\" WHERE \"\" IS NOT NULL") + (strlen(colname) * 2) + strlen(tablename) + 1);
-		sql = (char *) palloc(len);
-		if (NULL == sql) {
-
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
-			SPI_finish();
-
-			if (bin_width_count) pfree(bin_width);
-
-			MemoryContextSwitchTo(oldcontext);
-			elog(ERROR, "RASTER_histogramCoverage: Cannot allocate memory for sql");
-			SRF_RETURN_DONE(funcctx);
-		}
-
-		/* get cursor */
-		snprintf(sql, len, "SELECT \"%s\" FROM \"%s\" WHERE \"%s\" IS NOT NULL", colname, tablename, colname);
-		POSTGIS_RT_DEBUGF(3, "RASTER_histogramCoverage: %s", sql);
-		portal = SPI_cursor_open_with_args(
-			"coverage",
-			sql,
-			0, NULL,
-			NULL, NULL,
-			TRUE, 0
-		);
-		pfree(sql);
-
-		/* process resultset */
-		SPI_cursor_fetch(portal, TRUE, 1);
-		while (SPI_processed == 1 && SPI_tuptable != NULL) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			tuple = tuptable->vals[0];
-
-			datum = SPI_getbinval(tuple, tupdesc, 1, &isNull);
-			if (SPI_result == SPI_ERROR_NOATTRIBUTE) {
-
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
-				SPI_cursor_close(portal);
-				SPI_finish();
-
-				if (NULL != covhist) pfree(covhist);
-				if (bin_width_count) pfree(bin_width);
-
-				MemoryContextSwitchTo(oldcontext);
-				elog(ERROR, "RASTER_histogramCoverage: Cannot get raster of coverage");
-				SRF_RETURN_DONE(funcctx);
-			}
-			else if (isNull) {
-				SPI_cursor_fetch(portal, TRUE, 1);
-				continue;
-			}
-
-			pgraster = (rt_pgraster *) PG_DETOAST_DATUM(datum);
-
-			raster = rt_raster_deserialize(pgraster, FALSE);
-			if (!raster) {
-
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
-				SPI_cursor_close(portal);
-				SPI_finish();
-
-				if (NULL != covhist) pfree(covhist);
-				if (bin_width_count) pfree(bin_width);
-
-				MemoryContextSwitchTo(oldcontext);
-				elog(ERROR, "RASTER_histogramCoverage: Cannot deserialize raster");
-				SRF_RETURN_DONE(funcctx);
-			}
-
-			/* inspect number of bands*/
-			num_bands = rt_raster_get_num_bands(raster);
-			if (bandindex < 1 || bandindex > num_bands) {
-				elog(NOTICE, "Invalid band index (must use 1-based). Returning NULL");
-
-				rt_raster_destroy(raster);
-
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
-				SPI_cursor_close(portal);
-				SPI_finish();
-
-				if (NULL != covhist) pfree(covhist);
-				if (bin_width_count) pfree(bin_width);
-
-				MemoryContextSwitchTo(oldcontext);
-				SRF_RETURN_DONE(funcctx);
-			}
-
-			/* get band */
-			band = rt_raster_get_band(raster, bandindex - 1);
-			if (!band) {
-				elog(NOTICE, "Cannot find band at index %d. Returning NULL", bandindex);
-
-				rt_raster_destroy(raster);
-
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
-				SPI_cursor_close(portal);
-				SPI_finish();
-
-				if (NULL != covhist) pfree(covhist);
-				if (bin_width_count) pfree(bin_width);
-
-				MemoryContextSwitchTo(oldcontext);
-				SRF_RETURN_DONE(funcctx);
-			}
-
-			/* we need the raw values, hence the non-zero parameter */
-			stats = rt_band_get_summary_stats(band, (int) exclude_nodata_value, sample, 1, NULL, NULL, NULL);
-
-			rt_band_destroy(band);
-			rt_raster_destroy(raster);
-
-			if (NULL == stats) {
-				elog(NOTICE, "Cannot compute summary statistics for band at index %d. Returning NULL", bandindex);
-
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
-				SPI_cursor_close(portal);
-				SPI_finish();
-
-				if (NULL != covhist) pfree(covhist);
-				if (bin_width_count) pfree(bin_width);
-
-				MemoryContextSwitchTo(oldcontext);
-				SRF_RETURN_DONE(funcctx);
-			}
-
-			/* get histogram */
-			if (stats->count > 0) {
-				hist = rt_band_get_histogram(stats, bin_count, bin_width, bin_width_count, right, min, max, &count);
-				pfree(stats);
-				if (NULL == hist || !count) {
-					elog(NOTICE, "Cannot compute histogram for band at index %d", bandindex);
-
-					if (SPI_tuptable) SPI_freetuptable(tuptable);
-					SPI_cursor_close(portal);
-					SPI_finish();
-
-					if (NULL != covhist) pfree(covhist);
-					if (bin_width_count) pfree(bin_width);
-
-					MemoryContextSwitchTo(oldcontext);
-					SRF_RETURN_DONE(funcctx);
-				}
-
-				POSTGIS_RT_DEBUGF(3, "%d bins returned", count);
-
-				/* coverage histogram */
-				if (NULL == covhist) {
-					covhist = (rt_histogram) SPI_palloc(sizeof(struct rt_histogram_t) * count);
-					if (NULL == covhist) {
-
-						pfree(hist);
-						if (SPI_tuptable) SPI_freetuptable(tuptable);
-						SPI_cursor_close(portal);
-						SPI_finish();
-
-						if (bin_width_count) pfree(bin_width);
-
-						MemoryContextSwitchTo(oldcontext);
-						elog(ERROR, "RASTER_histogramCoverage: Cannot allocate memory for histogram of coverage");
-						SRF_RETURN_DONE(funcctx);
-					}
-
-					for (i = 0; i < count; i++) {
-						sum += hist[i].count;
-						covhist[i].count = hist[i].count;
-						covhist[i].percent = 0;
-						covhist[i].min = hist[i].min;
-						covhist[i].max = hist[i].max;
-					}
-				}
-				else {
-					for (i = 0; i < count; i++) {
-						sum += hist[i].count;
-						covhist[i].count += hist[i].count;
-					}
-				}
-
-				pfree(hist);
-
-				/* assuming bin_count wasn't set, force consistency */
-				if (bin_count <= 0) bin_count = count;
-			}
-
-			/* next record */
-			SPI_cursor_fetch(portal, TRUE, 1);
-		}
-
-		if (SPI_tuptable) SPI_freetuptable(tuptable);
-		SPI_cursor_close(portal);
-		SPI_finish();
-
-		if (bin_width_count) pfree(bin_width);
-
-		/* finish percent of histogram */
-		if (sum > 0) {
-			for (i = 0; i < count; i++)
-				covhist[i].percent = covhist[i].count / (double) sum;
-		}
-
-		/* Store needed information */
-		funcctx->user_fctx = covhist;
-
-		/* total number of tuples to be returned */
-		funcctx->max_calls = count;
-
-		/* Build a tuple descriptor for our result type */
-		if (get_call_result_type(fcinfo, NULL, &tupdesc) != TYPEFUNC_COMPOSITE) {
-			ereport(ERROR, (
-				errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-				errmsg(
-					"function returning record called in context "
-					"that cannot accept type record"
-				)
-			));
-		}
-
-		BlessTupleDesc(tupdesc);
-		funcctx->tuple_desc = tupdesc;
-
-		MemoryContextSwitchTo(oldcontext);
-	}
-
-	/* stuff done on every call of the function */
-	funcctx = SRF_PERCALL_SETUP();
-
-	call_cntr = funcctx->call_cntr;
-	max_calls = funcctx->max_calls;
-	tupdesc = funcctx->tuple_desc;
-	covhist2 = funcctx->user_fctx;
-
-	/* do when there is more left to send */
-	if (call_cntr < max_calls) {
-		int values_length = 4;
-		Datum values[values_length];
-		bool nulls[values_length];
-		HeapTuple tuple;
-		Datum result;
-
-		POSTGIS_RT_DEBUGF(3, "Result %d", call_cntr);
-
-		memset(nulls, FALSE, sizeof(bool) * values_length);
-
-		values[0] = Float8GetDatum(covhist2[call_cntr].min);
-		values[1] = Float8GetDatum(covhist2[call_cntr].max);
-		values[2] = Int64GetDatum(covhist2[call_cntr].count);
-		values[3] = Float8GetDatum(covhist2[call_cntr].percent);
-
-		/* build a tuple */
-		tuple = heap_form_tuple(tupdesc, values, nulls);
-
-		/* make the tuple into a datum */
-		result = HeapTupleGetDatum(tuple);
-
-		SRF_RETURN_NEXT(funcctx, result);
-	}
-	/* do when there is no more left */
-	else {
-		pfree(covhist2);
-		SRF_RETURN_DONE(funcctx);
-	}
-}
+#undef VALUES_LENGTH
+#define VALUES_LENGTH 2
 
 /**
  * Returns quantiles for a band
@@ -1943,15 +1413,14 @@ Datum RASTER_quantile(PG_FUNCTION_ARGS)
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
-		int values_length = 2;
-		Datum values[values_length];
-		bool nulls[values_length];
+		Datum values[VALUES_LENGTH];
+		bool nulls[VALUES_LENGTH];
 		HeapTuple tuple;
 		Datum result;
 
 		POSTGIS_RT_DEBUGF(3, "Result %d", call_cntr);
 
-		memset(nulls, FALSE, sizeof(bool) * values_length);
+		memset(nulls, FALSE, sizeof(bool) * VALUES_LENGTH);
 
 		values[0] = Float8GetDatum(quant2[call_cntr].quantile);
 		values[1] = Float8GetDatum(quant2[call_cntr].value);
@@ -1971,438 +1440,8 @@ Datum RASTER_quantile(PG_FUNCTION_ARGS)
 	}
 }
 
-/**
- * Returns selected quantiles of a coverage for a specified band
- */
-PG_FUNCTION_INFO_V1(RASTER_quantileCoverage);
-Datum RASTER_quantileCoverage(PG_FUNCTION_ARGS)
-{
-	FuncCallContext *funcctx;
-	TupleDesc tupdesc;
-
-	int i;
-	rt_quantile covquant = NULL;
-	rt_quantile covquant2;
-	int call_cntr;
-	int max_calls;
-
-	POSTGIS_RT_DEBUG(3, "RASTER_quantileCoverage: Starting");
-
-	/* first call of function */
-	if (SRF_IS_FIRSTCALL()) {
-		MemoryContext oldcontext;
-
-		text *tablenametext = NULL;
-		char *tablename = NULL;
-		text *colnametext = NULL;
-		char *colname = NULL;
-		int32_t bandindex = 1;
-		bool exclude_nodata_value = TRUE;
-		double sample = 0;
-		double *quantiles = NULL;
-		uint32_t quantiles_count = 0;
-		double quantile = 0;
-		uint32_t count;
-
-		int len = 0;
-		char *sql = NULL;
-		char *tmp = NULL;
-		uint64_t cov_count = 0;
-		int spi_result;
-		Portal portal;
-		SPITupleTable *tuptable = NULL;
-		HeapTuple tuple;
-		Datum datum;
-		bool isNull = FALSE;
-
-		rt_pgraster *pgraster = NULL;
-		rt_raster raster = NULL;
-		rt_band band = NULL;
-		int num_bands = 0;
-		struct quantile_llist *qlls = NULL;
-		uint32_t qlls_count;
-
-		int j;
-		int n;
-
-		ArrayType *array;
-		Oid etype;
-		Datum *e;
-		bool *nulls;
-		int16 typlen;
-		bool typbyval;
-		char typalign;
-
-		POSTGIS_RT_DEBUG(3, "RASTER_quantileCoverage: first call of function");
-
-		/* create a function context for cross-call persistence */
-		funcctx = SRF_FIRSTCALL_INIT();
-
-		/* switch to memory context appropriate for multiple function calls */
-		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
-
-		/* tablename is null, return null */
-		if (PG_ARGISNULL(0)) {
-			elog(NOTICE, "Table name must be provided");
-			MemoryContextSwitchTo(oldcontext);
-			SRF_RETURN_DONE(funcctx);
-		}
-		tablenametext = PG_GETARG_TEXT_P(0);
-		tablename = text_to_cstring(tablenametext);
-		if (!strlen(tablename)) {
-			elog(NOTICE, "Table name must be provided");
-			MemoryContextSwitchTo(oldcontext);
-			SRF_RETURN_DONE(funcctx);
-		}
-		POSTGIS_RT_DEBUGF(3, "RASTER_quantileCoverage: tablename = %s", tablename);
-
-		/* column name is null, return null */
-		if (PG_ARGISNULL(1)) {
-			elog(NOTICE, "Column name must be provided");
-			MemoryContextSwitchTo(oldcontext);
-			SRF_RETURN_DONE(funcctx);
-		}
-		colnametext = PG_GETARG_TEXT_P(1);
-		colname = text_to_cstring(colnametext);
-		if (!strlen(colname)) {
-			elog(NOTICE, "Column name must be provided");
-			MemoryContextSwitchTo(oldcontext);
-			SRF_RETURN_DONE(funcctx);
-		}
-		POSTGIS_RT_DEBUGF(3, "RASTER_quantileCoverage: colname = %s", colname);
-
-		/* band index is 1-based */
-		if (!PG_ARGISNULL(2))
-			bandindex = PG_GETARG_INT32(2);
-
-		/* exclude_nodata_value flag */
-		if (!PG_ARGISNULL(3))
-			exclude_nodata_value = PG_GETARG_BOOL(3);
-
-		/* sample % */
-		if (!PG_ARGISNULL(4)) {
-			sample = PG_GETARG_FLOAT8(4);
-			if (sample < 0 || sample > 1) {
-				elog(NOTICE, "Invalid sample percentage (must be between 0 and 1). Returning NULL");
-				MemoryContextSwitchTo(oldcontext);
-				SRF_RETURN_DONE(funcctx);
-			}
-			else if (FLT_EQ(sample, 0.0))
-				sample = 1;
-		}
-		else
-			sample = 1;
-
-		/* quantiles */
-		if (!PG_ARGISNULL(5)) {
-			array = PG_GETARG_ARRAYTYPE_P(5);
-			etype = ARR_ELEMTYPE(array);
-			get_typlenbyvalalign(etype, &typlen, &typbyval, &typalign);
-
-			switch (etype) {
-				case FLOAT4OID:
-				case FLOAT8OID:
-					break;
-				default:
-					MemoryContextSwitchTo(oldcontext);
-					elog(ERROR, "RASTER_quantileCoverage: Invalid data type for quantiles");
-					SRF_RETURN_DONE(funcctx);
-					break;
-			}
-
-			deconstruct_array(array, etype, typlen, typbyval, typalign, &e,
-				&nulls, &n);
-
-			quantiles = palloc(sizeof(double) * n);
-			for (i = 0, j = 0; i < n; i++) {
-				if (nulls[i]) continue;
-
-				switch (etype) {
-					case FLOAT4OID:
-						quantile = (double) DatumGetFloat4(e[i]);
-						break;
-					case FLOAT8OID:
-						quantile = (double) DatumGetFloat8(e[i]);
-						break;
-				}
-
-				if (quantile < 0 || quantile > 1) {
-					elog(NOTICE, "Invalid value for quantile (must be between 0 and 1). Returning NULL");
-					pfree(quantiles);
-					MemoryContextSwitchTo(oldcontext);
-					SRF_RETURN_DONE(funcctx);
-				}
-
-				quantiles[j] = quantile;
-				POSTGIS_RT_DEBUGF(5, "quantiles[%d] = %f", j, quantiles[j]);
-				j++;
-			}
-			quantiles_count = j;
-
-			if (j < 1) {
-				pfree(quantiles);
-				quantiles = NULL;
-			}
-		}
-
-		/* coverage stats */
-		/* connect to database */
-		spi_result = SPI_connect();
-		if (spi_result != SPI_OK_CONNECT) {
-			MemoryContextSwitchTo(oldcontext);
-			elog(ERROR, "RASTER_quantileCoverage: Cannot connect to database using SPI");
-			SRF_RETURN_DONE(funcctx);
-		}
-
-		len = sizeof(char) * (strlen("SELECT count FROM _st_summarystats('','',,::boolean,)") + strlen(tablename) + strlen(colname) + (MAX_INT_CHARLEN * 2) + MAX_DBL_CHARLEN + 1);
-		sql = (char *) palloc(len);
-		if (NULL == sql) {
-
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
-			SPI_finish();
-
-			MemoryContextSwitchTo(oldcontext);
-			elog(ERROR, "RASTER_quantileCoverage: Cannot allocate memory for sql");
-			SRF_RETURN_DONE(funcctx);
-		}
-
-		/* get stats */
-		snprintf(sql, len, "SELECT count FROM _st_summarystats('%s','%s',%d,%d::boolean,%f)", tablename, colname, bandindex, (exclude_nodata_value ? 1 : 0), sample);
-		POSTGIS_RT_DEBUGF(3, "stats sql:  %s", sql);
-		spi_result = SPI_execute(sql, TRUE, 0);
-		pfree(sql);
-		if (spi_result != SPI_OK_SELECT || SPI_tuptable == NULL || SPI_processed != 1) {
-
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
-			SPI_finish();
-
-			MemoryContextSwitchTo(oldcontext);
-			elog(ERROR, "RASTER_quantileCoverage: Cannot get summary stats of coverage");
-			SRF_RETURN_DONE(funcctx);
-		}
-
-		tupdesc = SPI_tuptable->tupdesc;
-		tuptable = SPI_tuptable;
-		tuple = tuptable->vals[0];
-
-		tmp = SPI_getvalue(tuple, tupdesc, 1);
-		if (NULL == tmp || !strlen(tmp)) {
-
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
-			SPI_finish();
-
-			MemoryContextSwitchTo(oldcontext);
-			elog(ERROR, "RASTER_quantileCoverage: Cannot get summary stats of coverage");
-			SRF_RETURN_DONE(funcctx);
-		}
-		cov_count = strtol(tmp, NULL, 10);
-		POSTGIS_RT_DEBUGF(3, "covcount = %d", (int) cov_count);
-		pfree(tmp);
-
-		/* iterate through rasters of coverage */
-		/* create sql */
-		len = sizeof(char) * (strlen("SELECT \"\" FROM \"\" WHERE \"\" IS NOT NULL") + (strlen(colname) * 2) + strlen(tablename) + 1);
-		sql = (char *) palloc(len);
-		if (NULL == sql) {
-
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
-			SPI_finish();
-
-			MemoryContextSwitchTo(oldcontext);
-			elog(ERROR, "RASTER_quantileCoverage: Cannot allocate memory for sql");
-			SRF_RETURN_DONE(funcctx);
-		}
-
-		/* get cursor */
-		snprintf(sql, len, "SELECT \"%s\" FROM \"%s\" WHERE \"%s\" IS NOT NULL", colname, tablename, colname);
-		POSTGIS_RT_DEBUGF(3, "coverage sql: %s", sql);
-		portal = SPI_cursor_open_with_args(
-			"coverage",
-			sql,
-			0, NULL,
-			NULL, NULL,
-			TRUE, 0
-		);
-		pfree(sql);
-
-		/* process resultset */
-		SPI_cursor_fetch(portal, TRUE, 1);
-		while (SPI_processed == 1 && SPI_tuptable != NULL) {
-			if (NULL != covquant) pfree(covquant);
-
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			tuple = tuptable->vals[0];
-
-			datum = SPI_getbinval(tuple, tupdesc, 1, &isNull);
-			if (SPI_result == SPI_ERROR_NOATTRIBUTE) {
-
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
-				SPI_cursor_close(portal);
-				SPI_finish();
-
-				MemoryContextSwitchTo(oldcontext);
-				elog(ERROR, "RASTER_quantileCoverage: Cannot get raster of coverage");
-				SRF_RETURN_DONE(funcctx);
-			}
-			else if (isNull) {
-				SPI_cursor_fetch(portal, TRUE, 1);
-				continue;
-			}
-
-			pgraster = (rt_pgraster *) PG_DETOAST_DATUM(datum);
-
-			raster = rt_raster_deserialize(pgraster, FALSE);
-			if (!raster) {
-
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
-				SPI_cursor_close(portal);
-				SPI_finish();
-
-				MemoryContextSwitchTo(oldcontext);
-				elog(ERROR, "RASTER_quantileCoverage: Cannot deserialize raster");
-				SRF_RETURN_DONE(funcctx);
-			}
-
-			/* inspect number of bands*/
-			num_bands = rt_raster_get_num_bands(raster);
-			if (bandindex < 1 || bandindex > num_bands) {
-				elog(NOTICE, "Invalid band index (must use 1-based). Returning NULL");
-
-				rt_raster_destroy(raster);
-
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
-				SPI_cursor_close(portal);
-				SPI_finish();
-
-				MemoryContextSwitchTo(oldcontext);
-				SRF_RETURN_DONE(funcctx);
-			}
-
-			/* get band */
-			band = rt_raster_get_band(raster, bandindex - 1);
-			if (!band) {
-				elog(NOTICE, "Cannot find raster band of index %d. Returning NULL", bandindex);
-
-				rt_raster_destroy(raster);
-
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
-				SPI_cursor_close(portal);
-				SPI_finish();
-
-				MemoryContextSwitchTo(oldcontext);
-				SRF_RETURN_DONE(funcctx);
-			}
-
-			covquant = rt_band_get_quantiles_stream(
-				band,
-				exclude_nodata_value, sample, cov_count,
-				&qlls, &qlls_count,
-				quantiles, quantiles_count,
-				&count
-			);
-
-			rt_band_destroy(band);
-			rt_raster_destroy(raster);
-
-			if (NULL == covquant || !count) {
-				elog(NOTICE, "Cannot compute quantiles for band at index %d", bandindex);
-
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
-				SPI_cursor_close(portal);
-				SPI_finish();
-
-				MemoryContextSwitchTo(oldcontext);
-				SRF_RETURN_DONE(funcctx);
-			}
-
-			/* next record */
-			SPI_cursor_fetch(portal, TRUE, 1);
-		}
-
-		covquant2 = SPI_palloc(sizeof(struct rt_quantile_t) * count);
-		for (i = 0; i < count; i++) {
-			covquant2[i].quantile = covquant[i].quantile;
-			covquant2[i].has_value = covquant[i].has_value;
-			if (covquant2[i].has_value)
-				covquant2[i].value = covquant[i].value;
-		}
-
-		if (NULL != covquant) pfree(covquant);
-		quantile_llist_destroy(&qlls, qlls_count);
-
-		if (SPI_tuptable) SPI_freetuptable(tuptable);
-		SPI_cursor_close(portal);
-		SPI_finish();
-
-		if (quantiles_count) pfree(quantiles);
-
-		POSTGIS_RT_DEBUGF(3, "%d quantiles returned", count);
-
-		/* Store needed information */
-		funcctx->user_fctx = covquant2;
-
-		/* total number of tuples to be returned */
-		funcctx->max_calls = count;
-
-		/* Build a tuple descriptor for our result type */
-		if (get_call_result_type(fcinfo, NULL, &tupdesc) != TYPEFUNC_COMPOSITE) {
-			ereport(ERROR, (
-				errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-				errmsg(
-					"function returning record called in context "
-					"that cannot accept type record"
-				)
-			));
-		}
-
-		BlessTupleDesc(tupdesc);
-		funcctx->tuple_desc = tupdesc;
-
-		MemoryContextSwitchTo(oldcontext);
-	}
-
-	/* stuff done on every call of the function */
-	funcctx = SRF_PERCALL_SETUP();
-
-	call_cntr = funcctx->call_cntr;
-	max_calls = funcctx->max_calls;
-	tupdesc = funcctx->tuple_desc;
-	covquant2 = funcctx->user_fctx;
-
-	/* do when there is more left to send */
-	if (call_cntr < max_calls) {
-		int values_length = 2;
-		Datum values[values_length];
-		bool nulls[values_length];
-		HeapTuple tuple;
-		Datum result;
-
-		POSTGIS_RT_DEBUGF(3, "Result %d", call_cntr);
-
-		memset(nulls, FALSE, sizeof(bool) * values_length);
-
-		values[0] = Float8GetDatum(covquant2[call_cntr].quantile);
-		if (covquant2[call_cntr].has_value)
-			values[1] = Float8GetDatum(covquant2[call_cntr].value);
-		else
-			nulls[1] = TRUE;
-
-		/* build a tuple */
-		tuple = heap_form_tuple(tupdesc, values, nulls);
-
-		/* make the tuple into a datum */
-		result = HeapTupleGetDatum(tuple);
-
-		SRF_RETURN_NEXT(funcctx, result);
-	}
-	/* do when there is no more left */
-	else {
-		POSTGIS_RT_DEBUG(3, "done");
-		pfree(covquant2);
-		SRF_RETURN_DONE(funcctx);
-	}
-}
+#undef VALUES_LENGTH
+#define VALUES_LENGTH 3
 
 /* get counts of values */
 PG_FUNCTION_INFO_V1(RASTER_valueCount);
@@ -2586,15 +1625,14 @@ Datum RASTER_valueCount(PG_FUNCTION_ARGS) {
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
-		int values_length = 3;
-		Datum values[values_length];
-		bool nulls[values_length];
+		Datum values[VALUES_LENGTH];
+		bool nulls[VALUES_LENGTH];
 		HeapTuple tuple;
 		Datum result;
 
 		POSTGIS_RT_DEBUGF(3, "Result %d", call_cntr);
 
-		memset(nulls, FALSE, sizeof(bool) * values_length);
+		memset(nulls, FALSE, sizeof(bool) * VALUES_LENGTH);
 
 		values[0] = Float8GetDatum(vcnts2[call_cntr].value);
 		values[1] = UInt32GetDatum(vcnts2[call_cntr].count);
@@ -2621,7 +1659,7 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 	FuncCallContext *funcctx;
 	TupleDesc tupdesc;
 
-	int i;
+	uint32_t i;
 	uint64_t covcount = 0;
 	uint64_t covtotal = 0;
 	rt_valuecount covvcnts = NULL;
@@ -2649,7 +1687,6 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 		char *sql = NULL;
 		int spi_result;
 		Portal portal;
-		SPITupleTable *tuptable = NULL;
 		HeapTuple tuple;
 		Datum datum;
 		bool isNull = FALSE;
@@ -2662,7 +1699,7 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 		rt_valuecount vcnts = NULL;
 		int exists = 0;
 
-		int j;
+		uint32_t j;
 		int n;
 
 		ArrayType *array;
@@ -2738,7 +1775,7 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 				&nulls, &n);
 
 			search_values = palloc(sizeof(double) * n);
-			for (i = 0, j = 0; i < n; i++) {
+			for (i = 0, j = 0; i < (uint32_t) n; i++) {
 				if (nulls[i]) continue;
 
 				switch (etype) {
@@ -2784,7 +1821,7 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 		sql = (char *) palloc(len);
 		if (NULL == sql) {
 
-			if (SPI_tuptable) SPI_freetuptable(tuptable);
+			if (SPI_tuptable) SPI_freetuptable(SPI_tuptable);
 			SPI_finish();
 
 			if (search_values_count) pfree(search_values);
@@ -2810,13 +1847,12 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 		SPI_cursor_fetch(portal, TRUE, 1);
 		while (SPI_processed == 1 && SPI_tuptable != NULL) {
 			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			tuple = tuptable->vals[0];
+			tuple = SPI_tuptable->vals[0];
 
 			datum = SPI_getbinval(tuple, tupdesc, 1, &isNull);
 			if (SPI_result == SPI_ERROR_NOATTRIBUTE) {
 
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
+				SPI_freetuptable(SPI_tuptable);
 				SPI_cursor_close(portal);
 				SPI_finish();
 
@@ -2837,7 +1873,7 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 			raster = rt_raster_deserialize(pgraster, FALSE);
 			if (!raster) {
 
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
+				SPI_freetuptable(SPI_tuptable);
 				SPI_cursor_close(portal);
 				SPI_finish();
 
@@ -2856,7 +1892,7 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 
 				rt_raster_destroy(raster);
 
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
+				SPI_freetuptable(SPI_tuptable);
 				SPI_cursor_close(portal);
 				SPI_finish();
 
@@ -2874,7 +1910,7 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 
 				rt_raster_destroy(raster);
 
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
+				SPI_freetuptable(SPI_tuptable);
 				SPI_cursor_close(portal);
 				SPI_finish();
 
@@ -2892,7 +1928,7 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 			if (NULL == vcnts || !count) {
 				elog(NOTICE, "Cannot count the values for band at index %d", bandindex);
 
-				if (SPI_tuptable) SPI_freetuptable(tuptable);
+				SPI_freetuptable(SPI_tuptable);
 				SPI_cursor_close(portal);
 				SPI_finish();
 
@@ -2909,7 +1945,7 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 				covvcnts = (rt_valuecount) SPI_palloc(sizeof(struct rt_valuecount_t) * count);
 				if (NULL == covvcnts) {
 
-					if (SPI_tuptable) SPI_freetuptable(tuptable);
+					SPI_freetuptable(SPI_tuptable);
 					SPI_cursor_close(portal);
 					SPI_finish();
 
@@ -2945,14 +1981,12 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 					else {
 						covcount++;
 						covvcnts = SPI_repalloc(covvcnts, sizeof(struct rt_valuecount_t) * covcount);
-						if (NULL == covvcnts) {
-
-							if (SPI_tuptable) SPI_freetuptable(tuptable);
+						if (!covvcnts) {
+							SPI_freetuptable(SPI_tuptable);
 							SPI_cursor_close(portal);
 							SPI_finish();
 
 							if (search_values_count) pfree(search_values);
-							if (NULL != covvcnts) free(covvcnts);
 
 							MemoryContextSwitchTo(oldcontext);
 							elog(ERROR, "RASTER_valueCountCoverage: Cannot change allocated memory for value counts of coverage");
@@ -2974,7 +2008,7 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 			SPI_cursor_fetch(portal, TRUE, 1);
 		}
 
-		if (SPI_tuptable) SPI_freetuptable(tuptable);
+		if (SPI_tuptable) SPI_freetuptable(SPI_tuptable);
 		SPI_cursor_close(portal);
 		SPI_finish();
 
@@ -3018,15 +2052,14 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
-		int values_length = 3;
-		Datum values[values_length];
-		bool nulls[values_length];
+		Datum values[VALUES_LENGTH];
+		bool nulls[VALUES_LENGTH];
 		HeapTuple tuple;
 		Datum result;
 
 		POSTGIS_RT_DEBUGF(3, "Result %d", call_cntr);
 
-		memset(nulls, FALSE, sizeof(bool) * values_length);
+		memset(nulls, FALSE, sizeof(bool) * VALUES_LENGTH);
 
 		values[0] = Float8GetDatum(covvcnts2[call_cntr].value);
 		values[1] = UInt32GetDatum(covvcnts2[call_cntr].count);
@@ -3042,9 +2075,7 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 	}
 	/* do when there is no more left */
 	else {
-		if (covvcnts2 != NULL) {
-			pfree(covvcnts2);
-		}
+		pfree(covvcnts2);
 		SRF_RETURN_DONE(funcctx);
 	}
 }

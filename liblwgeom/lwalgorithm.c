@@ -26,6 +26,7 @@
 #include "liblwgeom_internal.h"
 #include "lwgeom_log.h"
 #include <ctype.h> /* for tolower */
+#include <stdbool.h>
 
 int
 p4d_same(const POINT4D *p1, const POINT4D *p2)
@@ -219,9 +220,10 @@ int lw_arc_side(const POINT2D *A1, const POINT2D *A2, const POINT2D *A3, const P
 /**
 * Determines the center of the circle defined by the three given points.
 * In the event the circle is complete, the midpoint of the segment defined
-* by the first and second points is returned.  If the points are colinear,
-* as determined by equal slopes, then NULL is returned.  If the interior
-* point is coincident with either end point, they are taken as colinear.
+* by the first and second points is returned.  If the points are collinear,
+* as determined by equal slopes, then -1.0 is returned.  If the interior
+* point is coincident with either end point, they are taken as collinear.
+* For non-collinear cases, arc radious is returned.
 */
 double
 lw_arc_center(const POINT2D *p1, const POINT2D *p2, const POINT2D *p3, POINT2D *result)
@@ -280,7 +282,7 @@ int
 pt_in_ring_2d(const POINT2D *p, const POINTARRAY *ring)
 {
 	int cn = 0;    /* the crossing number counter */
-	int i;
+	uint32_t i;
 	const POINT2D *v1, *v2;
 	const POINT2D *first, *last;
 
@@ -459,13 +461,16 @@ int lw_segment_intersects(const POINT2D *p1, const POINT2D *p2, const POINT2D *q
 */
 int lwline_crossing_direction(const LWLINE *l1, const LWLINE *l2)
 {
-	int i = 0, j = 0;
+	uint32_t i = 0, j = 0;
 	const POINT2D *p1, *p2, *q1, *q2;
 	POINTARRAY *pa1 = NULL, *pa2 = NULL;
 	int cross_left = 0;
 	int cross_right = 0;
 	int first_cross = 0;
 	int this_cross = 0;
+#if POSTGIS_DEBUG_LEVEL >= 4
+	char *geom_ewkt;
+#endif
 
 	pa1 = (POINTARRAY*)l1->points;
 	pa2 = (POINTARRAY*)l2->points;
@@ -474,8 +479,14 @@ int lwline_crossing_direction(const LWLINE *l1, const LWLINE *l2)
 	if ( pa1->npoints < 2 || pa2->npoints < 2 )
 		return LINE_NO_CROSS;
 
-	LWDEBUGF(4, "l1 = %s", lwgeom_to_ewkt((LWGEOM*)l1));
-	LWDEBUGF(4, "l2 = %s", lwgeom_to_ewkt((LWGEOM*)l2));
+#if POSTGIS_DEBUG_LEVEL >= 4
+	geom_ewkt = lwgeom_to_ewkt((LWGEOM*)l1);
+	LWDEBUGF(4, "l1 = %s", geom_ewkt);
+	lwfree(geom_ewkt);
+	geom_ewkt = lwgeom_to_ewkt((LWGEOM*)l2);
+	LWDEBUGF(4, "l2 = %s", geom_ewkt);
+	lwfree(geom_ewkt);
+#endif
 
 	/* Initialize first point of q */
 	q1 = getPoint2d_cp(pa2, 0);
@@ -517,7 +528,7 @@ int lwline_crossing_direction(const LWLINE *l1, const LWLINE *l2)
 
 			/*
 			** Crossing at a co-linearity can be turned handled by extending
-			** segment to next vertext and seeing if the end points straddle
+			** segment to next vertex and seeing if the end points straddle
 			** the co-linear segment.
 			*/
 			if ( this_cross == SEG_COLINEAR )
@@ -578,15 +589,16 @@ static char *base32 = "0123456789bcdefghjkmnpqrstuvwxyz";
 ** From geohash-native.c, (c) 2008 David Troy <dave@roundhousetech.com>
 ** Released under the MIT License.
 */
-char *geohash_point(double longitude, double latitude, int precision)
+lwvarlena_t *
+geohash_point(double longitude, double latitude, int precision)
 {
 	int is_even=1, i=0;
 	double lat[2], lon[2], mid;
 	char bits[] = {16,8,4,2,1};
 	int bit=0, ch=0;
-	char *geohash = NULL;
-
-	geohash = lwalloc(precision + 1);
+	lwvarlena_t *v = lwalloc(precision + LWVARHDRSZ);
+	LWSIZE_SET(v->size, precision + LWVARHDRSZ);
+	char *geohash = v->data;
 
 	lat[0] = -90.0;
 	lat[1] = 90.0;
@@ -634,8 +646,8 @@ char *geohash_point(double longitude, double latitude, int precision)
 			ch = 0;
 		}
 	}
-	geohash[i] = 0;
-	return geohash;
+
+	return v;
 }
 
 
@@ -699,33 +711,40 @@ unsigned int geohash_point_as_int(POINT2D *pt)
 ** set in them will be the southwest and northeast coordinates of the bounding
 ** box accordingly. A precision less than 0 indicates that the entire length
 ** of the GeoHash should be used.
+** It will call `lwerror` if an invalid character is found
 */
 void decode_geohash_bbox(char *geohash, double *lat, double *lon, int precision)
 {
-	int i, j, hashlen;
-	char c, cd, mask, is_even = 1;
-	static char bits[] = {16, 8, 4, 2, 1};
+	bool is_even = 1;
 
 	lat[0] = -90.0;
 	lat[1] = 90.0;
 	lon[0] = -180.0;
 	lon[1] = 180.0;
 
-	hashlen = strlen(geohash);
-
-	if (precision < 0 || precision > hashlen)
+	size_t hashlen = strlen(geohash);
+	if (precision < 0 || (size_t)precision > hashlen)
 	{
-		precision = hashlen;
+		precision = (int)hashlen;
 	}
 
-	for (i = 0; i < precision; i++)
+	for (int i = 0; i < precision; i++)
 	{
-		c = tolower(geohash[i]);
-		cd = strchr(base32, c) - base32;
+		char c = tolower(geohash[i]);
 
-		for (j = 0; j < 5; j++)
+		/* Valid characters are all digits in base32 */
+		char *base32_pos = strchr(base32, c);
+		if (!base32_pos)
 		{
-			mask = bits[j];
+			lwerror("%s: Invalid character '%c'", __func__, geohash[i]);
+			return;
+		}
+		char cd = base32_pos - base32;
+
+		for (size_t j = 0; j < 5; j++)
+		{
+			const char bits[] = {16, 8, 4, 2, 1};
+			char mask = bits[j];
 			if (is_even)
 			{
 				lon[!(cd & mask)] = (lon[0] + lon[1]) / 2;
@@ -835,10 +854,11 @@ int lwgeom_geohash_precision(GBOX bbox, GBOX *bounds)
 ** bounds of the feature. Big features have loose precision.
 ** Small features have tight precision.
 */
-char *lwgeom_geohash(const LWGEOM *lwgeom, int precision)
+lwvarlena_t *
+lwgeom_geohash(const LWGEOM *lwgeom, int precision)
 {
-	GBOX gbox;
-	GBOX gbox_bounds;
+	GBOX gbox = {0};
+	GBOX gbox_bounds = {0};
 	double lat, lon;
 	int result;
 
@@ -874,26 +894,3 @@ char *lwgeom_geohash(const LWGEOM *lwgeom, int precision)
 	*/
 	return geohash_point(lon, lat, precision);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

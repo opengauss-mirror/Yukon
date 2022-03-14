@@ -1,6 +1,6 @@
 set client_min_messages to ERROR;
 
-\i load_topology.sql
+\i ../load_topology.sql
 
 -- Endpoint / node mismatch
 SELECT topology.ST_AddEdgeNewFaces('city_data', 7, 6,
@@ -68,7 +68,6 @@ SELECT 'L' || topology.AddTopoGeometryColumn('city_data',
 -- Feature composed by face 5 and node 4
 INSERT INTO city_data.fc VALUES ('F5,N4',
   topology.CreateTopoGeom('city_data', 4, 2, '{{5,3},{4,1}}'));
-
 
 ---------------------------------------------------------------------
 -- Now add some edges splitting faces...

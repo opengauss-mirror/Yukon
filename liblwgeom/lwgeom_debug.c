@@ -30,16 +30,7 @@
 #include <string.h>
 
 /* Place to hold the ZM string used in other summaries */
-
-#ifndef THR_LOCAL
-#ifndef WIN32
-#define THR_LOCAL __thread
-#else
-#define THR_LOCAL  __declspec(thread)
-#endif
-#endif
-
-static THR_LOCAL char tflags[6];
+static char tflags[6];
 
 static char *
 lwgeom_flagchars(LWGEOM *lwg)
@@ -98,7 +89,7 @@ lwcollection_summary(LWCOLLECTION *col, int offset)
 	size_t size = 128;
 	char *result;
 	char *tmp;
-	int i;
+	uint32_t i;
 	static char *nl = "\n";
 	char *pad="";
 	char *zmflags = lwgeom_flagchars((LWGEOM*)col);
@@ -107,10 +98,13 @@ lwcollection_summary(LWCOLLECTION *col, int offset)
 
 	result = (char *)lwalloc(size);
 
-	sprintf(result, "%*.s%s[%s] with %d elements\n",
+	sprintf(result, "%*.s%s[%s] with %d element%s",
 	        offset, pad, lwtype_name(col->type),
 	        zmflags,
-	        col->ngeoms);
+	        col->ngeoms,
+					col->ngeoms ?
+						( col->ngeoms > 1 ? "s:\n" : ":\n")
+						: "s");
 
 	for (i=0; i<col->ngeoms; i++)
 	{
@@ -136,7 +130,7 @@ lwpoly_summary(LWPOLY *poly, int offset)
 	char tmp[256];
 	size_t size = 64*(poly->nrings+1)+128;
 	char *result;
-	int i;
+	uint32_t i;
 	char *pad="";
 	static char *nl = "\n";
 	char *zmflags = lwgeom_flagchars((LWGEOM*)poly);
@@ -145,10 +139,13 @@ lwpoly_summary(LWPOLY *poly, int offset)
 
 	result = (char *)lwalloc(size);
 
-	sprintf(result, "%*.s%s[%s] with %i rings\n",
+	sprintf(result, "%*.s%s[%s] with %i ring%s",
 	        offset, pad, lwtype_name(poly->type),
 	        zmflags,
-	        poly->nrings);
+	        poly->nrings,
+					poly->nrings ?
+						( poly->nrings > 1 ? "s:\n" : ":\n")
+						: "s");
 
 	for (i=0; i<poly->nrings; i++)
 	{

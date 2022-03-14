@@ -15,17 +15,16 @@
 --ORA---- 2. Load (normally bulk-load) topology data
 --ORA----    (node, edge, and face tables).
 
-
 BEGIN;
 
--- 1. Create the topology. 
--- 
+-- 1. Create the topology.
+--
 -- NOTE:
 --  Returns topology id... which depend on how many
 --  topologies where created in the regress database
---  so we just check it's a number greater than 0
--- 
-SELECT topology.CreateTopology('city_data', @SRID@) > 0;
+--  so we just check it is a number greater than 0
+--
+SELECT NULL FROM topology.CreateTopology('city_data', @SRID@);
 
 -- 2. Load topology data (node, edge, and face tables).
 -- Use INSERT statements here instead of a bulk-load utility.
@@ -43,78 +42,78 @@ INSERT INTO city_data.face(face_id) VALUES(8); -- F8
 INSERT INTO city_data.face(face_id) VALUES(9); -- F9
 
 -- UPDATE Face id sequence
-SELECT setval('city_data.face_face_id_seq', 9);
+SELECT NULL FROM setval('city_data.face_face_id_seq', 9);
 
 -- 2B. Insert data into <topology_name>.NODE table.
 -- N1
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(1, 'SRID=@SRID@;POINT(8 30)', NULL);
 -- N2
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(2, 'SRID=@SRID@;POINT(25 30)', NULL);
 -- N3
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(3, 'SRID=@SRID@;POINT(25 35)', NULL);
 -- N4
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(4, 'SRID=@SRID@;POINT(20 37)', 2);
 -- N5
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(5, 'SRID=@SRID@;POINT(36 38)', NULL);
 -- N6
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(6, 'SRID=@SRID@;POINT(57 33)', NULL);
 -- N7
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(7, 'SRID=@SRID@;POINT(41 40)', NULL);
 -- N8
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(8, 'SRID=@SRID@;POINT(9 6)', NULL);
 -- N9
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(9, 'SRID=@SRID@;POINT(21 6)', NULL);
 -- N10
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(10, 'SRID=@SRID@;POINT(35 6)', NULL);
 -- N11
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(11, 'SRID=@SRID@;POINT(47 6)', NULL);
 -- N12
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(12, 'SRID=@SRID@;POINT(47 14)', NULL);
 -- N13
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(13, 'SRID=@SRID@;POINT(35 14)', NULL);
 -- N14
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(14, 'SRID=@SRID@;POINT(21 14)', NULL);
 -- N15
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(15, 'SRID=@SRID@;POINT(9 14)', NULL);
 -- N16
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(16, 'SRID=@SRID@;POINT(9 22)', NULL);
 -- N17
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(17, 'SRID=@SRID@;POINT(21 22)', NULL);
 -- N18
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(18, 'SRID=@SRID@;POINT(35 22)', NULL);
 -- N19
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(19, 'SRID=@SRID@;POINT(47 22)', NULL);
 -- N20
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(20, 'SRID=@SRID@;POINT(4 31)', NULL);
 -- N21
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(21, 'SRID=@SRID@;POINT(9 35)', NULL);
 -- N22
-INSERT INTO city_data.node(node_id, geom, containing_face) 
+INSERT INTO city_data.node(node_id, geom, containing_face)
 	VALUES(22, 'SRID=@SRID@;POINT(13 35)', NULL);
 
 -- UPDATE Node id sequence
-SELECT setval('city_data.node_node_id_seq', 22);
+SELECT NULL FROM setval('city_data.node_node_id_seq', 22);
 
 -- 2C. Insert data into <topology_name>.EDGE table.
 -- E1
@@ -191,7 +190,7 @@ INSERT INTO city_data.edge VALUES(26, 20, 20, 26, -26, 9, 1,
   'SRID=@SRID@;LINESTRING(4 31, 7 31, 7 34, 4 34, 4 31)');
 
 -- UPDATE Edge id sequence
-SELECT setval('city_data.edge_data_edge_id_seq', 26);
+SELECT NULL FROM setval('city_data.edge_data_edge_id_seq', 26);
 
 -- Set face minimum bounding rectangle
 UPDATE city_data.face set mbr = ST_SetSRID( ( select st_extent(geom) from city_data.edge where left_face = face_id or right_face = face_id ), @SRID@ ) where face_id != 0;

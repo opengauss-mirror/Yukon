@@ -118,7 +118,7 @@ void lwnotice(const char *fmt, ...);
  * For debugging, use LWDEBUG() or LWDEBUGF().
  * @ingroup logging
  */
-void lwerror(const char *fmt, ...);
+extern "C" void lwerror(const char *fmt, ...);
 
 /**
  * Write a debug message out.

@@ -196,7 +196,6 @@ CREATE OR REPLACE FUNCTION make_test_raster(
 		rast := ST_MakeEmptyRaster(width, height, ul_x, ul_y, 1, 1, skew_x, skew_y, 0);
 		rast := ST_AddBand(rast, 1, '8BUI', initvalue, nodataval);
 
-
 		INSERT INTO raster_mapalgebra VALUES (rid, rast);
 
 		RETURN;
@@ -403,35 +402,37 @@ INSERT INTO raster_mapalgebra_out
 ;
 
 -- output
-SELECT
-	rid1,
-	rid2,
-	extent,
-	round(upperleftx::numeric, 3) AS upperleftx,
-	round(upperlefty::numeric, 3) AS upperlefty,
-	width,
-	height,
-	round(scalex::numeric, 3) AS scalex,
-	round(scaley::numeric, 3) AS scaley,
-	round(skewx::numeric, 3) AS skewx,
-	round(skewy::numeric, 3) AS skewy,
-	srid,
-	numbands,
-	pixeltype,
-	round(nodatavalue::numeric, 3) AS nodatavalue,
-	round(firstvalue::numeric, 3) AS firstvalue,
-	round(lastvalue::numeric, 3) AS lastvalue
-FROM (
-	SELECT
-		rid1,
-		rid2,
-		extent,
-		(ST_Metadata(rast)).*,
-		(ST_BandMetadata(rast, 1)).*,
-		ST_Value(rast, 1, 1, 1) AS firstvalue,
-		ST_Value(rast, 1, ST_Width(rast), ST_Height(rast)) AS lastvalue
-	FROM raster_mapalgebra_out
-) AS r;
+-- SELECT
+-- 	rid1,
+-- 	rid2,
+-- 	extent,
+-- 	round(upperleftx::numeric, 3) AS upperleftx,
+-- 	round(upperlefty::numeric, 3) AS upperlefty,
+-- 	width,
+-- 	height,
+-- 	round(scalex::numeric, 3) AS scalex,
+-- 	round(scaley::numeric, 3) AS scaley,
+-- 	round(skewx::numeric, 3) AS skewx,
+-- 	round(skewy::numeric, 3) AS skewy,
+-- 	srid,
+-- 	numbands,
+-- 	pixeltype,
+-- 	round(nodatavalue::numeric, 3) AS nodatavalue,
+-- 	round(firstvalue::numeric, 3) AS firstvalue,
+-- 	round(lastvalue::numeric, 3) AS lastvalue
+-- FROM (
+-- 	SELECT
+-- 		rid1,
+-- 		rid2,
+-- 		extent,
+-- 		md.*,
+-- 		bmd.*,
+-- 		ST_Value(rast, 1, 1, 1) AS firstvalue,
+-- 		ST_Value(rast, 1, ST_Width(rast), ST_Height(rast)) AS lastvalue
+-- 	FROM raster_mapalgebra_out
+-- 		LEFT JOIN LATERAL ST_Metadata(rast) AS md ON true
+-- 		LEFT JOIN LATERAL ST_BandMetadata(rast, 1) AS bmd ON true
+-- ) AS r;
 
 DROP TABLE IF EXISTS raster_mapalgebra;
 DROP TABLE IF EXISTS raster_mapalgebra_out;
