@@ -117,6 +117,7 @@
 #define WKB_POLYHEDRALSURFACE_TYPE 15
 #define WKB_TIN_TYPE 16
 #define WKB_TRIANGLE_TYPE 17
+#define WKB_ELLIPSE_TYPE 18
 
 
 /**
@@ -199,6 +200,7 @@ int lwpoint_is_empty(const LWPOINT *point);
 uint32_t lwline_count_vertices(LWLINE *line);
 uint32_t lwpoly_count_vertices(LWPOLY *poly);
 uint32_t lwcollection_count_vertices(LWCOLLECTION *col);
+uint32_t lwellipse_count_vertices(LWELLIPSE *ellipse);
 
 /*
 * DP simplification
@@ -259,6 +261,16 @@ int p2d_same(const POINT2D *p1, const POINT2D *p2);
 double lwpoly_area(const LWPOLY *poly);
 double lwcurvepoly_area(const LWCURVEPOLY *curvepoly);
 double lwtriangle_area(const LWTRIANGLE *triangle);
+double lwellipse_area(const LWELLIPSE *ellipse);
+double lwtriangle_area1(const POINT2D pntA, const POINT2D pntB, const POINT2D pntC);
+double lwsector_arc_area(LWCIRCSTRING *pcirArc, POINT2D Pnt);
+double lwsector_elliptic_arc_area(const LWELLIPSE* pGeoSub, POINT2D pntAnchar);
+
+/**
+ * 参数化对象拟合函数
+ * 
+ */
+LWLINE* lwellipse_get_spatialdata(LWELLIPSE* ellipse,unsigned int);
 
 /**
 * Pull a #GBOX from the header of a #GSERIALIZED, if one is available. If
@@ -409,6 +421,7 @@ int lwcircstring_is_closed(const LWCIRCSTRING *curve);
 int lwcompound_is_closed(const LWCOMPOUND *curve);
 int lwpsurface_is_closed(const LWPSURFACE *psurface);
 int lwtin_is_closed(const LWTIN *tin);
+int lwellipse_is_closed(const LWELLIPSE *ellipse);
 
 /**
 * Snap to grid

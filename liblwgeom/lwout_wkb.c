@@ -131,6 +131,9 @@ static uint32_t lwgeom_wkb_type(const LWGEOM *geom, uint8_t variant)
 	case TRIANGLETYPE:
 		wkb_type = WKB_TRIANGLE_TYPE;
 		break;
+	case ELLIPSETYPE:
+		wkb_type = WKB_ELLIPSE_TYPE;
+		break;
 	default:
 		lwerror("%s: Unsupported geometry type: %s", __func__, lwtype_name(geom->type));
 	}
@@ -670,6 +673,54 @@ static uint8_t* lwcollection_to_wkb_buf(const LWCOLLECTION *col, uint8_t *buf, u
 }
 
 /*
+* ELLIPSE
+*/
+static size_t lwellipse_to_wkb_size(const LWELLIPSE *e, uint8_t variant)
+{
+	/* endian flag + type number */
+	size_t size = WKB_BYTE_SIZE + WKB_INT_SIZE;
+
+	/* Extended WKB needs space for optional SRID integer */
+	if (lwgeom_wkb_needs_srid((LWGEOM *)e, variant))
+		size += WKB_INT_SIZE;
+
+	/* npoints ,points, minor,clockwise,roation,axis,ration*/
+	size += ptarray_to_wkb_size(e->data->points, variant);
+
+	size += sizeof(ELLIPSE) - sizeof(POINTARRAY *);
+
+	return size;
+}
+
+static uint8_t* lwellipse_to_wkb_buf(const LWELLIPSE *e, uint8_t *buf, uint8_t variant)
+{
+	/* Set the endian flag */
+	LWDEBUGF(4, "Entering function, buf = %p", buf);
+	buf = endian_to_wkb_buf(buf, variant);
+	LWDEBUGF(4, "Endian set, buf = %p", buf);
+	/* Set the geometry type */
+	buf = integer_to_wkb_buf(lwgeom_wkb_type((LWGEOM*)e, variant), buf, variant);
+	LWDEBUGF(4, "Type set, buf = %p", buf);
+	
+	/* Set the optional SRID for extended variant */
+	if ( lwgeom_wkb_needs_srid((LWGEOM*)e, variant) )
+	{
+		buf = integer_to_wkb_buf(e->srid, buf, variant);
+		LWDEBUGF(4, "SRID set, buf = %p", buf);
+	}
+
+	/* npoints,point,minor,clockwise roation,axis,ration */
+	buf = ptarray_to_wkb_buf(e->data->points, buf, variant);
+	buf = double_to_wkb_buf(e->data->minor, buf, variant);
+	buf = double_to_wkb_buf(e->data->clockwise, buf, variant);
+	buf = double_to_wkb_buf(e->data->rotation, buf, variant);
+	buf = double_to_wkb_buf(e->data->axis, buf, variant);
+	buf = double_to_wkb_buf(e->data->ratio, buf, variant);
+
+	return buf;
+}
+
+/*
 * GEOMETRY
 */
 static size_t
@@ -710,6 +761,9 @@ lwgeom_to_wkb_size(const LWGEOM *geom, uint8_t variant)
 		/* Triangle has one ring of three points */
 		case TRIANGLETYPE:
 			size += lwtriangle_to_wkb_size((LWTRIANGLE*)geom, variant);
+			break;
+		case ELLIPSETYPE:
+			size += lwellipse_to_wkb_size((LWELLIPSE*)geom, variant);
 			break;
 
 		/* All these Collection types have ngeoms and geoms elements */
@@ -760,7 +814,8 @@ static uint8_t* lwgeom_to_wkb_buf(const LWGEOM *geom, uint8_t *buf, uint8_t vari
 		/* Triangle has one ring of three points */
 		case TRIANGLETYPE:
 			return lwtriangle_to_wkb_buf((LWTRIANGLE*)geom, buf, variant);
-
+		case ELLIPSETYPE:
+			return lwellipse_to_wkb_buf((LWELLIPSE*)geom, buf, variant);
 		/* All these Collection types have 'ngeoms' and 'geoms' elements */
 		case MULTIPOINTTYPE:
 		case MULTILINETYPE:

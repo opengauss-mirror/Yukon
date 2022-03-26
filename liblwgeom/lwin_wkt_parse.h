@@ -65,9 +65,10 @@ extern int wkt_yydebug;
     TRIANGLE_TOK = 275,
     TIN_TOK = 276,
     POLYHEDRALSURFACE_TOK = 277,
-    DOUBLE_TOK = 278,
-    DIMENSIONALITY_TOK = 279,
-    SRID_TOK = 280
+    ELLIPTICALSTRING_TOK = 278,
+    DOUBLE_TOK = 279,
+    DIMENSIONALITY_TOK = 280,
+    SRID_TOK = 281
   };
 #endif
 
@@ -85,7 +86,7 @@ union YYSTYPE
 	POINT coordinatevalue;
 	POINTARRAY *ptarrayvalue;
 
-#line 89 "lwin_wkt_parse.h" /* yacc.c:1909  */
+#line 90 "lwin_wkt_parse.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

@@ -510,6 +510,15 @@ uint32_t lwline_count_vertices(LWLINE *line)
 	return line->points->npoints;
 }
 
+uint32_t lwellipse_count_vertices(LWELLIPSE *ellipse)
+{
+	assert(ellipse);
+	if ( ! ellipse->data->points )
+		return 0;
+	return ellipse->data->points->npoints;
+}
+
+
 double lwline_length(const LWLINE *line)
 {
 	if ( lwline_is_empty(line) )

@@ -34,6 +34,7 @@
 int
 lwcompound_is_closed(const LWCOMPOUND *compound)
 {
+#if 0
 	size_t size;
 	int npoints=0;
 
@@ -62,7 +63,44 @@ lwcompound_is_closed(const LWCOMPOUND *compound)
 	{
 		return LW_FALSE;
 	}
+#endif
+	POINT4D last, first;
+	int npoints = 0;
+	if (compound->ngeoms > 0)
+	{
+		LWGEOM *firstlwgeom = compound->geoms[0];
+		LWGEOM *lastlwgeom = compound->geoms[compound->ngeoms - 1];
 
+		/* First point of the component we are adding */
+		if(firstlwgeom->type == CIRCSTRINGTYPE || firstlwgeom->type ==LINETYPE)
+		{
+			getPoint4d_p(((LWLINE*)firstlwgeom)->points, 0, &first);
+		}
+		else if(firstlwgeom->type == ELLIPSETYPE)
+		{
+			getPoint4d_p(((LWELLIPSE*)firstlwgeom)->data->points, 0, &first);
+		}
+		
+		if(lastlwgeom->type == CIRCSTRINGTYPE )
+		{
+			npoints = ((LWCIRCSTRING *)compound->geoms[compound->ngeoms - 1])->points->npoints;
+			getPoint4d_p(((LWCIRCSTRING*)lastlwgeom)->points, npoints-1, &last);
+		}
+		else if(lastlwgeom->type ==LINETYPE)
+		{
+			npoints = ((LWLINE *)compound->geoms[compound->ngeoms - 1])->points->npoints;
+			getPoint4d_p(((LWLINE*)lastlwgeom)->points, npoints-1, &last);
+		}
+		else if(lastlwgeom->type == ELLIPSETYPE)
+		{
+			getPoint4d_p(((LWELLIPSE*)lastlwgeom)->data->points, 1, &last);
+		}
+
+		if (!(FP_EQUALS(first.x, last.x) && FP_EQUALS(first.y, last.y)))
+		{
+			return LW_FAILURE;
+		}
+	}
 	return LW_TRUE;
 }
 
@@ -99,13 +137,32 @@ int lwcompound_add_lwgeom(LWCOMPOUND *comp, LWGEOM *geom)
 	if( col->ngeoms > 0 )
 	{
 		POINT4D last, first;
-		/* First point of the component we are adding */
-		LWLINE *newline = (LWLINE*)geom;
-		/* Last point of the previous component */
-		LWLINE *prevline = (LWLINE*)(col->geoms[col->ngeoms-1]);
+		LWLINE *newline;
+		LWLINE *prevline;
 
-		getPoint4d_p(newline->points, 0, &first);
-		getPoint4d_p(prevline->points, prevline->points->npoints-1, &last);
+		/* First point of the component we are adding */
+		if (geom->type == ELLIPSETYPE)
+		{
+			LWELLIPSE *ellipse = (LWELLIPSE *)geom;
+			getPoint4d_p(ellipse->data->points, 0, &first);
+		}
+		else
+		{
+			newline = (LWLINE *)geom;
+			getPoint4d_p(newline->points, 0, &first);
+		}
+		/*previous poiont of the collection we have added*/
+		if (col->geoms[col->ngeoms - 1]->type == ELLIPSETYPE)
+		{
+			LWGEOM *prelwgeom = col->geoms[col->ngeoms - 1];
+			LWELLIPSE *ellipse = (LWELLIPSE *)prelwgeom;
+			getPoint4d_p(ellipse->data->points, 1, &last);
+		}
+		else
+		{
+			prevline = (LWLINE *)(col->geoms[col->ngeoms - 1]);
+			getPoint4d_p(prevline->points, prevline->points->npoints - 1, &last);
+		}
 
 		if ( !(FP_EQUALS(first.x,last.x) && FP_EQUALS(first.y,last.y)) )
 		{

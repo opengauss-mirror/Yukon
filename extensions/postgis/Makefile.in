@@ -38,9 +38,10 @@ DATA_built = \
 
 # Scripts making up the extension file
 # NOTE: order matters
+#	../../doc/postgis_comments.sql \
+
 EXTENSION_SCRIPTS = \
 	sql/postgis_for_extension.sql \
-	../../doc/postgis_comments.sql \
 	sql/spatial_ref_sys_config_dump.sql \
 	sql/spatial_ref_sys.sql
 

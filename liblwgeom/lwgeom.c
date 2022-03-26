@@ -1175,6 +1175,9 @@ void lwgeom_free(LWGEOM *lwgeom)
 	case TINTYPE:
 		lwtin_free((LWTIN *)lwgeom);
 		break;
+	case ELLIPSETYPE:
+		lwellipse_free((LWELLIPSE*)lwgeom);
+		break;
 	case CURVEPOLYTYPE:
 	case COMPOUNDTYPE:
 	case MULTICURVETYPE:
@@ -1216,6 +1219,10 @@ int lwgeom_needs_bbox(const LWGEOM *geom)
 		else
 			return LW_TRUE;
 	}
+	else if ( geom->type == ELLIPSETYPE)
+	{
+		return LW_TRUE;
+	}
 	else
 	{
 		return LW_TRUE;
@@ -1251,6 +1258,9 @@ uint32_t lwgeom_count_vertices(const LWGEOM *geom)
 		break;
 	case POLYGONTYPE:
 		result = lwpoly_count_vertices((LWPOLY *)geom);
+		break;
+	case ELLIPSETYPE:
+		result = lwellipse_count_vertices((LWELLIPSE*)geom);
 		break;
 	case COMPOUNDTYPE:
 	case CURVEPOLYTYPE:
@@ -1875,6 +1885,8 @@ double lwgeom_area(const LWGEOM *geom)
 		return lwcurvepoly_area((LWCURVEPOLY*)geom);
 	else if (type ==  TRIANGLETYPE )
 		return lwtriangle_area((LWTRIANGLE*)geom);
+	else if (type == ELLIPSETYPE)
+		return lwellipse_area((LWELLIPSE*)geom);
 	else if ( lwgeom_is_collection(geom) )
 	{
 		double area = 0.0;
@@ -1971,6 +1983,13 @@ double lwgeom_length_2d(const LWGEOM *geom)
 		for ( i = 0; i < col->ngeoms; i++ )
 			length += lwgeom_length_2d(col->geoms[i]);
 		return length;
+	}
+	else if(type == ELLIPSETYPE)
+	{
+		LWLINE *templwgeom = lwellipse_get_spatialdata((LWELLIPSE*)geom, 72);
+		double len = lwline_length_2d(templwgeom);
+		lwgeom_free((LWGEOM*)templwgeom);
+		return len;
 	}
 	else
 		return 0.0;

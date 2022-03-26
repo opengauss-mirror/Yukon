@@ -246,6 +246,9 @@ static void lwtype_from_wkb_state(wkb_parse_state *s, uint32_t wkb_type)
 		case WKB_SURFACE_TYPE:
 			s->lwtype = MULTICURVETYPE;
 			break;
+		case WKB_ELLIPSE_TYPE:
+			s->lwtype = ELLIPSETYPE;
+			break;
 
 		default: /* Error! */
 			lwerror("Unknown WKB type (%d)! Full WKB type number was (%d).", wkb_simple_type, wkb_type);
@@ -674,6 +677,40 @@ static LWCURVEPOLY* lwcurvepoly_from_wkb_state(wkb_parse_state *s)
 }
 
 /**
+ * ELLIPSEARC 
+*/
+static LWELLIPSE * lwellipse_from_wkb_state(wkb_parse_state *s)
+{
+	LWELLIPSE *res;
+
+	/* TODO: 计算合理的数据长度 */
+	//wkb_parse_state_check(s, sizeof(ELLIPSE));
+	if (s->error)
+		return NULL;
+
+	res = lwalloc(sizeof(LWELLIPSE));
+	if (res == NULL)
+	{
+		return NULL;
+	}
+	res->type = ELLIPSETYPE;
+	res->srid = s->srid;
+	res->bbox = NULL;	
+	res->data = lwalloc(sizeof(ELLIPSE));
+
+	// memcpy(res->data, s->wkb+5, sizeof(ELLIPSE));
+	res->data->points = ptarray_from_wkb_state(s);
+	res->data->minor = double_from_wkb_state(s);
+	res->data->clockwise = double_from_wkb_state(s);
+	res->data->rotation = double_from_wkb_state(s);
+	res->data->axis = double_from_wkb_state(s);
+	res->data->ratio = double_from_wkb_state(s);
+
+	res->flags = res->data->points->flags;
+	return res;
+}
+
+/**
 * POLYHEDRALSURFACETYPE
 */
 
@@ -798,6 +835,8 @@ LWGEOM* lwgeom_from_wkb_state(wkb_parse_state *s)
 		case CURVEPOLYTYPE:
 			return (LWGEOM*)lwcurvepoly_from_wkb_state(s);
 			break;
+		case ELLIPSETYPE:
+			return (LWGEOM *)lwellipse_from_wkb_state(s);
 		case MULTIPOINTTYPE:
 		case MULTILINETYPE:
 		case MULTIPOLYGONTYPE:
