@@ -617,6 +617,16 @@ lwcompound_linearize(const LWCOMPOUND *icompound, double tol,
 				ptarray_append_point(ptarray, &p, LW_TRUE);
 			}
 		}
+		else if(geom->type == ELLIPSETYPE)
+		{
+			//convert ellipsearc to linestring
+			LWLINE *tmp = lwellipse_get_spatialdata((LWELLIPSE*)geom,72);
+			for (j = 0; j < tmp->points->npoints; j++)
+			{
+				getPoint4d_p(tmp->points, j, &p);
+				ptarray_append_point(ptarray, &p, LW_TRUE);
+			}
+		}
 		else
 		{
 			lwerror("%s: Unsupported geometry type: %s", __func__, lwtype_name(geom->type));
@@ -669,6 +679,12 @@ lwcurvepoly_linearize(const LWCURVEPOLY *curvepoly, double tol,
 		else if (tmp->type == COMPOUNDTYPE)
 		{
 			line = lwcompound_linearize((LWCOMPOUND *)tmp, tol, tolerance_type, flags);
+			ptarray[i] = ptarray_clone_deep(line->points);
+			lwline_free(line);
+		}
+		else if (tmp->type == ELLIPSETYPE)
+		{
+			line = lwellipse_get_spatialdata((LWELLIPSE *)tmp, 72);
 			ptarray[i] = ptarray_clone_deep(line->points);
 			lwline_free(line);
 		}
@@ -860,6 +876,8 @@ lwcurve_linearize(const LWGEOM *geom, double tol,
 	case COLLECTIONTYPE:
 		ogeom = (LWGEOM *)lwcollection_linearize((LWCOLLECTION *)geom, tol, type, flags);
 		break;
+	case ELLIPSETYPE:
+		ogeom = (LWGEOM *)lwellipse_get_spatialdata((LWELLIPSE *)geom, 72);
 	default:
 		ogeom = lwgeom_clone_deep(geom);
 	}

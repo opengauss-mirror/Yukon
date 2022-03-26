@@ -45,6 +45,7 @@
 #include "lwgeom_geos_prepared.h"
 #include "lwgeom_accum.h"
 
+extern LWLINE * lwellipse_get_spatialdata(LWELLIPSE *geom, unsigned int segment);
 
 /* Return NULL on GEOS error
  *

@@ -717,6 +717,23 @@ static size_t gserialized2_from_lwcircstring_size(const LWCIRCSTRING *curve)
 	return size;
 }
 
+static size_t gserialized2_from_lwellipse_size(const LWELLIPSE *ellipse)
+{
+	size_t size = 4; /* Type number. */
+
+	assert(ellipse);
+	POINTARRAY *point = ellipse->data->points;
+	size += 4; /* Number of points (one or zero (empty)). */
+	size += point->npoints * FLAGS_NDIMS(point->flags) * sizeof(double);
+
+	// ELLIPSE 数据,减去一个 POINTARRAY * 的长度
+	size += sizeof(ELLIPSE) - sizeof(POINTARRAY*);
+
+	LWDEBUGF(3, "ellipse size = %d", size);
+
+	return size;
+}
+
 static size_t gserialized2_from_lwcollection_size(const LWCOLLECTION *col)
 {
 	size_t size = 4; /* Type number. */
@@ -754,6 +771,8 @@ static size_t gserialized2_from_any_size(const LWGEOM *geom)
 		return gserialized2_from_lwtriangle_size((LWTRIANGLE *)geom);
 	case CIRCSTRINGTYPE:
 		return gserialized2_from_lwcircstring_size((LWCIRCSTRING *)geom);
+	case ELLIPSETYPE:
+		return gserialized2_from_lwellipse_size((LWELLIPSE *)geom);
 	case CURVEPOLYTYPE:
 	case COMPOUNDTYPE:
 	case MULTIPOINTTYPE:
@@ -1005,6 +1024,41 @@ static size_t gserialized2_from_lwcircstring(const LWCIRCSTRING *curve, uint8_t 
 	return (size_t)(loc - buf);
 }
 
+static size_t gserialized2_from_lwellipse(const LWELLIPSE *ellipse, uint8_t *buf)
+{
+	uint8_t *loc;
+	int ptsize;
+	size_t size;
+	int type = ELLIPSETYPE;
+
+	assert(ellipse);
+	assert(buf);
+	ptsize = ptarray_point_size(ellipse->data->points);
+	loc = buf;
+
+	// write type
+	memcpy(loc, &type, sizeof(uint32_t));
+	loc += sizeof(uint32_t);
+
+	/* Write in the npoints. */
+	memcpy(loc, &ellipse->data->points->npoints, sizeof(uint32_t));
+	loc += sizeof(uint32_t);
+
+	/* Copy in the ordinates. */
+	if (ellipse->data->points->npoints > 0)
+	{
+		size = ellipse->data->points->npoints * ptsize;
+		memcpy(loc, getPoint_internal(ellipse->data->points, 0), size);
+		loc += size;
+	}
+
+	// write minor clockwise roatation axis ration
+	memcpy(loc, (char*)(ellipse->data) + sizeof(POINTARRAY *), sizeof(ELLIPSE) - sizeof(POINTARRAY *));
+	loc += sizeof(ELLIPSE) - sizeof(POINTARRAY *);
+
+	return (size_t)(loc - buf);
+}
+
 static size_t gserialized2_from_lwcollection(const LWCOLLECTION *coll, uint8_t *buf)
 {
 	size_t subsize = 0;
@@ -1060,6 +1114,8 @@ static size_t gserialized2_from_lwgeom_any(const LWGEOM *geom, uint8_t *buf)
 		return gserialized2_from_lwtriangle((LWTRIANGLE *)geom, buf);
 	case CIRCSTRINGTYPE:
 		return gserialized2_from_lwcircstring((LWCIRCSTRING *)geom, buf);
+	case ELLIPSETYPE:
+		return gserialized2_from_lwellipse((LWELLIPSE *)geom, buf);
 	case CURVEPOLYTYPE:
 	case COMPOUNDTYPE:
 	case MULTIPOINTTYPE:
@@ -1364,6 +1420,41 @@ lwtriangle_from_gserialized2_buffer(uint8_t *data_ptr, lwflags_t lwflags, size_t
 	return triangle;
 }
 
+static LWELLIPSE * lwellipse_from_gserialized2_buffer(uint8_t *data_ptr, lwflags_t lwflags, size_t *size, int32_t srid)
+{
+	uint8_t *start_ptr = data_ptr;
+	LWELLIPSE *ellipse;
+	int npoints = 0;
+	assert(data_ptr);
+
+	ellipse = (LWELLIPSE *)lwalloc(sizeof(LWELLIPSE));
+	ellipse->srid = srid; /* Default */
+	ellipse->bbox = NULL;
+	ellipse->type = ELLIPSETYPE;
+	ellipse->flags = lwflags;
+
+	data_ptr += 4; /* Skip past the type. */
+
+	npoints = gserialized2_get_uint32_t(data_ptr); /* Zero => empty geometry */
+	data_ptr += 4;                                 /* Skip past the npoints. */
+
+	//需要复制数据，否则会造成同一块空间释放两次
+	ellipse->data = lwalloc(sizeof(ELLIPSE));
+
+	if (npoints > 0)
+		ellipse->data->points =
+		    ptarray_construct_reference_data(FLAGS_GET_Z(lwflags), FLAGS_GET_M(lwflags), npoints, data_ptr);
+
+	data_ptr += FLAGS_NDIMS(lwflags) * npoints * sizeof(double);
+
+	memcpy(((char *)(ellipse->data)) + sizeof(POINTARRAY *), data_ptr, sizeof(ELLIPSE) - sizeof(POINTARRAY *));
+	data_ptr += sizeof(ELLIPSE) - sizeof(POINTARRAY *);
+	if (size)
+		*size = data_ptr - start_ptr;
+	return ellipse;
+}
+
+
 static LWCIRCSTRING *
 lwcircstring_from_gserialized2_buffer(uint8_t *data_ptr, lwflags_t lwflags, size_t *size, int32_t srid)
 {
@@ -1479,6 +1570,8 @@ lwgeom_from_gserialized2_buffer(uint8_t *data_ptr, lwflags_t lwflags, size_t *g_
 		return (LWGEOM *)lwpoly_from_gserialized2_buffer(data_ptr, lwflags, g_size, srid);
 	case TRIANGLETYPE:
 		return (LWGEOM *)lwtriangle_from_gserialized2_buffer(data_ptr, lwflags, g_size, srid);
+	case ELLIPSETYPE:
+		return (LWGEOM *)lwellipse_from_gserialized2_buffer(data_ptr, lwflags, g_size, srid);
 	case MULTIPOINTTYPE:
 	case MULTILINETYPE:
 	case MULTIPOLYGONTYPE:

@@ -126,6 +126,7 @@ int lwgeom_parse_wkt(LWGEOM_PARSER_RESULT *parser_result, char *wktstr, int pars
 %token SEMICOLON_TOK
 %token TRIANGLE_TOK TIN_TOK
 %token POLYHEDRALSURFACE_TOK
+%token ELLIPTICALSTRING_TOK
 
 %token <doublevalue> DOUBLE_TOK
 %token <stringvalue> DIMENSIONALITY_TOK
@@ -170,6 +171,7 @@ int lwgeom_parse_wkt(LWGEOM_PARSER_RESULT *parser_result, char *wktstr, int pars
 %type <geometryvalue> triangle
 %type <geometryvalue> triangle_list
 %type <geometryvalue> triangle_untagged
+%type <geometryvalue> ellipse
 
 
 /* These clean up memory on errors and parser aborts. */
@@ -234,7 +236,8 @@ geometry_no_srid :
 	tin { $$ = $1; } |
 	polyhedralsurface { $$ = $1; } |
 	triangle { $$ = $1; } |
-	geometrycollection { $$ = $1; } ;
+	geometrycollection { $$ = $1; } |
+	ellipse { $$ = $1; };
 
 geometrycollection :
 	COLLECTION_TOK LBRACKET_TOK geometry_list RBRACKET_TOK
@@ -357,7 +360,8 @@ curvering :
 	linestring_untagged { $$ = $1; } |
 	linestring { $$ = $1; } |
 	compoundcurve { $$ = $1; } |
-	circularstring { $$ = $1; } ;
+	circularstring { $$ = $1; } |
+	ellipse { $$ = $1; } ;;
 
 patchring_list :
 	patchring_list COMMA_TOK patchring
@@ -394,11 +398,15 @@ compound_list :
 		{ $$ = wkt_parser_compound_add_geom($1,$3); WKT_ERROR(); } |
 	compound_list COMMA_TOK linestring_untagged
 		{ $$ = wkt_parser_compound_add_geom($1,$3); WKT_ERROR(); } |
+	compound_list COMMA_TOK ellipse
+		{ $$ = wkt_parser_compound_add_geom($1,$3); WKT_ERROR(); } |
 	circularstring
 		{ $$ = wkt_parser_compound_new($1); WKT_ERROR(); } |
 	linestring
 		{ $$ = wkt_parser_compound_new($1); WKT_ERROR(); } |
 	linestring_untagged
+		{ $$ = wkt_parser_compound_new($1); WKT_ERROR(); } |
+	ellipse
 		{ $$ = wkt_parser_compound_new($1); WKT_ERROR(); } ;
 
 multicurve :
@@ -538,6 +546,11 @@ coordinate :
 		{ $$ = wkt_parser_coord_3($1, $2, $3); WKT_ERROR(); } |
 	DOUBLE_TOK DOUBLE_TOK DOUBLE_TOK DOUBLE_TOK
 		{ $$ = wkt_parser_coord_4($1, $2, $3, $4); WKT_ERROR(); } ;
+ellipse :
+	ELLIPTICALSTRING_TOK LBRACKET_TOK coordinate COMMA_TOK coordinate COMMA_TOK coordinate COMMA_TOK DOUBLE_TOK COMMA_TOK DOUBLE_TOK COMMA_TOK DOUBLE_TOK COMMA_TOK DOUBLE_TOK COMMA_TOK DOUBLE_TOK RBRACKET_TOK
+		{ $$ = wkt_parser_ellipse($3,$5,$7,$9,$11,$13,$15,$17,NULL); WKT_ERROR(); } |
+	ELLIPTICALSTRING_TOK  DIMENSIONALITY_TOK LBRACKET_TOK coordinate COMMA_TOK coordinate COMMA_TOK coordinate COMMA_TOK DOUBLE_TOK COMMA_TOK DOUBLE_TOK COMMA_TOK DOUBLE_TOK COMMA_TOK DOUBLE_TOK COMMA_TOK DOUBLE_TOK RBRACKET_TOK
+		{ $$ = wkt_parser_ellipse($4,$6,$8,$10,$12,$14,$16,$18,$2); WKT_ERROR(); } ;
 
 %%
 

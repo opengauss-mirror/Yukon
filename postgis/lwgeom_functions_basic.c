@@ -48,6 +48,7 @@ extern "C" Datum LWGEOM_summary(PG_FUNCTION_ARGS);
 extern "C" Datum LWGEOM_npoints(PG_FUNCTION_ARGS);
 extern "C" Datum LWGEOM_nrings(PG_FUNCTION_ARGS);
 extern "C" Datum ST_Area(PG_FUNCTION_ARGS);
+extern "C" Datum ST_AreaParam(PG_FUNCTION_ARGS);
 extern "C" Datum postgis_scripts_released(PG_FUNCTION_ARGS);
 extern "C" Datum postgis_version(PG_FUNCTION_ARGS);
 extern "C" Datum postgis_liblwgeom_version(PG_FUNCTION_ARGS);
@@ -290,6 +291,89 @@ Datum ST_Area(PG_FUNCTION_ARGS)
 	PG_FREE_IF_COPY(geom, 0);
 
 	PG_RETURN_FLOAT8(area);
+}
+
+PG_FUNCTION_INFO_V1(ST_AreaParam);
+Datum ST_AreaParam(PG_FUNCTION_ARGS)
+{
+	GSERIALIZED *geom = PG_GETARG_GSERIALIZED_P(0);
+	LWGEOM *lwgeom = lwgeom_from_gserialized(geom);
+	double area = 0.0;
+
+	if (lwgeom->type != CURVEPOLYTYPE)
+	{
+		lwerror("%s: only support curvepolygon.", __func__);
+		lwgeom_free(lwgeom);
+		return 0;
+	}
+
+	if (lwgeom_is_empty(lwgeom))
+	{
+		lwgeom_free(lwgeom);
+		return 0.0;
+	}
+	LWCURVEPOLY *curvepoly = (LWCURVEPOLY *)lwgeom;
+	LWGEOM *tmp;
+	POINT2D pntAnchar = {0, 0};
+	for (uint32_t i = 0; i < curvepoly->nrings; i++)
+	{
+		tmp = curvepoly->rings[i];
+		if (tmp->type == CIRCSTRINGTYPE) // arc
+		{
+			area += lwsector_arc_area((LWCIRCSTRING *)tmp, pntAnchar);
+		}
+		else if (tmp->type == LINETYPE) // line
+		{
+			POINTARRAY *pPoints = ((LWLINE *)tmp)->points;
+			uint32_t nPntsCount = ((LWLINE *)tmp)->points->npoints;
+
+			for (uint32_t j = 0; j < nPntsCount - 1; j++)
+			{
+				area += lwtriangle_area1(pntAnchar, getPoint2d(pPoints, j), getPoint2d(pPoints, j + 1));
+			}
+		}
+		else if (tmp->type == COMPOUNDTYPE) // compound
+		{
+			LWGEOM *comptmp;
+			for (uint32_t k = 0; k < ((LWCOMPOUND *)tmp)->ngeoms; k++)
+			{
+				comptmp = ((LWCOMPOUND *)tmp)->geoms[k];
+
+				if (comptmp->type == LINETYPE)
+				{
+					POINTARRAY *pPoints = ((LWLINE *)comptmp)->points;
+					uint32_t nPntsCount = ((LWLINE *)comptmp)->points->npoints;
+
+					for (uint32_t m = 0; m < nPntsCount - 1; m++)
+					{
+						area += lwtriangle_area1(
+						    pntAnchar, getPoint2d(pPoints, m), getPoint2d(pPoints, m + 1));
+					}
+				}
+				else if (comptmp->type == CIRCSTRINGTYPE)
+				{
+					area += lwsector_arc_area((LWCIRCSTRING *)comptmp, pntAnchar);
+				}
+				else if (comptmp->type == ELLIPSETYPE)
+				{
+					area += lwsector_elliptic_arc_area((LWELLIPSE *)comptmp, pntAnchar);
+				}
+			}
+		}
+		else if (tmp->type == ELLIPSETYPE) // 一个完整的椭圆
+		{
+			area += lwellipse_area((LWELLIPSE *)tmp);
+		}
+		else
+		{
+			lwerror("Invalid ring type found in CurvePoly.");
+			return NULL;
+		}
+	}
+
+	lwgeom_free(lwgeom);
+	PG_FREE_IF_COPY(geom, 0);
+	PG_RETURN_FLOAT8(fabs(area));
 }
 
 /**

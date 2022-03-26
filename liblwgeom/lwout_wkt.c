@@ -280,6 +280,32 @@ static void lwmline_to_wkt_sb(const LWMLINE *mline, stringbuffer_t *sb, int prec
 	stringbuffer_append_len(sb, ")", 1);
 }
 
+/* 
+* ELLIPSE 
+*/
+static void lwellipse_to_wkt_sb(const LWELLIPSE *ellipse, stringbuffer_t *sb, int precision, uint8_t variant)
+{
+	if ( ! (variant & WKT_NO_TYPE) )
+	{
+		stringbuffer_append_len(sb, "ELLIPTICALSTRING", 16);
+		dimension_qualifiers_to_wkt_sb((LWGEOM*)ellipse, sb, variant);
+	}
+	stringbuffer_append_len(sb, "(", 1);
+	ptarray_to_wkt_sb(ellipse->data->points, sb, precision, variant | WKT_NO_PARENS);
+
+	stringbuffer_append_len(sb, ",", 1);
+	stringbuffer_append_double(sb, ellipse->data->minor, precision);
+	stringbuffer_append_len(sb, ",", 1);
+	stringbuffer_append_double(sb, ellipse->data->clockwise, precision);
+	stringbuffer_append_len(sb, ",", 1);
+	stringbuffer_append_double(sb, ellipse->data->rotation, precision);
+	stringbuffer_append_len(sb, ",", 1);
+	stringbuffer_append_double(sb, ellipse->data->axis, precision);
+	stringbuffer_append_len(sb, ",", 1);
+	stringbuffer_append_double(sb, ellipse->data->ratio, precision);
+	stringbuffer_append_len(sb, ")", 1);
+}
+
 /*
 * MULTIPOLYGON
 */
@@ -347,6 +373,10 @@ static void lwcompound_to_wkt_sb(const LWCOMPOUND *comp, stringbuffer_t *sb, int
 		{
 			lwcircstring_to_wkt_sb((LWCIRCSTRING*)comp->geoms[i], sb, precision, variant );
 		}
+		else if (type == ELLIPSETYPE)
+		{
+			lwellipse_to_wkt_sb((LWELLIPSE *)comp->geoms[i], sb, precision, variant);
+		}
 		else
 		{
 			lwerror("lwcompound_to_wkt_sb: Unknown type received %d - %s", type, lwtype_name(type));
@@ -394,6 +424,10 @@ static void lwcurvepoly_to_wkt_sb(const LWCURVEPOLY *cpoly, stringbuffer_t *sb, 
 		case COMPOUNDTYPE:
 			/* And compoundcurve subgeoms *do* get type identifiers */
 			lwcompound_to_wkt_sb((LWCOMPOUND*)cpoly->rings[i], sb, precision, variant );
+			break;
+		case ELLIPSETYPE:
+			/* And ellipse subgeoms *do* get type identifiers */
+			lwellipse_to_wkt_sb((LWELLIPSE*)cpoly->rings[i], sb, precision, variant );
 			break;
 		default:
 			lwerror("lwcurvepoly_to_wkt_sb: Unknown type received %d - %s", type, lwtype_name(type));
@@ -634,6 +668,9 @@ static void lwgeom_to_wkt_sb(const LWGEOM *geom, stringbuffer_t *sb, int precisi
 		break;
 	case MULTIPOLYGONTYPE:
 		lwmpoly_to_wkt_sb((LWMPOLY*)geom, sb, precision, variant);
+		break;
+	case ELLIPSETYPE:
+		lwellipse_to_wkt_sb((LWELLIPSE*)geom, sb, precision, variant);
 		break;
 	case COLLECTIONTYPE:
 		lwcollection_to_wkt_sb((LWCOLLECTION*)geom, sb, precision, variant);

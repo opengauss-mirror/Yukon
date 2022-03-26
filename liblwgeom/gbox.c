@@ -694,6 +694,21 @@ static int lwtriangle_calculate_gbox_cartesian(LWTRIANGLE *triangle, GBOX *gbox)
 	return ptarray_calculate_gbox_cartesian( triangle->points, gbox );
 }
 
+static int
+lwellipse_calculate_gbox_cartesian(LWELLIPSE *ellipse, GBOX *gbox)
+{
+	if (!ellipse)
+	{
+		return LW_FAILURE;
+	}
+	/* convert it to linestring  */
+	LWLINE *temp = lwellipse_get_spatialdata(ellipse, 72);
+
+	int res = lwline_calculate_gbox_cartesian(temp, gbox);
+	lwgeom_free((LWGEOM*)temp);
+	return res;
+}
+
 static int lwpoly_calculate_gbox_cartesian(LWPOLY *poly, GBOX *gbox)
 {
 	if ( ! poly ) return LW_FAILURE;
@@ -754,6 +769,8 @@ int lwgeom_calculate_gbox_cartesian(const LWGEOM *lwgeom, GBOX *gbox)
 		return lwpoly_calculate_gbox_cartesian((LWPOLY *)lwgeom, gbox);
 	case TRIANGLETYPE:
 		return lwtriangle_calculate_gbox_cartesian((LWTRIANGLE *)lwgeom, gbox);
+	case ELLIPSETYPE:
+		return lwellipse_calculate_gbox_cartesian((LWELLIPSE *)lwgeom, gbox);
 	case COMPOUNDTYPE:
 	case CURVEPOLYTYPE:
 	case MULTIPOINTTYPE:
