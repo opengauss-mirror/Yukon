@@ -23,3 +23,5 @@ Yukon（禹贡），基于openGauss数据库扩展地理空间数据的存储和
 ## 贡献
 
 PostGIS与openGauss适配的初始版本源自https://github.com/pg-extension/postgis-xc.git
+
+目前已升级到 PostGIS 3.2 版本
