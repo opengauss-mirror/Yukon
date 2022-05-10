@@ -96,7 +96,7 @@ typedef struct LWPROJ
 #define LIBLWGEOM_VERSION "3.2.0"
 #define LIBLWGEOM_VERSION_MAJOR "3"
 #define LIBLWGEOM_VERSION_MINOR "2"
-#define LIBLWGEOM_GEOS_VERSION "30602"
+#define LIBLWGEOM_GEOS_VERSION "31001"
 
 /** Return lwgeom version string (not to be freed) */
 const char* lwgeom_version(void);
@@ -129,7 +129,8 @@ const char* lwgeom_version(void);
 #define TRIANGLETYPE            14
 #define TINTYPE                 15
 
-#define NUMTYPES                16
+#define ELLIPSETYPE				16
+#define NUMTYPES                17
 
 /**
 * Flags applied in EWKB to indicate Z/M dimensions and
@@ -449,6 +450,15 @@ typedef struct
 }
 POINTARRAY;
 
+typedef struct {
+	POINTARRAY *points;
+	double minor;
+	double clockwise;
+	double rotation;
+	double axis;
+	double ratio;
+} ELLIPSE;
+
 /******************************************************************
 * GSERIALIZED
 */
@@ -679,6 +689,18 @@ typedef struct
 	uint32_t maxgeoms; /* how many geometries we have space for in **geoms */
 }
 LWTIN;
+
+/* TINTYPE */
+typedef struct
+{
+	GBOX *bbox;
+	ELLIPSE *data;
+	int32_t srid;
+	lwflags_t flags;
+	uint8_t type; /* ELLIPSETYPE */
+	char pad[1]; /* Padding to 24 bytes (unused) */
+}
+LWELLIPSE;
 
 /* Casts LWGEOM->LW* (return NULL if cast is illegal) */
 extern "C" LWMPOLY *lwgeom_as_lwmpoly(const LWGEOM *lwgeom);
@@ -1266,6 +1288,7 @@ extern "C" void lwtin_free(LWTIN *tin);
 extern "C" void lwcollection_free(LWCOLLECTION *col);
 extern "C" void lwcircstring_free(LWCIRCSTRING *curve);
 extern "C" void lwgeom_free(LWGEOM *geom);
+extern "C" void lwellipse_free(LWELLIPSE* e);
 
 /*
 * The *_release family of functions frees the LWGEOM structures
