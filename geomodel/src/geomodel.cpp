@@ -36,6 +36,9 @@
 
 using namespace Yk;
 
+#define YUKON_VERSION "1.0.0"
+#define YUKON_LIB_VERSION "1.0.0_lib"
+
 PG_MODULE_MAGIC;
 
 YkModelMaterialPtr m_pMaterail;
@@ -184,7 +187,7 @@ Datum geomodel_recv(PG_FUNCTION_ARGS)
   YkGeoModel *pGeoModel = LoadShell(buf->data, len);
   if (pGeoModel == NULL)
   {
-    //log ......
+    elog(NOTICE, "Load shell data failed!");
     return false;
   }
   YkBoundingBox bbox = pGeoModel->GetGeoBoundingBox();
@@ -276,17 +279,6 @@ Datum model_elem_out(PG_FUNCTION_ARGS)
  */
 Datum model_elem_recv(PG_FUNCTION_ARGS)
 {
-  /*
-  StringInfo buf = (StringInfo)PG_GETARG_POINTER(0);
-  // 分配空间
-  char *data = (char *)palloc(buf->len + 4);
-  // 复制数据
-  memcpy(data + 4, buf->data, buf->len);
-  // 设置 buf 数据大小
-  SET_VARSIZE(data, buf->len + 4);
-  buf->cursor = buf->len;
-  PG_RETURN_POINTER(data);*/
-
   StringInfo buf = (StringInfo)PG_GETARG_POINTER(0);
   char *data = (char *)palloc(buf->len + 4);
   memcpy(data + 4, buf->data, buf->len);
@@ -320,15 +312,36 @@ bool gmserialized_get_bbox(GSERIALIZED *gms, BOX3D *bbox)
 {
   if (gms == NULL || bbox == NULL)
   {
-    return false;
+	  return false;
   }
+  /*
+   * 由于 GSERIALIZED 中索引使用的  BOX 为 float 类型，
+   * 为了提高精度，这里我们直接从模型数据中读取 BOX 并返回 
+   */
+  uint32_t size = VARSIZE((varlena *)gms);
 
-  bbox->xmin = (*((float *)(gms->data) + 0));
-  bbox->xmax = (*((float *)(gms->data) + 1));
-  bbox->ymin = (*((float *)(gms->data) + 2));
-  bbox->ymax = (*((float *)(gms->data) + 3));
-  bbox->zmin = (*((float *)(gms->data) + 4));
-  bbox->zmax = (*((float *)(gms->data) + 5));
+  /* 这里我们减去 size(4) + srid(3) + gflag(1) + box(6*4) 个字节大小 */
+  size -= 32;
+
+  YkGeoModel *pGeoModel = LoadShell((char *)gms + 32, size);
+  if (pGeoModel == NULL)
+  {
+	  elog(NOTICE, "Load shell data failed!");
+	  return false;
+  }
+  YkBoundingBox ykbbox = pGeoModel->GetGeoBoundingBox();
+  delete pGeoModel;
+  pGeoModel = NULL;
+
+  YkVector3d vecMax = ykbbox.GetMax();
+  YkVector3d vecMin = ykbbox.GetMin();
+
+  bbox->xmin = vecMin.x;
+  bbox->xmax = vecMax.x;
+  bbox->ymin = vecMin.y;
+  bbox->ymax = vecMax.y;
+  bbox->zmin = vecMin.z;
+  bbox->zmax = vecMax.z;
   bbox->srid = 0;
 
   return true;
@@ -358,18 +371,20 @@ bool gmserialized_set_bbox(GSERIALIZED *gms, YkBoundingBox &bbox)
 
 Datum yukon_version(PG_FUNCTION_ARGS)
 {
-  //char *ver = YUKON_VERSION;
-  char *ver = "Yukon-1.0-Alpha";
-  text *result = cstring2text(ver);
-  PG_RETURN_TEXT_P(result);
+  char src[100] = {0};
+	char *ver = YUKON_VERSION;
+	char *compileinfo = COMPILEINFO;
+	strcat(src, ver);
+	strcat(src, compileinfo);
+	text *result = cstring2text(src);
+	PG_RETURN_TEXT_P(result);
 }
 
 Datum yukon_lib_version(PG_FUNCTION_ARGS)
 {
-  //char *ver = YUKON_LIB_VERSION;
-   char *ver = "Yukon-1.0-Alpha";
-  text *result = cstring2text(ver);
-  PG_RETURN_TEXT_P(result);
+  char *ver = YUKON_LIB_VERSION;
+	text *result = cstring2text(ver);
+	PG_RETURN_TEXT_P(result);
 }
 
 
