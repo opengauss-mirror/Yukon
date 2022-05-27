@@ -50,6 +50,7 @@ include core/tests.mk
 include loader/tests.mk
 include dumper/tests.mk
 include geomodel/tests.mk
+include geogridcoder/tests.mk
 
 include runtest.mk
 

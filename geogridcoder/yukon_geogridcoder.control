@@ -1,0 +1,4 @@
+comment = 'yukon geogridcoder extension'
+default_version = '1.0'
+module_pathname = '$libdir/yukon_geogridcoder'
+relocatable = true
