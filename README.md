@@ -8,7 +8,8 @@ Yukon（禹贡），基于openGauss数据库扩展地理空间数据的存储和
 1. postgis：与openGauss适配的 PostGIS 矢量模块；
 2. postgis_raster：与 openGauss适配的PostGIS栅格模块；
 3. postgis_sfcgal：与 openGauss适配的PostGIS三维算法相关模块；
-4. yukon_geomodel：Yukon的三维模型数据模块。
+4. yukon_geomodel：Yukon的三维模型数据模块；
+5. yukon_geogridcoder：Yukon的网格编码模块。
 
 模块之间的依赖关系如图：
 
