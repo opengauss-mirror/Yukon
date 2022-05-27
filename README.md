@@ -13,7 +13,7 @@ Yukon（禹贡），基于openGauss数据库扩展地理空间数据的存储和
 
 模块之间的依赖关系如图：
 
-![模块依赖图](https://images.gitee.com/uploads/images/2021/1123/154741_6f7258fb_8511228.png "Yukon模块依赖图.png")
+![模块依赖图](doc/html/images/yukon_model_info.png "Yukon模块依赖图.png")
 
 帮助文档参见 [Yukon在线文档](https://yukon.supermap.io/)。
 
