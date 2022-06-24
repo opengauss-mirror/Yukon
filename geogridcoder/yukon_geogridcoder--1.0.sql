@@ -125,12 +125,12 @@ RETURNS bool
 AS '$libdir/yukon_geogridcoder-1.0'
 LANGUAGE 'c' IMMUTABLE STRICT ;
 
-CREATE OR REPLACE FUNCTION gridarray_extract(anyarray, internal, internal)
+CREATE OR REPLACE FUNCTION gridarray_extractvalue(anyarray, internal, internal)
 RETURNS internal
 AS '$libdir/yukon_geogridcoder-1.0'
 LANGUAGE 'c' IMMUTABLE STRICT ;
 
-CREATE OR REPLACE FUNCTION gridarray_queryextract(_geosotgrid, internal, int2, internal, internal, internal, internal)
+CREATE OR REPLACE FUNCTION gridarray_extractquery(_geosotgrid, internal, int2, internal, internal, internal, internal)
 RETURNS internal
 AS '$libdir/yukon_geogridcoder-1.0'
 LANGUAGE 'c' IMMUTABLE STRICT ;
@@ -168,36 +168,17 @@ CREATE OPERATOR <@ (
 	JOIN = contjoinsel
 );
 
-CREATE OPERATOR @ (
-	LEFTARG = _geosotgrid,
-	RIGHTARG = _geosotgrid,
-	PROCEDURE = gridarray_contains,
-	COMMUTATOR = '~',
-	RESTRICT = contsel,
-	JOIN = contjoinsel
-);
-
-CREATE OPERATOR ~ (
-	LEFTARG = _geosotgrid,
-	RIGHTARG = _geosotgrid,
-	PROCEDURE = gridarray_contained,
-	COMMUTATOR = '@',
-	RESTRICT = contsel,
-	JOIN = contjoinsel
-);
-
 CREATE OPERATOR CLASS gin_grid_ops
 DEFAULT FOR TYPE _geosotgrid USING gin
 AS
     OPERATOR	3	&&,
-	OPERATOR	6	= (anyarray, anyarray),
 	OPERATOR	7	@>,
 	OPERATOR	8	<@,
-	OPERATOR	13	@,
-	OPERATOR	14	~,
+    OPERATOR	18	= (anyarray, anyarray),
+	OPERATOR	19	!= (anyarray, anyarray),
     FUNCTION    1   gridarray_cmp(geosotgrid, geosotgrid),
-    FUNCTION	2	gridarray_extract (anyarray, internal, internal),
-	FUNCTION	3	gridarray_queryextract(_geosotgrid, internal, int2, internal, internal, internal, internal),
+    FUNCTION	2	gridarray_extractvalue(anyarray, internal, internal),
+	FUNCTION	3	gridarray_extractquery(_geosotgrid, internal, int2, internal, internal, internal, internal),
 	FUNCTION	4	gridarray_consistent(internal, int2, _geosotgrid, int4, internal, internal, internal, internal),
 	STORAGE 		geosotgrid;
 
@@ -253,14 +234,14 @@ CREATE OR REPLACE FUNCTION ST_GetLevel(grid geosotgrid)
 	AS '$libdir/yukon_geogridcoder-1.0' ,'gsg_get_level'
 	LANGUAGE 'c' IMMUTABLE STRICT;
 
-CREATE OR REPLACE FUNCTION ST_Degenerate(grid geosotgrid, level int)
+CREATE OR REPLACE FUNCTION ST_Aggregate(grid geosotgrid, level int)
 	RETURNS geosotgrid
-	AS '$libdir/yukon_geogridcoder-1.0' ,'gsg_degenerate'
+	AS '$libdir/yukon_geogridcoder-1.0' ,'gsg_aggregate'
 	LANGUAGE 'c' IMMUTABLE STRICT;
 
-CREATE OR REPLACE FUNCTION ST_Degenerate(gridarray _geosotgrid, level int)
+CREATE OR REPLACE FUNCTION ST_Aggregate(gridarray _geosotgrid, level int)
 	RETURNS _geosotgrid
-	AS '$libdir/yukon_geogridcoder-1.0' ,'gsg_degenerate_array'
+	AS '$libdir/yukon_geogridcoder-1.0' ,'gsg_aggregate_array'
 	LANGUAGE 'c' IMMUTABLE STRICT;
 ----------------------------------------geomhash function----------------------------------------
 

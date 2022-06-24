@@ -389,11 +389,8 @@ void RegularRasterize(GDALDriverH _drv, OGRGeometryH src_geom, OGREnvelope &src_
         subextent.MaxX = ceil((src_env.MaxX - global_box.left) / pixel_size[0]) * pixel_size[0] + global_box.left;
 		subextent.MaxY = ceil((src_env.MaxY - global_box.down) / pixel_size[1]) * pixel_size[1] + global_box.down;
 		// 要生成的矩阵长宽
-		grid_num[0] = ceil((subextent.MaxX - subextent.MinX) / pixel_size[0]);
-		grid_num[1] = ceil((subextent.MaxY - subextent.MinY) / pixel_size[0]);
-
-		if (0 == grid_num[0] || 0 == grid_num[1])
-			grid_num[0] = grid_num[1] = 1;
+		grid_num[0] = ceil((subextent.MaxX - subextent.MinX) / pixel_size[0]) + 1;
+		grid_num[1] = ceil((subextent.MaxY - subextent.MinY) / pixel_size[0]) + 1;
 
 		break;
 	case MINUTE_:
