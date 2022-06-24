@@ -234,14 +234,14 @@ CREATE OR REPLACE FUNCTION ST_GetLevel(grid geosotgrid)
 	AS '$libdir/yukon_geogridcoder-1.0' ,'gsg_get_level'
 	LANGUAGE 'c' IMMUTABLE STRICT;
 
-CREATE OR REPLACE FUNCTION ST_Degenerate(grid geosotgrid, level int)
+CREATE OR REPLACE FUNCTION ST_Aggregate(grid geosotgrid, level int)
 	RETURNS geosotgrid
-	AS '$libdir/yukon_geogridcoder-1.0' ,'gsg_degenerate'
+	AS '$libdir/yukon_geogridcoder-1.0' ,'gsg_aggregate'
 	LANGUAGE 'c' IMMUTABLE STRICT;
 
-CREATE OR REPLACE FUNCTION ST_Degenerate(gridarray _geosotgrid, level int)
+CREATE OR REPLACE FUNCTION ST_Aggregate(gridarray _geosotgrid, level int)
 	RETURNS _geosotgrid
-	AS '$libdir/yukon_geogridcoder-1.0' ,'gsg_degenerate_array'
+	AS '$libdir/yukon_geogridcoder-1.0' ,'gsg_aggregate_array'
 	LANGUAGE 'c' IMMUTABLE STRICT;
 ----------------------------------------geomhash function----------------------------------------
 

@@ -43,8 +43,8 @@ PG_FUNCTION_INFO_V1(gsg_geom_from_geosotgrid);
 PG_FUNCTION_INFO_V1(gsg_geom_from_geosotgrid_array);
 PG_FUNCTION_INFO_V1(gsg_has_z);
 PG_FUNCTION_INFO_V1(gsg_get_level);
-PG_FUNCTION_INFO_V1(gsg_degenerate);
-PG_FUNCTION_INFO_V1(gsg_degenerate_array);
+PG_FUNCTION_INFO_V1(gsg_aggregate);
+PG_FUNCTION_INFO_V1(gsg_aggregate_array);
 
 extern "C" Datum UgComputerGeoHash(PG_FUNCTION_ARGS);
 extern "C" Datum UgBBoxGeoHash(PG_FUNCTION_ARGS);
@@ -61,8 +61,8 @@ extern "C" Datum gsg_geom_from_geosotgrid(PG_FUNCTION_ARGS);
 extern "C" Datum gsg_geom_from_geosotgrid_array(PG_FUNCTION_ARGS);
 extern "C" Datum gsg_has_z(PG_FUNCTION_ARGS);
 extern "C" Datum gsg_get_level(PG_FUNCTION_ARGS);
-extern "C" Datum gsg_degenerate(PG_FUNCTION_ARGS);
-extern "C" Datum gsg_degenerate_array(PG_FUNCTION_ARGS);
+extern "C" Datum gsg_aggregate(PG_FUNCTION_ARGS);
+extern "C" Datum gsg_aggregate_array(PG_FUNCTION_ARGS);
 
 /**
  * @brief 计算 geometry 的 GEOHASH 编码
@@ -939,7 +939,7 @@ Datum gsg_get_level(PG_FUNCTION_ARGS)
 	PG_RETURN_INT16(level);
 }
 
-Datum gsg_degenerate(PG_FUNCTION_ARGS)
+Datum gsg_aggregate(PG_FUNCTION_ARGS)
 {
 	varlena *buf = PG_GETARG_VARLENA_P(0);
 	int level = PG_GETARG_INT32(1);
@@ -996,7 +996,7 @@ Datum gsg_degenerate(PG_FUNCTION_ARGS)
 	PG_RETURN_POINTER(buf_data);
 }
 
-Datum gsg_degenerate_array(PG_FUNCTION_ARGS)
+Datum gsg_aggregate_array(PG_FUNCTION_ARGS)
 {
 	ArrayType *array = PG_GETARG_ARRAYTYPE_P(0);
 	int level = PG_GETARG_INT32(1);

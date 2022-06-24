@@ -53,6 +53,8 @@ typedef struct QUERYTYPE
   ITEM items[1]; /* variable length array */
 } QUERYTYPE;
 
+#define RTEqualStrategyNumber			18	/* for = */
+#define RTNotEqualStrategyNumber		19	/* for != */
 #define ARR_NDIM(a) ((a)->ndim)
 #define ARR_DIMS(a) ((int *)(((char *)(a)) + sizeof(ArrayType)))
 #define ARR_HASNULL(a) ((a)->dataoffset != 0)
