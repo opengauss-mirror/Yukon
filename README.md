@@ -1,4 +1,4 @@
-<img src=https://images.gitee.com/uploads/images/2021/1123/160022_8d571424_8511228.png height=250% width=25% alt=Yukon-logo align=center>  
+<img src=./doc/image/Yukon.png height=250% width=25% alt=Yukon-logo align=center>  
   
 Yukon（禹贡），基于openGauss数据库扩展地理空间数据的存储和管理能力，并提供专业的GIS（Geographic Information System）功能，赋能传统关系型数据库。
 > 注：《禹贡》是《尚书》中的一篇，是中国古代文献中最古老和最有系统性地理观念的著作。
