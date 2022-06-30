@@ -1,0 +1,59 @@
+FROM centos:7.6.1810
+
+COPY openGauss-2.1.0-CentOS-64bit.tar.bz2 .
+COPY gosu-amd64 /usr/local/bin/gosu
+COPY wal2json.so /tmp
+
+
+ENV LANG en_US.utf8
+
+RUN set -eux; \
+    yum install -y bzip2 bzip2-devel libcurl-devel libaio-devel libtiff-devel && \
+    yum install -y centos-release-scl-rh && \
+    yum install -y devtoolset-7-gcc-c++  devtoolset-7-gcc perl libxml2-devel.x86_64 libtiff.x86_64 openssl-devel.x86_64 libuuid-devel && \
+    yum install -y boost-thread.x86_64 boost-system.x86_64 boost-serialization.x86_64 boost-chrono.x86_64 boost-date-time.x86_64 boost-atomic.x86_64 &&\
+    groupadd -g 70 omm;  \
+    useradd -u 70 -g omm -d /home/omm omm;  \
+    mkdir -p /var/lib/opengauss && \
+    mkdir -p /usr/local/opengauss && \
+    mkdir -p /var/run/opengauss  && \
+    mkdir /docker-entrypoint-initdb.d && \
+    cp /tmp/wal2json.so /usr/local/opengauss && \
+    tar -jxf openGauss-2.1.0-CentOS-64bit.tar.bz2 -C /usr/local/opengauss && \
+    chown -R omm:omm /var/run/opengauss && chown -R omm:omm /usr/local/opengauss && chown -R omm:omm /var/lib/opengauss &&  chown -R omm:omm /docker-entrypoint-initdb.d && \ 
+    chmod 2777 /var/run/opengauss && \
+    rm -rf openGauss-2.1.0-CentOS-64bit.tar.bz2 && yum clean all
+
+RUN set -eux; \
+    echo "export GAUSSHOME=/usr/local/opengauss"  >> /home/omm/.bashrc && \
+    echo "export PATH=\$GAUSSHOME/bin:\$PATH " >> /home/omm/.bashrc && \
+    echo "export LD_LIBRARY_PATH=\$GAUSSHOME/lib:\$LD_LIBRARY_PATH" >> /home/omm/.bashrc   
+
+
+
+ENV GOSU_VERSION 1.12
+COPY yukon/extension/* /usr/local/opengauss/share/postgresql/extension/
+COPY yukon/lib/* /usr/local/opengauss/lib/postgresql/
+COPY yukon/yukon_dep/ /opt/3rd/
+
+RUN set -eux; \
+    chmod +x /usr/local/bin/gosu && \
+    chown -R omm:omm /usr/local/opengauss/share/postgresql/extension/ && \
+    chown -R omm:omm /usr/local/opengauss/lib/postgresql/ 
+
+
+ENV PGDATA /var/lib/opengauss/data
+ENV LD_LIBRARY_PATH /opt/3rd/ugc:/opt/3rd/cgal/lib64:/opt/3rd/cgal/lib:/opt/3rd/gdal/lib:/opt/3rd/geos/lib64:/opt/3rd/jsonc/lib64:/opt/3rd/libxml2/lib:/opt/3rd/proj/lib:/opt/3rd/sfcgal/lib64:/opt/3rd/misc/:$LD_LIBRARY_PATH
+
+
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod 755 /usr/local/bin/entrypoint.sh;ln -s /usr/local/bin/entrypoint.sh / # backwards compat
+
+
+
+ENTRYPOINT ["entrypoint.sh"]
+
+
+EXPOSE 5432 
+CMD ["gaussdb"]
+

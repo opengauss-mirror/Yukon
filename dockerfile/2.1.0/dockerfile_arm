@@ -1,0 +1,58 @@
+FROM openeuler/openeuler:20.03-lts-sp1
+
+COPY openGauss-2.1.0-openEuler-64bit.tar.bz2 .
+COPY gosu-arm64 /usr/local/bin/gosu
+COPY openEuler_aarch64.repo /etc/yum.repos.d/openEuler_aarch64.repo
+ENV LANG en_US.utf8
+
+RUN set -eux; \
+	mv /etc/yum.repos.d/openEuler.repo /etc/yum.repos.d/openEuler.repo.bak && \
+    yum install -y bzip2 curl libaio shadow tar numactl boost-thread boost-system boost-chrono boost-date-time boost-atomic boost-serialization && \
+    groupadd -g 70 omm; \
+    useradd -u 70 -g omm -d /home/omm omm; \
+    mkdir -p /var/lib/opengauss && \
+    mkdir -p /usr/local/opengauss && \
+    mkdir -p /var/run/opengauss  && \
+    mkdir /docker-entrypoint-initdb.d && \
+    tar -jxf openGauss-2.1.0-openEuler-64bit.tar.bz2 -C /usr/local/opengauss && \
+    chown -R omm:omm /var/run/opengauss && chown -R omm:omm /usr/local/opengauss && chown -R omm:omm /var/lib/opengauss &&  chown -R omm:omm /docker-entrypoint-initdb.d && \
+    chmod 2777 /var/run/opengauss && \
+    rm -rf openGauss-2.1.0-openEuler-64bit.tar.bz2 && yum clean all
+
+RUN set -eux; \
+    echo "export GAUSSHOME=/usr/local/opengauss"  >> /home/omm/.bashrc && \
+    echo "export PATH=\$GAUSSHOME/bin:\$PATH " >> /home/omm/.bashrc && \
+    echo "export LD_LIBRARY_PATH=\$GAUSSHOME/lib:\$LD_LIBRARY_PATH" >> /home/omm/.bashrc && \
+	mkdir -p /opt/yukon_dep 
+	
+COPY yukon/extension/* /usr/local/opengauss/share/postgresql/extension/ 
+COPY yukon/lib/* /usr/local/opengauss/lib/postgresql/ 
+COPY yukon/yukon_dep/ /opt/yukon_dep/
+
+ENV GOSU_VERSION 1.12	
+
+RUN set -eux; \
+     chmod +x /usr/local/bin/gosu && \
+	 chown -R omm:omm /usr/local/opengauss/share/postgresql/extension/ && \
+     chown -R omm:omm /usr/local/opengauss/lib/postgresql/ && \
+	 chown -R omm:omm /opt/yukon_dep && \
+	 echo /opt/yukon_dep/gdal/lib >>/etc/ld.so.conf && \
+	 echo /opt/yukon_dep/geos/lib64 >>/etc/ld.so.conf && \
+	 echo /opt/yukon_dep/proj/lib >>/etc/ld.so.conf && \
+	 echo /opt/yukon_dep/jsonc/lib >>/etc/ld.so.conf && \
+	 echo /opt/yukon_dep/libxml2/lib >>/etc/ld.so.conf && \
+	 echo /opt/yukon_dep/cgal/lib64 >>/etc/ld.so.conf && \
+	 echo /opt/yukon_dep/sfcgal/lib64 >>/etc/ld.so.conf && \
+	 echo /opt/yukon_dep/ugc >>/etc/ld.so.conf && \
+	 ldconfig
+
+ENV PGDATA /var/lib/opengauss/data
+ENV LD_LIBRARY_PATH /opt/yukon_dep/ugc:/opt/yukon_dep/cgal/lib64:/opt/yukon_dep/gdal/lib:/opt/yukon_dep/geos/lib64:/opt/yukon_dep/jsonc/lib:/opt/yukon_dep/libxml2/lib:/opt/yukon_dep/proj/lib:/opt/yukon_dep/sfcgal/lib64:/opt/yukon_dep/misc/:$LD_LIBRARY_PATH
+
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod 755 /usr/local/bin/entrypoint.sh;ln -s /usr/local/bin/entrypoint.sh / # backwards compat
+
+ENTRYPOINT ["entrypoint.sh"]
+
+EXPOSE 5432
+CMD ["gaussdb"]
