@@ -4,7 +4,8 @@
 --
 
 -- Empty Geometry
-SELECT 'empty_geom', ST_AsEWKT(ST_GeomFromGML(NULL));
+-- 因为 openGauss 对  '' 识别为空，所以这个测试和 line15 为一个测试
+--SELECT 'empty_geom', ST_AsEWKT(ST_GeomFromGML(NULL));
 
 --
 -- XML

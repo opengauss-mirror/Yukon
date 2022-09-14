@@ -196,7 +196,7 @@ SELECT 'geometryN-304', (ST_AsEWKT(ST_geometryN(the_geom_4d, 3)) is null) FROM p
 SELECT DropGeometryColumn('public', 'multicurve', 'the_geom_2d');
 SELECT DropGeometryColumn('public', 'multicurve', 'the_geom_3dm');
 SELECT DropGeometryColumn('public', 'multicurve', 'the_geom_3dz');
-SELECT DropGeometryColumn('public', 'multicurve', 'the_geom_4d');
+SELECT DropGeometryColumn('multicurve', 'the_geom_4d');
 
 DROP TABLE public.multicurve;
 

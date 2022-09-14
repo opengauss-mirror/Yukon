@@ -143,6 +143,7 @@ TESTS += \
 	$(topsrcdir)/regress/core/swapordinates \
 	$(topsrcdir)/regress/core/summary \
 	$(topsrcdir)/regress/core/temporal \
+	$(topsrcdir)/regress/core/tickets \
 	$(topsrcdir)/regress/core/wkb \
 	$(topsrcdir)/regress/core/wkt \
 	$(topsrcdir)/regress/core/wmsservers \
@@ -161,7 +162,8 @@ TESTS += \
 	$(topsrcdir)/regress/core/minimum_clearance \
 	$(topsrcdir)/regress/core/oriented_envelope \
 	$(topsrcdir)/regress/core/point_coordinates \
-	$(topsrcdir)/regress/core/wrapx
+	$(topsrcdir)/regress/core/wrapx \
+	$(topsrcdir)/regress/core/misc
 
 # Slow slow tests
 TESTS_SLOW = \

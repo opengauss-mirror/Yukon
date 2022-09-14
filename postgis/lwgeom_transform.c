@@ -177,10 +177,16 @@ Datum LWGEOM_asKML(PG_FUNCTION_ARGS)
 	int32_t srid_from;
 	const int32_t srid_to = 4326;
 
+	// 这里添加对第一个和第二个参数为 NULL 的判断，原来的函数有 STRICT 作为限制，为了兼容 openGauss 取消 STRICT 限制改为函数内判断
+	if(PG_ARGISNULL(0) || PG_ARGISNULL(1))
+	{
+		PG_RETURN_NULL();
+	}
+
 	/* Get the geometry */
 	GSERIALIZED *geom = PG_GETARG_GSERIALIZED_P_COPY(0);
 	int precision = PG_GETARG_INT32(1);
-	text *prefix_text = PG_GETARG_TEXT_P(2);
+	
 	srid_from = gserialized_get_srid(geom);
 
 	if ( srid_from == SRID_UNKNOWN )
@@ -194,16 +200,25 @@ Datum LWGEOM_asKML(PG_FUNCTION_ARGS)
 	if (precision < 0)
 		precision = 0;
 
-	if (VARSIZE_ANY_EXHDR(prefix_text) > 0)
+	// 这里为了兼容 openGauss 对于空字符串解析不同导致的输出差异
+	if (PG_ARGISNULL(2))
 	{
-		/* +2 is one for the ':' and one for term null */
-		prefixbuf = palloc(VARSIZE_ANY_EXHDR(prefix_text)+2);
-		memcpy(prefixbuf, VARDATA(prefix_text),
-		       VARSIZE_ANY_EXHDR(prefix_text));
-		/* add colon and null terminate */
-		prefixbuf[VARSIZE_ANY_EXHDR(prefix_text)] = ':';
-		prefixbuf[VARSIZE_ANY_EXHDR(prefix_text)+1] = '\0';
-		prefix = prefixbuf;
+		prefix = "";
+	}
+	else
+	{
+		text *prefix_text = PG_GETARG_TEXT_P(2);
+		if (VARSIZE_ANY_EXHDR(prefix_text) > 0)
+		{
+			/* +2 is one for the ':' and one for term null */
+			prefixbuf = palloc(VARSIZE_ANY_EXHDR(prefix_text) + 2);
+			memcpy(prefixbuf, VARDATA(prefix_text),
+				   VARSIZE_ANY_EXHDR(prefix_text));
+			/* add colon and null terminate */
+			prefixbuf[VARSIZE_ANY_EXHDR(prefix_text)] = ':';
+			prefixbuf[VARSIZE_ANY_EXHDR(prefix_text) + 1] = '\0';
+			prefix = prefixbuf;
+		}
 	}
 
 	lwgeom = lwgeom_from_gserialized(geom);

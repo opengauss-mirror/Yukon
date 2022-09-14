@@ -219,6 +219,13 @@ Datum geography_as_gml(PG_FUNCTION_ARGS)
 	const char *id = NULL;
 	char *id_buf;
 
+	// 这里添加对第一个的判断，原来的函数有 STRICT 作为限制，为了兼容 openGauss 取消 STRICT 限制改为函数内判断
+
+	if (PG_ARGISNULL(0))
+	{
+		PG_RETURN_NULL();
+	}
+
 	/*
 	* Two potential callers, one starts with GML version,
 	* one starts with geography, and we check for initial
@@ -230,6 +237,12 @@ Datum geography_as_gml(PG_FUNCTION_ARGS)
 	if (first_type != INT4OID)
 	{
 		version = 2;
+
+		// 判断剩余参数是否为空
+		if (PG_ARGISNULL(1) || PG_ARGISNULL(2))
+		{
+			PG_RETURN_NULL();
+		}
 	}
 	else
 	{
@@ -240,42 +253,63 @@ Datum geography_as_gml(PG_FUNCTION_ARGS)
 			elog(ERROR, "Only GML 2 and GML 3 are supported");
 			PG_RETURN_NULL();
 		}
+
+		// 判断剩余参数是否为空
+		if (PG_ARGISNULL(1) || PG_ARGISNULL(2) || PG_ARGISNULL(3))
+		{
+			PG_RETURN_NULL();
+		}
 	}
 
 	/* Get the parameters, both callers have same order */
 	g = PG_GETARG_GSERIALIZED_P(argnum++);
 	precision = PG_GETARG_INT32(argnum++);
-	option = PG_GETARG_INT32(argnum++);
-	prefix_text = PG_GETARG_TEXT_P(argnum++);
-	id_text = PG_GETARG_TEXT_P(argnum++);
+	option = PG_GETARG_INT32(argnum++);	
+	
 
 	/* Convert to lwgeom so we can run the old functions */
 	lwgeom = lwgeom_from_gserialized(g);
 
-	/* Condition the prefix argument */
-	if (VARSIZE_ANY_EXHDR(prefix_text) > 0)
-	{
-		/* +2 is one for the ':' and one for term null */
-		prefix_buf = palloc(VARSIZE_ANY_EXHDR(prefix_text)+2);
-		memcpy(prefix_buf, VARDATA_ANY(prefix_text),
-		       VARSIZE_ANY_EXHDR(prefix_text));
-		/* add colon and null terminate */
-		prefix_buf[VARSIZE_ANY_EXHDR(prefix_text)] = ':';
-		prefix_buf[VARSIZE_ANY_EXHDR(prefix_text)+1] = '\0';
-		prefix = prefix_buf;
-	}
-	else
+	if (PG_ARGISNULL(argnum))
 	{
 		prefix = "";
 	}
-
-	if (VARSIZE_ANY_EXHDR(id_text) > 0)
+	else
 	{
-		id_buf = palloc(VARSIZE_ANY_EXHDR(id_text)+1);
-		memcpy(id_buf, VARDATA(id_text), VARSIZE_ANY_EXHDR(id_text));
-		prefix_buf[VARSIZE_ANY_EXHDR(id_text)+1] = '\0';
-		id = id_buf;
+		prefix_text = PG_GETARG_TEXT_P(argnum++);
+		/* Condition the prefix argument */
+		if (VARSIZE_ANY_EXHDR(prefix_text) > 0)
+		{
+			/* +2 is one for the ':' and one for term null */
+			prefix_buf = palloc(VARSIZE_ANY_EXHDR(prefix_text) + 2);
+			memcpy(prefix_buf, VARDATA_ANY(prefix_text),
+				   VARSIZE_ANY_EXHDR(prefix_text));
+			/* add colon and null terminate */
+			prefix_buf[VARSIZE_ANY_EXHDR(prefix_text)] = ':';
+			prefix_buf[VARSIZE_ANY_EXHDR(prefix_text) + 1] = '\0';
+			prefix = prefix_buf;
+		}
+		else
+		{
+			prefix = "";
+		}
 	}
+	if (PG_ARGISNULL(argnum))
+	{
+		id = NULL;
+	}
+	else
+	{
+		id_text = PG_GETARG_TEXT_P(argnum++);
+		if (VARSIZE_ANY_EXHDR(id_text) > 0)
+		{
+			id_buf = palloc(VARSIZE_ANY_EXHDR(id_text) + 1);
+			memcpy(id_buf, VARDATA(id_text), VARSIZE_ANY_EXHDR(id_text));
+			prefix_buf[VARSIZE_ANY_EXHDR(id_text) + 1] = '\0';
+			id = id_buf;
+		}
+	}
+	
 
 	if (option & 1)
 		srs = GetSRSCacheBySRID(fcinfo, srid, false);
@@ -330,29 +364,45 @@ Datum geography_as_kml(PG_FUNCTION_ARGS)
 	static const char *default_prefix = "";
 	char *prefixbuf;
 	const char *prefix = default_prefix;
+
+	// 这里添加对第一个和第二个参数为 NULL 的判断，原来的函数有 STRICT 作为限制，为了兼容 openGauss 取消 STRICT 限制改为函数内判断
+	if(PG_ARGISNULL(0) || PG_ARGISNULL(1))
+	{
+		PG_RETURN_NULL();
+	}
+
 	GSERIALIZED *g = PG_GETARG_GSERIALIZED_P(0);
 	int precision = PG_GETARG_INT32(1);
-	text *prefix_text = PG_GETARG_TEXT_P(2);
+	
 	LWGEOM *lwgeom = lwgeom_from_gserialized(g);
 
 	/* Condition the precision */
 	if (precision < 0)
 		precision = 0;
-
-	if (VARSIZE_ANY_EXHDR(prefix_text) > 0)
+		
+	// 这里为了兼容 openGauss 对于空字符串解析不同导致的输出差异
+	if (PG_ARGISNULL(2))
 	{
-		/* +2 is one for the ':' and one for term null */
-		prefixbuf = palloc(VARSIZE_ANY_EXHDR(prefix_text)+2);
-		memcpy(prefixbuf, VARDATA(prefix_text),
-		       VARSIZE_ANY_EXHDR(prefix_text));
-		/* add colon and null terminate */
-		prefixbuf[VARSIZE_ANY_EXHDR(prefix_text)] = ':';
-		prefixbuf[VARSIZE_ANY_EXHDR(prefix_text)+1] = '\0';
-		prefix = prefixbuf;
+		prefix = "";
 	}
 	else
 	{
-		prefix = "";
+		text *prefix_text = PG_GETARG_TEXT_P(2);
+		if (VARSIZE_ANY_EXHDR(prefix_text) > 0)
+		{
+			/* +2 is one for the ':' and one for term null */
+			prefixbuf = palloc(VARSIZE_ANY_EXHDR(prefix_text) + 2);
+			memcpy(prefixbuf, VARDATA(prefix_text),
+				   VARSIZE_ANY_EXHDR(prefix_text));
+			/* add colon and null terminate */
+			prefixbuf[VARSIZE_ANY_EXHDR(prefix_text)] = ':';
+			prefixbuf[VARSIZE_ANY_EXHDR(prefix_text) + 1] = '\0';
+			prefix = prefixbuf;
+		}
+		else
+		{
+			prefix = "";
+		}
 	}
 
 	kml = lwgeom_to_kml2(lwgeom, precision, prefix);
