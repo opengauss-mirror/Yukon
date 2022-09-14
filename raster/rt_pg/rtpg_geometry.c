@@ -34,7 +34,7 @@
 // #include <utils/array.h> /* for ArrayType */
 // #include <catalog/pg_type.h> /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
 // #include <utils/builtins.h> /* for text_to_cstring() */
-#include "extension_dependency.h"
+#include "../../include/extension_dependency.h"
 #include "../../postgis_config.h"
 
 // #include "access/htup_details.h" /* for heap_form_tuple() */

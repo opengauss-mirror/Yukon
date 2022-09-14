@@ -36,7 +36,7 @@
 // #include "executor/executor.h"
 // #include "access/htup_details.h"
 // #include "access/htup.h"
-#include "extension_dependency.h"
+#include "../include/extension_dependency.h"
 #include "../postgis_config.h"
 #include "liblwgeom.h"
 #include "lwgeom_pg.h"

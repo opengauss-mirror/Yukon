@@ -30,7 +30,7 @@
 // #include <postgres.h>
 // #include <fmgr.h>
 // #include <funcapi.h>
-#include "extension_dependency.h"
+#include "../../include/extension_dependency.h"
 #include "../../postgis_config.h"
 
 

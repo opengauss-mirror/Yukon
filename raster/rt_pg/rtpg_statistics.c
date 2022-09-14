@@ -27,7 +27,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  */
-#include "extension_dependency.h"
+#include "../../include/extension_dependency.h"
 // #include <postgres.h>
 // #include <fmgr.h>
 // #include <utils/builtins.h> /* for text_to_cstring() */

@@ -13,7 +13,7 @@
 #ifndef LWGEOM_CACHE_H_
 #define LWGEOM_CACHE_H_ 1
 
-#include "extension_dependency.h"
+#include "../include/extension_dependency.h"
 // #include "postgres.h"
 // #include "fmgr.h"
 
