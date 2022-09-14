@@ -1090,12 +1090,16 @@ Datum gserialized_gist_consistent(PG_FUNCTION_ARGS)
 
 	/* PostgreSQL 8.4 and later require the RECHECK flag to be set here,
 	   rather than being supplied as part of the operator class definition */
+#if POSTGIS_PGSQL_VERSION >= 95
 	bool *recheck = (bool *)PG_GETARG_POINTER(4);
+#endif
 
 	/* We set recheck to false to avoid repeatedly pulling every "possibly matched" geometry
 	   out during index scans. For cases when the geometries are large, rechecking
 	   can make things twice as slow. */
+#if POSTGIS_PGSQL_VERSION >= 95
 	*recheck = false;
+#endif
 
 	POSTGIS_DEBUG(4, "[GIST] 'consistent' function called");
 
@@ -1268,7 +1272,9 @@ Datum gserialized_gist_geog_distance(PG_FUNCTION_ARGS)
 	GISTENTRY *entry = (GISTENTRY *)PG_GETARG_POINTER(0);
 	Datum query_datum = PG_GETARG_DATUM(1);
 	StrategyNumber strategy = (StrategyNumber)PG_GETARG_UINT16(2);
+#if POSTGIS_PGSQL_VERSION >= 95
 	bool *recheck = (bool *)PG_GETARG_POINTER(4);
+#endif
 	char query_box_mem[GIDX_MAX_SIZE];
 	GIDX *query_box = (GIDX *)query_box_mem;
 	GIDX *entry_box;
@@ -1291,8 +1297,10 @@ Datum gserialized_gist_geog_distance(PG_FUNCTION_ARGS)
 	}
 
 	/* When we hit leaf nodes, it's time to turn on recheck */
+#if POSTGIS_PGSQL_VERSION >= 95
 	if (GIST_LEAF(entry))
 		*recheck = true;
+#endif
 
 	/* Get the entry box */
 	entry_box = (GIDX *)DatumGetPointer(entry->key);
