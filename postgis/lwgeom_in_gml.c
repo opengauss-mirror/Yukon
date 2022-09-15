@@ -104,11 +104,19 @@ Datum geom_from_gml(PG_FUNCTION_ARGS)
 	int xml_size;
 
 	/* Get the GML stream */
-	if (PG_ARGISNULL(0)) PG_RETURN_NULL();
+	if (PG_ARGISNULL(0))
+	{
+		gml_lwpgerror("invalid GML representation", 1);
+	}
 	xml_input = PG_GETARG_TEXT_P(0);
 	xml = text_to_cstring(xml_input);
 	xml_size = VARSIZE_ANY_EXHDR(xml_input);
 
+	//加入第二个参数为空判断
+	if (PG_ARGISNULL(1))
+	{
+		PG_RETURN_NULL();
+	}
 	/* Zero for undefined */
 	root_srid = PG_GETARG_INT32(1);
 

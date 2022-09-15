@@ -15,7 +15,7 @@
 #ifndef _LWGEOM_PG_H
 #define _LWGEOM_PG_H 1
 
-#include "extension_dependency.h"
+#include "../include/extension_dependency.h"
 // #include "postgres.h"
 // #include "fmgr.h"
 // #include "catalog/namespace.h" /* For TypenameGetTypid */

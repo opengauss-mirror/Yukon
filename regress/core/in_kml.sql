@@ -3,7 +3,8 @@
 -- Written by Olivier Courtin - Oslandia
 --
 -- Empty Geometry
-SELECT 'empty_geom', ST_AsEWKT(ST_GeomFromKML(NULL));
+-- 由于 openGauss 对  '' 处理为NULL ，因此这个测试和 Line14 相同
+--SELECT 'empty_geom', ST_AsEWKT(ST_GeomFromKML(NULL));
 
 --
 -- XML

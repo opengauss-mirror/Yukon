@@ -81,7 +81,10 @@ Datum geom_from_kml(PG_FUNCTION_ARGS)
 	xmlNodePtr xmlroot=NULL;
 
 	/* Get the KML stream */
-	if (PG_ARGISNULL(0)) PG_RETURN_NULL();
+	if (PG_ARGISNULL(0)) 
+	{
+		lwpgerror("invalid KML representation");
+	}
 	xml_input = PG_GETARG_TEXT_P(0);
 	xml = text_to_cstring(xml_input);
 	xml_size = VARSIZE_ANY_EXHDR(xml_input);

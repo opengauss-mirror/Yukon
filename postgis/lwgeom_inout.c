@@ -211,9 +211,13 @@ Datum LWGEOM_in(PG_FUNCTION_ARGS)
 PG_FUNCTION_INFO_V1(LWGEOM_to_latlon);
 Datum LWGEOM_to_latlon(PG_FUNCTION_ARGS)
 {
+	if(PG_ARGISNULL(0))
+	{
+		PG_RETURN_NULL();
+	}
 	/* Get the parameters */
 	GSERIALIZED *pg_lwgeom = PG_GETARG_GSERIALIZED_P(0);
-	text *format_text = PG_GETARG_TEXT_P(1);
+	
 
 	LWGEOM *lwgeom;
 	char *format_str = NULL;
@@ -231,13 +235,22 @@ Datum LWGEOM_to_latlon(PG_FUNCTION_ARGS)
 	/* Convert to LWGEOM type */
 	lwgeom = lwgeom_from_gserialized(pg_lwgeom);
 
-  if (format_text == NULL) {
-    lwpgerror("ST_AsLatLonText: invalid format string (null");
-    PG_RETURN_NULL();
-  }
+	if (PG_ARGISNULL(1))
+	{
+		format_str = text_to_cstring(cstring_to_text(""));
+	}
+	else
+	{
+		text *format_text = PG_GETARG_TEXT_P(1);
+		if (format_text == NULL)
+		{
+			lwpgerror("ST_AsLatLonText: invalid format string (null");
+			PG_RETURN_NULL();
+		}
 
-	format_str = text_to_cstring(format_text);
-  assert(format_str != NULL);
+		format_str = text_to_cstring(format_text);
+		assert(format_str != NULL);
+	}
 
   /* The input string supposedly will be in the database encoding,
      so convert to UTF-8. */

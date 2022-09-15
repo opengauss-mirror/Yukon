@@ -1,30 +1,30 @@
 gml_empty_geom|
-gml_precision_01|
-gml_precision_02|
-gml_version_01|
-gml_version_02|
-gml_version_03|
-gml_version_04|
-gml_option_01|
-gml_option_02|
-gml_option_03|
-gml_option_04|
-gml_option_05|
-gml_option_06|
-gml_option_07|
-gml_deegree_01|
-gml_deegree_02|
-gml_deegree_03|
-gml_deegree_04|
-gml_prefix_01|
-gml_prefix_02|
-gml_prefix_03|
-gml_prefix_04|
+gml_precision_01|<gml:Point srsName="EPSG:4326"><gml:coordinates>1,1</gml:coordinates></gml:Point>
+gml_precision_02|<gml:Point srsName="EPSG:4326"><gml:coordinates>1.1111111,1.1111111</gml:coordinates></gml:Point>
+gml_version_01|<gml:Point srsName="EPSG:4326"><gml:coordinates>1,1</gml:coordinates></gml:Point>
+gml_version_02|<gml:Point srsName="EPSG:4326"><gml:pos srsDimension="2">1 1</gml:pos></gml:Point>
+ERROR:  Only GML 2 and GML 3 are supported
+ERROR:  Only GML 2 and GML 3 are supported
+gml_option_01|<gml:Point srsName="EPSG:4326"><gml:coordinates>1,2</gml:coordinates></gml:Point>
+gml_option_02|<gml:Point srsName="urn:ogc:def:crs:EPSG::4326"><gml:pos srsDimension="2">2 1</gml:pos></gml:Point>
+gml_option_03|<gml:Point srsName="EPSG:4326"><gml:pos>1 2</gml:pos></gml:Point>
+ERROR:  Options 4 passed to ST_AsGML(geography) but are only applicable to ST_AsGML(geometry)
+ERROR:  Options 16 passed to ST_AsGML(geography) but are only applicable to ST_AsGML(geometry)
+ERROR:  Options 32 passed to ST_AsGML(geography) but are only applicable to ST_AsGML(geometry)
+ERROR:  Options 32 passed to ST_AsGML(geography) but are only applicable to ST_AsGML(geometry)
+gml_deegree_01|<gml:Point srsName="EPSG:4326"><gml:coordinates>1,2</gml:coordinates></gml:Point>
+gml_deegree_02|<gml:Point srsName="urn:ogc:def:crs:EPSG::4326"><gml:coordinates>1,2</gml:coordinates></gml:Point>
+gml_deegree_03|<gml:Point srsName="EPSG:4326"><gml:pos srsDimension="2">1 2</gml:pos></gml:Point>
+gml_deegree_04|<gml:Point srsName="urn:ogc:def:crs:EPSG::4326"><gml:pos srsDimension="2">2 1</gml:pos></gml:Point>
+gml_prefix_01|<Point srsName="EPSG:4326"><coordinates>1,2</coordinates></Point>
+gml_prefix_02|<Point srsName="EPSG:4326"><pos srsDimension="2">1 2</pos></Point>
+gml_prefix_03|<foo:Point srsName="EPSG:4326"><foo:coordinates>1,2</foo:coordinates></foo:Point>
+gml_prefix_04|<foo:Point srsName="EPSG:4326"><foo:pos srsDimension="2">1 2</foo:pos></foo:Point>
 ERROR:  Cannot find SRID (10) in spatial_ref_sys
-kml_srid_02|
+kml_srid_02|<Point><coordinates>0,1</coordinates></Point>
 kml_empty_geom|
-kml_precision_01|
-kml_precision_02|
+kml_precision_01|<Point><coordinates>1,1</coordinates></Point>
+kml_precision_02|<Point><coordinates>1.1111111,1.1111111</coordinates></Point>
 svg_empty_geom|
 svg_option_01|M 1 -1 L 4 -4 5 -7
 svg_option_02|M 1 -1 l 3 -3 1 -3

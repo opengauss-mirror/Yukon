@@ -27,7 +27,7 @@
 #include "lwgeom_pg.h"
 #include "lwgeom_sfcgal.h"
 #include "../postgis_config.h"
-#include "extension_dependency.h"
+#include "../include/extension_dependency.h"
 
 #include "utils/elog.h"
 #include "utils/guc.h"

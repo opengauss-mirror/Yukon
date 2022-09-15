@@ -35,7 +35,7 @@
 // #include "utils/builtins.h" /* for text_to_cstring */
 // #include "utils/formatting.h" /* for asc_tolower */
 // #include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
-#include "extension_dependency.h"
+#include "../../include/extension_dependency.h"
 #include "../../postgis_config.h"
 #include "lwgeom_pg.h"
 

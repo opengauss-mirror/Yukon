@@ -37,7 +37,7 @@
 // #include "utils/lsyscache.h" /* for get_typlenbyvalalign */
 // #include "utils/array.h" /* for ArrayType */
 // #include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
-#include "extension_dependency.h"
+#include "../../include/extension_dependency.h"
 #include "../../postgis_config.h"
 
 

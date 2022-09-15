@@ -1646,7 +1646,7 @@ CREATE OR REPLACE FUNCTION ST_AsEWKB(geometry,text)
 CREATE OR REPLACE FUNCTION ST_AsLatLonText(geom geometry, tmpl text DEFAULT '')
 	RETURNS text
 	AS 'MODULE_PATHNAME','LWGEOM_to_latlon'
-	LANGUAGE 'c' IMMUTABLE STRICT _PARALLEL
+	LANGUAGE 'c' IMMUTABLE _PARALLEL
 	_COST_LOW;
 
 -- Deprecation in 1.2.3
@@ -2504,7 +2504,7 @@ DECLARE
 BEGIN
 
 	-- Find, check or fix schema_name
-	IF ( schema_name != '' ) THEN
+	IF ( schema_name IS NOT NULL ) THEN
 		okay = false;
 
 		FOR myrec IN SELECT nspname FROM pg_namespace WHERE text(nspname) = schema_name LOOP
@@ -2666,11 +2666,15 @@ DECLARE
 	real_schema name;
 	unknown_srid integer;
 	new_srid integer := new_srid_in;
+	gtype varchar;
+	gcoord_dimension  integer;
+	sql text;
+	count integer;
 
 BEGIN
 
 	-- Find, check or fix schema_name
-	IF ( schema_name != '' ) THEN
+	IF ( schema_name IS NOT NULL ) THEN
 		okay = false;
 
 		FOR myrec IN SELECT nspname FROM pg_namespace WHERE text(nspname) = schema_name LOOP
@@ -2688,9 +2692,25 @@ BEGIN
 
 	-- Ensure that column_name is in geometry_columns
 	okay = false;
-	FOR myrec IN SELECT type, coord_dimension FROM @extschema@.geometry_columns WHERE f_table_schema = text(real_schema) and f_table_name = table_name and f_geometry_column = column_name LOOP
+	
+	EXECUTE 'SELECT count(*) FROM geometry_columns WHERE f_table_schema ='|| quote_literal(real_schema) ||
+	' and f_table_name = '|| quote_literal(table_name) ||'  and f_geometry_column = '|| quote_literal(column_name)||';'
+	INTO count;
+	
+	if(count) then
+		EXECUTE 'SELECT type FROM geometry_columns WHERE f_table_schema ='|| quote_literal(real_schema) ||
+		' and f_table_name = '|| quote_literal(table_name) ||'  and f_geometry_column = '|| quote_literal(column_name)||';'
+		INTO gtype;
+		
+		EXECUTE 'SELECT coord_dimension FROM geometry_columns WHERE f_table_schema ='|| quote_literal(real_schema) ||
+		' and f_table_name = '|| quote_literal(table_name) ||'  and f_geometry_column = '|| quote_literal(column_name)||';'
+		INTO gcoord_dimension;
 		okay := true;
-	END LOOP;
+	else
+		okay := false;
+	END IF;
+	
+
 	IF (NOT okay) THEN
 		RAISE EXCEPTION 'column not found in geometry_columns table';
 		RETURN false;
@@ -2738,14 +2758,14 @@ BEGIN
         -- We are using postgis_type_name to lookup the new name
         -- (in case Paul changes his mind and flips geometry_columns to return old upper case name)
         EXECUTE 'ALTER TABLE ' || quote_ident(real_schema) || '.' || quote_ident(table_name) ||
-        ' ALTER COLUMN ' || quote_ident(column_name) || ' TYPE  geometry(' || @extschema@.postgis_type_name(myrec.type, myrec.coord_dimension, true) || ', ' || new_srid::text || ') USING @extschema@.ST_SetSRID(' || quote_ident(column_name) || ',' || new_srid::text || ');' ;
+        ' ALTER COLUMN ' || quote_ident(column_name) || ' TYPE  geometry(' || @extschema@.postgis_type_name(gtype, gcoord_dimension, true) || ', ' || new_srid::text || ') USING @extschema@.ST_SetSRID(' || quote_ident(column_name) || ',' || new_srid::text || ');' ;
     END IF;
 
 	RETURN real_schema || '.' || table_name || '.' || column_name ||' SRID changed to ' || new_srid::text;
 
 END;
 $$
-LANGUAGE 'plpgsql' VOLATILE STRICT;
+LANGUAGE 'plpgsql' VOLATILE;
 
 -----------------------------------------------------------------------
 -- UPDATEGEOMETRYSRID
@@ -4701,14 +4721,14 @@ CREATE OR REPLACE FUNCTION _ST_GeomFromGML(text, int4)
 CREATE OR REPLACE FUNCTION ST_GeomFromGML(text, int4)
 	RETURNS geometry
 	AS 'MODULE_PATHNAME','geom_from_gml'
-	LANGUAGE 'c' IMMUTABLE STRICT _PARALLEL
+	LANGUAGE 'c' IMMUTABLE  _PARALLEL
 	_COST_MEDIUM;
 
 -- Availability: 1.5.0
 CREATE OR REPLACE FUNCTION ST_GeomFromGML(text)
 	RETURNS geometry
 	AS 'SELECT @extschema@._ST_GeomFromGML($1, 0)'
-	LANGUAGE 'sql' IMMUTABLE STRICT _PARALLEL
+	LANGUAGE 'sql' IMMUTABLE  _PARALLEL
 	_COST_MEDIUM;
 
 -- Availability: 1.5.0
@@ -4729,7 +4749,7 @@ CREATE OR REPLACE FUNCTION ST_GMLToSQL(text, int4)
 CREATE OR REPLACE FUNCTION ST_GeomFromKML(text)
 	RETURNS geometry
 	AS 'MODULE_PATHNAME','geom_from_kml'
-	LANGUAGE 'c' IMMUTABLE STRICT _PARALLEL
+	LANGUAGE 'c' IMMUTABLE _PARALLEL
 	_COST_MEDIUM;
 
 -----------------------------------------------------------------------
@@ -4830,7 +4850,7 @@ CREATE OR REPLACE FUNCTION ST_AsGML(geom geometry, maxdecimaldigits int4 DEFAULT
 -- Changed: 2.0.0 to use default and named args
 -- ST_AsGML(version, geom, precision, option, prefix, id)
 -- Availability: 2.1.0
-CREATE OR REPLACE FUNCTION ST_AsGML(version int4, geom geometry, maxdecimaldigits int4 DEFAULT 15, options int4 DEFAULT 0, nprefix text DEFAULT null, id text DEFAULT null)
+CREATE OR REPLACE FUNCTION ST_AsGML(version int4, geom geometry, maxdecimaldigits int4 DEFAULT 15, options int4 DEFAULT 0, nprefix text DEFAULT 'gml', id text DEFAULT '')
 	RETURNS TEXT
 	AS 'MODULE_PATHNAME','LWGEOM_asGML'
 	LANGUAGE 'c' IMMUTABLE _PARALLEL
@@ -4842,10 +4862,10 @@ CREATE OR REPLACE FUNCTION ST_AsGML(version int4, geom geometry, maxdecimaldigit
 
 -- Availability: 1.2.2
 -- Changed: 2.0.0 to use default args and allow named args
-CREATE OR REPLACE FUNCTION ST_AsKML(geom geometry, maxdecimaldigits int4 DEFAULT 15, nprefix TEXT default 'kml')
+CREATE OR REPLACE FUNCTION ST_AsKML(geom geometry, maxdecimaldigits int4 DEFAULT 15, nprefix TEXT default '')
 	RETURNS TEXT
 	AS 'MODULE_PATHNAME','LWGEOM_asKML'
-	LANGUAGE 'c' IMMUTABLE STRICT _PARALLEL
+	LANGUAGE 'c' IMMUTABLE  _PARALLEL
 	_COST_MEDIUM;
 
 -----------------------------------------------------------------------
@@ -4958,93 +4978,93 @@ CREATE OR REPLACE FUNCTION pgis_asmvt_deserialfn(bytea, internal)
 
 -- Availability: 2.4.0
 -- Changed: 3.2.0
---CREATE AGGREGATE ST_AsMVT(anyelement)
---(
---	sfunc = pgis_asmvt_transfn,
---	stype = internal,
---#if POSTGIS_PGSQL_VERSION >= 96
---	parallel = safe,
---	serialfunc = pgis_asmvt_serialfn,
---	deserialfunc = pgis_asmvt_deserialfn,
---	combinefunc = pgis_asmvt_combinefn,
---#endif
---	finalfunc = pgis_asmvt_finalfn
---#if POSTGIS_PGSQL_VERSION >= 110
---	,finalfunc_modify = read_write
---#endif
---);
+-- CREATE AGGREGATE ST_AsMVT(anyelement)
+-- (
+-- 	sfunc = pgis_asmvt_transfn,
+-- 	stype = internal,
+-- #if POSTGIS_PGSQL_VERSION >= 96
+-- 	parallel = safe,
+-- 	serialfunc = pgis_asmvt_serialfn,
+-- 	deserialfunc = pgis_asmvt_deserialfn,
+-- 	combinefunc = pgis_asmvt_combinefn,
+-- #endif
+-- 	finalfunc = pgis_asmvt_finalfn
+-- #if POSTGIS_PGSQL_VERSION >= 110
+-- 	,finalfunc_modify = read_write
+-- #endif
+-- );
 
 -- Availability: 2.4.0
 -- Changed: 3.2.0
---CREATE AGGREGATE ST_AsMVT(anyelement, text)
---(
---	sfunc = pgis_asmvt_transfn,
---	stype = internal,
---#if POSTGIS_PGSQL_VERSION >= 96
---	parallel = safe,
---	serialfunc = pgis_asmvt_serialfn,
---	deserialfunc = pgis_asmvt_deserialfn,
---	combinefunc = pgis_asmvt_combinefn,
---#endif
---	finalfunc = pgis_asmvt_finalfn
---#if POSTGIS_PGSQL_VERSION >= 110
---	,finalfunc_modify = read_write
---#endif
---);
+-- CREATE AGGREGATE ST_AsMVT(anyelement, text)
+-- (
+-- 	sfunc = pgis_asmvt_transfn,
+-- 	stype = internal,
+-- #if POSTGIS_PGSQL_VERSION >= 96
+-- 	parallel = safe,
+-- 	serialfunc = pgis_asmvt_serialfn,
+-- 	deserialfunc = pgis_asmvt_deserialfn,
+-- 	combinefunc = pgis_asmvt_combinefn,
+-- #endif
+-- 	finalfunc = pgis_asmvt_finalfn
+-- #if POSTGIS_PGSQL_VERSION >= 110
+-- 	,finalfunc_modify = read_write
+-- #endif
+-- );
 
--- Availability: 2.4.0
--- Changed: 3.2.0
---CREATE AGGREGATE ST_AsMVT(anyelement, text, int4)
---(
---	sfunc = pgis_asmvt_transfn,
---	stype = internal,
---#if POSTGIS_PGSQL_VERSION >= 96
---	parallel = safe,
---	serialfunc = pgis_asmvt_serialfn,
---	deserialfunc = pgis_asmvt_deserialfn,
---	combinefunc = pgis_asmvt_combinefn,
---#endif
---	finalfunc = pgis_asmvt_finalfn
---#if POSTGIS_PGSQL_VERSION >= 110
---	,finalfunc_modify = read_write
---#endif
---);
+-- -- Availability: 2.4.0
+-- -- Changed: 3.2.0
+-- CREATE AGGREGATE ST_AsMVT(anyelement, text, int4)
+-- (
+-- 	sfunc = pgis_asmvt_transfn,
+-- 	stype = internal,
+-- #if POSTGIS_PGSQL_VERSION >= 96
+-- 	parallel = safe,
+-- 	serialfunc = pgis_asmvt_serialfn,
+-- 	deserialfunc = pgis_asmvt_deserialfn,
+-- 	combinefunc = pgis_asmvt_combinefn,
+-- #endif
+-- 	finalfunc = pgis_asmvt_finalfn
+-- #if POSTGIS_PGSQL_VERSION >= 110
+-- 	,finalfunc_modify = read_write
+-- #endif
+-- );
 
--- Availability: 2.4.0
--- Changed: 3.2.0
---CREATE AGGREGATE ST_AsMVT(anyelement, text, int4, text)
---(
---	sfunc = pgis_asmvt_transfn,
---	stype = internal,
---#if POSTGIS_PGSQL_VERSION >= 96
---	parallel = safe,
---	serialfunc = pgis_asmvt_serialfn,
---	deserialfunc = pgis_asmvt_deserialfn,
---	combinefunc = pgis_asmvt_combinefn,
---#endif
---	finalfunc = pgis_asmvt_finalfn
---#if POSTGIS_PGSQL_VERSION >= 110
---	,finalfunc_modify = read_write
---#endif
---);
+-- -- Availability: 2.4.0
+-- -- Changed: 3.2.0
+-- CREATE AGGREGATE ST_AsMVT(anyelement, text, int4, text)
+-- (
+-- 	sfunc = pgis_asmvt_transfn,
+-- 	stype = internal,
+-- #if POSTGIS_PGSQL_VERSION >= 96
+-- 	parallel = safe,
+-- 	serialfunc = pgis_asmvt_serialfn,
+-- 	deserialfunc = pgis_asmvt_deserialfn,
+-- 	combinefunc = pgis_asmvt_combinefn,
+-- #endif
+-- 	finalfunc = pgis_asmvt_finalfn
+-- #if POSTGIS_PGSQL_VERSION >= 110
+-- 	,finalfunc_modify = read_write
+-- #endif
+-- );
 
 -- Availability: 3.0.0
 -- Changed: 3.2.0
---CREATE AGGREGATE ST_AsMVT(anyelement, text, int4, text, text)
---(
---	sfunc = pgis_asmvt_transfn,
---	stype = internal,
---#if POSTGIS_PGSQL_VERSION >= 96
---	parallel = safe,
---	serialfunc = pgis_asmvt_serialfn,
---	deserialfunc = pgis_asmvt_deserialfn,
---	combinefunc = pgis_asmvt_combinefn,
---#endif
---	finalfunc = pgis_asmvt_finalfn
---#if POSTGIS_PGSQL_VERSION >= 110
---	,finalfunc_modify = read_write
---#endif
---);
+-- CREATE AGGREGATE ST_AsMVT(anyelement, text, int4, text, text)
+-- (
+-- 	sfunc = pgis_asmvt_transfn,
+-- 	stype = internal,
+-- #if POSTGIS_PGSQL_VERSION >= 96
+-- 	parallel = safe,
+-- 	serialfunc = pgis_asmvt_serialfn,
+-- 	deserialfunc = pgis_asmvt_deserialfn,
+-- 	combinefunc = pgis_asmvt_combinefn,
+-- #endif
+-- 	finalfunc = pgis_asmvt_finalfn
+-- #if POSTGIS_PGSQL_VERSION >= 110
+-- 	,finalfunc_modify = read_write
+-- #endif
+-- );
 
 -- Availability: 2.4.0
 CREATE OR REPLACE FUNCTION ST_AsMVTGeom(geom geometry, bounds box2d, extent int4 default 4096, buffer int4 default 256, clip_geom bool default true)

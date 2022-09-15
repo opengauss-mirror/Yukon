@@ -133,7 +133,7 @@
 // #include <fmgr.h> /* for PG_MODULE_MAGIC */
 // #include "utils/guc.h"
 // #include "utils/memutils.h"
-#include "extension_dependency.h"
+#include "../../include/extension_dependency.h"
 #include "../../postgis_config.h"
 #include "lwgeom_pg.h"
 

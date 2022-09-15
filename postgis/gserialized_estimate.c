@@ -107,7 +107,7 @@ dimensionality cases. (2D geometry) &&& (3D column), etc.
 // #include "utils/syscache.h"
 // #include "utils/rel.h"
 // #include "utils/selfuncs.h"
-#include "extension_dependency.h"
+#include "../include/extension_dependency.h"
 #include "../postgis_config.h"
 
 // #include "access/htup_details.h"

@@ -1060,12 +1060,16 @@ Datum gserialized_gist_consistent_2d(PG_FUNCTION_ARGS)
 
 	/* PostgreSQL 8.4 and later require the RECHECK flag to be set here,
 	   rather than being supplied as part of the operator class definition */
-	bool *recheck = (bool *) PG_GETARG_POINTER(4);
+#if POSTGIS_PGSQL_VERSION >= 95
+	bool *recheck = (bool *)PG_GETARG_POINTER(4);
+#endif
 
 	/* We set recheck to false to avoid repeatedly pulling every "possibly matched" geometry
 	   out during index scans. For cases when the geometries are large, rechecking
 	   can make things twice as slow. */
+#if POSTGIS_PGSQL_VERSION >= 95
 	*recheck = false;
+#endif
 
 	POSTGIS_DEBUG(4, "[GIST] 'consistent' function called");
 
@@ -1132,8 +1136,9 @@ Datum gserialized_gist_distance_2d(PG_FUNCTION_ARGS)
 	BOX2DF *entry_box;
 	StrategyNumber strategy = (StrategyNumber) PG_GETARG_UINT16(2);
 	double distance;
-	bool *recheck = (bool *) PG_GETARG_POINTER(4);
-
+#if POSTGIS_PGSQL_VERSION >= 95
+	bool *recheck = (bool *)PG_GETARG_POINTER(4);
+#endif
 	POSTGIS_DEBUG(4, "[GIST] 'distance' function called");
 
 	/* We are using '13' as the gist true-distance <-> strategy number
@@ -1165,9 +1170,10 @@ Datum gserialized_gist_distance_2d(PG_FUNCTION_ARGS)
 		/* the minimum possible distance, which is the box2df_distance */
 		/* and let the recheck sort things out in the case of leaves */
 		distance = box2df_distance(entry_box, &query_box);
-
+#if POSTGIS_PGSQL_VERSION >= 95
 		if (GIST_LEAF(entry))
 			*recheck = true;
+#endif
 	}
 	else
 	{

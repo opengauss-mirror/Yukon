@@ -71,6 +71,13 @@ Datum LWGEOM_asGML(PG_FUNCTION_ARGS)
 	char *gml_id_buf, *prefix_buf;
 	text *prefix_text, *gml_id_text;
 
+	// 这里添加对第一个的判断，原来的函数有 STRICT 作为限制，为了兼容 openGauss 取消 STRICT 限制改为函数内判断
+
+	if (PG_ARGISNULL(0))
+	{
+		PG_RETURN_NULL();
+	}
+
 	/*
 	 * Two potential callers, one starts with GML version,
 	 * one starts with geometry, and we check for initial
@@ -82,6 +89,12 @@ Datum LWGEOM_asGML(PG_FUNCTION_ARGS)
 	if (first_type != INT4OID)
 	{
 		version = 2;
+		
+		// 判断剩余参数是否为空
+		if (PG_ARGISNULL(1) || PG_ARGISNULL(2))
+		{
+			PG_RETURN_NULL();
+		}
 	}
 	else
 	{
@@ -90,6 +103,12 @@ Datum LWGEOM_asGML(PG_FUNCTION_ARGS)
 		if (version != 2 && version != 3)
 		{
 			elog(ERROR, "Only GML 2 and GML 3 are supported");
+			PG_RETURN_NULL();
+		}
+		
+		// 判断剩余参数是否为空
+		if (PG_ARGISNULL(1) || PG_ARGISNULL(2) || PG_ARGISNULL(3))
+		{
 			PG_RETURN_NULL();
 		}
 	}
@@ -126,27 +145,35 @@ Datum LWGEOM_asGML(PG_FUNCTION_ARGS)
 			memcpy(prefix_buf, VARDATA(prefix_text), len);
 			/* add colon and null terminate */
 			prefix_buf[len] = ':';
-			prefix_buf[len+1] = '\0';
+			prefix_buf[len + 1] = '\0';
 			prefix = prefix_buf;
 		}
+	}
+	else if(PG_NARGS() > argnum && PG_ARGISNULL(argnum))
+	{
+		prefix = "";
 	}
 	argnum++;
 
 	if (PG_NARGS() > argnum && !PG_ARGISNULL(argnum))
 	{
 		gml_id_text = PG_GETARG_TEXT_P(argnum);
-		if ( VARSIZE(gml_id_text) == VARHDRSZ )
+		if (VARSIZE(gml_id_text) == VARHDRSZ)
 		{
 			gml_id = "";
 		}
 		else
 		{
 			len = VARSIZE_ANY_EXHDR(gml_id_text);
-			gml_id_buf = palloc(len+1);
+			gml_id_buf = palloc(len + 1);
 			memcpy(gml_id_buf, VARDATA(gml_id_text), len);
 			gml_id_buf[len] = '\0';
 			gml_id = gml_id_buf;
 		}
+	}
+	else if(PG_NARGS() > argnum && PG_ARGISNULL(argnum))
+	{
+		gml_id = NULL;
 	}
 	argnum++;
 
@@ -384,6 +411,12 @@ Datum LWGEOM_asX3D(PG_FUNCTION_ARGS)
 			defidbuf[VARSIZE_ANY_EXHDR(defid_text)+1] = '\0';
 			defid = defidbuf;
 		}
+	}
+
+	// 这里为了兼容 openGauss 对于空字符串解析不同导致的输出差异
+	if (PG_ARGISNULL(4))
+	{
+		defid = "";
 	}
 
 	lwgeom = lwgeom_from_gserialized(geom);
