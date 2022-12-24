@@ -14,8 +14,8 @@
 --  Clear the contents of a TopoGeometry
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology.clearTopoGeom(tg topology.TopoGeometry)
-  RETURNS topology.TopoGeometry
+CREATE OR REPLACE FUNCTION public.clearTopoGeom(tg public.TopoGeometry)
+  RETURNS public.TopoGeometry
 AS
 $$
 DECLARE
@@ -24,11 +24,11 @@ DECLARE
 BEGIN
 
   -- Get topology information
-  SELECT id, name FROM topology.topology
+  SELECT id, name FROM public.topology
     INTO topology_info
     WHERE id = topology_id(tg);
   IF NOT FOUND THEN
-      RAISE EXCEPTION 'No topology with id "%" in topology.topology', topology_id(tg);
+      RAISE EXCEPTION 'No topology with id "%" in public.topology', topology_id(tg);
   END IF;
 
   -- Clear the TopoGeometry contents

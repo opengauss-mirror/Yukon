@@ -28,6 +28,16 @@ using std::pow;
 using std::string;
 using std::bitset;
 
+#define POINTERGETUINT8(a)  (*reinterpret_cast<uint8_t *>(a))
+#define POINTERGETUINT16(a) (*reinterpret_cast<uint16_t *>(a))
+#define POINTERGETUINT32(a) (*reinterpret_cast<uint32_t *>(a))
+#define POINTERGETUINT64(a) (*reinterpret_cast<uint64_t *>(a))
+
+#define PointerGetGEOSOTGrid(a) (reinterpret_cast<GEOSOTGRID *>(a))
+#define PointerGetGEOSOTGrid3D(a) (reinterpret_cast<GEOSOTGRID3D *>(a))
+#define GEOSOTGRIDSIZE 16
+#define GEOSOTGRID3DSIZE 20
+
 #define EARTH_RADIUS 6378137
 #define ONEPLUSTHLTA0 1.017453292519943295
 static bitset<96> all("000000000000000000000000000000000000000000000000000000000000000011111111111111111111111111111111");
@@ -56,14 +66,14 @@ bitset<96> GetCode(double x, double y, uint32_t z, int precision);
  * @param dec: 经度或纬度编码
  * @param code: 十进制经纬度值
 */
-void Dec2code(double &dec, uint32_t &code, int precision);
+uint32_t Dec2code(double dec, int precision);
 
 /**
  *  将经纬度编码转位十进制经纬度值
  * @param x: 经度或纬度编码
  * @param dec: 十进制经纬度值
 */
-void Code2Dec(uint32_t x, double &dec);
+double Code2Dec(uint32_t x);
 
 /**
  *  高度转编码
@@ -78,7 +88,7 @@ int32_t AltitudeToInt(double height, int level);
  * @param level: 高度等级
  * @param height: 高度
 */
-void IntToAltitude(int32_t z, short level, double &height);
+double IntToAltitude(int32_t z, short level);
 
 /**
  *  将geomgrid转为文本形式
@@ -167,15 +177,22 @@ double Round(double x, int y);
  * @param b: 指向内存块的指针
  * @param n: 要被比较的字节数 - 1 
 */
-int memcmp_reverse(const char *a, const char *b, int size);
+int memcmp_reverse(uint8_t *a, uint8_t *b, int size);
+
+/**
+ *  根据等级获取像素大小，等级错误返回-1
+ * @param level: 编码等级
+*/
+double GetPixSize(int level);
 
 struct GEOSOTGRID
 {
 	uint32_t size;
 	uint16_t flag;
-	uint16_t level;
+	uint8_t level;
+	uint8_t level_min = 0;
 	uint64_t data;
-	bool operator < (const GEOSOTGRID &grid)
+	bool operator < (GEOSOTGRID &grid)
 	{
 		return data < grid.data ? true : false;
 	}
@@ -187,9 +204,9 @@ struct GEOSOTGRID3D
 	uint16_t flag;
 	uint16_t level;
 	uint8_t data[12];
-	bool operator < (const GEOSOTGRID3D &grid)
+	bool operator < (GEOSOTGRID3D &grid)
 	{
-		return memcmp_reverse((const char *)data, (const char *)grid.data, 11) < 0 ? true : false;
+		return memcmp_reverse(data, grid.data, 11) < 0 ? true : false;
 	}
 };
 #endif

@@ -28,6 +28,8 @@
 #ifndef EXTENSION_DEPENDENCY
 #define EXTENSION_DEPENDENCY
 
+#include "../postgis_config.h"
+
 #include <stdint.h>
 #include <signal.h>
 #include <ctype.h>
@@ -678,6 +680,9 @@ extern bool std_typanalyze(VacAttrStats* stats);
 extern bool get_restriction_variable(
     PlannerInfo* root, List* args, int varRelid, VariableStatData* vardata, Node** other, bool* varonleft);
 
+#if POSTGIS_GSSQL_VERSION == 210
+
+
 extern int SPI_exec(const char* src, long tcount);
 extern int SPI_connect(CommandDest dest = DestSPI, void (*spiCallbackfn)(void*) = NULL, void* clientData = NULL);
 extern int SPI_finish(void);
@@ -695,6 +700,8 @@ extern Portal SPI_cursor_open_with_args(const char* name, const char* src, int n
 										const char* Nulls, bool read_only, int cursorOptions);
 extern void SPI_cursor_fetch(Portal portal, bool forward, long count);
 extern void* SPI_repalloc(void* pointer, Size size);
+
+#endif 
 
 extern char* text_to_cstring(const text* t);
 extern text* cstring_to_text(const char* s);

@@ -23,12 +23,12 @@
 --{
 -- intersects(TopoGeometry, TopoGeometry)
 --
-CREATE OR REPLACE FUNCTION topology.intersects(tg1 topology.TopoGeometry, tg2 topology.TopoGeometry)
+CREATE OR REPLACE FUNCTION public.intersects(tg1 public.TopoGeometry, tg2 public.TopoGeometry)
   RETURNS bool
 AS
 $$
 DECLARE
-  tgbuf topology.TopoGeometry;
+  tgbuf public.TopoGeometry;
   rec RECORD;
   toponame varchar;
   query text;
@@ -40,7 +40,7 @@ BEGIN
 
   -- Order TopoGeometries so that tg1 has less-or-same
   -- dimensionality of tg1 (point,line,polygon,collection)
-  IF tg1.type > tg2.type THEN
+  IF tg1.type_ > tg2.type_ THEN
     tgbuf := tg2;
     tg2 := tg1;
     tg1 := tgbuf;
@@ -48,16 +48,16 @@ BEGIN
 
   --RAISE NOTICE 'tg1.id:% tg2.id:%', tg1.id, tg2.id;
   -- Geometry collection are not currently supported
-  IF tg2.type = 4 THEN
+  IF tg2.type_ = 4 THEN
     RAISE EXCEPTION 'GeometryCollection are not supported by intersects()';
   END IF;
 
         -- Get topology name
-        SELECT name FROM topology.topology into toponame
+        SELECT name FROM public.topology into toponame
                 WHERE id = tg1.topology_id;
 
   -- Hierarchical TopoGeometries are not currently supported
-  query = 'SELECT level FROM topology.layer'
+  query = 'SELECT level FROM public.layer'
     || ' WHERE '
     || ' topology_id = ' || tg1.topology_id
     || ' AND '
@@ -74,9 +74,9 @@ BEGIN
     RAISE EXCEPTION 'Hierarchical TopoGeometries are not currently supported by intersects()';
   END LOOP;
 
-  IF tg1.type = 1 THEN -- [multi]point
+  IF tg1.type_ = 1 THEN -- [multi]point
 
-    IF tg2.type = 1 THEN -- point/point
+    IF tg2.type_ = 1 THEN -- point/point
   ---------------------------------------------------------
   --
   --  Two [multi]point features intersect if they share
@@ -105,7 +105,7 @@ BEGIN
   --
   ---------------------------------------------------------
 
-    ELSIF tg2.type = 2 THEN -- point/line
+    ELSIF tg2.type_ = 2 THEN -- point/line
   ---------------------------------------------------------
   --
   --  A [multi]point intersects a [multi]line if they share
@@ -141,7 +141,7 @@ BEGIN
   --
   ---------------------------------------------------------
 
-    ELSIF tg2.type = 3 THEN -- point/polygon
+    ELSIF tg2.type_ = 3 THEN -- point/polygon
   ---------------------------------------------------------
   --
   --  A [multi]point intersects a [multi]polygon if any
@@ -220,15 +220,15 @@ BEGIN
   --
   ---------------------------------------------------------
 
-    ELSIF tg2.type = 4 THEN -- point/collection
+    ELSIF tg2.type_ = 4 THEN -- point/collection
       RAISE EXCEPTION 'Intersection point/collection not implemented yet';
 
     ELSE
-      RAISE EXCEPTION 'Invalid TopoGeometry type %', tg2.type;
+      RAISE EXCEPTION 'Invalid TopoGeometry type %', tg2.type_;
     END IF;
 
-  ELSIF tg1.type = 2 THEN -- [multi]line
-    IF tg2.type = 2 THEN -- line/line
+  ELSIF tg1.type_ = 2 THEN -- [multi]line
+    IF tg2.type_ = 2 THEN -- line/line
   ---------------------------------------------------------
   --
   --  A [multi]line intersects a [multi]line if they share
@@ -271,7 +271,7 @@ BEGIN
   --
   ---------------------------------------------------------
 
-    ELSIF tg2.type = 3 THEN -- line/polygon
+    ELSIF tg2.type_ = 3 THEN -- line/polygon
   ---------------------------------------------------------
   --
   -- A [multi]line intersects a [multi]polygon if they share
@@ -340,16 +340,16 @@ BEGIN
   --
   ---------------------------------------------------------
 
-    ELSIF tg2.type = 4 THEN -- line/collection
+    ELSIF tg2.type_ = 4 THEN -- line/collection
       RAISE EXCEPTION 'Intersection line/collection not implemented yet';
 
     ELSE
-      RAISE EXCEPTION 'Invalid TopoGeometry type %', tg2.type;
+      RAISE EXCEPTION 'Invalid TopoGeometry type %', tg2.type_;
     END IF;
 
-  ELSIF tg1.type = 3 THEN -- [multi]polygon
+  ELSIF tg1.type_ = 3 THEN -- [multi]polygon
 
-    IF tg2.type = 3 THEN -- polygon/polygon
+    IF tg2.type_ = 3 THEN -- polygon/polygon
   ---------------------------------------------------------
   --
   -- A [multi]polygon intersects a [multi]polygon if they share
@@ -426,22 +426,22 @@ BEGIN
   --
   ---------------------------------------------------------
 
-    ELSIF tg2.type = 4 THEN -- polygon/collection
+    ELSIF tg2.type_ = 4 THEN -- polygon/collection
       RAISE EXCEPTION 'Intersection poly/collection not implemented yet';
 
     ELSE
-      RAISE EXCEPTION 'Invalid TopoGeometry type %', tg2.type;
+      RAISE EXCEPTION 'Invalid TopoGeometry type %', tg2.type_;
     END IF;
 
-  ELSIF tg1.type = 4 THEN -- collection
-    IF tg2.type = 4 THEN -- collection/collection
+  ELSIF tg1.type_ = 4 THEN -- collection
+    IF tg2.type_ = 4 THEN -- collection/collection
       RAISE EXCEPTION 'Intersection collection/collection not implemented yet';
     ELSE
-      RAISE EXCEPTION 'Invalid TopoGeometry type %', tg2.type;
+      RAISE EXCEPTION 'Invalid TopoGeometry type %', tg2.type_;
     END IF;
 
   ELSE
-    RAISE EXCEPTION 'Invalid TopoGeometry type %', tg1.type;
+    RAISE EXCEPTION 'Invalid TopoGeometry type %', tg1.type_;
   END IF;
 END
 $$
@@ -451,7 +451,7 @@ LANGUAGE 'plpgsql' STABLE STRICT;
 --{
 --  equals(TopoGeometry, TopoGeometry)
 --
-CREATE OR REPLACE FUNCTION topology.equals(tg1 topology.TopoGeometry, tg2 topology.TopoGeometry)
+CREATE OR REPLACE FUNCTION public.equals(tg1 public.TopoGeometry, tg2 public.TopoGeometry)
   RETURNS bool
 AS
 $$
@@ -467,27 +467,27 @@ BEGIN
   END IF;
 
   -- Not the same type, not equal
-  IF tg1.type != tg2.type THEN
+  IF tg1.type_ != tg2.type_ THEN
     RETURN FALSE;
   END IF;
 
   -- Geometry collection are not currently supported
-  IF tg2.type = 4 THEN
+  IF tg2.type_ = 4 THEN
     RAISE EXCEPTION 'GeometryCollection are not supported by equals()';
   END IF;
 
         -- Get topology name
-        SELECT name FROM topology.topology into toponame
+        SELECT name FROM public.topology into toponame
                 WHERE id = tg1.topology_id;
 
   -- Two geometries are equal if they are composed by
   -- the same TopoElements
   FOR rec IN EXECUTE 'SELECT * FROM '
-    || ' topology.GetTopoGeomElements('
+    || ' public.GetTopoGeomElements('
     || quote_literal(toponame) || ', '
     || tg1.layer_id || ',' || tg1.id || ') '
     || ' EXCEPT SELECT * FROM '
-    || ' topology.GetTopogeomElements('
+    || ' public.GetTopogeomElements('
     || quote_literal(toponame) || ', '
     || tg2.layer_id || ',' || tg2.id || ');'
   LOOP
@@ -495,11 +495,11 @@ BEGIN
   END LOOP;
 
   FOR rec IN EXECUTE 'SELECT * FROM '
-    || ' topology.GetTopoGeomElements('
+    || ' public.GetTopoGeomElements('
     || quote_literal(toponame) || ', '
     || tg2.layer_id || ',' || tg2.id || ')'
     || ' EXCEPT SELECT * FROM '
-    || ' topology.GetTopogeomElements('
+    || ' public.GetTopogeomElements('
     || quote_literal(toponame) || ', '
     || tg1.layer_id || ',' || tg1.id || '); '
   LOOP

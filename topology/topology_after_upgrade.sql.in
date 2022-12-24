@@ -22,7 +22,7 @@ DECLARE
 BEGIN
   FOR rec IN
     WITH updated AS (
-      UPDATE topology.topology SET SRID=0 WHERE SRID<0
+      UPDATE public.topology SET SRID=0 WHERE SRID<0
       RETURNING *
     )
     SELECT * FROM updated

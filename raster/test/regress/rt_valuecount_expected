@@ -36,5 +36,5 @@ NOTICE:  Invalid band index (must use 1-based). Returning NULL
 10
 0
 NOTICE:  Invalid band index (must use 1-based). Returning NULL
-ERROR:  relation "test1" does not exist on dn_6001 at character 20
+ERROR:  relation "test1" does not exist on gaussdb at character 20
 ERROR:  column "rast1" does not exist at character 8

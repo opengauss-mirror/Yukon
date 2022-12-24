@@ -3,45 +3,45 @@ set client_min_messages to ERROR;
 \i ../load_topology.sql
 
 -- good one
-SELECT 'T1', topology.ST_ChangeEdgeGeom('city_data', 25,
+SELECT 'T1', public.ST_ChangeEdgeGeom('city_data', 25,
  'LINESTRING(9 35, 11 33, 13 35)');
 
 -- start/end points mismatch
-SELECT topology.ST_ChangeEdgeGeom('city_data', 25,
+SELECT public.ST_ChangeEdgeGeom('city_data', 25,
  'LINESTRING(10 35, 13 35)');
-SELECT topology.ST_ChangeEdgeGeom('city_data', 25,
+SELECT public.ST_ChangeEdgeGeom('city_data', 25,
  'LINESTRING(9 35, 13 36)');
 
 -- Node crossing
-SELECT topology.ST_ChangeEdgeGeom('city_data', 3,
+SELECT public.ST_ChangeEdgeGeom('city_data', 3,
   'LINESTRING(25 30, 20 36, 20 38, 25 35)');
 
 -- Non-simple edge
-SELECT topology.ST_ChangeEdgeGeom('city_data', 1,
+SELECT public.ST_ChangeEdgeGeom('city_data', 1,
   'LINESTRING(8 30, 9 30, 8 30)');
 
 -- Dimensionally collapsed edge (#1774)
-SELECT topology.ST_ChangeEdgeGeom('city_data', 1,
+SELECT public.ST_ChangeEdgeGeom('city_data', 1,
   'LINESTRING(8 30, 8 30, 8 30)');
 
 -- Non-existent edge (#979)
-SELECT topology.ST_ChangeEdgeGeom('city_data', 666,
+SELECT public.ST_ChangeEdgeGeom('city_data', 666,
   'LINESTRING(25 30, 20 36, 20 38, 25 35)');
 
 -- Test edge crossing
-SELECT topology.ST_ChangeEdgeGeom('city_data', 25,
+SELECT public.ST_ChangeEdgeGeom('city_data', 25,
  'LINESTRING(9 35, 11 40, 13 35)');
 
 -- Test change in presence of edges sharing node (#1428)
-SELECT 'T2', topology.ST_ChangeEdgeGeom('city_data', 5,
+SELECT 'T2', public.ST_ChangeEdgeGeom('city_data', 5,
  'LINESTRING(41 40, 57 33)');
 
 -- Change to edge crossing old self
-SELECT 'T3', topology.ST_ChangeEdgeGeom('city_data', 5,
+SELECT 'T3', public.ST_ChangeEdgeGeom('city_data', 5,
  'LINESTRING(41 40, 49 40, 49 34, 57 33)');
 
 -- Change a closed edge (counterclockwise)
-SELECT 'T4', topology.ST_ChangeEdgeGeom('city_data', 26,
+SELECT 'T4', public.ST_ChangeEdgeGeom('city_data', 26,
  'LINESTRING(4 31, 7 31, 4 33, 4 31)');
 -- Check face update
 SELECT 'T4F', ST_Equals(f.mbr, ST_Envelope(e.geom))
@@ -50,23 +50,23 @@ SELECT 'T4F', ST_Equals(f.mbr, ST_Envelope(e.geom))
 
 -- Collisions on edge motion path is forbidden:
 -- get to include a whole isolated edge
-SELECT topology.ST_ChangeEdgeGeom('city_data', 26,
+SELECT public.ST_ChangeEdgeGeom('city_data', 26,
  'LINESTRING(4 31, 7 31, 15 34, 12 37.5, 4 34, 4 31)');
 
 -- This movement doesn't collide:
-SELECT 'T5', topology.ST_ChangeEdgeGeom('city_data', 3,
+SELECT 'T5', public.ST_ChangeEdgeGeom('city_data', 3,
  'LINESTRING(25 30, 18 35, 18 39, 23 39, 23 36, 20 38, 19 37, 20 35, 25 35)');
 
 -- This movement doesn't collide either:
-SELECT 'T6', topology.ST_ChangeEdgeGeom('city_data', 3,
+SELECT 'T6', public.ST_ChangeEdgeGeom('city_data', 3,
  'LINESTRING(25 30, 22 38, 25 35)');
 
 -- This movement gets to include an isolated node:
-SELECT topology.ST_ChangeEdgeGeom('city_data', 3,
+SELECT public.ST_ChangeEdgeGeom('city_data', 3,
  'LINESTRING(25 30, 18 35, 18 39, 23 39, 23 36, 20 35, 25 35)');
 
 -- This movement is legit (counterclockwise closed edge)
-SELECT 'T7', topology.ST_ChangeEdgeGeom('city_data', 2,
+SELECT 'T7', public.ST_ChangeEdgeGeom('city_data', 2,
  'LINESTRING(25 30, 28 39, 16 39, 25 30)');
 -- Check face update
 SELECT 'T7F', ST_Equals(f.mbr, ST_Envelope(e.geom))
@@ -74,11 +74,11 @@ SELECT 'T7F', ST_Equals(f.mbr, ST_Envelope(e.geom))
  WHERE e.edge_id = 2 AND f.face_id = e.left_face;
 
 -- This movement gets to exclude an isolated node:
-SELECT topology.ST_ChangeEdgeGeom('city_data', 2,
+SELECT public.ST_ChangeEdgeGeom('city_data', 2,
  'LINESTRING(25 30, 28 39, 20 39, 25 30)');
 
 -- This movement should be fine
-SELECT 'T7.1', topology.ST_ChangeEdgeGeom('city_data', 2,
+SELECT 'T7.1', public.ST_ChangeEdgeGeom('city_data', 2,
 'LINESTRING(25 30, 28 39, 17 39, 25 30)');
 -- Check face update
 SELECT 'T7F.1',
@@ -87,11 +87,11 @@ SELECT 'T7F.1',
   WHERE e.edge_id = 2 AND f.face_id = e.left_face;
 
 -- Test changing winding direction of closed edge
-SELECT topology.ST_ChangeEdgeGeom('city_data', 26,
+SELECT public.ST_ChangeEdgeGeom('city_data', 26,
  ST_Reverse('LINESTRING(4 31, 7 31, 4 34, 4 31)'));
 
 -- Maintain winding of closed edge (counterclockwise)
-SELECT 'T8', topology.ST_ChangeEdgeGeom('city_data', 26,
+SELECT 'T8', public.ST_ChangeEdgeGeom('city_data', 26,
  'LINESTRING(4 31, 4 30.4, 5 30.4, 4 31)');
 -- Check face update
 SELECT 'T8F',
@@ -100,7 +100,7 @@ SELECT 'T8F',
   WHERE e.edge_id = 26 AND f.face_id = e.left_face;
 
 -- test changing winding of non-closed edge ring
-SELECT topology.ST_ChangeEdgeGeom('city_data', 13,
+SELECT public.ST_ChangeEdgeGeom('city_data', 13,
  'LINESTRING(21 6, 21 2, 6 2, 6 25, 50 25, 50 2, 35 2, 35 6)');
 
 -- test moving closed edge into another face
@@ -155,5 +155,5 @@ $$ LANGUAGE 'plpgsql';
 ---- TODO: test changing some clockwise closed edges..
 --
 
-SELECT topology.DropTopology('city_data');
+SELECT public.DropTopology('city_data');
 

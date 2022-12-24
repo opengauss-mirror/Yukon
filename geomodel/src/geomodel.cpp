@@ -26,7 +26,7 @@
 #include "extension_dependency.h"
 #include "Geometry3D/YkGeoModel.h"
 #include "Geometry3D/YkWrapCGeoModel.h"
-#include "Stream/YkDefines.h"
+#include "Toolkit/YkLicenseRSA.h"
 #include "../../postgis_config.h"
 #include "lwgeom_sfcgal.h"
 #include "../../sfcgal/lwgeom_sfcgal.h"
@@ -35,9 +35,7 @@
 #include <string.h>
 
 using namespace Yk;
-
-#define YUKON_VERSION "1.0.0"
-#define YUKON_LIB_VERSION "1.0.0_lib"
+#define YUKON_LIB_VERSION "1.0.1_lib"
 
 PG_MODULE_MAGIC;
 
@@ -56,7 +54,6 @@ PG_FUNCTION_INFO_V1(model_elem_out);
 PG_FUNCTION_INFO_V1(model_elem_recv);
 PG_FUNCTION_INFO_V1(model_elem_send);
 
-PG_FUNCTION_INFO_V1(yukon_version);
 PG_FUNCTION_INFO_V1(yukon_lib_version);
 
 // {{ make from tin 
@@ -76,7 +73,6 @@ extern "C" Datum model_elem_out(PG_FUNCTION_ARGS);
 extern "C" Datum model_elem_send(PG_FUNCTION_ARGS);
 extern "C" Datum model_elem_recv(PG_FUNCTION_ARGS);
 
-extern "C" Datum yukon_version(PG_FUNCTION_ARGS);
 extern "C" Datum yukon_lib_version(PG_FUNCTION_ARGS);
 
 // {{ make from tin 
@@ -367,17 +363,6 @@ bool gmserialized_set_bbox(GSERIALIZED *gms, YkBoundingBox &bbox)
   (*((float *)(gms->data) + 4)) = (YkFloat)vecMin.z;
   (*((float *)(gms->data) + 5)) = (YkFloat)vecMax.z;
   return true;
-}
-
-Datum yukon_version(PG_FUNCTION_ARGS)
-{
-  char src[100] = {0};
-	char *ver = YUKON_VERSION;
-	char *compileinfo = COMPILEINFO;
-	strcat(src, ver);
-	strcat(src, compileinfo);
-	text *result = cstring2text(src);
-	PG_RETURN_TEXT_P(result);
 }
 
 Datum yukon_lib_version(PG_FUNCTION_ARGS)

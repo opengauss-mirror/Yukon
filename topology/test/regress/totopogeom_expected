@@ -1,7 +1,7 @@
 create|t
-ERROR:  No topology with name "unexistent" in topology.topology
+ERROR:  No topology with name "unexistent" in public.topology
 ERROR:  No layer with id "1" in topology "tt"
-ERROR:  No topology with name "" in topology.topology
+ERROR:  No topology with name "" in public.topology
 simple_puntual_layer|1
 hierarchical_layer|2
 simple_lineal_layer|3

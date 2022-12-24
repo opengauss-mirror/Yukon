@@ -17,7 +17,7 @@
 --   - Referenced element does not exist
 --   - Same element listed twice
 --
-CREATE OR REPLACE FUNCTION topology.ValidateTopologyRelation(toponame varchar)
+CREATE OR REPLACE FUNCTION public.ValidateTopologyRelation(toponame varchar)
 RETURNS TABLE(error text, layer_id int, topogeo_id int, element_id int)
 AS
 $BODY$
@@ -37,18 +37,18 @@ BEGIN
 
   IF NOT EXISTS (
     SELECT id
-    FROM topology.topology
+    FROM public.topology
     WHERE name = toponame
   )
   THEN
-    RAISE WARNING 'Topology % is not registered in topology.topology', toponame;
+    RAISE WARNING 'Topology % is not registered in public.topology', toponame;
   END IF;
 
   EXECUTE 'SHOW search_path' INTO search_path_backup;
   EXECUTE 'SET search_PATH TO ' || quote_ident(toponame) || ','
                                 || search_path_backup;
 
-  FOR layerrec IN SELECT * FROM topology.layer
+  FOR layerrec IN SELECT * FROM public.layer
   LOOP --{
     IF layerrec.child_id IS NULL
     THEN --{ Layer is simple

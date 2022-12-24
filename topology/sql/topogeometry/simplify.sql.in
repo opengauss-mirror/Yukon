@@ -17,7 +17,7 @@
 --  the given TopoGeometry
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology.ST_Simplify(tg topology.TopoGeometry, tolerance float8)
+CREATE OR REPLACE FUNCTION public.ST_Simplify(tg public.TopoGeometry, tolerance float8)
   RETURNS geometry
 AS
 $$
@@ -25,20 +25,20 @@ DECLARE
   topology_info RECORD;
   layer_info RECORD;
   child_layer_info RECORD;
-  geom geometry;
+  geom public.geometry;
   sql TEXT;
 BEGIN
 
   -- Get topology information
-  SELECT id, name FROM topology.topology
+  SELECT id, name FROM public.topology
     INTO topology_info
     WHERE id = tg.topology_id;
   IF NOT FOUND THEN
-      RAISE EXCEPTION 'No topology with id "%" in topology.topology', tg.topology_id;
+      RAISE EXCEPTION 'No topology with id "%" in public.topology', tg.topology_id;
   END IF;
 
   -- Get layer info
-  SELECT * FROM topology.layer
+  SELECT * FROM public.layer
     WHERE topology_id = tg.topology_id
     AND layer_id = tg.layer_id
     INTO layer_info;
@@ -54,14 +54,14 @@ BEGIN
   IF layer_info.level > 0 THEN -- {
 
     -- Get child layer info
-    SELECT * FROM topology.layer WHERE layer_id = layer_info.child_id
+    SELECT * FROM public.layer WHERE layer_id = layer_info.child_id
       AND topology_id = tg.topology_id
       INTO child_layer_info;
     IF NOT FOUND THEN
       RAISE EXCEPTION 'Invalid layer % in topology % (unexistent child layer %)', tg.layer_id, tg.topology_id, layer_info.child_id;
     END IF;
 
-    sql := 'SELECT st_multi(st_union(topology.ST_Simplify('
+    sql := 'SELECT st_multi(st_union(public.ST_Simplify('
       || quote_ident(child_layer_info.feature_column)
       || ',' || tolerance || '))) as geom FROM '
       || quote_ident(child_layer_info.schema_name) || '.'
@@ -80,7 +80,7 @@ BEGIN
     RAISE DEBUG '%', sql;
     EXECUTE sql INTO geom;
 
-  ELSIF tg.type = 3 THEN -- [multi]polygon -- }{
+  ELSIF tg.type_ = 3 THEN -- [multi]polygon -- }{
 
     -- TODO: use ST_GetFaceEdges
     -- TODO: is st_unaryunion needed?
@@ -97,7 +97,7 @@ BEGIN
     RAISE DEBUG '%', sql;
     EXECUTE sql INTO geom;
 
-  ELSIF tg.type = 2 THEN -- [multi]line -- }{
+  ELSIF tg.type_ = 2 THEN -- [multi]line -- }{
 
     sql :=
       'SELECT st_multi(ST_LineMerge(ST_Node(ST_Collect(ST_Simplify(e.geom,'
@@ -110,12 +110,12 @@ BEGIN
       || ' AND abs(r.element_id) = e.edge_id';
     EXECUTE sql INTO geom;
 
-  ELSIF tg.type = 1 THEN -- [multi]point -- }{
+  ELSIF tg.type_ = 1 THEN -- [multi]point -- }{
 
     -- Can't simplify points...
-    geom := topology.Geometry(tg);
+    geom := public.Geometry(tg);
 
-  ELSIF tg.type = 4 THEN -- mixed collection -- }{
+  ELSIF tg.type_ = 4 THEN -- mixed collection -- }{
 
    sql := 'WITH areas AS ( '
       || 'SELECT st_multi(st_union(ST_BuildArea(ST_Node(ST_Collect(ST_Simplify(geom, '
@@ -151,7 +151,7 @@ BEGIN
 
   ELSE -- }{
 
-    RAISE EXCEPTION 'Invalid TopoGeometries (unknown type %)', tg.type;
+    RAISE EXCEPTION 'Invalid TopoGeometries (unknown type %)', tg.type_;
 
   END IF; -- }
 

@@ -51,7 +51,7 @@ SELECT 'T'||t.id, n.node_id, n.containing_face FROM nn t, city_data.node n
 --SELECT 'T5', st_addisonode('city_data', 22, 'POINT(28.5 32.5)');
 
 -- Test for #3234
-SELECT '#3234', topology.ST_AddIsoNode('city_data', 0, 'POINT EMPTY'::geometry);
+SELECT '#3234', public.ST_AddIsoNode('city_data', 0, 'POINT EMPTY'::geometry);
 
 DROP TABLE nn;
-select topology.DropTopology('city_data');
+select public.DropTopology('city_data');

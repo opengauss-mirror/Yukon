@@ -1,5 +1,5 @@
 BEGIN;
-SELECT topology.CreateTopology('topoperf');
+SELECT public.CreateTopology('topoperf');
 
 --\timing on
 CREATE TABLE topoperf.case_full_coverage_no_holes

@@ -16,7 +16,7 @@
 -- Makes a copy of a topology (primitives + topogeometry collections) .
 -- Returns the new topology id.
 --
-CREATE OR REPLACE FUNCTION topology.CopyTopology(atopology varchar, newtopo varchar)
+CREATE OR REPLACE FUNCTION public.CopyTopology(atopology varchar, newtopo varchar)
 RETURNS int
 AS
 $$
@@ -29,12 +29,12 @@ DECLARE
   ret text;
 BEGIN
 
-  SELECT * FROM topology.topology where name = atopology
+  SELECT * FROM public.topology where name = atopology
   INTO strict rec;
   oldtopo_id = rec.id;
   -- TODO: more gracefully handle unexistent topology
 
-  SELECT topology.CreateTopology(newtopo, rec.SRID, rec.precision, rec.hasZ)
+  SELECT public.CreateTopology(newtopo, rec.SRID, rec.precision, rec.hasZ)
   INTO strict newtopo_id;
 
   -- Copy faces
@@ -68,13 +68,13 @@ BEGIN
     || quote_ident(atopology) || '.edge_data_edge_id_seq))';
 
   -- Copy layers and their TopoGeometry sequences
-  FOR rec IN SELECT * FROM topology.layer WHERE topology_id = oldtopo_id
+  FOR rec IN SELECT * FROM public.layer WHERE topology_id = oldtopo_id
   LOOP
-    INSERT INTO topology.layer (topology_id, layer_id, feature_type,
+    INSERT INTO public.layer (topology_id, layer_id, feature_type,
       level, child_id, schema_name, table_name, feature_column)
       VALUES (newtopo_id, rec.layer_id, rec.feature_type,
               rec.level, rec.child_id, newtopo,
-              'LAYER' ||  rec.layer_id, '');
+              'LAYER' ||  rec.layer_id, ' ');
     -- Create layer's TopoGeometry sequences
     EXECUTE 'SELECT last_value FROM '
       || quote_ident(atopology) || '.topogeo_s_' || rec.layer_id

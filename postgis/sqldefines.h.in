@@ -6,7 +6,7 @@
 /*
  * Define just the version numbers; otherwise we get some strange substitutions in postgis.sql.in
  */
-#define POSTGIS_PGSQL_VERSION @POSTGIS_PGSQL_VERSION@
+#define POSTGIS_PGSQL_VERSION 92
 #define POSTGIS_PGSQL_HR_VERSION @POSTGIS_PGSQL_HR_VERSION@
 #define POSTGIS_GEOS_VERSION @POSTGIS_GEOS_VERSION@
 #define POSTGIS_PROJ_VERSION @POSTGIS_PROJ_VERSION@

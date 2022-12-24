@@ -3,50 +3,50 @@ set client_min_messages to ERROR;
 \i ../load_topology.sql
 
 -- Endpoint / node mismatch
-SELECT topology.ST_AddEdgeNewFaces('city_data', 7, 6,
+SELECT public.ST_AddEdgeNewFaces('city_data', 7, 6,
  'LINESTRING(36 38,57 33)');
-SELECT topology.ST_AddEdgeNewFaces('city_data', 5, 7,
+SELECT public.ST_AddEdgeNewFaces('city_data', 5, 7,
  'LINESTRING(36 38,57 33)');
 -- See http://trac.osgeo.org/postgis/ticket/1857
-SELECT topology.ST_AddEdgeModFace('city_data', 5, 5,
+SELECT public.ST_AddEdgeModFace('city_data', 5, 5,
  'LINESTRING(36 38,57 33)');
 
 -- Crosses a node
-SELECT topology.ST_AddEdgeNewFaces('city_data', 5, 6,
+SELECT public.ST_AddEdgeNewFaces('city_data', 5, 6,
  'LINESTRING(36 38, 41 40, 57 33)');
 
 -- Non-existent node
-SELECT topology.ST_AddEdgeNewFaces('city_data', 5, 60000,
+SELECT public.ST_AddEdgeNewFaces('city_data', 5, 60000,
  'LINESTRING(36 38,57 33)');
-SELECT topology.ST_AddEdgeNewFaces('city_data', 60000, 6,
+SELECT public.ST_AddEdgeNewFaces('city_data', 60000, 6,
  'LINESTRING(36 38,57 33)');
 
 -- Non-simple curve
-SELECT topology.ST_AddEdgeNewFaces('city_data', 5, 5,
+SELECT public.ST_AddEdgeNewFaces('city_data', 5, 5,
  'LINESTRING(36 38, 40 50, 36 38)');
 
 -- Collapsed curve
-SELECT topology.ST_AddEdgeNewFaces('city_data', 5, 5,
+SELECT public.ST_AddEdgeNewFaces('city_data', 5, 5,
  'LINESTRING(36 38, 36 38, 36 38)');
 
 -- Empty curve
-SELECT topology.ST_AddEdgeNewFaces('city_data', 5, 5,
+SELECT public.ST_AddEdgeNewFaces('city_data', 5, 5,
  'LINESTRING EMPTY');
 
 -- Coincident edge
-SELECT topology.ST_AddEdgeNewFaces('city_data', 18, 19,
+SELECT public.ST_AddEdgeNewFaces('city_data', 18, 19,
  'LINESTRING(35 22,47 22)');
 
 -- Crosses an edge
-SELECT topology.ST_AddEdgeNewFaces('city_data', 5, 6,
+SELECT public.ST_AddEdgeNewFaces('city_data', 5, 6,
  'LINESTRING(36 38, 40 50, 57 33)');
 
 -- Touches an existing edge
-SELECT 'O', topology.ST_AddEdgeNewFaces('city_data', 5, 6,
+SELECT 'O', public.ST_AddEdgeNewFaces('city_data', 5, 6,
  'LINESTRING(36 38,45 32,57 33)');
 
 -- Shares a portion of an existing edge
-SELECT 'O', topology.ST_AddEdgeNewFaces('city_data', 5, 6,
+SELECT 'O', public.ST_AddEdgeNewFaces('city_data', 5, 6,
  'LINESTRING(36 38,38 35,57 33)');
 
 ---------------------------------------------------------------------
@@ -54,20 +54,20 @@ SELECT 'O', topology.ST_AddEdgeNewFaces('city_data', 5, 6,
 ---------------------------------------------------------------------
 
 CREATE TABLE city_data.fp(id varchar);
-SELECT 'L' || topology.AddTopoGeometryColumn('city_data',
+SELECT 'L' || public.AddTopoGeometryColumn('city_data',
   'city_data', 'fp', 'g', 'POLYGON');
 
 -- Feature composed by face 3 and face 4
 INSERT INTO city_data.fp VALUES ('F3,F4',
-  topology.CreateTopoGeom('city_data', 3, 1, '{{3,3},{4,3}}'));
+  public.CreateTopoGeom('city_data', 3, 1, '{{3,3},{4,3}}'));
 
 CREATE TABLE city_data.fc(id varchar);
-SELECT 'L' || topology.AddTopoGeometryColumn('city_data',
+SELECT 'L' || public.AddTopoGeometryColumn('city_data',
   'city_data', 'fc', 'g', 'COLLECTION');
 
 -- Feature composed by face 5 and node 4
 INSERT INTO city_data.fc VALUES ('F5,N4',
-  topology.CreateTopoGeom('city_data', 4, 2, '{{5,3},{4,1}}'));
+  public.CreateTopoGeom('city_data', 4, 2, '{{5,3},{4,1}}'));
 
 ---------------------------------------------------------------------
 -- Now add some edges splitting faces...
@@ -81,7 +81,7 @@ INSERT INTO city_data.fc VALUES ('F5,N4',
 --    inward edge on the left face
 --    inward edge on the right face
 --
-SELECT 1 as id, topology.st_addedgenewfaces('city_data', 14, 18,
+SELECT 1 as id, public.st_addedgenewfaces('city_data', 14, 18,
   'LINESTRING(21 14, 35 22)') as edge_id INTO newedge;
 SELECT 'T1', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -97,7 +97,7 @@ SELECT 'T1', 'E'||edge_id, next_left_edge, next_right_edge,
 --    inward edge on the left face
 --    outward edge on the right face
 --
-INSERT INTO newedge SELECT 2, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 2, public.st_addedgenewfaces('city_data',
   12, 18, 'LINESTRING(47 14, 35 22)');
 SELECT 'T2', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -113,7 +113,7 @@ SELECT 'T2', 'E'||edge_id, next_left_edge, next_right_edge,
 --    outward edge on the left face
 --    outward edge on the right face
 --
-INSERT INTO newedge SELECT 3, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 3, public.st_addedgenewfaces('city_data',
   12, 10, 'LINESTRING(47 14, 35 6)');
 SELECT 'T3', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -129,7 +129,7 @@ SELECT 'T3', 'E'||edge_id, next_left_edge, next_right_edge,
 --    outward edge on the left face
 --    inward edge on the right face
 --
-INSERT INTO newedge SELECT 4, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 4, public.st_addedgenewfaces('city_data',
   9, 13, 'LINESTRING(21 6, 35 14)');
 SELECT 'T4', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -140,7 +140,7 @@ SELECT 'T4', 'E'||edge_id, next_left_edge, next_right_edge,
 --
 -- Same edge on start and end node, for left face, swapped direction
 --
-INSERT INTO newedge SELECT 5, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 5, public.st_addedgenewfaces('city_data',
   14, 9, 'LINESTRING(21 14, 19 10, 21 6)');
 SELECT 'T5', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -151,7 +151,7 @@ SELECT 'T5', 'E'||edge_id, next_left_edge, next_right_edge,
 --
 -- Same edge on start and end node, for left face, same direction
 --
-INSERT INTO newedge SELECT 6, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 6, public.st_addedgenewfaces('city_data',
   8, 15, 'LINESTRING(9 6, 11 10, 9 14)');
 SELECT 'T6', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -162,7 +162,7 @@ SELECT 'T6', 'E'||edge_id, next_left_edge, next_right_edge,
 --
 -- Same edge on start and end node, for right face, swapped direction
 --
-INSERT INTO newedge SELECT 7, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 7, public.st_addedgenewfaces('city_data',
   17, 16, 'LINESTRING(21 22, 15 20, 9 22)');
 SELECT 'T7', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -173,7 +173,7 @@ SELECT 'T7', 'E'||edge_id, next_left_edge, next_right_edge,
 --
 -- Same edge on start and end node, for right face, same direction
 --
-INSERT INTO newedge SELECT 8, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 8, public.st_addedgenewfaces('city_data',
   15, 14, 'LINESTRING(9 14, 15 16, 21 14)');
 SELECT 'T8', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -184,7 +184,7 @@ SELECT 'T8', 'E'||edge_id, next_left_edge, next_right_edge,
 --
 -- Closed edge, counterclockwise, in universe face, next right
 --
-INSERT INTO newedge SELECT 9, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 9, public.st_addedgenewfaces('city_data',
   9, 9, 'LINESTRING(21 6, 18 0, 24 0, 21 6)');
 SELECT 'T9', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -195,7 +195,7 @@ SELECT 'T9', 'E'||edge_id, next_left_edge, next_right_edge,
 --
 -- Closed edge, clockwise, in universe face, next right
 --
-INSERT INTO newedge SELECT 10, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 10, public.st_addedgenewfaces('city_data',
   10, 10, 'LINESTRING(35 6, 38 0, 32 0, 35 6)');
 SELECT 'T10', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -206,7 +206,7 @@ SELECT 'T10', 'E'||edge_id, next_left_edge, next_right_edge,
 --
 -- Closed edge, clockwise, in universe face, next left
 --
-INSERT INTO newedge SELECT 11, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 11, public.st_addedgenewfaces('city_data',
   15, 15, 'LINESTRING(9 14, 3 11, 3 17, 9 14)');
 SELECT 'T11', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -217,7 +217,7 @@ SELECT 'T11', 'E'||edge_id, next_left_edge, next_right_edge,
 --
 -- Closed edge, clockwise, in universe face, against closed edge
 --
-INSERT INTO newedge SELECT 12, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 12, public.st_addedgenewfaces('city_data',
   1, 1, 'LINESTRING(8 30, 5 27, 11 27, 8 30)');
 SELECT 'T12', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -228,7 +228,7 @@ SELECT 'T12', 'E'||edge_id, next_left_edge, next_right_edge,
 --
 -- Closed edge, counterclockwise, in universe face, against closed edge
 --
-INSERT INTO newedge SELECT 13, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 13, public.st_addedgenewfaces('city_data',
   2, 2, 'LINESTRING(25 30, 28 27, 22 27, 25 30)');
 SELECT 'T13', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -241,7 +241,7 @@ SELECT 'T13', 'E'||edge_id, next_left_edge, next_right_edge,
 --
 INSERT INTO city_data.node(geom, containing_face)
   VALUES ('POINT(9 33)', 1); -- N23
-INSERT INTO newedge SELECT 14, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 14, public.st_addedgenewfaces('city_data',
   23, 1, 'LINESTRING(9 33, 8 30)');
 SELECT 'T14', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -256,7 +256,7 @@ SELECT 'N' || node_id, containing_face
 --
 INSERT INTO city_data.node(geom, containing_face)
   VALUES ('POINT(12 28)', 0); -- N24
-INSERT INTO newedge SELECT 15, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 15, public.st_addedgenewfaces('city_data',
   1, 24,  'LINESTRING(8 30, 12 28)');
 SELECT 'T15', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -269,7 +269,7 @@ SELECT 'N' || node_id, containing_face
 --
 -- Closed edge on isolated node
 --
-INSERT INTO newedge SELECT 16, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 16, public.st_addedgenewfaces('city_data',
   4, 4, 'LINESTRING(20 37, 23 37, 20 34, 20 37)');
 SELECT 'T16', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -285,7 +285,7 @@ INSERT INTO city_data.node(geom, containing_face)
   VALUES ('POINT(35 28)', 0); -- N25
 INSERT INTO city_data.node(geom, containing_face)
   VALUES ('POINT(39 28)', 0); -- N26
-INSERT INTO newedge SELECT 17, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 17, public.st_addedgenewfaces('city_data',
   25, 26,  'LINESTRING(35 28, 39 28)');
 SELECT 'T17', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -298,7 +298,7 @@ SELECT 'N' || node_id, containing_face
 --
 -- New face in universal face, enclosing isolated edge chain
 --
-INSERT INTO newedge SELECT 18, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 18, public.st_addedgenewfaces('city_data',
   25, 26,  'LINESTRING(35 28, 35 45, 63 45, 63 25, 39 25, 39 28)');
 SELECT 'T18', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -309,7 +309,7 @@ SELECT 'T18', 'E'||edge_id, next_left_edge, next_right_edge,
 --
 -- New face in universal face, with both endpoints on same existing edge
 --
-INSERT INTO newedge SELECT 19, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 19, public.st_addedgenewfaces('city_data',
   9, 8,  'LINESTRING(21 6, 12 0, 9 6)');
 SELECT 'T19', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -321,7 +321,7 @@ SELECT 'T19', 'E'||edge_id, next_left_edge, next_right_edge,
 -- New face in universal face, with both endpoints on same existing edge
 -- and endpoints duplicated
 --
-INSERT INTO newedge SELECT 20, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 20, public.st_addedgenewfaces('city_data',
   10, 11,  'LINESTRING(35 6, 35 6, 44 0, 47 6, 47 6)');
 SELECT 'T20', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -333,7 +333,7 @@ SELECT 'T20', 'E'||edge_id, next_left_edge, next_right_edge,
 -- Another face in universal face, with both endpoints on same existing edge
 -- and both edges' endpoints duplicated
 --
-INSERT INTO newedge SELECT 21, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 21, public.st_addedgenewfaces('city_data',
   10, 11,  'LINESTRING(35 6, 35 6, 44 -4, 47 6, 47 6)');
 SELECT 'T21', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -346,10 +346,10 @@ SELECT 'T21', 'E'||edge_id, next_left_edge, next_right_edge,
 -- Split a face containing an hole
 -- Faces on both sides contain isolated nodes.
 --
-SELECT 'T22-', 'N' || topology.st_addisonode('city_data', 32, 'POINT(26 36)'), 32;
-SELECT 'T22-', 'N' || topology.st_addisonode('city_data', 32, 'POINT(26 34.5)'), 32;
-SELECT 'T22-', 'N' || topology.st_addisonode('city_data', 32, 'POINT(26 33)'), 32;
-INSERT INTO newedge SELECT 22, topology.st_addedgenewfaces('city_data',
+SELECT 'T22-', 'N' || public.st_addisonode('city_data', 32, 'POINT(26 36)'), 32;
+SELECT 'T22-', 'N' || public.st_addisonode('city_data', 32, 'POINT(26 34.5)'), 32;
+SELECT 'T22-', 'N' || public.st_addisonode('city_data', 32, 'POINT(26 33)'), 32;
+INSERT INTO newedge SELECT 22, public.st_addedgenewfaces('city_data',
   3, 3,  'LINESTRING(25 35, 27 35, 26 34, 25 35)');
 SELECT 'T22', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -365,7 +365,7 @@ SELECT 'T22', 'N' || node_id, containing_face FROM
 -- Split a face containing an holes in both sides of the split
 -- Faces on both sides contain isolated nodes.
 --
-INSERT INTO newedge SELECT 23, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 23, public.st_addedgenewfaces('city_data',
   2, 3,  'LINESTRING(25 30, 29 32, 29 37, 25 35)');
 SELECT 'T23', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -388,7 +388,7 @@ SELECT 'T24-', 'N' || st_addisonode('city_data', 31, 'POINT(20.5 35)'), 31;
 SELECT 'T24-', 'N' || st_addisonode('city_data', 39, 'POINT(20.5 34)'), 39;
 SELECT 'T24-', 'N' || st_addisonode('city_data', 39, 'POINT(20.5 33)'), 39;
 
-INSERT INTO newedge SELECT 24, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 24, public.st_addedgenewfaces('city_data',
   30, 30,  'LINESTRING(19.5 37.5, 24.5 37.5, 19.5 32.5, 19.5 37.5)');
 SELECT 'T24', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -405,7 +405,7 @@ SELECT 'T24', 'N' || node_id, containing_face FROM
 -- This version goes counterclockwise
 -- All involved faces contain isolated nodes
 --
-INSERT INTO newedge SELECT 25, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 25, public.st_addedgenewfaces('city_data',
   31, 31,  'LINESTRING(19 38, 19 31, 26 38, 19 38)');
 SELECT 'T25', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -420,7 +420,7 @@ SELECT 'T25', 'N' || node_id, containing_face FROM
 --
 -- Split a face closing a ring inside a face
 --
-INSERT INTO newedge SELECT 26, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 26, public.st_addedgenewfaces('city_data',
   5, 6,  'LINESTRING(36 38, 57 33)');
 SELECT 'T26', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -434,7 +434,7 @@ SELECT 'T26', 'E'||edge_id, next_left_edge, next_right_edge,
 -- and with the ring containing another edge
 --
 
-INSERT INTO newedge SELECT 27, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 27, public.st_addedgenewfaces('city_data',
   5, 6, 'LINESTRING(36 38, 50 38, 57 33)');
 SELECT 'T27', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -451,7 +451,7 @@ SELECT 'T27', 'E'||edge_id, next_left_edge, next_right_edge,
 -- See http://trac.osgeo.org/postgis/ticket/2025
 --
 
-INSERT INTO newedge SELECT 28, topology.st_addedgenewfaces('city_data',
+INSERT INTO newedge SELECT 28, public.st_addedgenewfaces('city_data',
   7, 7, 'LINESTRING(41 40, 38 40, 41 43, 41 40)');
 SELECT 'T28', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -466,8 +466,8 @@ SELECT 'T28', 'E'||edge_id, next_left_edge, next_right_edge,
 -- See https://trac.osgeo.org/postgis/ticket/3407
 --
 INSERT INTO city_data.fp VALUES ('F25',
-  topology.CreateTopoGeom('city_data', 3, 1, '{{25,3}}'));
-INSERT INTO newedge SELECT 29 as id, topology.st_addedgemodface('city_data',
+  public.CreateTopoGeom('city_data', 3, 1, '{{25,3}}'));
+INSERT INTO newedge SELECT 29 as id, public.st_addedgemodface('city_data',
   14, 16, 'LINESTRING(21 14, 9 22)');
 SELECT 'T29', 'E'||edge_id, next_left_edge, next_right_edge,
   left_face, right_face FROM
@@ -500,4 +500,4 @@ SELECT 'F'||face_id, st_astext(mbr) FROM city_data.face ORDER BY face_id;
 ---------------------------------------------------------------------
 
 DROP TABLE newedge;
-SELECT topology.DropTopology('city_data');
+SELECT public.DropTopology('city_data');

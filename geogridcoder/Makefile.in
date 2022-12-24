@@ -6,7 +6,7 @@ POSTGIS_PGSQL_VERSION=92
 EXTENSION = yukon_geogridcoder        # the extensions name
 #MODULE_big = yukon_geogridcoder-$(GEOGRID_MAJRO_VERSION).$(GEOGRID_MINOR_VERSION)
 MODULE_big = yukon_geogridcoder-1.0
-DATA = yukon_geogridcoder--1.0.sql  # script files to install
+DATA = yukon_geogridcoder--1.0.1.sql  yukon_geogridcoder--1.0--1.0.1.sql# script files to install
 
 GEOGRID_OBJS= \
     RasterizeHash.o \

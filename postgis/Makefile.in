@@ -64,6 +64,11 @@ WAYGU_LIB = $(WAGYU_LIBPATH) @WAGYU_LDFLAGS@
 WAGYU_DEP = $(WAGYU_LIBPATH)
 endif
 
+COMPILE_TIME = $(shell date +"%Y-%m-%d %H:%M:%S")
+GIT_REVISION = $(shell git show -s --pretty=format:%h)
+
+COMPILEINFO=-DCOMPILEINFO="\" Compiled at:$(COMPILE_TIME)\"""\" Commit ID:$(GIT_REVISION) \""
+
 FLATGEOBUF_LIBPATH = ../deps/flatgeobuf/@FLATGEOBUF_LIB@
 FLATGEOBUF_INCLUDE = -I../deps/flatgeobuf
 FLATGEOBUF_LIB = $(FLATGEOBUF_LIBPATH) @FLATGEOBUF_LDFLAGS@
@@ -139,7 +144,7 @@ OBJS=$(PG_OBJS)
 # to an existing liblwgeom.so in the PostgreSQL $libdir supplied by an
 # older version of PostGIS, rather than with the static liblwgeom.a
 # supplied with newer versions of PostGIS
-PG_CPPFLAGS += -I../liblwgeom @CFLAGS@ -I../libpgcommon $(FLATGEOBUF_INCLUDE) $(WAYGU_INCLUDE) $(UTHASH_INCLUDE) @CPPFLAGS@ @PICFLAGS@
+PG_CPPFLAGS += -I../liblwgeom -I../libpgcommon $(FLATGEOBUF_INCLUDE) $(WAYGU_INCLUDE) $(UTHASH_INCLUDE) @CPPFLAGS@ @PICFLAGS@ $(COMPILEINFO)
 SHLIB_LINK_F = $(WAYGU_LIB) $(FLATGEOBUF_LIB) ../libpgcommon/libpgcommon.a ../liblwgeom/.libs/liblwgeom.a @SHLIB_LINK@
 
 # Extra files to remove during 'make clean'

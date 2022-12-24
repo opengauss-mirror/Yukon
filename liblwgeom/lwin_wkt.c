@@ -34,7 +34,7 @@
 /*
 * Error messages for failures in the parser.
 */
-const char *parser_error_messages[] =
+const THR_LOCAL char *parser_error_messages[] =
 {
 	"",
 	"geometry requires more points",

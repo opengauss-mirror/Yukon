@@ -16,8 +16,8 @@
 --  Add an element to a TopoGeometry definition
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology.TopoGeom_addElement(tg topology.TopoGeometry, el topology.TopoElement)
-  RETURNS topology.TopoGeometry
+CREATE OR REPLACE FUNCTION public.TopoGeom_addElement(tg public.TopoGeometry, el public.TopoElement)
+  RETURNS public.TopoGeometry
 AS
 $$
 DECLARE
@@ -28,11 +28,11 @@ BEGIN
   -- Get topology name
   BEGIN
     SELECT name
-    FROM topology.topology
+    FROM public.topology
       INTO STRICT toponame WHERE id = topology_id(tg);
   EXCEPTION
     WHEN NO_DATA_FOUND THEN
-      RAISE EXCEPTION 'No topology with name "%" in topology.topology',
+      RAISE EXCEPTION 'No topology with name "%" in public.topology',
         atopology;
   END;
 
@@ -60,8 +60,8 @@ LANGUAGE 'plpgsql' VOLATILE STRICT;
 --  Remove an element from a TopoGeometry definition
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology.TopoGeom_remElement(tg topology.TopoGeometry, el topology.TopoElement)
-  RETURNS topology.TopoGeometry
+CREATE OR REPLACE FUNCTION public.TopoGeom_remElement(tg public.TopoGeometry, el public.TopoElement)
+  RETURNS public.TopoGeometry
 AS
 $$
 DECLARE
@@ -72,11 +72,11 @@ BEGIN
   -- Get topology name
   BEGIN
     SELECT name
-    FROM topology.topology
+    FROM public.topology
       INTO STRICT toponame WHERE id = topology_id(tg);
   EXCEPTION
     WHEN NO_DATA_FOUND THEN
-      RAISE EXCEPTION 'No topology with name "%" in topology.topology',
+      RAISE EXCEPTION 'No topology with name "%" in public.topology',
         atopology;
   END;
 
@@ -105,21 +105,21 @@ LANGUAGE 'plpgsql' VOLATILE STRICT;
 -- for holding components of the type found in the source TopoGeometry)
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology.TopoGeom_addTopoGeom(tgt topology.TopoGeometry, src topology.TopoGeometry)
-  RETURNS topology.TopoGeometry
+CREATE OR REPLACE FUNCTION public.TopoGeom_addTopoGeom(tgt public.TopoGeometry, src public.TopoGeometry)
+  RETURNS public.TopoGeometry
 AS
 $BODY$
 DECLARE
   sql TEXT;
-  topo topology.topology;
+  topo public.topology;
   srcElementTypes int[];
-  srcLayer topology.layer;
-  tgtLayer topology.layer;
+  srcLayer public.layer;
+  tgtLayer public.layer;
   maxElemType int;
 BEGIN
 
   -- Get topology information
-  topo := topology.FindTopology(topology_id(src));
+  topo := public.FindTopology(topology_id(src));
 
 #ifdef POSTGIS_TOPOLOGY_DEBUG
   RAISE DEBUG 'Source TopoGeometry is "%", its topology_id is "%"', src, topo.id;
@@ -133,12 +133,12 @@ BEGIN
   RAISE DEBUG 'Target TopoGeometry is "%"', tgt;
 #endif
 
-  SELECT * FROM topology.layer
+  SELECT * FROM public.layer
   WHERE topology_id = topo.id
     AND layer_id = layer_id(src)
   INTO srcLayer;
 
-  SELECT * FROM topology.layer
+  SELECT * FROM public.layer
   WHERE topology_id = topo.id
     AND layer_id = layer_id(tgt)
   INTO tgtLayer;
@@ -195,19 +195,19 @@ SELECT array_agg(DISTINCT element_type) FROM inserted
 --    END IF;
 --  END IF;
 
-  RAISE DEBUG 'Target type: %', type(tgt);
+  RAISE DEBUG 'Target type: %', type_(tgt);
   RAISE DEBUG 'Detected source element types: %', srcElementTypes;
 
   -- Check if target TopoGeometry type needs be changed
-  IF type(tgt) != 4 -- collection TopoGeometry accept anything
+  IF type_(tgt) != 4 -- collection TopoGeometry accept anything
   THEN
     IF array_upper(srcElementTypes, 1) > 1
-    OR srcElementTypes[1] != tgt.type
+    OR srcElementTypes[1] != tgt.type_
     THEN
       -- source is mixed-typed or typed differently from
       -- target, so we turn target type to collection
       RAISE DEBUG 'Changing target element type to collection';
-      tgt.type = 4;
+      tgt.type_ = 4;
     END IF;
   END IF;
 

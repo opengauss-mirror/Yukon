@@ -18,25 +18,25 @@
 --  See http://trac.osgeo.org/postgis/ticket/1017
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology.toTopoGeom(ageom Geometry, atopology varchar, alayer int, atolerance float8 DEFAULT 0)
-  RETURNS topology.TopoGeometry
+CREATE OR REPLACE FUNCTION public.toTopoGeom(ageom Geometry, atopology varchar, alayer int, atolerance float8 DEFAULT 0)
+  RETURNS public.TopoGeometry
 AS
 $$
 DECLARE
   layer_info RECORD;
   topology_info RECORD;
-  tg topology.TopoGeometry;
+  tg public.TopoGeometry;
   typ TEXT;
 BEGIN
 
   -- Get topology information
   BEGIN
     SELECT *
-    FROM topology.topology
+    FROM public.topology
       INTO STRICT topology_info WHERE name = atopology;
   EXCEPTION
     WHEN NO_DATA_FOUND THEN
-      RAISE EXCEPTION 'No topology with name "%" in topology.topology',
+      RAISE EXCEPTION 'No topology with name "%" in public.topology',
         atopology;
   END;
 
@@ -49,7 +49,7 @@ BEGIN
       WHEN feature_type = 4 THEN 'mixed'
       ELSE 'unexpected_'||feature_type
       END as typename
-    FROM topology.layer l
+    FROM public.layer l
       INTO STRICT layer_info
       WHERE l.layer_id = alayer
       AND l.topology_id = topology_info.id;
@@ -77,7 +77,7 @@ BEGIN
         'Layer "%" of topology "%" is %, cannot hold a collection feature.',
         layer_info.layer_id, topology_info.name, layer_info.typename;
     END IF;
-    tg := topology.CreateTopoGeom(atopology, 4, alayer);
+    tg := public.CreateTopoGeom(atopology, 4, alayer);
   ELSIF typ = 'POINT' OR typ = 'MULTIPOINT' THEN -- puntal
     --  A point can go in puntal or collection layer
     IF layer_info.feature_type != 4 and layer_info.feature_type != 1 THEN
@@ -85,7 +85,7 @@ BEGIN
         'Layer "%" of topology "%" is %, cannot hold a puntal feature.',
         layer_info.layer_id, topology_info.name, layer_info.typename;
     END IF;
-    tg := topology.CreateTopoGeom(atopology, 1, alayer);
+    tg := public.CreateTopoGeom(atopology, 1, alayer);
   ELSIF typ = 'LINESTRING' or typ = 'MULTILINESTRING' THEN -- lineal
     --  A line can go in lineal or collection layer
     IF layer_info.feature_type != 4 and layer_info.feature_type != 2 THEN
@@ -93,7 +93,7 @@ BEGIN
         'Layer "%" of topology "%" is %, cannot hold a lineal feature.',
         layer_info.layer_id, topology_info.name, layer_info.typename;
     END IF;
-    tg := topology.CreateTopoGeom(atopology, 2, alayer);
+    tg := public.CreateTopoGeom(atopology, 2, alayer);
   ELSIF typ = 'POLYGON' OR typ = 'MULTIPOLYGON' THEN -- areal
     --  An area can go in areal or collection layer
     IF layer_info.feature_type != 4 and layer_info.feature_type != 3 THEN
@@ -101,14 +101,14 @@ BEGIN
         'Layer "%" of topology "%" is %, cannot hold an areal feature.',
         layer_info.layer_id, topology_info.name, layer_info.typename;
     END IF;
-    tg := topology.CreateTopoGeom(atopology, 3, alayer);
+    tg := public.CreateTopoGeom(atopology, 3, alayer);
   ELSE
       -- Should never happen
       RAISE EXCEPTION
         'Unsupported feature type %', typ;
   END IF;
 
-  tg := topology.toTopoGeom(ageom, tg, atolerance);
+  tg := public.toTopoGeom(ageom, tg, atolerance);
 
   RETURN tg;
 
@@ -122,8 +122,8 @@ LANGUAGE 'plpgsql' VOLATILE STRICT;
 --  adding its components to a pre-existing TopoGeometry
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology.toTopoGeom(ageom Geometry, tg topology.TopoGeometry, atolerance float8 DEFAULT 0)
-  RETURNS topology.TopoGeometry
+CREATE OR REPLACE FUNCTION public.toTopoGeom(ageom Geometry, tg public.TopoGeometry, atolerance float8 DEFAULT 0)
+  RETURNS public.TopoGeometry
 AS
 $$
 DECLARE
@@ -145,11 +145,11 @@ BEGIN
 #endif
 
   -- Get topology information
-  SELECT id, name FROM topology.topology
+  SELECT id, name FROM public.topology
     INTO topology_info
     WHERE id = topology_id(tg);
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'No topology with id "%" in topology.topology',
+    RAISE EXCEPTION 'No topology with id "%" in public.topology',
                     topology_id(tg);
   END IF;
 
@@ -157,7 +157,7 @@ BEGIN
   atopology := topology_info.name;
 
   -- Get tolerance, if 0 was given
-  tolerance := COALESCE( NULLIF(atolerance, 0), topology._st_mintolerance(topology_info.name, ageom) );
+  tolerance := COALESCE( NULLIF(atolerance, 0), public._st_mintolerance(topology_info.name, ageom) );
 
   -- Get layer information
   BEGIN
@@ -168,7 +168,7 @@ BEGIN
       WHEN feature_type = 4 THEN 'mixed'
       ELSE 'unexpected_'||feature_type
       END as typename
-    FROM topology.layer l
+    FROM public.layer l
       INTO STRICT layer_info
       WHERE l.layer_id = layer_id(tg)
       AND l.topology_id = topology_info.id;
@@ -196,7 +196,7 @@ BEGIN
         'Layer "%" of topology "%" is %, cannot hold a collection feature.',
         layer_info.layer_id, topology_info.name, layer_info.typename;
     END IF;
-    tg.type := 4;
+    tg.type_ := 4;
   ELSIF typ = 'POINT' OR typ = 'MULTIPOINT' THEN -- puntal
     --  A point can go in puntal or collection layer
     IF layer_info.feature_type != 4 and layer_info.feature_type != 1 THEN
@@ -204,7 +204,7 @@ BEGIN
         'Layer "%" of topology "%" is %, cannot hold a puntal feature.',
         layer_info.layer_id, topology_info.name, layer_info.typename;
     END IF;
-    tg.type := CASE WHEN tg.type = 1 THEN 1 ELSE 4 END;
+    tg.type_ := CASE WHEN tg.type_ = 1 THEN 1 ELSE 4 END;
   ELSIF typ = 'LINESTRING' or typ = 'MULTILINESTRING' THEN -- lineal
     --  A line can go in lineal or collection layer
     IF layer_info.feature_type != 4 and layer_info.feature_type != 2 THEN
@@ -212,7 +212,7 @@ BEGIN
         'Layer "%" of topology "%" is %, cannot hold a lineal feature.',
         layer_info.layer_id, topology_info.name, layer_info.typename;
     END IF;
-    tg.type := CASE WHEN tg.type = 2 THEN 2 ELSE 4 END;
+    tg.type_ := CASE WHEN tg.type_ = 2 THEN 2 ELSE 4 END;
   ELSIF typ = 'POLYGON' OR typ = 'MULTIPOLYGON' THEN -- areal
     --  An area can go in areal or collection layer
     IF layer_info.feature_type != 4 and layer_info.feature_type != 3 THEN
@@ -220,7 +220,7 @@ BEGIN
         'Layer "%" of topology "%" is %, cannot hold an areal feature.',
         layer_info.layer_id, topology_info.name, layer_info.typename;
     END IF;
-    tg.type := CASE WHEN tg.type = 3 THEN 3 ELSE 4 END;
+    tg.type_ := CASE WHEN tg.type_ = 3 THEN 3 ELSE 4 END;
   ELSE
       -- Should never happen
       RAISE EXCEPTION
@@ -242,13 +242,13 @@ BEGIN
     FOR rec2 IN SELECT primitive
           FROM
             (
-              SELECT topology.topogeo_addPoint(atopology, rec.geom, tolerance)
+              SELECT public.topogeo_addPoint(atopology, rec.geom, tolerance)
                 WHERE rec.dims = 0
               UNION ALL
-              SELECT topology.topogeo_addLineString(atopology, rec.geom, tolerance)
+              SELECT public.topogeo_addLineString(atopology, rec.geom, tolerance)
                 WHERE rec.dims = 1
               UNION ALL
-              SELECT topology.topogeo_addPolygon(atopology, rec.geom, tolerance)
+              SELECT public.topogeo_addPolygon(atopology, rec.geom, tolerance)
                 WHERE rec.dims = 2
             ) AS f(primitive)
     LOOP

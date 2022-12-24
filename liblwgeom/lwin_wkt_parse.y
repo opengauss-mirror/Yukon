@@ -14,9 +14,16 @@ int wkt_yyparse(void);
 void wkt_yyerror(const char *str);
 int wkt_yylex(void);
 
+#ifndef THR_LOCAL
+#ifndef WIN32
+#define THR_LOCAL __thread
+#else
+#define THR_LOCAL  __declspec(thread)
+#endif
+#endif
 
 /* Declare the global parser variable */
-LWGEOM_PARSER_RESULT global_parser_result;
+THR_LOCAL LWGEOM_PARSER_RESULT global_parser_result;
 
 /* Turn on/off verbose parsing (turn off for production) */
 int wkt_yydebug = 0;

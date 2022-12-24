@@ -26,7 +26,7 @@
 -- http://github.com/mbostock/topojson-specification/blob/master/README.md
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology.AsTopoJSON(tg topology.TopoGeometry, edgeMapTable regclass)
+CREATE OR REPLACE FUNCTION public.AsTopoJSON(tg public.TopoGeometry, edgeMapTable regclass)
   RETURNS text AS
 $$
 DECLARE
@@ -54,18 +54,18 @@ BEGIN
   END IF;
 
   -- Get topology name (for subsequent queries)
-  SELECT name FROM topology.topology into toponame
+  SELECT name FROM public.topology into toponame
               WHERE id = tg.topology_id;
 
   -- TODO: implement scale ?
 
   -- Puntal TopoGeometry, simply delegate to AsGeoJSON
-  IF tg.type = 1 THEN
-    json := ST_AsGeoJSON(topology.Geometry(tg));
+  IF tg.type_ = 1 THEN
+    json := ST_AsGeoJSON(public.Geometry(tg));
     return json;
-  ELSIF tg.type = 2 THEN -- lineal
+  ELSIF tg.type_ = 2 THEN -- lineal
 
-    FOR rec IN SELECT (ST_Dump(topology.Geometry(tg))).geom
+    FOR rec IN SELECT (ST_Dump(public.Geometry(tg))).geom
     LOOP -- {
 
       sql := 'SELECT e.*, ST_LineLocatePoint($1'
@@ -109,7 +109,7 @@ BEGIN
 
     return json;
 
-  ELSIF tg.type = 3 THEN -- areal
+  ELSIF tg.type_ = 3 THEN -- areal
 
     json := '{ "type": "MultiPolygon", "arcs": [';
 
@@ -117,7 +117,7 @@ BEGIN
     EXECUTE 'SET search_path TO ' || quote_ident(toponame) || ',' || old_search_path;
 
     SELECT array_agg(id) as f
-    FROM ( SELECT (topology.GetTopoGeomElements(tg))[1] as id ) as f
+    FROM ( SELECT (public.GetTopoGeomElements(tg))[1] as id ) as f
     INTO all_faces;
 
 #ifdef POSTGIS_TOPOLOGY_DEBUG
@@ -319,7 +319,7 @@ FROM _edgepath
 
     EXECUTE 'SET search_path TO ' || old_search_path;
 
-  ELSIF tg.type = 4 THEN -- collection
+  ELSIF tg.type_ = 4 THEN -- collection
     RAISE EXCEPTION 'Collection TopoGeometries are not supported by AsTopoJSON';
 
   END IF;

@@ -29,7 +29,7 @@
 --
 -- if near the point there are two or more edges it throw an exception.
 --
-CREATE OR REPLACE FUNCTION topology.GetEdgeByPoint(atopology varchar, apoint geometry, tol1 float8)
+CREATE OR REPLACE FUNCTION public.GetEdgeByPoint(atopology varchar, apoint geometry, tol1 float8)
 	RETURNS int AS
 	'MODULE_PATHNAME', 'GetEdgeByPoint'
 	LANGUAGE 'c' STABLE STRICT;

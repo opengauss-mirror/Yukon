@@ -10,8 +10,7 @@ MODULEPATH    = $$libdir/$(EXTENSION)-@POSTGIS_MAJOR_VERSION@
 EXTENSION_SCRIPTS = \
 	extlock.sql \
 	sql_bits/topology.sql \
-	sql_bits/mark_editable_objects.sql.in \
-	sql_bits/topology_comments.sql
+	sql_bits/mark_editable_objects.sql.in
 
 ifeq (@LIBINCLUDEMINORVERSION@,yes)
 MODULEPATH=$$libdir/$(EXTENSION)-$(MINORVERSION)

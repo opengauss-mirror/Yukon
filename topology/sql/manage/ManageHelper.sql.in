@@ -17,7 +17,7 @@
 -- if it is not already in the database search path
 -- This is a helper function for upgrade/install
 -- We may want to move this function as a generic helper
-CREATE OR REPLACE FUNCTION topology.AddToSearchPath(a_schema_name varchar)
+CREATE OR REPLACE FUNCTION public.AddToSearchPath(a_schema_name varchar)
 RETURNS text
 AS
 $$

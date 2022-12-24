@@ -25,6 +25,14 @@
 
 #include "liblwgeom_internal.h"
 
+#ifndef THR_LOCAL
+#ifndef WIN32
+#define THR_LOCAL __thread
+#else
+#define THR_LOCAL  __declspec(thread)
+#endif
+#endif
+
 /*
 * Coordinate object to hold information about last coordinate temporarily.
 * We need to know how many dimensions there are at any given time.
@@ -42,8 +50,8 @@ POINT;
 /*
 * Global that holds the final output geometry for the WKT parser.
 */
-extern LWGEOM_PARSER_RESULT global_parser_result;
-extern const char *parser_error_messages[];
+extern THR_LOCAL LWGEOM_PARSER_RESULT global_parser_result;
+extern THR_LOCAL const char *parser_error_messages[];
 
 /*
 * Prototypes for the lexer

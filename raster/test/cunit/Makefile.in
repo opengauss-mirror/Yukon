@@ -9,7 +9,7 @@
 # *
 # **********************************************************************
 
-CC=@CC@
+CC=@CXX@
 top_builddir = @top_builddir@
 SHELL = @SHELL@
 LIBTOOL = @LIBTOOL@
@@ -29,7 +29,7 @@ CUNIT_LDFLAGS=@CUNIT_LDFLAGS@
 RTCORE_CFLAGS=-I$(RT_CORE)
 RTCORE_LDFLAGS=$(RT_CORE)/librtcore.a
 
-CC=@CC@
+CC=@CXX@
 CFLAGS = \
 	-I.. \
 	$(LIBLWGEOM_CFLAGS) \

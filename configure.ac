@@ -29,6 +29,7 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_GREP
 AC_C_BIGENDIAN
+AC_PROG_CXX
 
 dnl
 dnl SQL Preprocessor
@@ -451,11 +452,12 @@ if test "x$LIBLWGEOM_ONLY" = "xno"; then
   dnl Extract the version information from pg_config
   dnl Note: we extract the major & minor separately, ensure they are numeric, and then combine to give
   dnl the final version. This is to guard against user error...
+  dnl add openGuass version,the PostgresSQL version always is 9.2 
+  dnl the PGSQL_MAJOR_VERSION and PGSQL_MINOR_VERSION is openGauss version
   PGSQL_FULL_VERSION=`"$PG_CONFIG" --version`
 
-  PGSQL_MAJOR_VERSION=`echo $PGSQL_FULL_VERSION | sed 's/[[^0-9]]*\([[0-9]]*\).*/\1/'`
-  PGSQL_MINOR_VERSION=`$PG_CONFIG --version | sed 's/[[^0-9]]*\([[0-9]]\)\.\([[0-9]]\).*/\2/'`
-
+  PGSQL_MAJOR_VERSION=`$PG_CONFIG --version | sed -n '/openGauss/p' | sed 's/[[^0-9]]*openGauss[[^0-9]]*\([[0-9]]\)\.\([[0-9]]\).\([[0-9]]\).*/\1/'`
+  PGSQL_MINOR_VERSION=`$PG_CONFIG --version | sed -n '/openGauss/p' | sed 's/[[^0-9]]*openGauss[[^0-9]]*\([[0-9]]\)\.\([[0-9]]\).\([[0-9]]\).*/\2/'`
   if test $PGSQL_MAJOR_VERSION -gt 9; then
   	dnl ==================================================================
   	dnl Starting with PostgreSQL 10, major is the new minor
@@ -464,8 +466,14 @@ if test "x$LIBLWGEOM_ONLY" = "xno"; then
   	PGSQL_MINOR_VERSION=0
   fi
 
-  POSTGIS_PGSQL_VERSION="$PGSQL_MAJOR_VERSION$PGSQL_MINOR_VERSION"
+  POSTGIS_PGSQL_VERSION="92"
   POSTGIS_PGSQL_HR_VERSION="$PGSQL_MAJOR_VERSION.$PGSQL_MINOR_VERSION"
+
+  POSTGIS_GSSQL_MAJOR_VERSION=`$PG_CONFIG --version | sed -n '/openGauss/p' | sed 's/[[^0-9]]*openGauss[[^0-9]]*\([[0-9]]\)\.\([[0-9]]\).\([[0-9]]\).*/\1/'`
+  POSTGIS_GSSQL_MINOR_VERSION=`$PG_CONFIG --version | sed -n '/openGauss/p' | sed 's/[[^0-9]]*openGauss[[^0-9]]*\([[0-9]]\)\.\([[0-9]]\).\([[0-9]]\).*/\2/'`
+  POSTGIS_GSSQL_PATCH_VERSION=`$PG_CONFIG --version | sed -n '/openGauss/p' | sed 's/[[^0-9]]*openGauss[[^0-9]]*\([[0-9]]\)\.\([[0-9]]\).\([[0-9]]\).*/\3/'`
+
+  POSTGIS_GSSQL_VERSION="$POSTGIS_GSSQL_MAJOR_VERSION$POSTGIS_GSSQL_MINOR_VERSION$POSTGIS_GSSQL_PATCH_VERSION"
 
   PGSQL_PKGLIBDIR=`"$PG_CONFIG" --pkglibdir`
   PGSQL_LIBDIR=`"$PG_CONFIG" --libdir`
@@ -526,7 +534,7 @@ if test "x$LIBLWGEOM_ONLY" = "xno"; then
 
   dnl Ensure that we can parse libpq-fe.h
   CPPFLAGS_SAVE="$CPPFLAGS"
-  CPPFLAGS="$PGSQL_FE_CPPFLAGS"
+  CPPFLAGS="$PGSQL_FE_CPPFLAGS/postgresql/server/libpq $PGSQL_FE_CPPFLAGS/postgresql/server"
   AC_CHECK_HEADER([libpq-fe.h], [], [AC_MSG_ERROR([could not find libpq-fe.h])])
   CPPFLAGS="$CPPFLAGS_SAVE"
 
@@ -553,6 +561,8 @@ if test "x$LIBLWGEOM_ONLY" = "xno"; then
   AC_DEFINE_UNQUOTED([POSTGIS_PGSQL_HR_VERSION], [$POSTGIS_PGSQL_HR_VERSION], [PostgreSQL human readable server version])
   AC_SUBST([POSTGIS_PGSQL_HR_VERSION])
   AC_SUBST([HAVE_SPGIST])
+  AC_DEFINE_UNQUOTED([POSTGIS_GSSQL_VERSION], [$POSTGIS_GSSQL_VERSION], [openGauss server version])
+  AC_SUBST([POSTGIS_GSSQL_VERSION])
 
 fi dnl LIBLWGEOM_ONLY != no
 
@@ -1114,6 +1124,45 @@ if test "x$GUI" = "xyes"; then
 fi
 
 
+dnl ===========================================================================
+dnl Detect Whether to install geogridcoder
+dnl ===========================================================================
+dnl default to install
+CHECK_GEOGRIDCODER=yes
+AC_SUBST([CHECK_GEOGRIDCODER])
+
+AC_ARG_WITH([geogridcoder],
+	[AS_HELP_STRING([--without-geogridcoder], [build without geogridcoder support])],
+	[CHECK_GEOGRIDCODER="$withval"], [])
+
+if test "$CHECK_GEOGRIDCODER" != "no";then
+	GEOGRIDCODER_MAKEFILE_LIST="
+	geogridcoder/Makefile"
+else
+	GEOGRIDCODER_MAKEFILE_LIST=""
+fi
+
+dnl ===========================================================================
+dnl Detect Whether to install geomodel
+dnl ===========================================================================
+dnl default to install
+CHECK_GEOMODEL=yes
+AC_SUBST([CHECK_GEOMODEL])
+
+AC_ARG_WITH([geomodel],
+	[AS_HELP_STRING([--without-geomodel], [build without geomodel support])],
+	[CHECK_GEOMODEL="$withval"], [])
+
+if test "$CHECK_GEOMODEL" != "no";then
+	GEOMODEL_MAKEFILE_LIST="
+	geomodel/Makefile \
+	geomodel/src/Makefile \
+	geomodel/libUGC/Makefile"
+else
+	GEOMODEL_MAKEFILE_LIST=""
+fi
+
+
 
 AC_SUBST([GTK_CFLAGS])
 AC_SUBST([GTK_LIBS])
@@ -1282,7 +1331,7 @@ fi
 
 AC_SUBST([ADDRESS_STANDARDIZER])
 
-CPPFLAGS="$PGSQL_CPPFLAGS $GEOS_CPPFLAGS $PROJ_CPPFLAGS $PROTOBUF_CPPFLAGS $XML2_CPPFLAGS $SFCGAL_CPPFLAGS $JSON_CPPFLAGS $PCRE_CPPFLAGS $CPPFLAGS"
+CPPFLAGS="$PGSQL_CPPFLAGS $GEOS_CPPFLAGS $PROJ_CPPFLAGS $PROTOBUF_CPPFLAGS $XML2_CPPFLAGS $SFCGAL_CPPFLAGS $JSON_CPPFLAGS $PCRE_CPPFLAGS $PGSQL_FE_CPPFLAGS/postgresql/server/libpq $PGSQL_FE_CPPFLAGS/postgresql/server -fpermissive -DPGXC -g -O2 -fno-math-errno -fno-signed-zeros -Wall"
 dnl AC_MSG_RESULT([CPPFLAGS: $CPPFLAGS])
 
 SHLIB_LINK="$PGSQL_LDFLAGS $GEOS_LDFLAGS $PROJ_LDFLAGS $JSON_LDFLAGS $PROTOBUF_LDFLAGS $XML2_LDFLAGS $SFCGAL_LDFLAGS $EXCLUDELIBS_LDFLAGS $LDFLAGS"
@@ -1705,6 +1754,8 @@ AC_OUTPUT([GNUmakefile
    doc/html/image_src/Makefile
    utils/Makefile
    $RT_MAKEFILE_LIST
+   $GEOMODEL_MAKEFILE_LIST
+   $GEOGRIDCODER_MAKEFILE_LIST
    $DEPS_MAKEFILE_LIST])
 
 dnl ===========================================================================
@@ -1792,6 +1843,18 @@ if test "x$ADDRESS_STANDARDIZER" = "xaddress_standardizer"; then
 else
     AC_MSG_RESULT([  Address Standardizer support:       disabled])
 fi
+
+if test "$CHECK_GEOMODEL" != "no";then
+	AC_MSG_RESULT([  geomodel:                           enabled])
+else
+	AC_MSG_RESULT([  geomodel:                           disabled])
+fi 
+
+if test "$CHECK_GEOGRIDCODER" != "no";then
+	AC_MSG_RESULT([  geogridcoder:                       enabled])
+else
+	AC_MSG_RESULT([  geogridcoder:                       disabled])
+fi 
 
 AC_MSG_RESULT()
 AC_MSG_RESULT([ -------- Documentation Generation -------- ])

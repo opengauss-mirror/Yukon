@@ -11,20 +11,20 @@
 --ORA---- Main steps for using the topology data model with a topology
 --ORA---- built from edge, node, and face data
 --ORA---------------------------------------------------------------------
---ORA---- 1. Create a topology.
+--ORA---- 1. Create a public.
 --ORA---- 2. Load (normally bulk-load) topology data
 --ORA----    (node, edge, and face tables).
 
 BEGIN;
 
--- 1. Create the topology.
+-- 1. Create the public.
 --
 -- NOTE:
 --  Returns topology id... which depend on how many
 --  topologies where created in the regress database
 --  so we just check it is a number greater than 0
 --
-SELECT NULL FROM topology.CreateTopology('city_data', @SRID@);
+SELECT NULL FROM public.CreateTopology('city_data', @SRID@);
 
 -- 2. Load topology data (node, edge, and face tables).
 -- Use INSERT statements here instead of a bulk-load utility.

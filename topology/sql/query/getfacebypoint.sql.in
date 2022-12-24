@@ -18,7 +18,7 @@
 -- Retrieve the ID of a face unambiguously referenced by the given POINT.
 --
 -- A face is unambiguously referenced by a point if a circle of radius
--- tol1 around the point intersects a single face of the topology.
+-- tol1 around the point intersects a single face of the public.
 --
 -- In case of ambiguity (multiple faces intersect the circle)
 -- this function will raise an exception
@@ -30,7 +30,7 @@
 -- Rewrite by Sandro Santilli (29 Jun 2021)
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology.GetFaceByPoint(atopology varchar, apoint geometry, tol1 float8)
+CREATE OR REPLACE FUNCTION public.GetFaceByPoint(atopology varchar, apoint geometry, tol1 float8)
 	RETURNS int AS
 $BODY$ -- }{
 DECLARE
@@ -96,7 +96,7 @@ BEGIN
   END IF;
 
   -- No edge intersects the circle, check for containment
-  RETURN topology.GetFaceContainingPoint(atopology, apoint);
+  RETURN public.GetFaceContainingPoint(atopology, apoint);
 END;
 $BODY$ LANGUAGE 'plpgsql' STABLE STRICT;
 --} GetFaceByPoint

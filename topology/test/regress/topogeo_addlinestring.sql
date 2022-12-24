@@ -269,18 +269,18 @@ DROP FUNCTION check_changes(text);
 SELECT DropTopology('city_data');
 
 -- See http://trac.osgeo.org/postgis/ticket/3280
-SELECT 't3280.start', topology.CreateTopology('bug3280') > 0;
-SELECT 't3280', 'L1' || topology.TopoGeo_AddLinestring('bug3280',
+SELECT 't3280.start', public.CreateTopology('bug3280') > 0;
+SELECT 't3280', 'L1' || public.TopoGeo_AddLinestring('bug3280',
  '010200000002000000EC51B89E320F3841333333B3A9C8524114AE47611D0F384114AE47B17DC85241'
  ::geometry);
-SELECT 't3280', 'L2' || topology.TopoGeo_AddLinestring('bug3280',
+SELECT 't3280', 'L2' || public.TopoGeo_AddLinestring('bug3280',
  '010200000003000000EC51B89E320F3841333333B3A9C852415649EE1F280F384164E065F493C85241A4703D8A230F38410AD7A37094C85241'
  ::geometry);
 SELECT 't3280', 'L1b' || l
  FROM (SELECT * FROM bug3280.edge where edge_id = 1) AS e
-    CROSS JOIN LATERAL topology.TopoGeo_AddLinestring('bug3280', geom) AS l
+    CROSS JOIN LATERAL public.TopoGeo_AddLinestring('bug3280', geom) AS l
  ORDER BY 2;
-SELECT 't3280.end', topology.DropTopology('bug3280');
+SELECT 't3280.end', public.DropTopology('bug3280');
 
 -- See http://trac.osgeo.org/postgis/ticket/3380
 SELECT 't3380.start', CreateTopology( 'bug3380', 0, 0.01) > 0;
@@ -336,18 +336,18 @@ FROM TopoGeo_AddLinestring('bug3412',
 SELECT 't3412.end', DropTopology('bug3412');
 
 -- See http://trac.osgeo.org/postgis/ticket/3711
-SELECT 't3371.start', topology.CreateTopology('bug3711', 0, 0, true) > 1;
-SELECT 't3371.L1', topology.TopoGeo_AddLineString('bug3711',
+SELECT 't3371.start', public.CreateTopology('bug3711', 0, 0, true) > 1;
+SELECT 't3371.L1', public.TopoGeo_AddLineString('bug3711',
 'LINESTRING (618369 4833784 0.88, 618370 4833784 1.93, 618370 4833780 1.90)'
 ::geometry, 0);
-SELECT 't3371.L2', count(*) FROM topology.TopoGeo_AddLineString( 'bug3711',
+SELECT 't3371.L2', count(*) FROM public.TopoGeo_AddLineString( 'bug3711',
 'LINESTRING (618370 4833780 1.92, 618370 4833784 1.90, 618371 4833780 1.93)'
 ::geometry, 0);
-SELECT 't3371.end', topology.DropTopology('bug3711');
+SELECT 't3371.end', public.DropTopology('bug3711');
 
 -- See http://trac.osgeo.org/postgis/ticket/3838
-SELECT 't3838.start', topology.CreateTopology('bug3838') > 1;
-SELECT 't3838.L1', topology.TopoGeo_addLinestring('bug3838',
+SELECT 't3838.start', public.CreateTopology('bug3838') > 1;
+SELECT 't3838.L1', public.TopoGeo_addLinestring('bug3838',
 'LINESTRING(
 622617.12 6554996.14,
 622612.06 6554996.7,
@@ -358,56 +358,56 @@ SELECT 't3838.L1', topology.TopoGeo_addLinestring('bug3838',
 ::geometry , 1);
 -- TODO: answers in geos 3.8 different from older geos
 -- So just doing count instead of full test
-/** SELECT 't3838.L2', topology.TopoGeo_addLinestring('bug3838',
+/** SELECT 't3838.L2', public.TopoGeo_addLinestring('bug3838',
 'LINESTRING(622608 6554988, 622596 6554984)'
 ::geometry , 10);**/
 SELECT 't3838.L2', COUNT(*)
-  FROM topology.TopoGeo_addLinestring('bug3838',
+  FROM public.TopoGeo_addLinestring('bug3838',
 'LINESTRING(622608 6554988, 622596 6554984)'
 ::geometry , 10);
-SELECT 't3838.end', topology.DropTopology('bug3838');
+SELECT 't3838.end', public.DropTopology('bug3838');
 
 -- See https://trac.osgeo.org/postgis/ticket/1855
 -- Simplified case 1
-SELECT 't1855_1.start', topology.CreateTopology('bug1855') > 0;
-SELECT 't1855_1.0', topology.TopoGeo_addLinestring('bug1855',
+SELECT 't1855_1.start', public.CreateTopology('bug1855') > 0;
+SELECT 't1855_1.0', public.TopoGeo_addLinestring('bug1855',
   'LINESTRING(0 0, 10 0, 0 1)', 2);
-SELECT 't1855_1.end', topology.DropTopology('bug1855');
+SELECT 't1855_1.end', public.DropTopology('bug1855');
 -- Simplified case 2
-SELECT 't1855_2.start', topology.CreateTopology('bug1855') > 0;
-SELECT 't1855_2.0', topology.topogeo_AddLinestring('bug1855',
+SELECT 't1855_2.start', public.CreateTopology('bug1855') > 0;
+SELECT 't1855_2.0', public.topogeo_AddLinestring('bug1855',
   'LINESTRING(0 0, 0 100)');
-SELECT 't1855_2.1', count(*) FROM topology.topogeo_AddLinestring('bug1855',
+SELECT 't1855_2.1', count(*) FROM public.topogeo_AddLinestring('bug1855',
   'LINESTRING(10 51, -100 50, 10 49)', 2);
-SELECT 't1855_2.end', topology.DropTopology('bug1855');
+SELECT 't1855_2.end', public.DropTopology('bug1855');
 
 -- See https://trac.osgeo.org/postgis/ticket/4757
-SELECT 't4757.start', topology.CreateTopology('bug4757') > 0;
-SELECT 't4757.0', topology.TopoGeo_addPoint('bug4757', 'POINT(0 0)');
-SELECT 't4757.1', topology.TopoGeo_addLinestring('bug4757',
+SELECT 't4757.start', public.CreateTopology('bug4757') > 0;
+SELECT 't4757.0', public.TopoGeo_addPoint('bug4757', 'POINT(0 0)');
+SELECT 't4757.1', public.TopoGeo_addLinestring('bug4757',
   'LINESTRING(0 -0.1,1 0,1 1,0 1,0 -0.1)', 1);
-SELECT 't4757.end', topology.DropTopology('bug4757');
+SELECT 't4757.end', public.DropTopology('bug4757');
 
 -- See https://trac.osgeo.org/postgis/ticket/t4758
-select 't4758.start', topology.CreateTopology ('t4758', 0, 1e-06) > 0;
-select 't4758.0', topology.TopoGeo_addLinestring('t4758',
+select 't4758.start', public.CreateTopology ('t4758', 0, 1e-06) > 0;
+select 't4758.0', public.TopoGeo_addLinestring('t4758',
   'LINESTRING(11.38327215  60.4081942, 11.3826176   60.4089484)');
-select 't4758.1', topology.TopoGeo_addLinestring('t4758',
+select 't4758.1', public.TopoGeo_addLinestring('t4758',
   'LINESTRING( 11.3832721  60.408194249999994, 11.38327215 60.4081942)');
 SELECT 't4758.2', t
-FROM topology.TopoGeo_addLinestring('t4758',
+FROM public.TopoGeo_addLinestring('t4758',
   'LINESTRING( 11.38330505 60.408239599999995, 11.3832721  60.408194249999994)') AS t
 ORDER BY t;
-SELECT 't4758.end', topology.DropTopology('t4758');
+SELECT 't4758.end', public.DropTopology('t4758');
 
 -- See https://trac.osgeo.org/postgis/ticket/2175
 BEGIN;
-SELECT NULL FROM topology.CreateTopology('bug2175');
-SELECT 't2175.1', count(*) from topology.TopoGeo_addLinestring('bug2175',
+SELECT NULL FROM public.CreateTopology('bug2175');
+SELECT 't2175.1', count(*) from public.TopoGeo_addLinestring('bug2175',
   'LINESTRING(10 10,10 0,0 0,0 10,10 10)', 0);
-SELECT 't2175.2', count(*) from topology.TopoGeo_addLinestring('bug2175',
+SELECT 't2175.2', count(*) from public.TopoGeo_addLinestring('bug2175',
   'LINESTRING(10 10,10 0,0 0,0 10,10 10)', 0);
-SELECT 't2175.3', count(*) from topology.TopoGeo_addLinestring('bug2175',
+SELECT 't2175.3', count(*) from public.TopoGeo_addLinestring('bug2175',
   'LINESTRING(9.99 10,10 0,0 0,0 10,9.99 10)', 0.1);
 ROLLBACK;
 
@@ -466,4 +466,4 @@ AND NOT ST_Equals(
       ST_GetFaceGeometry('b4941', face_id)
     )
   );
-SELECT NULL FROM topology.DropTopology('b4941');
+SELECT NULL FROM public.DropTopology('b4941');

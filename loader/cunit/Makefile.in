@@ -10,8 +10,8 @@
 # **********************************************************************
 
 top_builddir = @top_builddir@
-CC=@CC@
-CFLAGS=@CFLAGS@
+CC=@CXX@
+CFLAGS=
 SHELL = @SHELL@
 LIBTOOL = @LIBTOOL@
 

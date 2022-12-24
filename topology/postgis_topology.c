@@ -19,7 +19,7 @@
 #include "utils/array.h" /* for ArrayType */
 #include "catalog/pg_type.h" /* for INT4OID, TEXTOID */
 #include "lib/stringinfo.h"
-#include "access/htup_details.h" /* for heap_form_tuple() */
+#include "access/htup.h" /* for heap_form_tuple() */
 #include "access/xact.h" /* for RegisterXactCallback */
 #include "funcapi.h" /* for FuncCallContext */
 #include "executor/spi.h" /* this is what you need to work with SPI */
@@ -54,6 +54,7 @@
 PG_MODULE_MAGIC;
 
 LWT_BE_IFACE* be_iface;
+MemoryContext topology_shared_context;
 
 /*
  * Private data we'll use for this backend
@@ -175,7 +176,7 @@ cb_loadTopologyByName(const LWT_BE_DATA* be, const char *name)
   argtypes[0] = CSTRINGOID;
   sql =
     "SELECT id,srid,precision,null::geometry "
-    "FROM topology.topology WHERE name = $1::varchar";
+    "FROM public.topology WHERE name = $1::varchar";
   if ( ! plan ) /* prepare on first call */
   {
     plan = SPI_prepare(sql, 1, argtypes);
@@ -202,7 +203,7 @@ cb_loadTopologyByName(const LWT_BE_DATA* be, const char *name)
   {
     if ( be->topoLoadFailMessageFlavor == 1 )
     {
-      cberror(be, "No topology with name \"%s\" in topology.topology", name);
+      cberror(be, "No topology with name \"%s\" in public.topology", name);
     }
     else
     {
@@ -796,7 +797,7 @@ fillEdgeFields(LWT_ISO_EDGE* edge, HeapTuple row, TupleDesc rowdesc, int fields)
         MemoryContext oldcontext = CurrentMemoryContext;
         geom = (GSERIALIZED *)PG_DETOAST_DATUM(dat);
         lwg = lwgeom_from_gserialized(geom);
-        MemoryContextSwitchTo( TopMemoryContext );
+        MemoryContextSwitchTo( topology_shared_context );
         edge->geom = lwgeom_as_lwline(lwgeom_clone_deep(lwg));
         MemoryContextSwitchTo( oldcontext ); /* switch back */
         lwgeom_free(lwg);
@@ -1076,7 +1077,7 @@ cb_getEdgeByFace(const LWT_BE_TOPOLOGY *topo, const LWT_ELEMID *ids, uint64_t *n
   POSTGIS_DEBUGF(1, "data_changed is %d", topo->be_data->data_changed);
 
   spi_result = SPI_execute_with_args(sql->data, nargs, argtypes, values, NULL,
-                                     !topo->be_data->data_changed, 0);
+                                     !topo->be_data->data_changed, 0, NULL);
   pfree(array_ids); /* not needed anymore */
   if ( gser ) pfree(gser); /* not needed anymore */
   MemoryContextSwitchTo( oldcontext ); /* switch back */
@@ -2192,7 +2193,7 @@ cb_updateTopoGeomEdgeSplit ( const LWT_BE_TOPOLOGY* topo,
   {
     appendStringInfoString(sql, "DELETE");
   }
-  appendStringInfo( sql, " FROM \"%s\".relation r %s topology.layer l WHERE "
+  appendStringInfo( sql, " FROM \"%s\".relation r %s public.layer l WHERE "
                     "l.topology_id = %d AND l.level = 0 AND l.layer_id = r.layer_id "
                     "AND abs(r.element_id) = %" LWTFMT_ELEMID " AND r.element_type = 2",
                     topo->name, (new_edge2 == -1 ? "," : "USING" ), topo->id, split_edge );
@@ -2325,7 +2326,7 @@ cb_updateTopoGeomFaceSplit ( const LWT_BE_TOPOLOGY* topo,
   {
     appendStringInfoString(sql, "DELETE");
   }
-  appendStringInfo( sql, " FROM \"%s\".relation r %s topology.layer l WHERE "
+  appendStringInfo( sql, " FROM \"%s\".relation r %s public.layer l WHERE "
                     "l.topology_id = %d AND l.level = 0 AND l.layer_id = r.layer_id "
                     "AND abs(r.element_id) = %" LWTFMT_ELEMID " AND r.element_type = 3",
                     topo->name, (new_face2 == -1 ? "," : "USING" ), topo->id, split_face );
@@ -2452,7 +2453,7 @@ cb_checkTopoGeomRemEdge ( const LWT_BE_TOPOLOGY* topo,
   initStringInfo(sql);
   appendStringInfo( sql, "SELECT r.topogeo_id, r.layer_id, "
                     "l.schema_name, l.table_name, l.feature_column FROM "
-                    "topology.layer l INNER JOIN \"%s\".relation r "
+                    "public.layer l INNER JOIN \"%s\".relation r "
                     "ON (l.layer_id = r.layer_id) WHERE l.level = 0 AND "
                     "l.feature_type IN ( 2, 4 ) AND l.topology_id = %d"
                     " AND r.element_type = 2 AND abs(r.element_id) = %" LWTFMT_ELEMID,
@@ -2505,7 +2506,7 @@ cb_checkTopoGeomRemEdge ( const LWT_BE_TOPOLOGY* topo,
     initStringInfo(sql);
     appendStringInfo( sql, "SELECT t.* FROM ( SELECT r.topogeo_id, "
                       "r.layer_id, l.schema_name, l.table_name, l.feature_column, "
-                      "array_agg(r.element_id) as elems FROM topology.layer l "
+                      "array_agg(r.element_id) as elems FROM public.layer l "
                       " INNER JOIN \"%s\".relation r ON (l.layer_id = r.layer_id) "
                       "WHERE l.level = 0 and l.feature_type IN (3, 4) "
                       "AND l.topology_id = %d"
@@ -2573,7 +2574,7 @@ cb_checkTopoGeomRemIsoEdge ( const LWT_BE_TOPOLOGY* topo,
   initStringInfo(sql);
   appendStringInfo( sql, "SELECT r.topogeo_id, r.layer_id, "
                     "l.schema_name, l.table_name, l.feature_column FROM "
-                    "topology.layer l INNER JOIN \"%s\".relation r "
+                    "public.layer l INNER JOIN \"%s\".relation r "
                     "ON (l.layer_id = r.layer_id) WHERE l.level = 0 AND "
                     "l.feature_type IN ( 2, 4 ) AND l.topology_id = %d"
                     " AND r.element_type = 2 AND abs(r.element_id) = %" LWTFMT_ELEMID,
@@ -2634,7 +2635,7 @@ cb_checkTopoGeomRemNode ( const LWT_BE_TOPOLOGY* topo,
    * only one of the edges to be merged */
   appendStringInfo( sql, "SELECT t.* FROM ( SELECT r.topogeo_id, "
                     "r.layer_id, l.schema_name, l.table_name, l.feature_column, "
-                    "array_agg(abs(r.element_id)) as elems FROM topology.layer l "
+                    "array_agg(abs(r.element_id)) as elems FROM public.layer l "
                     " INNER JOIN \"%s\".relation r ON (l.layer_id = r.layer_id) "
                     "WHERE l.level = 0 and l.feature_type in ( 2, 4 ) "
                     "AND l.topology_id = %d"
@@ -2684,7 +2685,7 @@ cb_checkTopoGeomRemNode ( const LWT_BE_TOPOLOGY* topo,
   resetStringInfo(sql);
   appendStringInfo( sql, "SELECT t.* FROM ( SELECT r.topogeo_id, "
                     "r.layer_id, l.schema_name, l.table_name, l.feature_column, "
-                    "array_agg(abs(r.element_id)) as elems FROM topology.layer l "
+                    "array_agg(abs(r.element_id)) as elems FROM public.layer l "
                     " INNER JOIN \"%s\".relation r ON (l.layer_id = r.layer_id) "
                     "WHERE l.level = 0 and l.feature_type in ( 1, 4 ) "
                     "AND l.topology_id = %d"
@@ -2751,7 +2752,7 @@ cb_checkTopoGeomRemIsoNode ( const LWT_BE_TOPOLOGY* topo, LWT_ELEMID rem_node )
   resetStringInfo(sql);
   appendStringInfo( sql, "SELECT t.* FROM ( SELECT r.topogeo_id, "
                     "r.layer_id, l.schema_name, l.table_name, l.feature_column, "
-                    "array_agg(abs(r.element_id)) as elems FROM topology.layer l "
+                    "array_agg(abs(r.element_id)) as elems FROM public.layer l "
                     " INNER JOIN \"%s\".relation r ON (l.layer_id = r.layer_id) "
                     "WHERE l.level = 0 and l.feature_type in ( 1, 4 ) "
                     "AND l.topology_id = %d"
@@ -2816,7 +2817,7 @@ cb_updateTopoGeomFaceHeal ( const LWT_BE_TOPOLOGY* topo,
     initStringInfo(sql);
     /* this query can be optimized */
     appendStringInfo( sql, "DELETE FROM \"%s\".relation r "
-                      "USING topology.layer l WHERE l.level = 0"
+                      "USING public.layer l WHERE l.level = 0"
                       " AND l.feature_type IN (3,4)"
                       " AND l.topology_id = %d AND l.layer_id = r.layer_id "
                       " AND r.element_type = 3"
@@ -2841,7 +2842,7 @@ cb_updateTopoGeomFaceHeal ( const LWT_BE_TOPOLOGY* topo,
     initStringInfo(sql);
     /* delete face1 */
     appendStringInfo( sql, "DELETE FROM \"%s\".relation r "
-                      "USING topology.layer l WHERE l.level = 0"
+                      "USING public.layer l WHERE l.level = 0"
                       " AND l.feature_type IN (3,4)"
                       " AND l.topology_id = %d AND l.layer_id = r.layer_id "
                       " AND r.element_type = 3"
@@ -2863,7 +2864,7 @@ cb_updateTopoGeomFaceHeal ( const LWT_BE_TOPOLOGY* topo,
     initStringInfo(sql);
     /* update face2 to newface */
     appendStringInfo( sql, "UPDATE \"%s\".relation r "
-                      "SET element_id = %" LWTFMT_ELEMID " FROM topology.layer l "
+                      "SET element_id = %" LWTFMT_ELEMID " FROM public.layer l "
                       "WHERE l.level = 0 AND l.feature_type IN (3,4)"
                       " AND l.topology_id = %d"
                       " AND l.layer_id = r.layer_id"
@@ -2904,7 +2905,7 @@ cb_updateTopoGeomEdgeHeal ( const LWT_BE_TOPOLOGY* topo,
     initStringInfo(sql);
     /* this query can be optimized */
     appendStringInfo( sql, "DELETE FROM \"%s\".relation r "
-                      "USING topology.layer l WHERE l.level = 0"
+                      "USING public.layer l WHERE l.level = 0"
                       " AND l.feature_type IN (2,4)"
                       " AND l.topology_id = %d AND l.layer_id = r.layer_id "
                       " AND r.element_type = 2"
@@ -2929,7 +2930,7 @@ cb_updateTopoGeomEdgeHeal ( const LWT_BE_TOPOLOGY* topo,
     initStringInfo(sql);
     /* delete edge1 */
     appendStringInfo( sql, "DELETE FROM \"%s\".relation r "
-                      "USING topology.layer l WHERE l.level = 0"
+                      "USING public.layer l WHERE l.level = 0"
                       " AND l.feature_type IN ( 2, 4 )"
                       " AND l.topology_id = %d AND l.layer_id = r.layer_id "
                       " AND r.element_type = 2"
@@ -2953,7 +2954,7 @@ cb_updateTopoGeomEdgeHeal ( const LWT_BE_TOPOLOGY* topo,
     appendStringInfo( sql, "UPDATE \"%s\".relation r "
                       "SET element_id = %" LWTFMT_ELEMID
                       " *(element_id/%" LWTFMT_ELEMID
-                      ") FROM topology.layer l "
+                      ") FROM public.layer l "
                       "WHERE l.level = 0 AND l.feature_type IN (2,4)"
                       " AND l.topology_id = %d AND l.layer_id = r.layer_id"
                       " AND r.element_type = 2"
@@ -3015,7 +3016,7 @@ cb_getClosestEdge( const LWT_BE_TOPOLOGY* topo, const LWPOINT* pt, uint64_t *num
   argtypes[0] = topo->geometryOID;
 
   spi_result = SPI_execute_with_args(sql->data, 1, argtypes, values, NULL,
-                                     !topo->be_data->data_changed, 1);
+                                     !topo->be_data->data_changed, 1, NULL);
   MemoryContextSwitchTo( oldcontext ); /* switch back */
   pfree(pts); /* not needed anymore */
   if ( spi_result != SPI_OK_SELECT )
@@ -3452,7 +3453,9 @@ _PG_init(void)
 
   /* Switch to the top memory context so that the backend interface
    * is valid for the whole backend lifetime */
-  old_context = MemoryContextSwitchTo( TopMemoryContext );
+  // old_context = MemoryContextSwitchTo( TopMemoryContext );
+  topology_shared_context = AllocSetContextCreate(g_instance.instance_context,"topologp_shared_memory",0,1024*1024,1024*1024*2,SHARED_CONTEXT);
+	old_context = MemoryContextSwitchTo(topology_shared_context);
 
   /* initialize backend data */
   be_data.data_changed = false;
@@ -3486,7 +3489,7 @@ _PG_fini(void)
 }
 
 /*  ST_ModEdgeSplit(atopology, anedge, apoint) */
-Datum ST_ModEdgeSplit(PG_FUNCTION_ARGS);
+extern "C" Datum ST_ModEdgeSplit(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_ModEdgeSplit);
 Datum ST_ModEdgeSplit(PG_FUNCTION_ARGS)
 {
@@ -3556,7 +3559,7 @@ Datum ST_ModEdgeSplit(PG_FUNCTION_ARGS)
 }
 
 /*  ST_NewEdgesSplit(atopology, anedge, apoint) */
-Datum ST_NewEdgesSplit(PG_FUNCTION_ARGS);
+extern "C" Datum ST_NewEdgesSplit(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_NewEdgesSplit);
 Datum ST_NewEdgesSplit(PG_FUNCTION_ARGS)
 {
@@ -3626,7 +3629,7 @@ Datum ST_NewEdgesSplit(PG_FUNCTION_ARGS)
 }
 
 /*  ST_AddIsoNode(atopology, aface, apoint) */
-Datum ST_AddIsoNode(PG_FUNCTION_ARGS);
+extern "C" Datum ST_AddIsoNode(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_AddIsoNode);
 Datum ST_AddIsoNode(PG_FUNCTION_ARGS)
 {
@@ -3712,7 +3715,7 @@ Datum ST_AddIsoNode(PG_FUNCTION_ARGS)
 }
 
 /*  ST_AddIsoEdge(atopology, anode, anothernode, acurve) */
-Datum ST_AddIsoEdge(PG_FUNCTION_ARGS);
+extern "C" Datum ST_AddIsoEdge(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_AddIsoEdge);
 Datum ST_AddIsoEdge(PG_FUNCTION_ARGS)
 {
@@ -3790,7 +3793,7 @@ Datum ST_AddIsoEdge(PG_FUNCTION_ARGS)
 }
 
 /*  ST_AddEdgeModFace(atopology, snode, enode, line) */
-Datum ST_AddEdgeModFace(PG_FUNCTION_ARGS);
+extern "C" Datum ST_AddEdgeModFace(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_AddEdgeModFace);
 Datum ST_AddEdgeModFace(PG_FUNCTION_ARGS)
 {
@@ -3861,7 +3864,7 @@ Datum ST_AddEdgeModFace(PG_FUNCTION_ARGS)
 }
 
 /*  ST_AddEdgeNewFaces(atopology, snode, enode, line) */
-Datum ST_AddEdgeNewFaces(PG_FUNCTION_ARGS);
+extern "C" Datum ST_AddEdgeNewFaces(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_AddEdgeNewFaces);
 Datum ST_AddEdgeNewFaces(PG_FUNCTION_ARGS)
 {
@@ -3932,7 +3935,7 @@ Datum ST_AddEdgeNewFaces(PG_FUNCTION_ARGS)
 }
 
 /* ST_GetFaceGeometry(atopology, aface) */
-Datum ST_GetFaceGeometry(PG_FUNCTION_ARGS);
+extern "C" Datum ST_GetFaceGeometry(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_GetFaceGeometry);
 Datum ST_GetFaceGeometry(PG_FUNCTION_ARGS)
 {
@@ -4003,7 +4006,7 @@ typedef struct FACEEDGESSTATE
 FACEEDGESSTATE;
 
 /* ST_GetFaceEdges(atopology, aface) */
-Datum ST_GetFaceEdges(PG_FUNCTION_ARGS);
+extern "C" Datum ST_GetFaceEdges(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_GetFaceEdges);
 Datum ST_GetFaceEdges(PG_FUNCTION_ARGS)
 {
@@ -4083,7 +4086,7 @@ Datum ST_GetFaceEdges(PG_FUNCTION_ARGS)
      * Build a tuple description for a
      * getfaceedges_returntype tuple
      */
-    tupdesc = RelationNameGetTupleDesc("topology.getfaceedges_returntype");
+    tupdesc = RelationNameGetTupleDesc("public.getfaceedges_returntype");
 
     /*
      * generate attribute metadata needed later to produce
@@ -4133,7 +4136,7 @@ Datum ST_GetFaceEdges(PG_FUNCTION_ARGS)
 }
 
 /*  ST_ChangeEdgeGeom(atopology, anedge, acurve) */
-Datum ST_ChangeEdgeGeom(PG_FUNCTION_ARGS);
+extern "C" Datum ST_ChangeEdgeGeom(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_ChangeEdgeGeom);
 Datum ST_ChangeEdgeGeom(PG_FUNCTION_ARGS)
 {
@@ -4209,7 +4212,7 @@ Datum ST_ChangeEdgeGeom(PG_FUNCTION_ARGS)
 }
 
 /*  ST_RemoveIsoNode(atopology, anode) */
-Datum ST_RemoveIsoNode(PG_FUNCTION_ARGS);
+extern "C" Datum ST_RemoveIsoNode(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_RemoveIsoNode);
 Datum ST_RemoveIsoNode(PG_FUNCTION_ARGS)
 {
@@ -4270,7 +4273,7 @@ Datum ST_RemoveIsoNode(PG_FUNCTION_ARGS)
 }
 
 /*  ST_RemIsoEdge(atopology, anedge) */
-Datum ST_RemIsoEdge(PG_FUNCTION_ARGS);
+extern "C" Datum ST_RemIsoEdge(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_RemIsoEdge);
 Datum ST_RemIsoEdge(PG_FUNCTION_ARGS)
 {
@@ -4331,7 +4334,7 @@ Datum ST_RemIsoEdge(PG_FUNCTION_ARGS)
 }
 
 /*  ST_MoveIsoNode(atopology, anode, apoint) */
-Datum ST_MoveIsoNode(PG_FUNCTION_ARGS);
+extern "C" Datum ST_MoveIsoNode(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_MoveIsoNode);
 Datum ST_MoveIsoNode(PG_FUNCTION_ARGS)
 {
@@ -4421,7 +4424,7 @@ Datum ST_MoveIsoNode(PG_FUNCTION_ARGS)
 }
 
 /*  ST_RemEdgeModFace(atopology, anedge) */
-Datum ST_RemEdgeModFace(PG_FUNCTION_ARGS);
+extern "C" Datum ST_RemEdgeModFace(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_RemEdgeModFace);
 Datum ST_RemEdgeModFace(PG_FUNCTION_ARGS)
 {
@@ -4476,7 +4479,7 @@ Datum ST_RemEdgeModFace(PG_FUNCTION_ARGS)
 }
 
 /*  ST_RemEdgeNewFace(atopology, anedge) */
-Datum ST_RemEdgeNewFace(PG_FUNCTION_ARGS);
+extern "C" Datum ST_RemEdgeNewFace(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_RemEdgeNewFace);
 Datum ST_RemEdgeNewFace(PG_FUNCTION_ARGS)
 {
@@ -4529,7 +4532,7 @@ Datum ST_RemEdgeNewFace(PG_FUNCTION_ARGS)
 }
 
 /*  ST_ModEdgeHeal(atopology, anedge, anotheredge) */
-Datum ST_ModEdgeHeal(PG_FUNCTION_ARGS);
+extern "C" Datum ST_ModEdgeHeal(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_ModEdgeHeal);
 Datum ST_ModEdgeHeal(PG_FUNCTION_ARGS)
 {
@@ -4583,7 +4586,7 @@ Datum ST_ModEdgeHeal(PG_FUNCTION_ARGS)
 }
 
 /*  ST_NewEdgeHeal(atopology, anedge, anotheredge) */
-Datum ST_NewEdgeHeal(PG_FUNCTION_ARGS);
+extern "C" Datum ST_NewEdgeHeal(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(ST_NewEdgeHeal);
 Datum ST_NewEdgeHeal(PG_FUNCTION_ARGS)
 {
@@ -4637,7 +4640,7 @@ Datum ST_NewEdgeHeal(PG_FUNCTION_ARGS)
 }
 
 /*  GetNodeByPoint(atopology, point, tolerance) */
-Datum GetNodeByPoint(PG_FUNCTION_ARGS);
+extern "C" Datum GetNodeByPoint(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(GetNodeByPoint);
 Datum GetNodeByPoint(PG_FUNCTION_ARGS)
 {
@@ -4707,7 +4710,7 @@ Datum GetNodeByPoint(PG_FUNCTION_ARGS)
 }
 
 /*  GetEdgeByPoint(atopology, point, tolerance) */
-Datum GetEdgeByPoint(PG_FUNCTION_ARGS);
+extern "C" Datum GetEdgeByPoint(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(GetEdgeByPoint);
 Datum GetEdgeByPoint(PG_FUNCTION_ARGS)
 {
@@ -4777,7 +4780,7 @@ Datum GetEdgeByPoint(PG_FUNCTION_ARGS)
 }
 
 /*  GetFaceByPoint(atopology, point, tolerance) */
-Datum GetFaceByPoint(PG_FUNCTION_ARGS);
+extern "C" Datum GetFaceByPoint(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(GetFaceByPoint);
 Datum GetFaceByPoint(PG_FUNCTION_ARGS)
 {
@@ -4849,7 +4852,7 @@ Datum GetFaceByPoint(PG_FUNCTION_ARGS)
 }
 
 /*  TopoGeo_AddPoint(atopology, point, tolerance) */
-Datum TopoGeo_AddPoint(PG_FUNCTION_ARGS);
+extern "C" Datum TopoGeo_AddPoint(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(TopoGeo_AddPoint);
 Datum TopoGeo_AddPoint(PG_FUNCTION_ARGS)
 {
@@ -4935,7 +4938,7 @@ Datum TopoGeo_AddPoint(PG_FUNCTION_ARGS)
 }
 
 /*  TopoGeo_AddLinestring(atopology, point, tolerance) */
-Datum TopoGeo_AddLinestring(PG_FUNCTION_ARGS);
+extern "C" Datum TopoGeo_AddLinestring(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(TopoGeo_AddLinestring);
 Datum TopoGeo_AddLinestring(PG_FUNCTION_ARGS)
 {
@@ -5066,7 +5069,7 @@ Datum TopoGeo_AddLinestring(PG_FUNCTION_ARGS)
 }
 
 /*  TopoGeo_AddPolygon(atopology, poly, tolerance) */
-Datum TopoGeo_AddPolygon(PG_FUNCTION_ARGS);
+extern "C" Datum TopoGeo_AddPolygon(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(TopoGeo_AddPolygon);
 Datum TopoGeo_AddPolygon(PG_FUNCTION_ARGS)
 {
@@ -5197,7 +5200,7 @@ Datum TopoGeo_AddPolygon(PG_FUNCTION_ARGS)
 }
 
 /*  GetRingEdges(atopology, anedge, maxedges default null) */
-Datum GetRingEdges(PG_FUNCTION_ARGS);
+extern "C" Datum GetRingEdges(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(GetRingEdges);
 Datum GetRingEdges(PG_FUNCTION_ARGS)
 {
@@ -5324,7 +5327,7 @@ Datum GetRingEdges(PG_FUNCTION_ARGS)
 }
 
 /*  GetFaceContainingPoint(atopology, point) */
-Datum GetFaceContainingPoint(PG_FUNCTION_ARGS);
+extern "C" Datum GetFaceContainingPoint(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(GetFaceContainingPoint);
 Datum GetFaceContainingPoint(PG_FUNCTION_ARGS)
 {

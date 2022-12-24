@@ -110,7 +110,7 @@ tg as ( select totopogeom(g, 'tt', 5, 1) as g from inp )
 select 'tolerance_1', ST_HausdorffDistance(inp.g, tg.g::geometry) FROM inp, tg;
 
 -- Test with tolerance specified in topology record
-UPDATE topology.topology SET precision=1 WHERE name = 'tt';
+UPDATE public.topology SET precision=1 WHERE name = 'tt';
 with inp as ( select
 'GEOMETRYCOLLECTION(
  POINT(-100 -100.5),
@@ -122,7 +122,7 @@ tg as ( select totopogeom(g, 'tt', 5) as g from inp )
 select 'tolerance_topo_1', ST_HausdorffDistance(inp.g, tg.g::geometry) FROM inp, tg;
 
 -- Test without tolerance (expect to remain POINT(-100 -100.5)
-UPDATE topology.topology SET precision=0 WHERE name = 'tt';
+UPDATE public.topology SET precision=0 WHERE name = 'tt';
 with inp as ( select
 'GEOMETRYCOLLECTION(
  POINT(-100 -100.5),
@@ -136,12 +136,12 @@ select 'tolerance_0', ST_HausdorffDistance(inp.g, tg.g::geometry) FROM inp, tg;
 -- Test usage with custom search_path (#1763)
 set search_path to "public";
 with inp as ( select 'POINT(-100 -100.5)'::geometry as g),
-tg as ( select topology.totopogeom(g, 'tt', 1) as g from inp )
+tg as ( select public.totopogeom(g, 'tt', 1) as g from inp )
 select 'custom_search_path', ST_HausdorffDistance(inp.g, tg.g::geometry) FROM inp, tg;
 reset search_path;
 
 -- http://trac.osgeo.org/postgis/ticket/1790
-UPDATE topology.topology SET precision=0 WHERE name = 'tt';
+UPDATE public.topology SET precision=0 WHERE name = 'tt';
 with inp as ( select
 'GEOMETRYCOLLECTION(
  POINT(200 200),

@@ -12,25 +12,25 @@ SELECT 'E' || TopoGeo_addLinestring('city_data', 'LINESTRING(21 14, 28 10)');
 SELECT 'E' || TopoGeo_addLinestring('city_data', 'LINESTRING(35 14, 28 18)');
 
 --- Lineal non-hierarchical
-SELECT 'L1-vanilla', feature_name, topology.AsTopoJSON(feature, NULL)
+SELECT 'L1-vanilla', feature_name, public.AsTopoJSON(feature, NULL)
  FROM features.city_streets
  WHERE feature_name IN ('R3', 'R4', 'R1', 'R2' )
  ORDER BY feature_name;
 
 --- Lineal hierarchical
-SELECT 'L2-vanilla', feature_name, topology.AsTopoJSON(feature, NULL)
+SELECT 'L2-vanilla', feature_name, public.AsTopoJSON(feature, NULL)
  FROM features.big_streets
  WHERE feature_name IN ('R4', 'R1R2' )
  ORDER BY feature_name;
 
 --- Areal non-hierarchical
-SELECT 'A1-vanilla', feature_name, topology.AsTopoJSON(feature, NULL)
+SELECT 'A1-vanilla', feature_name, public.AsTopoJSON(feature, NULL)
  FROM features.land_parcels
  WHERE feature_name IN ('P1', 'P2', 'P3', 'P4', 'P5' )
  ORDER BY feature_name;
 
 --- Areal hierarchical
-SELECT 'A2-vanilla', feature_name, topology.AsTopoJSON(feature, NULL)
+SELECT 'A2-vanilla', feature_name, public.AsTopoJSON(feature, NULL)
  FROM features.big_parcels
  WHERE feature_name IN ('P1P2', 'P3P4')
  ORDER BY feature_name;
@@ -39,28 +39,28 @@ SELECT 'A2-vanilla', feature_name, topology.AsTopoJSON(feature, NULL)
 CREATE TEMP TABLE edgemap (arc_id serial, edge_id int unique);
 
 --- Lineal non-hierarchical
-SELECT 'L1-edgemap', feature_name, topology.AsTopoJSON(feature, 'edgemap')
+SELECT 'L1-edgemap', feature_name, public.AsTopoJSON(feature, 'edgemap')
  FROM features.city_streets
  WHERE feature_name IN ('R3', 'R4', 'R1', 'R2' )
  ORDER BY feature_name;
 
 --- Lineal hierarchical
 TRUNCATE edgemap; SELECT NULLIF(setval('edgemap_arc_id_seq', 1, false), 1);
-SELECT 'L2-edgemap', feature_name, topology.AsTopoJSON(feature, 'edgemap')
+SELECT 'L2-edgemap', feature_name, public.AsTopoJSON(feature, 'edgemap')
  FROM features.big_streets
  WHERE feature_name IN ('R4', 'R1R2' )
  ORDER BY feature_name;
 
 --- Areal non-hierarchical
 TRUNCATE edgemap; SELECT NULLIF(setval('edgemap_arc_id_seq', 1, false), 1);
-SELECT 'A1-edgemap', feature_name, topology.AsTopoJSON(feature, 'edgemap')
+SELECT 'A1-edgemap', feature_name, public.AsTopoJSON(feature, 'edgemap')
  FROM features.land_parcels
  WHERE feature_name IN ('P1', 'P2', 'P3', 'P4', 'P5' )
  ORDER BY feature_name;
 
 --- Areal hierarchical
 TRUNCATE edgemap; SELECT NULLIF(setval('edgemap_arc_id_seq', 1, false), 1);
-SELECT 'A2-edgemap', feature_name, topology.AsTopoJSON(feature, 'edgemap')
+SELECT 'A2-edgemap', feature_name, public.AsTopoJSON(feature, 'edgemap')
  FROM features.big_parcels
  WHERE feature_name IN ('P1P2', 'P3P4')
  ORDER BY feature_name;
@@ -81,21 +81,21 @@ SELECT 'E' || TopoGeo_addLinestring('city_data', 'LINESTRING(10 48, 16 48, 16 50
 -- And this defines a new feature including both face 1and the new
 -- wrapping face 11 plus the new (holed) face 12
 INSERT INTO features.land_parcels(feature_name, feature) VALUES ('P6',
-  topology.CreateTopoGeom(
+  public.CreateTopoGeom(
     'city_data', -- Topology name
     3, -- Topology geometry type (polygon/multipolygon)
-    1, -- TG_LAYER_ID for this topology (from topology.layer)
+    1, -- TG_LAYER_ID for this topology (from public.layer)
     '{{1,3},{11,3},{12,3}}'));
 
-SELECT 'A3-vanilla', feature_name, topology.AsTopoJSON(feature, null)
+SELECT 'A3-vanilla', feature_name, public.AsTopoJSON(feature, null)
  FROM features.land_parcels
  WHERE feature_name IN ('P6')
  ORDER BY feature_name;
 
-SELECT 'P1-vanilla', feature_name, topology.AsTopoJSON(feature, null)
+SELECT 'P1-vanilla', feature_name, public.AsTopoJSON(feature, null)
  FROM features.traffic_signs
  WHERE feature_name IN ('S2')
  ORDER BY feature_name;
 
-SELECT topology.DropTopology('city_data');
+SELECT public.DropTopology('city_data');
 DROP SCHEMA features CASCADE;

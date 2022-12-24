@@ -30,35 +30,26 @@
  * @param results : 网格坐标点结果集
  */
 void GridRasterize(const uint8_t *wkb, uint32_t wkb_len, const char *srs,
-                   const uint32_t level, uint32_t geom_type, vector<GridPos> &results)
+	      			uint32_t level, uint32_t geom_type, vector<GridPos> &results, GBOX *src_box)
 {
-    GlobalBox global_box;
-    RawGridData grid_data;
+	/* raster 相关参数 */
+	OGRSpatialReferenceH *src_sr = nullptr;
+	char **options = nullptr;
 
-    /* 栅格化后的 width 和 height */
-    uint64_t grid_num[2] = {0};
-    /* 栅格化后的像素大小 */
-    double pixel_size[2] = {0};
+	/* 一定要指定最后一个指针为 nullptr，否则会造成段错误 */
+	options = (char **)palloc(sizeof(char *) * 1);
+	options[0] = (char *)palloc(sizeof(char *) * (strlen("ALL_TOUCHED=TRUE") + 1));
+	options[0] = (char *)"ALL_TOUCHED=TRUE";
+	options = (char **)repalloc(options, sizeof(char *) * 2);
+	options[1] = nullptr;
 
-    /* raster 相关参数 */
-    OGRSpatialReferenceH *src_sr = nullptr;
-    char **options = nullptr;
-
-    /* 一定要指定最后一个指针为 nullptr，否则会造成段错误 */
-    options = (char **)palloc(sizeof(char *) * 1);
-    options[0] = (char *)palloc(sizeof(char *) * (strlen("ALL_TOUCHED=TRUE") + 1));
-    options[0] = (char *)"ALL_TOUCHED=TRUE";
-    options = (char **)repalloc(options, sizeof(char *) * 2);
-    options[1] = nullptr;
-
-    OGRErr ogrerr;
-    OGRGeometryH src_geom;
-    OGREnvelope src_env;
-    rt_envelope subextent;
-    GDALDriverH _drv = nullptr;
-    int unload_drv = 0;
-    /* 栅格化 handler */
-    GDALDatasetH _ds = nullptr;
+	OGRErr ogrerr;
+	OGRGeometryH src_geom;
+	OGREnvelope src_env;
+	GDALDriverH _drv = nullptr;
+	int unload_drv = 0;
+	/* 栅格化 handler */
+	GDALDatasetH _ds = nullptr;
 
     if (nullptr == wkb)
         rterror("rasterize_hash: wkb cannot be nullptr.");
@@ -135,52 +126,75 @@ void GridRasterize(const uint8_t *wkb, uint32_t wkb_len, const char *srs,
 		GDALDeregisterDriver(_drv);
 	}
 
-    //等级在10-12 不规则栅格化，先定位到度级，取规则划分的位置
+	vector<GridPos> record;
+	vector<GridPos> degree_record;
+	vector<GridPos> minute_record;
+
+	rt_envelope subextent;
+	/* 栅格化后的 width 和 height */
+	uint64_t grid_num[2] = {0};
+	/* 栅格化后的像素大小 */
+	double pixel_size = 0.;
+	//等级在10-12 不规则栅格化，先定位到度级，取规则划分的位置
 	if(10 <= level && level <= 12)
 		grid_num[0] = grid_num[1] = 512;
-    //等级在16-18 不规则栅格化，先定位到分级，取规则划分的位置
+	//等级在16-18 不规则栅格化，先定位到分级，取规则划分的位置
 	else if(16 <= level && level <= 18)
 		grid_num[0] = grid_num[1] = 30720;
 	else
 		grid_num[0] = grid_num[1] = num;
 
-	pixel_size[0] = pixel_size[1] = 512.0 / grid_num[0];
+	pixel_size = 512.0 / grid_num[0];
 
-	/* 计算 geometry 的包围网格 */
-	subextent.MinX = floor((src_env.MinX - global_box.left) / pixel_size[0]) * pixel_size[0] + global_box.left;
-    if (subextent.MinX > src_env.MinX)
-        subextent.MinX -= pixel_size[0];
-    subextent.MinY = floor((src_env.MinY - global_box.down) / pixel_size[1]) * pixel_size[1] + global_box.down;
-    if (subextent.MinY > src_env.MinY)
-        subextent.MinY -= pixel_size[1];
+	if (src_box)
+	{
+		src_env.MinX = src_box->xmin;
+		src_env.MaxX = src_box->xmax;
+		src_env.MinY = src_box->ymin;
+		src_env.MaxY = src_box->ymax;
 
-    vector<GridPos> record;
-	vector<GridPos> degree_record;
-	vector<GridPos> minute_record;
-	//如果是规则划分，则传入的为当前等级下的整个栅格左下角的坐标，否则为上一层级下的左下角坐标点
+		subextent.MinX = src_box->xmin;
+		subextent.MaxX = src_box->xmax;
+		subextent.MinY = src_box->ymin;
+		subextent.MaxY = src_box->ymax;
+	}
+	else
+	{
+		/* 计算 geometry 的包围网格 */
+		subextent.MinX = floor(src_env.MinX / pixel_size) * pixel_size;
+		if (subextent.MinX > src_env.MinX)
+			subextent.MinX -= pixel_size;
+		subextent.MinY = floor(src_env.MinY / pixel_size) * pixel_size;
+		if (subextent.MinY > src_env.MinY)
+			subextent.MinY -= pixel_size;
+		subextent.MaxX = ceil(src_env.MaxX / pixel_size) * pixel_size;
+		subextent.MaxY = ceil(src_env.MaxY / pixel_size) * pixel_size;
+	}
+
 	GridPos pos;
 	pos.x = subextent.MinX;
 	pos.y = subextent.MinY;
 	record.push_back(pos);
 
+	//如果是规则划分，则传入的为当前等级下的整个栅格左下角的坐标，否则为上一层级下的左下角坐标点
 	if (10 <= level && level <= 12)
 	{
 		//如果精度等级在10-12，为不规则栅格，其上层为规则栅格，先计算度级的网格并存储起来
-		RegularRasterize(_drv, src_geom, src_env, options, 9, UNIFIED_, geom_type, record, degree_record);
+		RegularRasterize(_drv, src_geom, src_env, subextent, options, 9, UNIFIED_, geom_type, record, degree_record);
 		//计算每个度级网格里的不规则栅格
 		int minutes_level = level - 9;
-		RegularRasterize(_drv, src_geom, src_env, options, minutes_level, MINUTE_, geom_type, degree_record, results);
+		RegularRasterize(_drv, src_geom, src_env, subextent, options, minutes_level, MINUTE_, geom_type, degree_record, results);
 	}
 	else if (16 <= level && level <= 18)
 	{
 		//如果精度等级在16-18，为不规则栅格，其上层为规则栅格，先计算分级的网格并存储起来
-		RegularRasterize(_drv, src_geom, src_env, options, 15, UNIFIED_, geom_type, record, minute_record);
+		RegularRasterize(_drv, src_geom, src_env, subextent, options, 15, UNIFIED_, geom_type, record, minute_record);
 		//计算每个分级网格里的不规则栅格
 		int seconds_level = level - 15;
-		RegularRasterize(_drv, src_geom, src_env, options, seconds_level, SECOND_, geom_type, minute_record, results);
+		RegularRasterize(_drv, src_geom, src_env, subextent, options, seconds_level, SECOND_, geom_type, minute_record, results);
 	}
 	else
-		RegularRasterize(_drv, src_geom, src_env, options, level, UNIFIED_, geom_type, record, results);
+		RegularRasterize(_drv, src_geom, src_env, subextent, options, level, UNIFIED_, geom_type, record, results);
 
     OGR_G_DestroyGeometry(src_geom);
     GDALClose(_ds);
@@ -191,7 +205,7 @@ void GridRasterize(const uint8_t *wkb, uint32_t wkb_len, const char *srs,
 
 /**
  * @brief 从 GDALDatasetH 中获取原始的栅格化数据
- * 
+ *
  * @param ds GDALDataset handler
  * @param grid_data 栅格化后的原始数据
  */
@@ -337,89 +351,71 @@ void RawFromGdalDataSet(GDALDatasetH ds, RawGridData &grid_data)
     }
 }
 
- /**
-  * Return raster results of geometry
-  * @param _drv : gdal 驱动
-  * @param src_geom : 源geometry
-  * @param src_env : 源geometry的包围框
-  * @param options ：操作方式
-  * @param level ：栅格化等级
-  * @param level_flag : 等级标志
-  * @param geom_type : geometry类型
-  * @param grid_record : 要栅格化的网格坐标点
-  * @param grid_back : 栅格化后的网格坐标点
-  */
-void RegularRasterize(GDALDriverH _drv, OGRGeometryH src_geom, OGREnvelope &src_env,
+/**
+ * Return raster results of geometry
+ * @param _drv : gdal 驱动
+ * @param src_geom : 源geometry
+ * @param src_env : 源geometry的包围框
+ * @param options ：操作方式
+ * @param level ：栅格化等级
+ * @param level_flag : 等级标志
+ * @param geom_type : geometry类型
+ * @param grid_record : 要栅格化的网格坐标点
+ * @param grid_back : 栅格化后的网格坐标点
+ */
+void RegularRasterize(GDALDriverH _drv, OGRGeometryH src_geom, OGREnvelope &src_env, rt_envelope subextent,
                       char **options, const int level, LevelFlag level_flag, uint32_t geom_type,
                       vector<GridPos> &grid_record, vector<GridPos> &grid_back)
 {
-    uint64_t grid_num[2] = {0};		//单边网格数目
- 	double pixel_size[2] = {0};		//像素大小 
- 	double _gt[6] = {0};			//栅格矩阵参数	
-    double nodata = 0;
-    double init = 0;
-    GDALDatasetH _ds = nullptr;
-    GDALRasterBandH _band = nullptr;
-    CPLErr cplerr;
-    RawGridData grid_data;
-    vector<GridPos> pos_results;
-    rt_envelope subextent;
-	GlobalBox global_box;
+	uint64_t grid_num[2] = {0};		//单边网格数目
+	double pixel_size = 0.;		//像素大小 
+	double _gt[6] = {0};			//栅格矩阵参数	
+	CPLErr cplerr;
+	GridPos pos;
+	double init = 0;
+	double nodata = 0;
+	GDALDatasetH _ds = nullptr;
+	GDALRasterBandH _band = nullptr;
+	RawGridData grid_data;
+	vector<GridPos> pos_results;
 
     grid_num[0] = grid_num[1] = pow(2, level);
 
 	switch (level_flag)
 	{
 	case UNIFIED_:
-        //此处是规则的栅格化，实际的格子数根据等级变化会有不同
-		if (level <= 9)
-			pixel_size[0] = pow(2, 9 - level);
-		else if (10 <= level && level <= 15)
-			pixel_size[0] = pow(2, 15 - level) / 60.0;
-		else if (16 <= level && level <= 32)
-			pixel_size[0] = pow(2, 21 - level) / 3600.0;
-		
-		pixel_size[1] = pixel_size[0];
-        subextent.MinX = floor((src_env.MinX - global_box.left) / pixel_size[0]) * pixel_size[0] + global_box.left;
-        if (subextent.MinX > src_env.MinX)
-            subextent.MinX -= pixel_size[0];
-        subextent.MinY = floor((src_env.MinY - global_box.down) / pixel_size[1]) * pixel_size[1] + global_box.down;
-        if (subextent.MinY > src_env.MinY)
-            subextent.MinY -= pixel_size[1];
-        subextent.MaxX = ceil((src_env.MaxX - global_box.left) / pixel_size[0]) * pixel_size[0] + global_box.left;
-		subextent.MaxY = ceil((src_env.MaxY - global_box.down) / pixel_size[1]) * pixel_size[1] + global_box.down;
-		// 要生成的矩阵长宽
-		grid_num[0] = ceil((subextent.MaxX - subextent.MinX) / pixel_size[0]) + 1;
-		grid_num[1] = ceil((subextent.MaxY - subextent.MinY) / pixel_size[0]) + 1;
+		// 此处是规则的栅格化，实际的格子数根据等级变化会有不同	
+		pixel_size = GetPixSize(level);
 
+		// 要生成的矩阵长宽
+		grid_num[0] = ceil((subextent.MaxX - subextent.MinX) / pixel_size) + 1;
+		grid_num[1] = ceil((subextent.MaxY - subextent.MinY) / pixel_size) + 1;
 		break;
 	case MINUTE_:
 		// 分级格子像素
-		pixel_size[0] = pixel_size[1] = pow(2, 6 - level) / 60.0;
+		pixel_size = pow(2, 6 - level) / 60.0;
 		break;
 	case SECOND_:
 		// 秒级格子像素
-		pixel_size[0] = pixel_size[1] = pow(2, 6 - level) / 3600.0;
+		pixel_size = pow(2, 6 - level) / 3600.0;
 		break;
 	}
 
 	grid_data.width = grid_num[0];
 	grid_data.height = grid_num[1];
 
-    //循环取出每一个上层网格的位置
-    for (GridPos grid : grid_record)
-    {
-        /**
-		 * @brief 设置变形矩阵
-		 * 如果 _gt[3] 为 miny 则 _gt[5] = pixel_size[1] raster 数据与图形方向相反
-		 * 如果 _gt[3] 为 maxy 则 _gt[5] = - pixel_size[1], 数据与图形方向相同
-		 */
-        _gt[0] = grid.x;
-        _gt[1] = pixel_size[0];
-        _gt[2] = 0;
-        _gt[3] = grid.y;
-        _gt[4] = 0;
-        _gt[5] = pixel_size[1];
+	// 循环取出每一个上层网格的位置
+	for (GridPos grid : grid_record)
+	{
+		// 设置变形矩阵
+		// 如果 _gt[3] 为 miny 则 _gt[5] = pixel_size[1] raster数据与图形方向相反
+		// 如果 _gt[5] 为 maxy 则 _gt[5] = - pixel_size[1], 数据与图形方向相同
+		_gt[0] = grid.x;
+		_gt[1] = pixel_size;
+		_gt[2] = 0;
+		_gt[3] = grid.y;
+		_gt[4] = 0;
+		_gt[5] = pixel_size;
 
         //创建 长*宽 大小的矩阵
         _ds = GDALCreate(_drv, "", grid_num[0], grid_num[1], 0, GDT_Byte, nullptr);
@@ -524,29 +520,29 @@ void RegularRasterize(GDALDriverH _drv, OGRGeometryH src_geom, OGREnvelope &src_
         RawFromGdalDataSet(_ds, grid_data);
         GDALClose(_ds);
 
-        //读取每一个方格内的小格网坐标信息
-        GridPos pos;
-        for (int i = 0; i < grid_data.height; i++)
-        {
-            for (int j = 0; j < grid_data.width; j++)
-            {
-                if (grid_data.val[i * grid_data.width + j] == 1)
-                {
-                    pos.x = grid.x + pixel_size[0] * j;
-                    pos.y = grid.y + pixel_size[1] * i;
-                    if (POINTTYPE == geom_type || LINETYPE == geom_type || MULTIPOINTTYPE == geom_type || MULTILINETYPE == geom_type)
-                    {
-                        if (pos.x <= src_env.MaxX && pos.y <= src_env.MaxY)
-                            grid_back.push_back(pos);
-                    }
-                    else
-                    {
-                        if (pos.x < src_env.MaxX && pos.y < src_env.MaxY)
-                            grid_back.push_back(pos);
-                    }
-                }
-            }
-        }
-        grid_data.val.clear();
-    }
+		//读取每一个方格内的小格网坐标信息
+		GridPos pos;
+		for (int i = 0; i < grid_data.height; i++)
+		{
+			for (int j = 0; j < grid_data.width; j++)
+			{
+				if (grid_data.val[i * grid_data.width + j] == 1)
+				{
+					pos.x = grid.x + pixel_size * j;
+					pos.y = grid.y + pixel_size * i;
+					if (POINTTYPE == geom_type || LINETYPE == geom_type || MULTIPOINTTYPE == geom_type || MULTILINETYPE == geom_type)
+					{
+						if (pos.x <= src_env.MaxX && pos.y <= src_env.MaxY)
+							grid_back.push_back(pos);
+					}
+					else
+					{
+						if (pos.x < src_env.MaxX && pos.y < src_env.MaxY && (pos.x + pixel_size) > src_env.MinX && (pos.y + pixel_size) > src_env.MinY)
+							grid_back.push_back(pos);
+					}
+				}
+			}
+		}
+		grid_data.val.clear();
+	}
 }

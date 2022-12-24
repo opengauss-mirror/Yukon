@@ -7,5 +7,5 @@ set client_min_messages to WARNING;
 \i ../topo_predicates.sql
 
 -- clean up
-SELECT topology.DropTopology('city_data');
+SELECT public.DropTopology('city_data');
 DROP SCHEMA features CASCADE;

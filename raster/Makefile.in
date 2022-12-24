@@ -19,8 +19,8 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #############################################################################
 
-CC=@CC@
-CFLAGS=-I../liblwgeom @CFLAGS@
+CC=@CXX@
+CFLAGS=-I../liblwgeom 
 LDFLAGS = @LDFLAGS@
 
 all: @RT_CORE_LIB@ @RT_PG_LIB@ @RT_LOADER@ @RT_POSTGIS_SQL@

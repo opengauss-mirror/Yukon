@@ -12,19 +12,19 @@
 -- argument names changed --
 -- we might want to take toTopoGeom one out before release since
 -- I don't think too many people installed the bad name
-DROP FUNCTION IF EXISTS topology.toTopoGeom(Geometry, varchar, int, float8);
+DROP FUNCTION IF EXISTS public.toTopoGeom(Geometry, varchar, int, float8);
 
 -- used to be in public, will now be moved to topology
 DROP FUNCTION IF EXISTS postgis_topology_scripts_installed();
 
 -- Removed in 2.2.0 when topology API moved to liblwgeom
-DROP FUNCTION IF EXISTS topology._ST_RemEdgeCheck(varchar, integer, integer, integer, integer);
-DROP FUNCTION IF EXISTS topology._ST_AddFaceSplit(varchar, integer, integer, boolean);
+DROP FUNCTION IF EXISTS public._ST_RemEdgeCheck(varchar, integer, integer, integer, integer);
+DROP FUNCTION IF EXISTS public._ST_AddFaceSplit(varchar, integer, integer, boolean);
 
 -- Added optional bbox parameter in 3.2.0
-DROP FUNCTION IF EXISTS topology.validatetopology(varchar);
+DROP FUNCTION IF EXISTS public.validatetopology(varchar);
 
 -- Merged the two function into one with both allowEdgeSplitting and setContainingFace parameters
 -- being optional (3.2.0)
-DROP FUNCTION IF EXISTS topology.AddNode(varchar, geometry);
-DROP FUNCTION IF EXISTS topology.AddNode(varchar, geometry, boolean, boolean);
+DROP FUNCTION IF EXISTS public.AddNode(varchar, geometry);
+DROP FUNCTION IF EXISTS public.AddNode(varchar, geometry, boolean, boolean);
