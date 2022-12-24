@@ -29,15 +29,15 @@
 --
 -- Append a TopoElement to a TopoElementArray
 --
-CREATE OR REPLACE FUNCTION topology.TopoElementArray_append(topology.TopoElementArray, topology.TopoElement)
-	RETURNS topology.TopoElementArray
+CREATE OR REPLACE FUNCTION public.TopoElementArray_append(public.TopoElementArray, public.TopoElement)
+	RETURNS public.TopoElementArray
 AS
 $$
 	SELECT CASE
 		WHEN $1 IS NULL THEN
-			topology.TopoElementArray('{' || $2::text || '}')
+			public.TopoElementArray('{' || $2::text || '}')
 		ELSE
-			topology.TopoElementArray($1::int[][]||$2::int[])
+			public.TopoElementArray($1::int[][]||$2::int[])
 		END;
 $$
 LANGUAGE 'sql' IMMUTABLE;
@@ -50,10 +50,10 @@ LANGUAGE 'sql' IMMUTABLE;
 -- Aggregates a set of TopoElement values into a TopoElementArray
 --
 -- Availability: 2.0.0
-DROP AGGREGATE IF EXISTS topology.TopoElementArray_agg(topology.TopoElement);
-CREATE AGGREGATE topology.TopoElementArray_agg(
-	sfunc = topology.TopoElementArray_append,
-	basetype = topology.TopoElement,
-	stype = topology.TopoElementArray
+DROP AGGREGATE IF EXISTS public.TopoElementArray_agg(public.TopoElement);
+CREATE AGGREGATE public.TopoElementArray_agg(
+	sfunc = public.TopoElementArray_append,
+	basetype = public.TopoElement,
+	stype = public.TopoElementArray
 	);
 --} TopoElementArray_agg

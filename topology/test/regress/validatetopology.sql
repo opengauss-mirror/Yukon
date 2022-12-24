@@ -4,7 +4,7 @@ set client_min_messages to ERROR;
 -- TODO: merge legacy_validate.sql here
 
 -- See ticket #1789
-select null from ( select topology.CreateTopology('t') > 0 ) as ct;
+select null from ( select public.CreateTopology('t') > 0 ) as ct;
 COPY t.node (node_id, containing_face, geom) FROM stdin;
 1	\N	01010000000000000000E065C002000000008056C0
 2	\N	01010000000000000000E065C000000000008056C0
@@ -20,12 +20,12 @@ SELECT '#1789', '---', null, null ORDER BY 1,2,3,4;
 SELECT '#1797', (ValidateTopology('t')).* UNION
 SELECT '#1797', '---', null, null ORDER BY 1,2,3,4;
 
-select null from ( select topology.DropTopology('t') ) as dt;
+select null from ( select public.DropTopology('t') ) as dt;
 
 -- Test correctness of node.containing_face
 -- See https://trac.osgeo.org/postgis/ticket/3233
 
-SELECT null from ( select topology.CreateTopology('t') ) as ct;
+SELECT null from ( select public.CreateTopology('t') ) as ct;
 SELECT null from ( select TopoGeo_addPolygon('t', 'POLYGON((0 0,10 0,10 10,0 10,0 0))') ) af;
 SELECT null from ( select TopoGeo_addPoint('t', 'POINT(5 5)') ) ap;
 SELECT '#3233.0', (ValidateTopology('t')).* UNION
@@ -43,7 +43,7 @@ UPDATE t.node SET containing_face = 1 WHERE ST_Equals(geom, 'POINT(5 5)');
 UPDATE t.node SET containing_face = 0 WHERE NOT ST_Equals(geom, 'POINT(5 5)');
 SELECT '#3233.3', (ValidateTopology('t')).* UNION
 SELECT '#3233.3', '---', null, null ORDER BY 1,2,3,4;
-SELECT null from ( select topology.DropTopology('t') ) as dt;
+SELECT null from ( select public.DropTopology('t') ) as dt;
 
 -------------------------------------------------------------
 -- Following tests will use the city_data topology as a base
@@ -156,5 +156,5 @@ SELECT '#5017.2', (ValidateTopology('city_data')).error;
 SELECT '#5017.3', (ValidateTopology('city_data')).error;
 ROLLBACK;
 
-SELECT NULL FROM topology.DropTopology('city_data');
+SELECT NULL FROM public.DropTopology('city_data');
 

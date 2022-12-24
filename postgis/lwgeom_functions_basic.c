@@ -43,6 +43,8 @@
 #define xstr(s) str(s)
 #define str(s) #s
 
+#define YUKON_VERSION "1.0.1"
+
 extern "C" Datum LWGEOM_mem_size(PG_FUNCTION_ARGS);
 extern "C" Datum LWGEOM_summary(PG_FUNCTION_ARGS);
 extern "C" Datum LWGEOM_npoints(PG_FUNCTION_ARGS);
@@ -51,6 +53,7 @@ extern "C" Datum ST_Area(PG_FUNCTION_ARGS);
 extern "C" Datum ST_AreaParam(PG_FUNCTION_ARGS);
 extern "C" Datum postgis_scripts_released(PG_FUNCTION_ARGS);
 extern "C" Datum postgis_version(PG_FUNCTION_ARGS);
+extern "C" Datum yukon_version(PG_FUNCTION_ARGS);
 extern "C" Datum postgis_liblwgeom_version(PG_FUNCTION_ARGS);
 extern "C" Datum postgis_lib_version(PG_FUNCTION_ARGS);
 extern "C" Datum postgis_svn_version(PG_FUNCTION_ARGS);
@@ -180,6 +183,18 @@ Datum postgis_version(PG_FUNCTION_ARGS)
 {
 	char *ver = POSTGIS_VERSION;
 	text *result = cstring_to_text(ver);
+	PG_RETURN_TEXT_P(result);
+}
+
+PG_FUNCTION_INFO_V1(yukon_version);
+Datum yukon_version(PG_FUNCTION_ARGS)
+{
+	char src[100] = {0};
+	char *ver = YUKON_VERSION;
+	char *compileinfo = COMPILEINFO;
+	strcat(src, ver);
+	strcat(src, compileinfo);
+	text *result = cstring_to_text(src);
 	PG_RETURN_TEXT_P(result);
 }
 

@@ -48,7 +48,7 @@ if [ ! "$NO_SRS" = "true" ]; then
 	SCRIPTS="${SCRIPTS} @datadir@/spatial_ref_sys.sql"
 fi
 if [ ! "$NO_TOPO" = "true" ]; then
-	GRTABLES="${GRTABLES} topology.topology topology.layer topology.topology_id_seq"
+	GRTABLES="${GRTABLES} public.topology public.layer public.topology_id_seq"
 	GRSCHEMAS="${GRSCHEMAS} topology"
     TMPTOPO=/tmp/topology_$$.sql
 	cat @datadir@/topology.sql | awk -v GRUSER=$GRUSER \

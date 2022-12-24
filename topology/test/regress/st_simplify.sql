@@ -30,7 +30,7 @@ INSERT INTO _test_layers SELECT 2,
   FROM _test_layers WHERE id = 1;
 SELECT 'L' || layer_id FROM _test_layers WHERE id = 2;
 INSERT INTO tt.bigareas (tg) SELECT
-  topology.CreateTopoGeom( 'tt', 3,
+  public.CreateTopoGeom( 'tt', 3,
     (select layer_id from _test_layers where id = 2),
     TopoElementArray_agg(ARRAY[r.topogeo_id, r.layer_id]))
   FROM tt.relation r, _test_layers l1

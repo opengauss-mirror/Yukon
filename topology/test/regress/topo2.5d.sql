@@ -1,7 +1,7 @@
 \set VERBOSITY terse
 set client_min_messages to WARNING;
 
-SELECT topology.CreateTopology('tt3d', -1, 0, true) > 0;
+SELECT public.CreateTopology('tt3d', -1, 0, true) > 0;
 
 COPY tt3d.face(face_id) FROM STDIN;
 1
@@ -23,31 +23,31 @@ COPY tt3d.edge_data(
 
 -- 2.5d face geometries
 CREATE TABLE public.faces (id serial);
-SELECT topology.AddTopoGeometryColumn('tt3d', 'public', 'faces', 'g',
+SELECT public.AddTopoGeometryColumn('tt3d', 'public', 'faces', 'g',
 	'POLYGON');
 INSERT INTO public.faces (g) VALUES (
-  topology.CreateTopoGeom(
+  public.CreateTopoGeom(
     'tt3d', -- Topology name
     3, -- Topology geometry type (polygon/multipolygon)
-    1, -- TG_LAYER_ID for this topology (from topology.layer)
+    1, -- TG_LAYER_ID for this topology (from public.layer)
     '{{1,3}}') -- face_id:1
     );
 
 -- 2.5d line geometries
 CREATE TABLE lines (id serial);
-SELECT topology.AddTopoGeometryColumn('tt3d', 'public', 'lines', 'g',
+SELECT public.AddTopoGeometryColumn('tt3d', 'public', 'lines', 'g',
 	'LINE');
 INSERT INTO public.lines (g) VALUES (
-  topology.CreateTopoGeom(
+  public.CreateTopoGeom(
     'tt3d', -- Topology name
     2, -- Topology geometry type (lineal)
-    2, -- TG_LAYER_ID for this topology (from topology.layer)
+    2, -- TG_LAYER_ID for this topology (from public.layer)
     '{{1,2},{2,2}}') -- edge_id:1 edge_id:2
     );
 
-SELECT 'f'||id, ST_AsEWKT(topology.geometry(g)) from faces;
-SELECT 'l'||id, ST_AsEWKT(topology.geometry(g)) from public.lines;
+SELECT 'f'||id, ST_AsEWKT(public.geometry(g)) from faces;
+SELECT 'l'||id, ST_AsEWKT(public.geometry(g)) from public.lines;
 
-SELECT topology.DropTopology('tt3d');
+SELECT public.DropTopology('tt3d');
 DROP TABLE lines;
 DROP TABLE faces;

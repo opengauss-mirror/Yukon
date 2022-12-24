@@ -43,13 +43,13 @@
 -- FUNCTION CreateTopology(name, [srid], [precision])
 --  Initialize a new topology (creating schema with
 --  edge,face,node,relation) and add a record into
---  the topology.topology table.
+--  the public.topology table.
 --  TODO: add triggers (or rules, or whatever) enforcing
 --        precision to the edge and node tables.
 --
 -- FUNCTION DropTopology(name)
 --    Delete a topology removing reference from the
---    topology.topology table
+--    public.topology table
 --
 -- FUNCTION GetTopologyId(name)
 -- FUNCTION GetTopologySRID(name)
@@ -208,7 +208,7 @@ BEGIN;
 -- Topology table.
 -- Stores id,name,precision and SRID of topologies.
 --
-CREATE TABLE topology.topology (
+CREATE TABLE public.topology (
   id SERIAL NOT NULL PRIMARY KEY,
   name VARCHAR NOT NULL UNIQUE,
   SRID INTEGER NOT NULL,
@@ -220,7 +220,7 @@ CREATE TABLE topology.topology (
 --
 -- Layer integrity trigger
 --
-CREATE OR REPLACE FUNCTION topology.LayerTrigger()
+CREATE OR REPLACE FUNCTION public.LayerTrigger()
   RETURNS trigger
 AS
 $$
@@ -236,7 +236,7 @@ BEGIN
   IF TG_OP = 'INSERT' THEN
     RAISE EXCEPTION 'LayerTrigger not meant to be called on INSERT';
   ELSIF TG_OP = 'UPDATE' THEN
-    RAISE EXCEPTION 'The topology.layer table cannot be updated';
+    RAISE EXCEPTION 'The public.layer table cannot be updated';
   END IF;
 
   -- Check for existance of any feature column referencing
@@ -264,7 +264,7 @@ BEGIN
   END LOOP;
 
   -- Get topology name
-  SELECT name FROM topology.topology INTO toponame
+  SELECT name FROM public.topology INTO toponame
     WHERE id = OLD.topology_id;
 
   IF toponame IS NULL THEN
@@ -300,9 +300,9 @@ LANGUAGE 'plpgsql' VOLATILE STRICT;
 -- Layer table.
 -- Stores topology layer informations
 --
-CREATE TABLE topology.layer (
+CREATE TABLE public.layer (
   topology_id INTEGER NOT NULL
-    REFERENCES topology.topology(id),
+    REFERENCES public.topology(id),
   layer_id integer NOT NULL,
   schema_name VARCHAR NOT NULL,
   table_name VARCHAR NOT NULL,
@@ -315,18 +315,18 @@ CREATE TABLE topology.layer (
 );
 
 CREATE TRIGGER layer_integrity_checks BEFORE UPDATE OR DELETE
-ON topology.layer FOR EACH ROW EXECUTE PROCEDURE topology.LayerTrigger();
+ON public.layer FOR EACH ROW EXECUTE PROCEDURE public.LayerTrigger();
 
 --} Layer table.
 
 --
 -- TopoGeometry type
 --
-CREATE TYPE topology.TopoGeometry AS (
+CREATE TYPE public.TopoGeometry AS (
   topology_id integer,
   layer_id integer,
   id integer,
-  type integer -- 1: [multi]point, 2: [multi]line,
+  type_ integer -- 1: [multi]point, 2: [multi]line,
                -- 3: [multi]polygon, 4: collection
 );
 
@@ -346,19 +346,19 @@ CREATE TYPE topology.TopoGeometry AS (
 -- element_type will be the child layer identifier and
 -- element_id will be composing TopoGeometry identifier
 --
-CREATE DOMAIN topology.TopoElement AS integer[]
+CREATE DOMAIN public.TopoElement AS integer[]
   CONSTRAINT DIMENSIONS CHECK (
     array_upper(VALUE, 2) IS NULL
     AND array_upper(VALUE, 1) = 2
   );
-ALTER DOMAIN topology.TopoElement ADD
+ALTER DOMAIN public.TopoElement ADD
         CONSTRAINT lower_dimension CHECK (
     array_lower(VALUE, 1) = 1
   );
-ALTER DOMAIN topology.TopoElement DROP CONSTRAINT
+ALTER DOMAIN public.TopoElement DROP CONSTRAINT
   IF EXISTS
   type_range;
-ALTER DOMAIN topology.TopoElement ADD
+ALTER DOMAIN public.TopoElement ADD
         CONSTRAINT type_range CHECK (
     VALUE[2] > 0
   );
@@ -367,19 +367,19 @@ ALTER DOMAIN topology.TopoElement ADD
 -- TopoElementArray domain
 --
 -- Changed: 3.1.0 - get rid of IS NOT NULL check
-CREATE DOMAIN topology.TopoElementArray AS integer[][]
+CREATE DOMAIN public.TopoElementArray AS integer[][]
   CONSTRAINT DIMENSIONS CHECK (
     array_upper(VALUE, 2) = 2
     AND array_upper(VALUE, 3) IS NULL
   );
 
 -- Changed: 3.1.0
-ALTER DOMAIN topology.TopoElementArray DROP CONSTRAINT
+ALTER DOMAIN public.TopoElementArray DROP CONSTRAINT
   IF EXISTS
   DIMENSIONS;
 
 -- Changed: 3.1.0 - get rid of IS NOT NULL check
-ALTER DOMAIN topology.TopoElementArray ADD
+ALTER DOMAIN public.TopoElementArray ADD
         CONSTRAINT type_range CHECK (
     array_upper(VALUE, 2) = 2
     AND array_upper(VALUE, 3) IS NULL
@@ -389,7 +389,7 @@ ALTER DOMAIN topology.TopoElementArray ADD
 --
 -- Relation integrity trigger
 --
-CREATE OR REPLACE FUNCTION topology.RelationTrigger()
+CREATE OR REPLACE FUNCTION public.RelationTrigger()
   RETURNS trigger
 AS
 $$
@@ -416,7 +416,7 @@ BEGIN
 
   -- Get layer info (and verify it exists)
   ok = false;
-  FOR plyr IN EXECUTE 'SELECT * FROM topology.layer '
+  FOR plyr IN EXECUTE 'SELECT * FROM public.layer '
        'WHERE '
        ' topology_id = ' || topoid
     || ' AND'
@@ -543,7 +543,7 @@ LANGUAGE 'plpgsql' VOLATILE STRICT;
 --  Returns created layer id.
 --
 --
-CREATE OR REPLACE FUNCTION topology.AddTopoGeometryColumn(toponame varchar, schema varchar, tbl varchar, col varchar, ltype varchar, child integer)
+CREATE OR REPLACE FUNCTION public.AddTopoGeometryColumn(toponame varchar, schema varchar, tbl varchar, col varchar, ltype varchar, child integer)
   RETURNS integer
 AS
 $$
@@ -558,7 +558,7 @@ BEGIN
 
   -- Get topology id
   SELECT id INTO topoid
-    FROM topology.topology WHERE name = toponame;
+    FROM public.topology WHERE name = toponame;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Topology % does not exist', quote_literal(toponame);
@@ -582,13 +582,13 @@ BEGIN
   EXECUTE 'ALTER TABLE ' || quote_ident(schema)
     || '.' || quote_ident(tbl)
     || ' ADD COLUMN ' || quote_ident(col)
-    || ' topology.TopoGeometry;';
+    || ' public.TopoGeometry;';
 
   --
   -- See if child id exists and extract its level
   --
   IF child IS NOT NULL THEN
-    SELECT level + 1 FROM topology.layer
+    SELECT level + 1 FROM public.layer
       WHERE layer_id = child
         AND topology_id = topoid
       INTO newlevel;
@@ -606,7 +606,7 @@ BEGIN
     ) || ')' INTO STRICT newlayer_id;
 
   EXECUTE 'INSERT INTO '
-       'topology.layer(topology_id, '
+       'public.layer(topology_id, '
        'layer_id, level, child_id, schema_name, '
        'table_name, feature_column, feature_type) '
        'VALUES ('
@@ -634,7 +634,7 @@ BEGIN
     || ' AND '
        'layer_id(' || quote_ident(col) || ') = ' || newlayer_id
     || ' AND '
-       'type(' || quote_ident(col) || ') = ' || intltype
+       'type_(' || quote_ident(col) || ') = ' || intltype
     || ');';
 
   --
@@ -695,11 +695,11 @@ $$
 LANGUAGE 'plpgsql' VOLATILE;
 --}{ AddTopoGeometryColumn
 
-CREATE OR REPLACE FUNCTION topology.AddTopoGeometryColumn(varchar, varchar, varchar, varchar, varchar)
+CREATE OR REPLACE FUNCTION public.AddTopoGeometryColumn(varchar, varchar, varchar, varchar, varchar)
   RETURNS integer
 AS
 $$
-  SELECT topology.AddTopoGeometryColumn($1, $2, $3, $4, $5, NULL);
+  SELECT public.AddTopoGeometryColumn($1, $2, $3, $4, $5, NULL);
 $$
 LANGUAGE 'sql' VOLATILE;
 
@@ -713,7 +713,7 @@ LANGUAGE 'sql' VOLATILE;
 --  cleanup the relation table.
 --
 --
-CREATE OR REPLACE FUNCTION topology.DropTopoGeometryColumn(schema varchar, tbl varchar, col varchar)
+CREATE OR REPLACE FUNCTION public.DropTopoGeometryColumn(schema varchar, tbl varchar, col varchar)
   RETURNS text
 AS
 $$
@@ -727,7 +727,7 @@ BEGIN
   -- Get layer and topology info
   ok = false;
   FOR rec IN EXECUTE 'SELECT t.name as toponame, l.* FROM '
-       'topology.topology t, topology.layer l '
+       'public.topology t, public.layer l '
        ' WHERE l.topology_id = t.id'
        ' AND l.schema_name = ' || quote_literal(schema)
     || ' AND l.table_name = ' || quote_literal(tbl)
@@ -782,7 +782,7 @@ BEGIN
   END IF;
 
   -- Delete the layer record
-  EXECUTE 'DELETE FROM topology.layer '
+  EXECUTE 'DELETE FROM public.layer '
        ' WHERE topology_id = ' || lyrinfo.topology_id
     || ' AND layer_id = ' || lyrinfo.layer_id;
 
@@ -802,19 +802,19 @@ LANGUAGE 'plpgsql' VOLATILE;
 --
 -- populate_topology_layer
 --
--- Register missing layers into topology.topology, looking at
+-- Register missing layers into public.topology, looking at
 -- their constraints.
 --
 -- The function doesn't attempt to determine if a layer is
 -- hierarchical or primitive, but always assumes primitive.
 --
 -- }{
-DROP FUNCTION IF EXISTS topology.populate_topology_layer();
-CREATE OR REPLACE FUNCTION topology.populate_topology_layer()
+DROP FUNCTION IF EXISTS public.populate_topology_layer();
+CREATE OR REPLACE FUNCTION public.populate_topology_layer()
 	RETURNS TABLE(schema_name text, table_name text, feature_column text)
 AS
 $$
-  INSERT INTO topology.layer
+  INSERT INTO public.layer
   WITH checks AS (
   SELECT
     n.nspname sch, r.relname tab,
@@ -833,7 +833,7 @@ $$
           sch, tab, col, inf[3]::int as feature_type --, src
     FROM checks c
     WHERE NOT EXISTS (
-      SELECT * FROM topology.layer l
+      SELECT * FROM public.layer l
       WHERE l.schema_name = c.sch
         AND l.table_name = c.tab
         AND l.feature_column = c.col
@@ -869,10 +869,10 @@ LANGUAGE 'sql' VOLATILE;
 --
 -- @param tg_objs Array of components
 --
--- Return a topology.TopoGeometry object.
+-- Return a public.TopoGeometry object.
 --
-CREATE OR REPLACE FUNCTION topology.CreateTopoGeom(toponame varchar, tg_type integer, layer_id integer, tg_objs topology.TopoElementArray)
-  RETURNS topology.TopoGeometry
+CREATE OR REPLACE FUNCTION public.CreateTopoGeom(toponame varchar, tg_type integer, layer_id integer, tg_objs public.TopoElementArray)
+  RETURNS public.TopoGeometry
 AS
 $$
 DECLARE
@@ -882,7 +882,7 @@ DECLARE
   innerdims varchar;
   obj_type integer;
   obj_id integer;
-  ret topology.TopoGeometry;
+  ret public.TopoGeometry;
   rec RECORD;
   layertype integer;
   layerlevel integer;
@@ -895,7 +895,7 @@ BEGIN
 
   -- Get topology id into return TopoGeometry
   SELECT id INTO ret.topology_id
-    FROM topology.topology WHERE name = toponame;
+    FROM public.topology WHERE name = toponame;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Topology % does not exist', quote_literal(toponame);
@@ -905,7 +905,7 @@ BEGIN
   -- Get layer info
   --
   layertype := NULL;
-  FOR rec IN EXECUTE 'SELECT * FROM topology.layer'
+  FOR rec IN EXECUTE 'SELECT * FROM public.layer'
        ' WHERE topology_id = ' || ret.topology_id
     || ' AND layer_id = ' || layer_id
   LOOP
@@ -927,7 +927,7 @@ BEGIN
 
   -- Set layer id and type in return object
   ret.layer_id = layer_id;
-  ret.type = tg_type;
+  ret.type_ = tg_type;
 
   --
   -- Get new TopoGeo id from sequence
@@ -992,11 +992,11 @@ LANGUAGE 'plpgsql' VOLATILE STRICT;
 
 --{
 -- CreateTopoGeom(topology_name, topogeom_type, layer_id) - creates the empty topogeom
-CREATE OR REPLACE FUNCTION topology.CreateTopoGeom(toponame varchar, tg_type integer, layer_id integer)
-  RETURNS topology.TopoGeometry
+CREATE OR REPLACE FUNCTION public.CreateTopoGeom(toponame varchar, tg_type integer, layer_id integer)
+  RETURNS public.TopoGeometry
 AS
 $$
-  SELECT topology.CreateTopoGeom($1,$2,$3,'{{0,0}}');
+  SELECT public.CreateTopoGeom($1,$2,$3,'{{0,0}}');
 $$ LANGUAGE 'sql' VOLATILE STRICT;
 --} CreateTopoGeom(toponame, topogeom_type, layer_id)
 
@@ -1005,14 +1005,14 @@ $$ LANGUAGE 'sql' VOLATILE STRICT;
 --
 -- TODO: rewrite in SQL ?
 --
-CREATE OR REPLACE FUNCTION topology.GetTopologyName(topoid integer)
+CREATE OR REPLACE FUNCTION public.GetTopologyName(topoid integer)
   RETURNS varchar
 AS
 $$
 DECLARE
   ret varchar;
 BEGIN
-        SELECT name FROM topology.topology into ret
+        SELECT name FROM public.topology into ret
                 WHERE id = topoid;
   RETURN ret;
 END
@@ -1025,7 +1025,7 @@ LANGUAGE 'plpgsql' STABLE STRICT;
 --
 -- TODO: rewrite in SQL ?
 --
-CREATE OR REPLACE FUNCTION topology.GetTopologyId(toponame varchar)
+CREATE OR REPLACE FUNCTION public.GetTopologyId(toponame varchar)
   RETURNS integer
 AS
 $$
@@ -1033,7 +1033,7 @@ DECLARE
   ret integer;
 BEGIN
   SELECT id INTO ret
-    FROM topology.topology WHERE name = toponame;
+    FROM public.topology WHERE name = toponame;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Topology % does not exist', quote_literal(toponame);
@@ -1048,10 +1048,10 @@ LANGUAGE 'plpgsql' STABLE STRICT;
 --{
 -- GetTopologySRID(toponame)
 --
-CREATE OR REPLACE FUNCTION topology.GetTopologySRID(toponame varchar)
+CREATE OR REPLACE FUNCTION public.GetTopologySRID(toponame varchar)
   RETURNS integer
 AS $$
-  SELECT SRID FROM topology.topology WHERE name = $1;
+  SELECT SRID FROM public.topology WHERE name = $1;
 $$ LANGUAGE 'sql' STABLE STRICT;
 --} GetTopologySRID(toponame)
 
@@ -1061,8 +1061,8 @@ $$ LANGUAGE 'sql' STABLE STRICT;
 --
 -- Returns a set of element_id,element_type
 --
-CREATE OR REPLACE FUNCTION topology.GetTopoGeomElementArray(toponame varchar, layer_id integer, tgid integer)
-  RETURNS topology.TopoElementArray
+CREATE OR REPLACE FUNCTION public.GetTopoGeomElementArray(toponame varchar, layer_id integer, tgid integer)
+  RETURNS public.TopoElementArray
 AS
 $$
 DECLARE
@@ -1072,7 +1072,7 @@ DECLARE
   query text;
 BEGIN
 
-  query = 'SELECT * FROM topology.GetTopoGeomElements('
+  query = 'SELECT * FROM public.GetTopoGeomElements('
     || quote_literal(toponame) || ','
     || quote_literal(layer_id) || ','
     || quote_literal(tgid)
@@ -1103,15 +1103,15 @@ END;
 $$
 LANGUAGE 'plpgsql' STABLE STRICT;
 
-CREATE OR REPLACE FUNCTION topology.GetTopoGeomElementArray(tg topology.TopoGeometry)
-  RETURNS topology.TopoElementArray
+CREATE OR REPLACE FUNCTION public.GetTopoGeomElementArray(tg public.TopoGeometry)
+  RETURNS public.TopoElementArray
 AS
 $$
 DECLARE
   toponame varchar;
 BEGIN
-  toponame = topology.GetTopologyName(tg.topology_id);
-  RETURN topology.GetTopoGeomElementArray(toponame, tg.layer_id, tg.id);
+  toponame = public.GetTopologyName(tg.topology_id);
+  RETURN public.GetTopoGeomElementArray(toponame, tg.layer_id, tg.id);
 END;
 $$
 LANGUAGE 'plpgsql' STABLE STRICT;
@@ -1124,12 +1124,12 @@ LANGUAGE 'plpgsql' STABLE STRICT;
 --
 -- Returns a set of element_id,element_type
 --
-CREATE OR REPLACE FUNCTION topology.GetTopoGeomElements(toponame varchar, layerid integer, tgid integer)
-  RETURNS SETOF topology.TopoElement
+CREATE OR REPLACE FUNCTION public.GetTopoGeomElements(toponame varchar, layerid integer, tgid integer)
+  RETURNS SETOF public.TopoElement
 AS
 $$
 DECLARE
-  ret topology.TopoElement;
+  ret public.TopoElement;
   rec RECORD;
   rec2 RECORD;
   query text;
@@ -1141,14 +1141,14 @@ BEGIN
 
   -- Get topology id
   SELECT id INTO topoid
-    FROM topology.topology WHERE name = toponame;
+    FROM public.topology WHERE name = toponame;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Topology % does not exist', quote_literal(toponame);
   END IF;
 
   -- Get layer info
   ok = false;
-  FOR rec IN EXECUTE 'SELECT * FROM topology.layer '
+  FOR rec IN EXECUTE 'SELECT * FROM public.layer '
        ' WHERE layer_id = $1 AND topology_id = $2'
        USING layerid, topoid
   LOOP
@@ -1171,7 +1171,7 @@ BEGIN
   FOR rec IN EXECUTE query
   LOOP
     IF lyr.level > 0 THEN
-      query2 = 'SELECT * from topology.GetTopoGeomElements('
+      query2 = 'SELECT * from public.GetTopoGeomElements('
         || quote_literal(toponame) || ','
         || rec.element_type
         || ','
@@ -1194,16 +1194,16 @@ END;
 $$
 LANGUAGE 'plpgsql' STABLE STRICT;
 
-CREATE OR REPLACE FUNCTION topology.GetTopoGeomElements(tg topology.TopoGeometry)
-  RETURNS SETOF topology.TopoElement
+CREATE OR REPLACE FUNCTION public.GetTopoGeomElements(tg public.TopoGeometry)
+  RETURNS SETOF public.TopoElement
 AS
 $$
 DECLARE
   toponame varchar;
   rec RECORD;
 BEGIN
-  toponame = topology.GetTopologyName(tg.topology_id);
-  FOR rec IN SELECT * FROM topology.GetTopoGeomElements(toponame,
+  toponame = public.GetTopologyName(tg.topology_id);
+  FOR rec IN SELECT * FROM public.GetTopoGeomElements(toponame,
     tg.layer_id,tg.id) as ret
   LOOP
     RETURN NEXT rec.ret;
@@ -1221,13 +1221,13 @@ LANGUAGE 'plpgsql' STABLE STRICT;
 -- Construct a Geometry from a TopoGeometry.
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology.Geometry(topogeom topology.TopoGeometry)
+CREATE OR REPLACE FUNCTION public.Geometry(topogeom public.TopoGeometry)
   RETURNS Geometry
 AS $BODY$
 DECLARE
   toponame varchar;
   toposrid INT;
-  geom geometry;
+  geom public.geometry;
   elements_count INT;
   rec RECORD;
   plyr RECORD;
@@ -1236,7 +1236,7 @@ DECLARE
 BEGIN
 
   -- Get topology name
-  SELECT name, srid FROM topology.topology
+  SELECT name, srid FROM public.topology
   WHERE id = topogeom.topology_id
   INTO toponame, toposrid;
   IF toponame IS NULL THEN
@@ -1244,7 +1244,7 @@ BEGIN
   END IF;
 
   -- Get layer info
-  SELECT * FROM topology.layer
+  SELECT * FROM public.layer
     WHERE topology_id = topogeom.topology_id
     AND layer_id = topogeom.layer_id
     INTO plyr;
@@ -1260,14 +1260,14 @@ BEGIN
   IF plyr.level > 0 THEN -- {
 
     -- Get child layer info
-    SELECT * FROM topology.layer WHERE layer_id = plyr.child_id
+    SELECT * FROM public.layer WHERE layer_id = plyr.child_id
       AND topology_id = topogeom.topology_id
       INTO clyr;
     IF clyr IS NULL THEN
       RAISE EXCEPTION 'Invalid layer % in topology % (unexistent child layer %)', topogeom.layer_id, topogeom.topology_id, plyr.child_id;
     END IF;
 
-    sql := 'SELECT st_multi(st_union(topology.Geometry('
+    sql := 'SELECT st_multi(st_union(public.Geometry('
       || quote_ident(clyr.feature_column)
       || '))) as geom FROM '
       || quote_ident(clyr.schema_name) || '.'
@@ -1286,7 +1286,7 @@ BEGIN
     --RAISE DEBUG '%', query;
     EXECUTE sql INTO geom;
 
-  ELSIF topogeom.type = 3 THEN -- [multi]polygon -- }{
+  ELSIF topogeom.type_ = 3 THEN -- [multi]polygon -- }{
 
     sql := format(
       $$
@@ -1294,7 +1294,7 @@ SELECT
   count(element_id),
   ST_Multi(
     ST_Union(
-      topology.ST_GetFaceGeometry(
+      public.ST_GetFaceGeometry(
         %1$L,
         element_id
       )
@@ -1324,7 +1324,7 @@ AND element_type = 3
     ;
 #endif
 
-  ELSIF topogeom.type = 2 THEN -- [multi]line -- }{
+  ELSIF topogeom.type_ = 2 THEN -- [multi]line -- }{
 
     sql := format(
       $$
@@ -1351,7 +1351,7 @@ AND abs(r.element_id) = e.edge_id
     );
     EXECUTE sql USING topogeom INTO geom;
 
-  ELSIF topogeom.type = 1 THEN -- [multi]point -- }{
+  ELSIF topogeom.type_ = 1 THEN -- [multi]point -- }{
 
     sql :=
       'SELECT st_multi(st_union(n.geom)) as g FROM '
@@ -1363,10 +1363,10 @@ AND abs(r.element_id) = e.edge_id
          ' AND r.element_id = n.node_id';
     EXECUTE sql INTO geom;
 
-  ELSIF topogeom.type = 4 THEN -- mixed collection -- }{
+  ELSIF topogeom.type_ = 4 THEN -- mixed collection -- }{
 
     sql := 'WITH areas AS ( SELECT ST_Union('
-         'topology.ST_GetFaceGeometry('
+         'public.ST_GetFaceGeometry('
       || quote_literal(toponame) || ','
       || 'element_id)) as g FROM '
       || quote_ident(toponame)
@@ -1394,16 +1394,16 @@ AND abs(r.element_id) = e.edge_id
 
   ELSE -- }{
 
-    RAISE EXCEPTION 'Invalid TopoGeometries (unknown type %)', topogeom.type;
+    RAISE EXCEPTION 'Invalid TopoGeometries (unknown type %)', topogeom.type_;
 
   END IF; -- }
 
   IF geom IS NULL THEN
-    IF topogeom.type = 3 THEN -- [multi]polygon
+    IF topogeom.type_ = 3 THEN -- [multi]polygon
       geom := 'MULTIPOLYGON EMPTY';
-    ELSIF topogeom.type = 2 THEN -- [multi]line
+    ELSIF topogeom.type_ = 2 THEN -- [multi]line
       geom := 'MULTILINESTRING EMPTY';
-    ELSIF topogeom.type = 1 THEN -- [multi]point
+    ELSIF topogeom.type_ = 1 THEN -- [multi]point
       geom := 'MULTIPOINT EMPTY';
     ELSE
       geom := 'GEOMETRYCOLLECTION EMPTY';
@@ -1418,16 +1418,16 @@ LANGUAGE 'plpgsql' VOLATILE STRICT;
 --} Geometry(TopoGeometry)
 
 -- 7.3+ explicit cast
-CREATE CAST (topology.TopoGeometry AS Geometry) WITH FUNCTION topology.Geometry(topology.TopoGeometry) AS IMPLICIT;
+CREATE CAST (public.TopoGeometry AS Geometry) WITH FUNCTION public.Geometry(public.TopoGeometry) AS IMPLICIT;
 
 --{
 --  CreateTopology(name, SRID, precision, hasZ)
 --
 -- Create a topology schema, add a topology info record
--- in the topology.topology relation, return it's numeric
+-- in the public.topology relation, return it's numeric
 -- id.
 --
-CREATE OR REPLACE FUNCTION topology.CreateTopology(atopology varchar, srid integer, prec float8, hasZ boolean)
+CREATE OR REPLACE FUNCTION public.CreateTopology(atopology varchar, srid integer, prec float8, hasZ boolean)
 RETURNS integer
 AS
 $$
@@ -1451,7 +1451,7 @@ BEGIN
   END IF;
 
   ------ Fetch next id for the new topology
-  FOR rec IN SELECT nextval('topology.topology_id_seq')
+  FOR rec IN SELECT nextval('public.topology_id_seq')
   LOOP
     topology_id = rec.nextval;
   END LOOP;
@@ -1627,7 +1627,7 @@ BEGIN
   'CREATE TRIGGER relation_integrity_checks '
      'BEFORE UPDATE OR INSERT ON '
   || quote_ident(atopology) || '.relation FOR EACH ROW '
-     ' EXECUTE PROCEDURE topology.RelationTrigger('
+     ' EXECUTE PROCEDURE public.RelationTrigger('
   ||topology_id||','||quote_literal(atopology)||')';
   --------------} END OF relation CREATION
 
@@ -1674,7 +1674,7 @@ BEGIN
   -- TODO: consider also adding an index on node.containing_face
 
   ------- Add record to the "topology" metadata table
-  EXECUTE 'INSERT INTO topology.topology '
+  EXECUTE 'INSERT INTO public.topology '
     || '(id, name, srid, precision, hasZ) VALUES ('
     || quote_literal(topology_id) || ','
     || quote_literal(atopology) || ','
@@ -1692,21 +1692,21 @@ LANGUAGE 'plpgsql' VOLATILE STRICT;
 --{ CreateTopology wrappers for unspecified srid or precision or hasZ
 
 --  CreateTopology(name, SRID, precision) -- hasZ = false
-CREATE OR REPLACE FUNCTION topology.CreateTopology(toponame varchar, srid integer, prec float8)
+CREATE OR REPLACE FUNCTION public.CreateTopology(toponame varchar, srid integer, prec float8)
 RETURNS integer AS
-' SELECT topology.CreateTopology($1, $2, $3, false);'
+' SELECT public.CreateTopology($1, $2, $3, false);'
 LANGUAGE 'sql' VOLATILE STRICT;
 
 --  CreateTopology(name, SRID) -- precision = 0
-CREATE OR REPLACE FUNCTION topology.CreateTopology(varchar, integer)
+CREATE OR REPLACE FUNCTION public.CreateTopology(varchar, integer)
 RETURNS integer AS
-' SELECT topology.CreateTopology($1, $2, 0); '
+' SELECT public.CreateTopology($1, $2, 0); '
 LANGUAGE 'sql' VOLATILE STRICT;
 
 --  CreateTopology(name) -- srid = unknown, precision = 0
-CREATE OR REPLACE FUNCTION topology.CreateTopology(varchar)
+CREATE OR REPLACE FUNCTION public.CreateTopology(varchar)
 RETURNS integer AS
-$$ SELECT topology.CreateTopology($1, ST_SRID('POINT EMPTY'::geometry), 0); $$
+$$ SELECT public.CreateTopology($1, ST_SRID('POINT EMPTY'::geometry), 0); $$
 LANGUAGE 'sql' VOLATILE STRICT;
 
 --} CreateTopology
@@ -1716,7 +1716,7 @@ LANGUAGE 'sql' VOLATILE STRICT;
 --
 -- Drops a topology schema getting rid of every dependent object.
 --
-CREATE OR REPLACE FUNCTION topology.DropTopology(atopology varchar)
+CREATE OR REPLACE FUNCTION public.DropTopology(atopology varchar)
 RETURNS text
 AS
 $$
@@ -1726,7 +1726,7 @@ DECLARE
 BEGIN
   -- Get topology id
   SELECT id INTO topoid
-    FROM topology.topology WHERE name = atopology;
+    FROM public.topology WHERE name = atopology;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Topology % does not exist', quote_literal(atopology);
@@ -1736,11 +1736,11 @@ BEGIN
     quote_literal(atopology), topoid;
 
   -- Drop all layers in the topology
-  FOR rec IN EXECUTE 'SELECT * FROM topology.layer WHERE '
+  FOR rec IN EXECUTE 'SELECT * FROM public.layer WHERE '
     || ' topology_id = ' || topoid
   LOOP
 
-    EXECUTE 'SELECT topology.DropTopoGeometryColumn('
+    EXECUTE 'SELECT public.DropTopoGeometryColumn('
       || quote_literal(rec.schema_name)
       || ','
       || quote_literal(rec.table_name)
@@ -1749,8 +1749,8 @@ BEGIN
       || ')';
   END LOOP;
 
-  -- Delete record from topology.topology
-  EXECUTE 'DELETE FROM topology.topology WHERE id = '
+  -- Delete record from public.topology
+  EXECUTE 'DELETE FROM public.topology WHERE id = '
     || topoid;
 
   -- Drop the schema (if it exists)
@@ -1812,16 +1812,16 @@ LANGUAGE 'plpgsql' VOLATILE STRICT;
 #include "sql/manage/ValidateTopologyRelation.sql.in"
 
 
-CREATE OR REPLACE FUNCTION topology.postgis_topology_scripts_installed() RETURNS text
+CREATE OR REPLACE FUNCTION public.postgis_topology_scripts_installed() RETURNS text
 	AS _POSTGIS_SQL_SELECT_POSTGIS_SCRIPTS_VERSION
 	LANGUAGE 'sql' IMMUTABLE;
 
 -- Make sure topology is in database search path --
-SELECT topology.AddToSearchPath('topology');
+SELECT public.AddToSearchPath('topology');
 
 -- Make metadata tables publically visible
 -- See https://trac.osgeo.org/postgis/ticket/4575
-GRANT SELECT ON topology.topology TO PUBLIC;
-GRANT SELECT ON topology.layer TO PUBLIC;
+GRANT SELECT ON public.topology TO PUBLIC;
+GRANT SELECT ON public.layer TO PUBLIC;
 
 COMMIT;

@@ -19,27 +19,27 @@ BEGIN;
 
 -- 7. Query the data.
 SELECT a.feature_name, id(a.feature) as tg_id,
-	ST_AsText(ST_Normalize(topology.Geometry(a.feature)) ) as geom
+	ST_AsText(ST_Normalize(public.Geometry(a.feature)) ) as geom
 FROM features.land_parcels a;
 
 -- Query not in original example --strk;
 SELECT a.feature_name, id(a.feature) as tg_id,
-	ST_AsText(ST_Normalize(topology.Geometry(a.feature)) ) as geom
+	ST_AsText(ST_Normalize(public.Geometry(a.feature)) ) as geom
 FROM features.traffic_signs a;
 
 -- Query not in original example --strk;
 SELECT a.feature_name, id(a.feature) as tg_id,
-	ST_AsText(ST_Normalize(topology.Geometry(a.feature)) ) as geom
+	ST_AsText(ST_Normalize(public.Geometry(a.feature)) ) as geom
 FROM features.city_streets a;
 
 -- Query hierarchical feautures
-SELECT feature_name, ST_AsText(ST_Normalize(topology.geometry(feature)))
+SELECT feature_name, ST_AsText(ST_Normalize(public.geometry(feature)))
 FROM features.big_signs;
 
-SELECT feature_name,ST_AsText(ST_Normalize(topology.geometry(feature)))
+SELECT feature_name,ST_AsText(ST_Normalize(public.geometry(feature)))
 FROM features.big_streets;
 
-SELECT feature_name,ST_AsText(ST_Normalize(topology.geometry(feature)))
+SELECT feature_name,ST_AsText(ST_Normalize(public.geometry(feature)))
 FROM features.big_parcels;
 
 --NOTYET--
@@ -68,11 +68,11 @@ FROM features.big_parcels;
 --NOTYET--  FROM land_parcels l WHERE l.feature_name = 'P1';
 --NOTYET--
 --NOTYET---- Get the boundary of face with face_id 3.
---NOTYET--SELECT topology.GET_FACE_BOUNDARY('CITY_DATA', 3) FROM DUAL;
+--NOTYET--SELECT public.GET_FACE_BOUNDARY('CITY_DATA', 3) FROM DUAL;
 --NOTYET--
 --NOTYET---- Get the topological elements for land parcel P2.
 --NOTYET---- CITY_DATA layer, land parcels (tg_ layer_id = 1), parcel P2 (tg_id = 2)
---NOTYET--SELECT topology.GET_TOPO_OBJECTS('CITY_DATA', 1, 2) FROM DUAL;
+--NOTYET--SELECT public.GET_TOPO_OBJECTS('CITY_DATA', 1, 2) FROM DUAL;
 --NOTYET--
 --NOTYET--
 

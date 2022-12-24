@@ -21,26 +21,23 @@
 
 uint64_t GetCode(double x, double y, int precision)
 {
-	uint32_t m_x;
-	uint32_t m_y;
-	Dec2code(x, m_x, precision);
-	Dec2code(y, m_y, precision);
+	uint32_t m_x = Dec2code(x, precision);
+	uint32_t m_y = Dec2code(y, precision);
 
 	return MagicBits(m_x, m_y);
 }
 
 bitset<96> GetCode(double x, double y, uint32_t z, int precision)
 {
-	uint32_t m_x;
-	uint32_t m_y;
-	Dec2code(x, m_x, precision);
-	Dec2code(y, m_y, precision);
+	uint32_t m_x = Dec2code(x, precision);
+	uint32_t m_y = Dec2code(y, precision);
 
 	return MagicBitset(m_x, m_y, z);
 }
 
-void Dec2code(double &dec, uint32_t &code, int precision)
+uint32_t Dec2code(double dec, int precision)
 {
+	uint32_t code = 0;
 	double val = dec < 0 ? -dec : dec;
 	bool G = dec < 0 ? 1 : 0;
 	uint32_t D = val;
@@ -52,10 +49,12 @@ void Dec2code(double &dec, uint32_t &code, int precision)
 	uint32_t S11 = (uint32_t)round(dotSeconds);
 	code = G << 31 | D << 23 | M << 17 | S << 11 | S11;
 	code = code >> (32 - precision) << (32 - precision);
+	return code;
 }
 
-void Code2Dec(uint32_t x, double &dec)
+double Code2Dec(uint32_t x)
 {
+	double dec = 0;
 	uint32_t G = x >> 31;          // 1b
 	uint32_t D = (x >> 23) & 0xFF; // 8b
 	uint32_t M = (x >> 17) & 0x3F; // 6b
@@ -64,6 +63,7 @@ void Code2Dec(uint32_t x, double &dec)
 
 	dec = D + M / 60.0 + (S + S11 / 2048.0) / 3600.0;
 	dec = G == 1 ? -dec : dec;
+	return dec;
 }
 
 int32_t AltitudeToInt(double height, int level)
@@ -72,15 +72,7 @@ int32_t AltitudeToInt(double height, int level)
 	double factor = 0;
 	double result = 0;
 
-	if (level >= 0 && level <= 9)
-		pix_size = pow(2, 9 - level);
-	
-	else if (level >= 10 && level <= 15)
-		pix_size = pow(2, 15 - level) / 60.0;
-	
-	else if (level >= 16 && level <= 32)
-		pix_size = pow(2, 21 - level) / 3600.0;
-
+	pix_size = GetPixSize(level);
 	factor = 1.0 / pix_size;
 	result = factor * log((EARTH_RADIUS + height) / EARTH_RADIUS) / log(ONEPLUSTHLTA0);
 	int32_t code = floor(result);
@@ -88,8 +80,24 @@ int32_t AltitudeToInt(double height, int level)
 	return code;
 }
 
-void IntToAltitude(int32_t z, short level, double &height)
+double GetPixSize(int level)
 {
+	if (level >= 0 && level <= 9)
+		return pow(2, 9 - level);
+
+	else if (10 <= level && level <= 15)
+		return pow(2, 15 - level) / 60.0;
+
+	else if (16 <= level && level <= 32)
+		return pow(2, 21 - level) / 3600.0;
+
+	else
+		return -1;
+}
+
+double IntToAltitude(int32_t z, short level)
+{
+	double height = 0;
 	double factor = 0;
 	double pix_size = 0;
 	if (level >= 0 && level <= 9)
@@ -103,6 +111,7 @@ void IntToAltitude(int32_t z, short level, double &height)
 
 	factor = 1.0 / pix_size;
 	height = exp(z * log(ONEPLUSTHLTA0) / factor) * EARTH_RADIUS - EARTH_RADIUS;
+	return height;
 }
 
 string ToString(uint64_t code, int level)
@@ -231,14 +240,12 @@ double Round(double x, int y)
 		return double((int64_t)(x * mul - 0.5)) / mul;
 }
 
- int memcmp_reverse(const char *a, const char *b, int size)
+ int memcmp_reverse(uint8_t *a, uint8_t *b, int size)
  {
-	 uint8_t *m_a = (uint8_t *)a;
-	 uint8_t *m_b = (uint8_t *)b;
 	 for (; size >= 0; size--)
 	 {
-		 if (*(m_a + size) != *(m_b + size))
-			 return (*(m_a + size) > *(m_b + size)) ? 1 : -1;
+		 if (*(a + size) != *(b + size))
+			 return (*(a + size) > *(b + size)) ? 1 : -1;
 	 }
 	 return 0;
  }

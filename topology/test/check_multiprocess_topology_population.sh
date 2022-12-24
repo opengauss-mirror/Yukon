@@ -31,7 +31,7 @@ for x in `seq 0 10 40`; do
       # Add polygon
       cat <<EOF | psql ${PSQL_OPTS} | grep -v '^$' &
 SELECT NULL FROM
-    topology.TopoGeo_addPolygon(
+    public.TopoGeo_addPolygon(
       'mt_topo',
       ST_Buffer(
         ST_MakePoint(
@@ -47,7 +47,7 @@ EOF
       # Add horizontal edge
       cat <<EOF | psql ${PSQL_OPTS} | grep -v '^$' &
 SELECT NULL FROM
-    topology.TopoGeo_addLineString(
+    public.TopoGeo_addLineString(
       'mt_topo',
        ST_MakeLine(
          ST_MakePoint(
@@ -66,7 +66,7 @@ EOF
       # Add isolated node in the middle of the polygon added before
       cat <<EOF | psql ${PSQL_OPTS} | grep -v '^$' &
 SELECT NULL FROM
-    topology.TopoGeo_addPoint(
+    public.TopoGeo_addPoint(
       'mt_topo',
        ST_MakePoint(
           ${x},

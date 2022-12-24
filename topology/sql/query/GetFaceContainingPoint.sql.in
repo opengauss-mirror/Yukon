@@ -21,7 +21,7 @@
 --
 --
 -- Availability: 3.2.0
-CREATE OR REPLACE FUNCTION topology.GetFaceContainingPoint(
+CREATE OR REPLACE FUNCTION public.GetFaceContainingPoint(
   atopology text,
   apoint geometry
 )

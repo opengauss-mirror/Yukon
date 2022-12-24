@@ -35,5 +35,5 @@ SELECT DISTINCT 'GeometryType(big_parcels)',
 SELECT DISTINCT 'ST_GeometryType(big_parcels)',
 	st_geometrytype(feature) FROM features.big_parcels;
 
-SELECT topology.DropTopology('city_data');
+SELECT public.DropTopology('city_data');
 DROP SCHEMA features CASCADE;

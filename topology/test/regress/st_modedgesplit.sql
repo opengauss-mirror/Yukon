@@ -96,11 +96,11 @@ SELECT check_changes();
 -- See https://trac.osgeo.org/postgis/ticket/3407
 --
 CREATE TABLE city_data.fl(id varchar);
-SELECT 'L' || topology.AddTopoGeometryColumn('city_data',
+SELECT 'L' || public.AddTopoGeometryColumn('city_data',
   'city_data', 'fl', 'g', 'LINESTRING');
 INSERT INTO city_data.fl VALUES
- ('E7.1', topology.CreateTopoGeom('city_data', 2, 1, '{{7,2}}')),
- ('E7.2', topology.CreateTopoGeom('city_data', 2, 1, '{{7,2}}'));
+ ('E7.1', public.CreateTopoGeom('city_data', 2, 1, '{{7,2}}')),
+ ('E7.2', public.CreateTopoGeom('city_data', 2, 1, '{{7,2}}'));
 SELECT '#3407', ST_ModEdgeSplit('city_data', 7, 'SRID=4326;POINT(28 22)');
 SELECT check_changes();
 

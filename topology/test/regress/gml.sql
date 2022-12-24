@@ -7,26 +7,26 @@ set client_min_messages to WARNING;
 --- Puntual single element {
 
 -- Output simple puntual features (composed by single topo-element)
-SELECT feature_name||'-vanilla', topology.AsGML(feature)
+SELECT feature_name||'-vanilla', public.AsGML(feature)
  FROM features.traffic_signs
  WHERE feature_name IN ('S1', 'S2', 'S3', 'S4' )
  ORDER BY feature_name;
 
 -- Output again but with no prefix
-SELECT feature_name||'-noprefix', topology.AsGML(feature, '')
+SELECT feature_name||'-noprefix', public.AsGML(feature, '')
  FROM features.traffic_signs
  WHERE feature_name IN ('S1', 'S2', 'S3', 'S4' )
  ORDER BY feature_name;
 
 -- Output again with custom prefix
-SELECT feature_name||'-customprefix', topology.AsGML(feature, 'cstm')
+SELECT feature_name||'-customprefix', public.AsGML(feature, 'cstm')
  FROM features.traffic_signs
  WHERE feature_name IN ('S1', 'S2', 'S3', 'S4' )
  ORDER BY feature_name;
 
 -- Again with no prefix, no srsDimension (opt+=2)
 -- and swapped lat/lon (opt+=16) and short CRS
-SELECT feature_name||'-latlon', topology.AsGML(feature, '', 15, 18)
+SELECT feature_name||'-latlon', public.AsGML(feature, '', 15, 18)
  FROM features.traffic_signs
  WHERE feature_name IN ('S4');
 
@@ -34,7 +34,7 @@ SELECT feature_name||'-latlon', topology.AsGML(feature, '', 15, 18)
 
 --- Puntual multi element {
 
-SELECT feature_name||'-noprefix', topology.AsGML(feature, '')
+SELECT feature_name||'-noprefix', public.AsGML(feature, '')
  FROM features.traffic_signs
  WHERE feature_name IN ('N1N2N3');
 
@@ -43,19 +43,19 @@ SELECT feature_name||'-noprefix', topology.AsGML(feature, '')
 --- Lineal single element {
 
 -- Output simple lineal features (composed by single topo element)
-SELECT feature_name||'-vanilla', topology.AsGML(feature)
+SELECT feature_name||'-vanilla', public.AsGML(feature)
  FROM features.city_streets
  WHERE feature_name IN ('R3', 'R4' )
  ORDER BY feature_name;
 
 -- Output again but with no prefix
-SELECT feature_name||'-noprefix', topology.AsGML(feature, '')
+SELECT feature_name||'-noprefix', public.AsGML(feature, '')
  FROM features.city_streets
  WHERE feature_name IN ('R3', 'R4' )
  ORDER BY feature_name;
 
 -- Output again with custom prefix
-SELECT feature_name||'-customprefix', topology.AsGML(feature, 'cstm')
+SELECT feature_name||'-customprefix', public.AsGML(feature, 'cstm')
  FROM features.city_streets
  WHERE feature_name IN ('R3', 'R4' )
  ORDER BY feature_name;
@@ -65,19 +65,19 @@ SELECT feature_name||'-customprefix', topology.AsGML(feature, 'cstm')
 --- Lineal multi-element  {
 
 -- Output simple lineal features (composed by single topo element)
-SELECT feature_name||'-vanilla', topology.AsGML(feature)
+SELECT feature_name||'-vanilla', public.AsGML(feature)
  FROM features.city_streets
  WHERE feature_name IN ('R1', 'R2' )
  ORDER BY feature_name;
 
 -- Output again but with no prefix
-SELECT feature_name||'-noprefix', topology.AsGML(feature, '')
+SELECT feature_name||'-noprefix', public.AsGML(feature, '')
  FROM features.city_streets
  WHERE feature_name IN ('R1', 'R2' )
  ORDER BY feature_name;
 
 -- Output again with custom prefix
-SELECT feature_name||'-customprefix', topology.AsGML(feature, 'cstm')
+SELECT feature_name||'-customprefix', public.AsGML(feature, 'cstm')
  FROM features.city_streets
  WHERE feature_name IN ('R1', 'R2' )
  ORDER BY feature_name;
@@ -87,18 +87,18 @@ SELECT feature_name||'-customprefix', topology.AsGML(feature, 'cstm')
 --- Areal single-element {
 
 -- Output simple lineal features (composed by single topo element)
-SELECT feature_name||'-vanilla', topology.AsGML(feature)
+SELECT feature_name||'-vanilla', public.AsGML(feature)
  FROM features.land_parcels
  WHERE feature_name IN ('P4', 'P5' )
  ORDER BY feature_name;
 
 -- Output again but with no prefix
-SELECT feature_name||'-noprefix', topology.AsGML(feature, '')
+SELECT feature_name||'-noprefix', public.AsGML(feature, '')
  FROM features.land_parcels WHERE feature_name IN ('P4', 'P5')
  ORDER BY feature_name;
 
 -- Output again with custom prefix
-SELECT feature_name||'-customprefix', topology.AsGML(feature, 'cstm')
+SELECT feature_name||'-customprefix', public.AsGML(feature, 'cstm')
  FROM features.land_parcels WHERE feature_name IN ('P4', 'P5')
  ORDER BY feature_name;
 
@@ -107,19 +107,19 @@ SELECT feature_name||'-customprefix', topology.AsGML(feature, 'cstm')
 --- Areal multi-element {
 
 -- Output simple lineal features (composed by single topo element)
-SELECT feature_name||'-vanilla', topology.AsGML(feature)
+SELECT feature_name||'-vanilla', public.AsGML(feature)
  FROM features.land_parcels
  WHERE feature_name IN ('P1', 'P2', 'P3' )
  ORDER BY feature_name;
 
 -- Output again but with no prefix
-SELECT feature_name||'-noprefix', topology.AsGML(feature, '')
+SELECT feature_name||'-noprefix', public.AsGML(feature, '')
  FROM features.land_parcels
  WHERE feature_name IN ('P1', 'P2', 'P3' )
  ORDER BY feature_name;
 
 -- Output again with custom prefix
-SELECT feature_name||'-customprefix', topology.AsGML(feature, 'cstm')
+SELECT feature_name||'-customprefix', public.AsGML(feature, 'cstm')
  FROM features.land_parcels
  WHERE feature_name IN ('P1', 'P2', 'P3' )
  ORDER BY feature_name;
@@ -132,26 +132,26 @@ CREATE TABLE visited (element_type int, element_id int);
 
 -- R2 visits E4,E5
 --           N5,N6,N7
-SELECT feature_name||'-visited', topology.AsGML(feature,
+SELECT feature_name||'-visited', public.AsGML(feature,
        '', 15, 2, 'visited'::regclass) FROM features.city_streets
        WHERE feature_name IN ('R2')
        ORDER BY feature_name;
 
 -- S1 visits N14
 -- S3 visits (N6)
-SELECT feature_name||'-visited', topology.AsGML(feature,
+SELECT feature_name||'-visited', public.AsGML(feature,
        '', 15, 2, 'visited'::regclass) FROM features.traffic_signs
        WHERE feature_name IN ('S1', 'S3')
        ORDER BY feature_name;
 
 -- R1 visits E9,E10,
 --           N13,(N14),N15
-SELECT feature_name||'-visited', topology.AsGML(feature,
+SELECT feature_name||'-visited', public.AsGML(feature,
        '', 15, 2, 'visited'::regclass) FROM features.city_streets
        WHERE feature_name IN ('R1');
 
 -- N1N6N14 visits N1,(N6),(N14)
-SELECT feature_name||'-visited', topology.AsGML(feature,
+SELECT feature_name||'-visited', public.AsGML(feature,
        '', 15, 2, 'visited'::regclass) FROM features.traffic_signs
        WHERE feature_name IN ('N1N6N14')
        ORDER BY feature_name;
@@ -174,27 +174,27 @@ SELECT feature_name||'-visited', topology.AsGML(feature,
 --           E18-> N10,(N13) # N13 by R1-visited
 --           E13-> (N9),(N10) # N9 visited by P1-visited.E20, N10 above
 --
-SELECT feature_name||'-visited', topology.AsGML(feature,
+SELECT feature_name||'-visited', public.AsGML(feature,
        '', 15, 2, 'visited'::regclass) FROM features.land_parcels
         WHERE feature_name IN ('P1', 'P2')
         ORDER BY feature_name;
 
 -- F3F4 visits (F3),(F4)
-SELECT feature_name||'-visited', topology.AsGML(feature,
+SELECT feature_name||'-visited', public.AsGML(feature,
        '', 15, 2, 'visited'::regclass) FROM features.land_parcels
        WHERE feature_name IN ('F3F4')
        ORDER BY feature_name DESC;
 
 -- E7E8 visits: (E7),E8
 --              (N17),(N18),N19
-SELECT feature_name||'-visited', topology.AsGML(feature,
+SELECT feature_name||'-visited', public.AsGML(feature,
        '', 15, 2, 'visited'::regclass) FROM features.city_streets
        WHERE feature_name IN ('E7E8');
 
 -- Test custom identifier prefix
 -- P3 visits (E18),(E17),(E8),E15,E16,E14
 --           (N10),(N13),(N18),N19,N12,N11
-SELECT feature_name||'-visited-idprefix', topology.AsGML(feature,
+SELECT feature_name||'-visited-idprefix', public.AsGML(feature,
        '', 15, 2, 'visited'::regclass, 'cd-') FROM features.land_parcels
        WHERE feature_name IN ('P3');
 
@@ -203,17 +203,17 @@ SELECT feature_name||'-visited-idprefix', topology.AsGML(feature,
 --- { GML2 output
 
 -- Output in GML2
-SELECT feature_name||'-gml2' as name, topology.AsGML(feature,'',0,2,NULL,'',2)
+SELECT feature_name||'-gml2' as name, public.AsGML(feature,'',0,2,NULL,'',2)
  FROM features.city_streets
  WHERE feature_name IN ('R1', 'R2', 'R3', 'R4' )
 UNION
-SELECT feature_name||'-gml2', topology.AsGML(feature,'',0,2,NULL,'',2)
+SELECT feature_name||'-gml2', public.AsGML(feature,'',0,2,NULL,'',2)
  FROM features.traffic_signs
  WHERE feature_name IN ('S1', 'S2', 'S3', 'S4' )
 ORDER BY name;
 
 --- } GML2 output
 
-SELECT topology.DropTopology('city_data');
+SELECT public.DropTopology('city_data');
 DROP SCHEMA features CASCADE;
 DROP TABLE visited;

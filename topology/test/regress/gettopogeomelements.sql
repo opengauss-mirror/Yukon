@@ -23,5 +23,5 @@ FROM features.land_parcels
 ORDER BY feature_name;
 
 -- clean up
-SELECT topology.DropTopology('city_data');
+SELECT public.DropTopology('city_data');
 DROP SCHEMA features CASCADE;

@@ -36,6 +36,8 @@ DATA_built = \
 	sql/$(EXTENSION)--unpackaged--$(EXTVERSION).sql \
 	$(NULL)
 
+DATA=postgis--3.2.0--3.2.1.sql
+
 # Scripts making up the extension file
 # NOTE: order matters
 #	../../doc/postgis_comments.sql \

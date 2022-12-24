@@ -4,10 +4,10 @@ set client_min_messages to WARNING;
 \i ../load_topology.sql
 
 -- Add holes touching shell defined in CW order
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(24 14, 23 17,25 17, 24 14)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(24 14, 23 17,25 17, 24 14)');
 
 -- Add holes touching shell defined in CCW order
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(32 14, 33 17,31 17, 32 14)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(32 14, 33 17,31 17, 32 14)');
 
 -- Add cluster of edges forming 2 adjacent faces
 -- and exposing a node of degree 3 on the upper-right
@@ -15,50 +15,50 @@ SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(32 14, 
 -- quadrant and the central edge have the bounding box
 -- with smallest x/y
 --
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(11 8, 19 12)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(12 9, 19 12)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(12.42 8.2, 19 12)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(11 8, 12 9)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(11 8, 12.42 8.2)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(11 8, 19 12)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(12 9, 19 12)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(12.42 8.2, 19 12)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(11 8, 12 9)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(11 8, 12.42 8.2)');
 
 -- Add cluster of edges forming 2 adjacent faces
 -- and exposing a node of degree 3 on the bottom-right
 -- corner where all edge-ends are on the upper-left
 -- quadrant and the central edge have the bounding box
 -- with smallest x and biggest y
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(11 20, 19 16)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(12 19, 19 16)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(12.42 19.8, 19 16)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(11 20, 12 19)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(11 20, 12.42 19.8)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(11 20, 19 16)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(12 19, 19 16)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(12.42 19.8, 19 16)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(11 20, 12 19)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(11 20, 12.42 19.8)');
 
 -- Add cluster of edges forming 2 adjacent faces
 -- and exposing a node of degree 3 on the bottom-left
 -- corner where all edge-ends are on the upper-right
 -- quadrant and the central edge have the bounding box
 -- with biggest x/y
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(45 20, 37 16)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(44 19, 37 16)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(43.58 19.8, 37 16)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(45 20, 44 19)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(45 20, 43.58 19.8)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(45 20, 37 16)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(44 19, 37 16)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(43.58 19.8, 37 16)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(45 20, 44 19)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(45 20, 43.58 19.8)');
 
 -- Add cluster of edges forming 2 adjacent faces
 -- and exposing a node of degree 3 on the upper-left
 -- corner where all edge-ends are on the bottomr-right
 -- quadrant and the central edge have the bounding box
 -- with biggest x and smallest y
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(45 8, 37 12)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(44 9, 37 12)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(43.58 8.2, 37 12)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(45 8, 44 9)');
-SELECT NULL FROM topology.TopoGeo_addLineString('city_data', 'LINESTRING(45 8, 43.58 8.2)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(45 8, 37 12)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(44 9, 37 12)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(43.58 8.2, 37 12)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(45 8, 44 9)');
+SELECT NULL FROM public.TopoGeo_addLineString('city_data', 'LINESTRING(45 8, 43.58 8.2)');
 
 
 
 
 -- Get face containing the "point on surface" of each face's geometry
-SELECT 'pos', face_id, topology.GetFaceContainingPoint(
+SELECT 'pos', face_id, public.GetFaceContainingPoint(
   'city_data',
   ST_PointOnSurface(
     ST_GetFaceGeometry(
@@ -72,16 +72,16 @@ WHERE face_id > 0
 ORDER BY face_id;
 
 -- Query point on a node incident to multiple faces
-SELECT 'e1', topology.GetFaceContainingPoint('city_data', 'POINT(21 14)');
+SELECT 'e1', public.GetFaceContainingPoint('city_data', 'POINT(21 14)');
 
 -- Query point on a node incident to universe face and proper face
-SELECT 'e2', topology.GetFaceContainingPoint('city_data', 'POINT(9 22)');
+SELECT 'e2', public.GetFaceContainingPoint('city_data', 'POINT(9 22)');
 
 -- Query point on a non-dangling edge binding 2 faces
-SELECT 'e3', topology.GetFaceContainingPoint('city_data', 'POINT(28 14)');
+SELECT 'e3', public.GetFaceContainingPoint('city_data', 'POINT(28 14)');
 
 -- Query point on a non-dangling edge binding universe and proper face
-SELECT 'e4', topology.GetFaceContainingPoint('city_data', 'POINT(28 22)');
+SELECT 'e4', public.GetFaceContainingPoint('city_data', 'POINT(28 22)');
 
 CREATE TABLE city_data.query_points(id int primary key, g geometry);
 INSERT INTO city_data.query_points VALUES
@@ -127,10 +127,10 @@ INSERT INTO city_data.query_points VALUES
 ( 18, 'POINT(36.5 12.2)' )
 ;
 
-SELECT 't'||id, topology.GetFaceContainingPoint('city_data', g)
+SELECT 't'||id, public.GetFaceContainingPoint('city_data', g)
 FROM city_data.query_points
 ORDER BY id;
 
 
 
-SELECT NULL FROM topology.DropTopology('city_data');
+SELECT NULL FROM public.DropTopology('city_data');

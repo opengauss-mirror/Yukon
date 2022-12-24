@@ -105,7 +105,6 @@ RASTER_TEST_MAPALGEBRA = \
 	$(topsrcdir)/raster/test/regress/rt_mapalgebrafct_2raster \
 	$(topsrcdir)/raster/test/regress/rt_mapalgebrafctngb \
 	$(topsrcdir)/raster/test/regress/rt_mapalgebrafctngb_userfunc \
-	$(topsrcdir)/raster/test/regress/rt_mapalgebra \
 	$(topsrcdir)/raster/test/regress/rt_mapalgebra_expr \
 	$(topsrcdir)/raster/test/regress/rt_mapalgebra_mask \
 	$(topsrcdir)/raster/test/regress/rt_union \

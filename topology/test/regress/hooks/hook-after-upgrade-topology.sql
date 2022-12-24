@@ -1,2 +1,2 @@
-SELECT topology.DropTopology('upgrade_test');
+SELECT public.DropTopology('upgrade_test');
 

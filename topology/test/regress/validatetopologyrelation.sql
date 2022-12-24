@@ -7,14 +7,14 @@ set client_min_messages to ERROR;
 \i ../hierarchy.sql
 --\i ../more_features.sql
 
-SELECT 'valid-start', * FROM topology.ValidateTopologyRelation('city_data');
+SELECT 'valid-start', * FROM public.ValidateTopologyRelation('city_data');
 
 -- Delete all primitives
 DELETE FROM city_data.edge_data;
 DELETE FROM city_data.node;
 DELETE FROM city_data.face WHERE face_id > 0;
 
-SELECT 'invalid-primitives', * FROM topology.ValidateTopologyRelation('city_data')
+SELECT 'invalid-primitives', * FROM public.ValidateTopologyRelation('city_data')
 ORDER BY 3,4,5;
 
 -- Delete features from primitive tables
@@ -40,11 +40,11 @@ SELECT NULL FROM (
 ) foo
 ;
 
-SELECT 'invalid-hierarchical', * FROM topology.ValidateTopologyRelation('city_data')
+SELECT 'invalid-hierarchical', * FROM public.ValidateTopologyRelation('city_data')
 ORDER BY 3,4,5;
 
---SELECT * FROM topology.layer WHERE child_id IS NOT NULL;
+--SELECT * FROM public.layer WHERE child_id IS NOT NULL;
 
-SELECT topology.DropTopology('city_data');
+SELECT public.DropTopology('city_data');
 DROP SCHEMA features CASCADE;
 

@@ -43,7 +43,7 @@ all: @WAGYU_LIB@ @RYU_LIB@ @FLATGEOBUF_LIB@
 	$(MAKE) -C flatgeobuf $@
 
 clean:
-	$(MAKE) -C wagyu $@
+	-- $(MAKE) -C wagyu $@
 	$(MAKE) -C ryu $@
 	$(MAKE) -C flatgeobuf $@
 

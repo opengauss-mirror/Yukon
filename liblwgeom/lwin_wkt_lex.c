@@ -41,6 +41,14 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#ifndef THR_LOCAL
+#ifndef WIN32
+#define THR_LOCAL __thread
+#else
+#define THR_LOCAL  __declspec(thread)
+#endif
+#endif
+
 /* end standard C headers. */
 
 /* flex integer type definitions */
@@ -178,9 +186,9 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
 typedef size_t yy_size_t;
 #endif
 
-extern yy_size_t wkt_yyleng;
+extern THR_LOCAL yy_size_t wkt_yyleng;
 
-extern FILE *wkt_yyin, *wkt_yyout;
+extern THR_LOCAL FILE *wkt_yyin, *wkt_yyout;
 
 #define EOB_ACT_CONTINUE_SCAN 0
 #define EOB_ACT_END_OF_FILE 1
@@ -270,9 +278,9 @@ struct yy_buffer_state
 #endif /* !YY_STRUCT_YY_BUFFER_STATE */
 
 /* Stack of input buffers. */
-static size_t yy_buffer_stack_top = 0; /**< index of top of stack. */
-static size_t yy_buffer_stack_max = 0; /**< capacity of stack. */
-static YY_BUFFER_STATE * yy_buffer_stack = 0; /**< Stack as an array. */
+static THR_LOCAL size_t yy_buffer_stack_top = 0; /**< index of top of stack. */
+static THR_LOCAL size_t yy_buffer_stack_max = 0; /**< capacity of stack. */
+static THR_LOCAL YY_BUFFER_STATE * yy_buffer_stack = 0; /**< Stack as an array. */
 
 /* We provide macros for accessing buffer states in case in the
  * future we want to put the buffer states in a more general
@@ -290,19 +298,19 @@ static YY_BUFFER_STATE * yy_buffer_stack = 0; /**< Stack as an array. */
 #define YY_CURRENT_BUFFER_LVALUE (yy_buffer_stack)[(yy_buffer_stack_top)]
 
 /* yy_hold_char holds the character lost when wkt_yytext is formed. */
-static char yy_hold_char;
-static yy_size_t yy_n_chars;		/* number of characters read into yy_ch_buf */
-yy_size_t wkt_yyleng;
+static THR_LOCAL char yy_hold_char;
+static THR_LOCAL yy_size_t yy_n_chars;		/* number of characters read into yy_ch_buf */
+THR_LOCAL yy_size_t wkt_yyleng;
 
 /* Points to current character in buffer. */
-static char *yy_c_buf_p = (char *) 0;
-static int yy_init = 0;		/* whether we need to initialize */
-static int yy_start = 0;	/* start state number */
+static THR_LOCAL char *yy_c_buf_p = (char *) 0;
+static THR_LOCAL int yy_init = 0;		/* whether we need to initialize */
+static THR_LOCAL int yy_start = 0;	/* start state number */
 
 /* Flag which is used to allow wkt_yywrap()'s to do buffer switches
  * instead of setting up a fresh wkt_yyin.  A bit of a hack ...
  */
-static int yy_did_buffer_switch_on_eof;
+static THR_LOCAL int yy_did_buffer_switch_on_eof;
 
 void wkt_yyrestart (FILE *input_file  );
 void wkt_yy_switch_to_buffer (YY_BUFFER_STATE new_buffer  );
@@ -357,15 +365,15 @@ void wkt_yyfree (void *  );
 
 typedef unsigned char YY_CHAR;
 
-FILE *wkt_yyin = (FILE *) 0, *wkt_yyout = (FILE *) 0;
+THR_LOCAL FILE *wkt_yyin = (FILE *) 0, *wkt_yyout = (FILE *) 0;
 
 typedef int yy_state_type;
 
-extern int wkt_yylineno;
+extern THR_LOCAL int wkt_yylineno;
 
-int wkt_yylineno = 1;
+THR_LOCAL int wkt_yylineno = 1;
 
-extern char *wkt_yytext;
+extern THR_LOCAL char *wkt_yytext;
 #define yytext_ptr wkt_yytext
 
 static yy_state_type yy_get_previous_state (void );
@@ -622,11 +630,11 @@ static yyconst flex_int16_t yy_chk[466] =
       191,  191,  191,  191,  191
     } ;
 
-static yy_state_type yy_last_accepting_state;
-static char *yy_last_accepting_cpos;
+static THR_LOCAL yy_state_type yy_last_accepting_state;
+static THR_LOCAL char *yy_last_accepting_cpos;
 
-extern int wkt_yy_flex_debug;
-int wkt_yy_flex_debug = 0;
+extern THR_LOCAL int wkt_yy_flex_debug;
+THR_LOCAL int wkt_yy_flex_debug = 0;
 
 /* The intent behind this definition is that it'll catch
  * any uses of REJECT which flex missed.
@@ -635,7 +643,7 @@ int wkt_yy_flex_debug = 0;
 #define yymore() yymore_used_but_not_detected
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
-char *wkt_yytext;
+THR_LOCAL char *wkt_yytext;
 #line 1 "lwin_wkt_lex.l"
 #line 2 "lwin_wkt_lex.l"
 
@@ -647,7 +655,7 @@ char *wkt_yytext;
 #include "lwin_wkt_parse.h"
 #include "lwgeom_log.h"
 
-static YY_BUFFER_STATE wkt_yy_buf_state;
+static THR_LOCAL YY_BUFFER_STATE wkt_yy_buf_state;
 
 /*
 * Handle errors due to unexpected junk in WKT strings.

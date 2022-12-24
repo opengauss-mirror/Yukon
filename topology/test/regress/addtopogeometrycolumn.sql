@@ -40,7 +40,7 @@ select 'T12', addtopogeometrycolumn('tt','public','feature',
 
 select l.layer_id, l.schema_name, l.table_name, l.feature_column,
  l.feature_type, l.level, l.child_id
-from topology.layer l, topology.topology t
+from public.layer l, public.topology t
 where l.topology_id = t.id and t.name = 'tt'
 order by l.layer_id;
 

@@ -48,7 +48,7 @@ BEGIN
 		ELSE
 			RAISE EXCEPTION 'Region type % IS NOT SUPPORTED', region_type;
 	END CASE;
-	SELECT srid, precision FROM topology.topology into var_srid, var_precision
+	SELECT srid, precision FROM public.topology into var_srid, var_precision
                 WHERE name = toponame;
 	var_sql := '
 	CREATE TEMPORARY TABLE tmp_edge

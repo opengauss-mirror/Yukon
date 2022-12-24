@@ -28,7 +28,7 @@
 -- 3.5527136788005009294e-15 for the starting value of 9.0
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology._st_mintolerance(ageom Geometry)
+CREATE OR REPLACE FUNCTION public._st_mintolerance(ageom Geometry)
   RETURNS float8
 AS $$
     SELECT 3.6 * power(10,  - ( 15 - log(coalesce(
@@ -45,7 +45,7 @@ $$ LANGUAGE 'sql' IMMUTABLE STRICT;
 -- and if zero the minimum for the given geometry
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology._st_mintolerance(atopology varchar, ageom Geometry)
+CREATE OR REPLACE FUNCTION public._st_mintolerance(atopology varchar, ageom Geometry)
   RETURNS float8
 AS $$
 DECLARE
@@ -53,12 +53,12 @@ DECLARE
 BEGIN
   SELECT COALESCE(
     NULLIF(precision, 0),
-    topology._st_mintolerance($2))
-  FROM topology.topology
+    public._st_mintolerance($2))
+  FROM public.topology
   WHERE name = $1 INTO ret;
   IF NOT FOUND THEN
     RAISE EXCEPTION
-      'No topology with name "%" in topology.topology', atopology;
+      'No topology with name "%" in public.topology', atopology;
   END IF;
   return ret;
 END;
@@ -85,7 +85,7 @@ $$ LANGUAGE 'plpgsql' STABLE STRICT;
 -- geografici basati su QuantumGIS e Postgis (CIG 0494241492)"
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology.AddNode(atopology varchar, apoint geometry, allowEdgeSplitting boolean DEFAULT false, setContainingFace boolean DEFAULT false)
+CREATE OR REPLACE FUNCTION public.AddNode(atopology varchar, apoint geometry, allowEdgeSplitting boolean DEFAULT false, setContainingFace boolean DEFAULT false)
 	RETURNS int
 AS
 $$
@@ -134,14 +134,14 @@ BEGIN
     USING apoint
 	LOOP
     IF allowEdgeSplitting THEN
-      RETURN topology.ST_ModEdgeSplit(atopology, rec.edge_id, apoint);
+      RETURN public.ST_ModEdgeSplit(atopology, rec.edge_id, apoint);
     ELSE
 		  RAISE EXCEPTION 'An edge crosses the given node.';
     END IF;
 	END LOOP;
 
   IF setContainingFace THEN
-    containing_face := topology.GetFaceByPoint(atopology, apoint, 0);
+    containing_face := public.GetFaceByPoint(atopology, apoint, 0);
 #ifdef POSTGIS_TOPOLOGY_DEBUG
     RAISE DEBUG 'containing face: %', containing_face;
 #endif
@@ -197,14 +197,14 @@ LANGUAGE 'plpgsql' VOLATILE;
 -- For the project: "Sviluppo strumenti software per il trattamento di dati
 -- geografici basati su QuantumGIS e Postgis (CIG 0494241492)"
 --
-CREATE OR REPLACE FUNCTION topology.AddEdge(atopology varchar, aline geometry)
+CREATE OR REPLACE FUNCTION public.AddEdge(atopology varchar, aline geometry)
 	RETURNS int
 AS
 $$
 DECLARE
 	edgeid int;
 	rec RECORD;
-  ix geometry;
+  ix public.geometry;
 BEGIN
 	--
 	-- Atopology and apoint are required
@@ -356,12 +356,12 @@ BEGIN
 		|| edgeid ||','
 
 		-- start_node
-		|| 'topology.addNode('
+		|| 'public.addNode('
 		|| quote_literal(atopology)
 		|| ', ST_StartPoint($1)), '
 
 		-- end_node
-		|| 'topology.addNode('
+		|| 'public.addNode('
 		|| quote_literal(atopology)
 		|| ', ST_EndPoint($1)), '
 
@@ -421,28 +421,28 @@ LANGUAGE 'plpgsql' VOLATILE;
 -- For the project: "Sviluppo strumenti software per il trattamento di dati
 -- geografici basati su QuantumGIS e Postgis (CIG 0494241492)"
 --
-CREATE OR REPLACE FUNCTION topology.AddFace(atopology varchar, apoly geometry, force_new boolean DEFAULT FALSE)
+CREATE OR REPLACE FUNCTION public.AddFace(atopology varchar, apoly geometry, force_new boolean DEFAULT FALSE)
 	RETURNS int
 AS
 $$
 DECLARE
-  bounds geometry;
-  symdif geometry;
+  bounds public.geometry;
+  symdif public.geometry;
   faceid int;
   rec RECORD;
   rrec RECORD;
   relate text;
   right_edges int[];
   left_edges int[];
-  all_edges geometry;
+  all_edges public.geometry;
   old_faceid int;
   old_edgeid int;
   sql text;
   right_side bool;
-  edgeseg geometry;
-  p1 geometry;
-  p2 geometry;
-  p3 geometry;
+  edgeseg public.geometry;
+  p1 public.geometry;
+  p2 public.geometry;
+  p3 public.geometry;
   loc float8;
   segnum int;
   numsegs int;
@@ -691,7 +691,7 @@ LANGUAGE 'plpgsql' VOLATILE;
 --
 --  Add a Point into a topology, with an optional tolerance
 --
-CREATE OR REPLACE FUNCTION topology.TopoGeo_AddPoint(atopology varchar, apoint geometry, tolerance float8 DEFAULT 0)
+CREATE OR REPLACE FUNCTION public.TopoGeo_AddPoint(atopology varchar, apoint geometry, tolerance float8 DEFAULT 0)
 	RETURNS int AS
 	'MODULE_PATHNAME', 'TopoGeo_AddPoint'
   LANGUAGE 'c' VOLATILE;
@@ -703,7 +703,7 @@ CREATE OR REPLACE FUNCTION topology.TopoGeo_AddPoint(atopology varchar, apoint g
 --  Add a LineString into a topology
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology.TopoGeo_addLinestring(atopology varchar, aline geometry, tolerance float8 DEFAULT 0)
+CREATE OR REPLACE FUNCTION public.TopoGeo_addLinestring(atopology varchar, aline geometry, tolerance float8 DEFAULT 0)
 	RETURNS SETOF int AS
 	'MODULE_PATHNAME', 'TopoGeo_AddLinestring'
   LANGUAGE 'c' VOLATILE;
@@ -715,7 +715,7 @@ CREATE OR REPLACE FUNCTION topology.TopoGeo_addLinestring(atopology varchar, ali
 --  Add a Polygon into a topology
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology.TopoGeo_AddPolygon(atopology varchar, apoly geometry, tolerance float8 DEFAULT 0)
+CREATE OR REPLACE FUNCTION public.TopoGeo_AddPolygon(atopology varchar, apoly geometry, tolerance float8 DEFAULT 0)
 	RETURNS SETOF int AS
 	'MODULE_PATHNAME', 'TopoGeo_AddPolygon'
   LANGUAGE 'c' VOLATILE;
@@ -726,7 +726,7 @@ CREATE OR REPLACE FUNCTION topology.TopoGeo_AddPolygon(atopology varchar, apoly 
 --
 --  Add a Geometry into a topology
 --
-CREATE OR REPLACE FUNCTION topology.TopoGeo_AddGeometry(atopology varchar, ageom geometry, tolerance float8 DEFAULT 0)
+CREATE OR REPLACE FUNCTION public.TopoGeo_AddGeometry(atopology varchar, ageom geometry, tolerance float8 DEFAULT 0)
 	RETURNS void AS
 $$
 DECLARE

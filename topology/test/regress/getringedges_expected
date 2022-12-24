@@ -1,4 +1,4 @@
-ERROR:  No topology with name "non-existent" in topology.topology
+ERROR:  No topology with name "non-existent" in public.topology
 ERROR:  No edge with id 10000000 in Topology "city_data"
 ERROR:  No edge with id 10000000 in Topology "city_data"
 R1|1|1

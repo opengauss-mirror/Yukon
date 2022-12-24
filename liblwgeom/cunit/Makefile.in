@@ -9,14 +9,14 @@
 # *
 # **********************************************************************
 
-CC=@CC@
+CC=@CXX@
 top_builddir = @top_builddir@
 SHELL = @SHELL@
 LIBTOOL = @LIBTOOL@
 
 CUNIT_LDFLAGS=@CUNIT_LDFLAGS@
 CUNIT_CPPFLAGS=-I.. @CUNIT_CPPFLAGS@ @CPPFLAGS@
-CFLAGS=$(CUNIT_CPPFLAGS) @CFLAGS@
+CFLAGS=$(CUNIT_CPPFLAGS) 
 LDFLAGS = @GEOS_LDFLAGS@ $(CUNIT_LDFLAGS)
 
 ifeq ($(CUNIT_WITH_VALGRIND), YES)

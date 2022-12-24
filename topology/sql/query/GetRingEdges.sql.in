@@ -37,8 +37,8 @@
 --
 -- GetRingEdges(atopology, anedge, [maxedges])
 --
-CREATE OR REPLACE FUNCTION topology.GetRingEdges(atopology varchar, anedge int, maxedges int DEFAULT null)
-	RETURNS SETOF topology.GetFaceEdges_ReturnType AS
+CREATE OR REPLACE FUNCTION public.GetRingEdges(atopology varchar, anedge int, maxedges int DEFAULT null)
+	RETURNS SETOF public.GetFaceEdges_ReturnType AS
 	'MODULE_PATHNAME', 'GetRingEdges'
 LANGUAGE 'c' STABLE;
 --} GetRingEdges

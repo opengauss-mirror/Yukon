@@ -64,14 +64,14 @@ A catalogue of avalable topologies is kept under the
 
 To create a topology:
 
-	SELECT topology.CreateTopology(<name>, [srid], [tolerance]);
+	SELECT public.CreateTopology(<name>, [srid], [tolerance]);
 
 Example:
 
-	SELECT topology.CreateTopology('test_schema', 4326 , 0.0001);
+	SELECT public.CreateTopology('test_schema', 4326 , 0.0001);
 	or
 	-- unknown srid, 0 tolerance
-	SELECT topology.CreateTopology('test_schema');
+	SELECT public.CreateTopology('test_schema');
 
 	NOTE: the new schema ('test_schema' in example) will be create
 	      so it must not exist before.
@@ -80,7 +80,7 @@ Example:
 
 To destroy a topology:
 
-	SELECT topology.DropTopology(<name>);
+	SELECT public.DropTopology(<name>);
 
 ==Loading topology data
 
@@ -123,7 +123,7 @@ this implementation follows as for these views structure.
 
 To verify validity of a topology:
 
-	SELECT * FROM topology.ValidateTopology(name);
+	SELECT * FROM public.ValidateTopology(name);
 
 ==Defining TopoGeometry objects
 
@@ -134,17 +134,17 @@ composed by base topolocal elements (faces, edges, nodes). Hierarchical
 TopoGeometry objects are composed by other TopoGeometry objects.
 
 Each TopoGeometry object belongs to a specific Layer of a specific
-Topology. Before creating a TopoGeometry object you need to create
-its Layer in the Topology. A Topology Layer is an association of
-a feature-table with the topology. It also contain type and hierarchy
+public. Before creating a TopoGeometry object you need to create
+its Layer in the public. A Topology Layer is an association of
+a feature-table with the public. It also contain type and hierarchy
 information. We create a layer using the AddTopoGeometryColumn() function:
 
-	topology.AddTopoGeometryColumn(topology_name,
+	public.AddTopoGeometryColumn(topology_name,
 		schema_name, table_name, column_name, feature_type,
 		[child_layer])
 
 The function will both add the requested column to the table and add
-a record to the topology.layer table with all the given info.
+a record to the public.layer table with all the given info.
 
 If you don't specify [child_layer] (or set it to NULL) this layer
 would contain Basic TopoGeometries (composed by primitive topology
@@ -154,7 +154,7 @@ elements). Otherwise this layer will contain hierarchical TopoGeometries
 Once the layer is created (it's id is returned by the AddTopoGeometryColumn
 function) you're ready to construct TopoGeometry objects in it:
 
-  	topology.CreateTopoGeom(
+  	public.CreateTopoGeom(
 
     		topology_name,
 
@@ -181,7 +181,7 @@ You can import a Geometry into an existing topology and at the same
 time get its topological definition (its TopoGeometry equivalent)
 using the toTopoGeom function:
 
-    topology.toTopoGeom(
+    public.toTopoGeom(
 
         geometry, -- the simple geometry
 

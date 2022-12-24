@@ -1,7 +1,7 @@
 
-topology.png: topology.fig
+public.png: public.fig
 	fig2dev -L png $< $@
 
 clean:
-	rm topology.png
+	rm public.png
 

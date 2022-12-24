@@ -1,2 +1,2 @@
-SELECT topology.createTopology('upgrade_test');
+SELECT public.createTopology('upgrade_test');
 

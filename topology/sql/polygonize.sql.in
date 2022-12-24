@@ -21,7 +21,7 @@
 -- TODO: allow restricting polygonization to a bounding box
 --
 -- }{
-CREATE OR REPLACE FUNCTION topology.polygonize(toponame varchar)
+CREATE OR REPLACE FUNCTION public.polygonize(toponame varchar)
   RETURNS text
 AS
 $$
@@ -37,7 +37,7 @@ BEGIN
   faces = 0;
   FOR rec in EXECUTE sql LOOP
     BEGIN
-      PERFORM topology.AddFace(toponame, rec.geom);
+      PERFORM public.AddFace(toponame, rec.geom);
       faces = faces + 1;
     EXCEPTION
       WHEN OTHERS THEN

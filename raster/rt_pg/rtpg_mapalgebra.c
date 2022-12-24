@@ -494,7 +494,9 @@ static int rtpg_nmapalgebra_callback(
 
 #if POSTGIS_PGSQL_VERSION < 120
 	callback->ufc_info.arg[0] = PointerGetDatum(mdValues);
+	callback->ufc_info.argTypes[0] = FLOAT8ARRAYOID;
 	callback->ufc_info.arg[1] = PointerGetDatum(mdPos);
+	callback->ufc_info.argTypes[1] = INT4ARRAYOID;
 #else
 	callback->ufc_info->args[0].value = PointerGetDatum(mdValues);
 	callback->ufc_info->args[1].value = PointerGetDatum(mdPos);
@@ -891,29 +893,36 @@ Datum RASTER_nMapAlgebra(PG_FUNCTION_ARGS)
 
 		/* userargs (7) */
 		if (!PG_ARGISNULL(9))
+		{
 #if POSTGIS_PGSQL_VERSION < 120
 			arg->callback.ufc_info.arg[2] = PG_GETARG_DATUM(9);
+			arg->callback.ufc_info.argTypes[2] = TEXTARRAYOID;
 #else
 			arg->callback.ufc_info->args[2].value = PG_GETARG_DATUM(9);
 #endif
-		else {
-      if (arg->callback.ufl_info.fn_strict) {
+		}
+		else
+		{
+			if (arg->callback.ufl_info.fn_strict)
+			{
 				/* build and assign an empty TEXT array */
 				/* TODO: manually free the empty array? */
 #if POSTGIS_PGSQL_VERSION < 120
 				arg->callback.ufc_info.arg[2] = PointerGetDatum(
-					construct_empty_array(TEXTOID)
-				);
+					construct_empty_array(TEXTOID));
 				arg->callback.ufc_info.argnull[2] = FALSE;
+				arg->callback.ufc_info.argTypes[2] = TEXTARRAYOID;
 #else
 				arg->callback.ufc_info->args[2].value = PointerGetDatum(construct_empty_array(TEXTOID));
 				arg->callback.ufc_info->args[2].isnull = FALSE;
 #endif
-      }
-			else {
+			}
+			else
+			{
 #if POSTGIS_PGSQL_VERSION < 120
-				arg->callback.ufc_info.arg[2] = (Datum) NULL;
+				arg->callback.ufc_info.arg[2] = (Datum)NULL;
 				arg->callback.ufc_info.argnull[2] = TRUE;
+				arg->callback.ufc_info.argTypes[2] = InvalidOid;
 #else
 				arg->callback.ufc_info->args[2].value = (Datum)NULL;
 				arg->callback.ufc_info->args[2].isnull = TRUE;
@@ -921,7 +930,8 @@ Datum RASTER_nMapAlgebra(PG_FUNCTION_ARGS)
 			}
 		}
 	}
-	else {
+	else
+	{
 		rtpg_nmapalgebra_arg_destroy(arg);
 		elog(ERROR, "RASTER_nMapAlgebra: callbackfunc must be provided");
 		PG_RETURN_NULL();
@@ -5403,13 +5413,13 @@ Datum RASTER_mapAlgebraFct(PG_FUNCTION_ARGS)
 
     /* prep function call data */
 #if POSTGIS_PGSQL_VERSION < 120
-    InitFunctionCallInfoData(cbdata, &cbinfo, 2, InvalidOid, NULL, NULL);
+    InitFunctionCallInfoData(cbdata, &cbinfo, cbinfo.fn_nargs, InvalidOid, NULL, NULL);
 
     cbdata.argnull[0] = FALSE;
     cbdata.argnull[1] = FALSE;
     cbdata.argnull[2] = FALSE;
 #else
-    InitFunctionCallInfoData(*cbdata, &cbinfo, 2, InvalidOid, NULL, NULL);
+    InitFunctionCallInfoData(*cbdata, &cbinfo, cbinfo.fn_nargs, InvalidOid, NULL, NULL);
 
     cbdata->args[0].isnull = FALSE;
     cbdata->args[1].isnull = FALSE;
