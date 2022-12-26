@@ -619,13 +619,14 @@ typedef struct VacAttrStats {
     float4 stanullfrac;   /* fraction of entries that are NULL */
     int4 stawidth;        /* average width of column values */
     float4 stadistinct;   /* # distinct values */
-    float4 stadndistinct; /* # distinct value of dn1 */
+    float4 stadndistinct; /* # distinct value of dn1*/
     int2 stakind[STATISTIC_NUM_SLOTS];
     Oid staop[STATISTIC_NUM_SLOTS];
     int numnumbers[STATISTIC_NUM_SLOTS];
     float4* stanumbers[STATISTIC_NUM_SLOTS];
     int numvalues[STATISTIC_NUM_SLOTS];
     Datum* stavalues[STATISTIC_NUM_SLOTS];
+    bool* stanulls[STATISTIC_NUM_SLOTS];
 
     /*
      * These fields describe the stavalues[n] element types. They will be
@@ -644,7 +645,7 @@ typedef struct VacAttrStats {
      */
     int tupattnum;   /* attribute number within tuples */
     HeapTuple* rows; /* access info for std fetch function */
-#if POSTGIS_GSSQL_VERSION == 310
+#if POSTGIS_GSSQL_VERSION >= 310
 #ifndef ENABLE_MULTIPLE_NODES
     int numSamplerows; /* numbers of sample rows */
 #endif
@@ -761,6 +762,14 @@ typedef struct VariableStatData {
     int32 atttypmod;                   /* typmod to pass to get_attstatsslot */
     bool isunique;                     /* matches unique index or DISTINCT clause */
     bool enablePossion;                /* indentify we can use possion or not */
+    bool acl_ok;                       /* result of ACL check on table or column */
+    PlannerInfo *root;                 /* Planner info the var reference */
+    double numDistinct[2];             /* estimated numdistinct, 0: means unknown, [0]: local, [1]: global */
+    bool isEstimated;                  /* indicate that whether estimation have already been done */
+    PlannerInfo *baseRoot;             /* Planner info of the baseVar */
+    Node *baseVar;                     /* base Var, owner of the statsTuple */
+    RelOptInfo *baseRel;               /* rel of the baseVar */
+    bool needAdjust;                   /* true if need adjust on rel */
 } VariableStatData;
 
 typedef GISTPageOpaqueData* GISTPageOpaque;
