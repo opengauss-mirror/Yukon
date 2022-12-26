@@ -54,6 +54,7 @@
 #include "nodes/pg_list.h"
 #include "nodes/parsenodes.h"
 #include "utils/array.h"
+#include "utils/elog.h"
 #include "utils/errcodes.h"
 #include "utils/geo_decls.h"
 #include "utils/guc.h"
@@ -582,6 +583,7 @@ typedef void (*AnalyzeAttrComputeStatsFunc)(
 // typedef void (*AnalyzeAttrComputeStatsFunc)(
 //     VacAttrStatsP stats, AnalyzeAttrFetchFunc fetchfunc, int samplerows, double totalrows);
 
+#ifndef GAUSSDB
 /* commands/vacuum.h */
 typedef struct VacAttrStats {
     /*
@@ -617,13 +619,14 @@ typedef struct VacAttrStats {
     float4 stanullfrac;   /* fraction of entries that are NULL */
     int4 stawidth;        /* average width of column values */
     float4 stadistinct;   /* # distinct values */
-    float4 stadndistinct; /* # distinct value of dn1 */
+    float4 stadndistinct; /* # distinct value of dn1*/
     int2 stakind[STATISTIC_NUM_SLOTS];
     Oid staop[STATISTIC_NUM_SLOTS];
     int numnumbers[STATISTIC_NUM_SLOTS];
     float4* stanumbers[STATISTIC_NUM_SLOTS];
     int numvalues[STATISTIC_NUM_SLOTS];
     Datum* stavalues[STATISTIC_NUM_SLOTS];
+    bool* stanulls[STATISTIC_NUM_SLOTS];
 
     /*
      * These fields describe the stavalues[n] element types. They will be
@@ -642,11 +645,110 @@ typedef struct VacAttrStats {
      */
     int tupattnum;   /* attribute number within tuples */
     HeapTuple* rows; /* access info for std fetch function */
+#if POSTGIS_GSSQL_VERSION >= 310
+#ifndef ENABLE_MULTIPLE_NODES
+    int numSamplerows; /* numbers of sample rows */
+#endif
+#endif
     TupleDesc tupDesc;
     Datum* exprvals; /* access info for index fetch function */
     bool* exprnulls;
     int rowstride;
 } VacAttrStats;
+
+#else
+#define ereport(elevel, rest)   \
+    (((elevel) > DEBUG1 || (elevel) < DEBUG5 || log_min_messages <= (elevel) || client_min_messages <= (elevel)) ?   \
+        EREPORT_DOMAIN(0, elevel, TEXTDOMAIN, rest) : (void)0)
+
+#define elog(elevel, rest, ...)  elog_start(__FILE__, __LINE__, PG_FUNCNAME_MACRO), elog_finish_with_errnum(0, elevel, rest, ##__VA_ARGS__)
+
+typedef Datum (*AnalyzeAttrFetchFuncExt)(VacAttrStatsP stats, int attnum, int rownum, bool* isNull, Relation rel);
+
+typedef void (*AnalyzeAttrComputeStatsFuncExt)(
+    VacAttrStatsP stats, AnalyzeAttrFetchFuncExt fetchfunc, int samplerows, double totalrows, Relation rel);
+typedef struct VacAttrStats {
+    /*
+     * These fields are set up by the main ANALYZE code before invoking the
+     * type-specific typanalyze function.
+     *
+     * Note: do not assume that the data being analyzed has the same datatype
+     * shown in attr, ie do not trust attr->atttypid, attlen, etc.    This is
+     * because some index opclasses store a different type than the underlying
+     * column/expression.  Instead use attrtypid, attrtypmod, and attrtype for
+     * information about the datatype being fed to the typanalyze function.
+     */
+    unsigned int num_attrs;
+    Form_pg_attribute* attrs;  /* copy of pg_attribute row for columns */
+    Oid* attrtypid;            /* type of data being analyzed */
+    int32* attrtypmod;         /* typmod of data being analyzed */
+    Form_pg_type* attrtype;    /* copy of pg_type row for attrtypid */
+    MemoryContext anl_context; /* where to save long-lived data */
+
+    /*
+     * These fields must be filled in by the typanalyze routine, unless it
+     * returns FALSE.
+     */
+    AnalyzeAttrComputeStatsFunc compute_stats; /* function pointer */
+    AnalyzeAttrComputeStatsFuncExt compute_stats_ext; /* function pointer for multi-column statistics */
+    int minrows;                               /* Minimum # of rows wanted for stats */
+    void* extra_data;                          /* for extra type-specific data */
+
+    /*
+     * These fields are to be filled in by the compute_stats routine. (They
+     * are initialized to zero when the struct is created.)
+     */
+    bool stats_valid;
+    float4 stanullfrac;   /* fraction of entries that are NULL */
+    int4 stawidth;        /* average width of column values */
+    float4 stadistinct;   /* # distinct values */
+    float4 stadndistinct; /* # distinct value of dn1 */
+    int2 stakind[STATISTIC_NUM_SLOTS];
+    Oid staop[STATISTIC_NUM_SLOTS];
+    int numnumbers[STATISTIC_NUM_SLOTS];
+    float4* stanumbers[STATISTIC_NUM_SLOTS];
+    int numvalues[STATISTIC_NUM_SLOTS];
+    Datum* stavalues[STATISTIC_NUM_SLOTS];
+    bool* stanulls[STATISTIC_NUM_SLOTS];
+
+    /*
+     * These fields describe the stavalues[n] element types. They will be
+     * initialized to match attrtypid, but a custom typanalyze function might
+     * want to store an array of something other than the analyzed column's
+     * elements. It should then overwrite these fields.
+     */
+    Oid statypid[STATISTIC_NUM_SLOTS];
+    int2 statyplen[STATISTIC_NUM_SLOTS];
+    bool statypbyval[STATISTIC_NUM_SLOTS];
+    char statypalign[STATISTIC_NUM_SLOTS];
+
+    /*
+     * These fields are private to the main ANALYZE code and should not be
+     * looked at by type-specific functions.
+     */
+    int tupattnum;   /* attribute number within tuples */
+    HeapTuple* rows; /* access info for std fetch function */
+    int numSamplerows; /* numbers of sample rows */
+    TupleDesc tupDesc;
+    Datum* exprvals; /* access info for index fetch function */
+    bool* exprnulls;
+    int rowstride;
+
+    /*
+     * sources of multi-column statistics:
+     * 'a': automatically created based on indexes
+     * 'm': manually created
+     */
+    char stasource;
+
+    /*
+     * status of multi-column statistics:
+     * 'a': active
+     * 'd': disabled
+     */
+    char stastatus;
+} VacAttrStats;
+#endif
 
 /* utils/selfuncs.h */
 typedef struct VariableStatData {
@@ -660,6 +762,14 @@ typedef struct VariableStatData {
     int32 atttypmod;                   /* typmod to pass to get_attstatsslot */
     bool isunique;                     /* matches unique index or DISTINCT clause */
     bool enablePossion;                /* indentify we can use possion or not */
+    bool acl_ok;                       /* result of ACL check on table or column */
+    PlannerInfo *root;                 /* Planner info the var reference */
+    double numDistinct[2];             /* estimated numdistinct, 0: means unknown, [0]: local, [1]: global */
+    bool isEstimated;                  /* indicate that whether estimation have already been done */
+    PlannerInfo *baseRoot;             /* Planner info of the baseVar */
+    Node *baseVar;                     /* base Var, owner of the statsTuple */
+    RelOptInfo *baseRel;               /* rel of the baseVar */
+    bool needAdjust;                   /* true if need adjust on rel */
 } VariableStatData;
 
 typedef GISTPageOpaqueData* GISTPageOpaque;
