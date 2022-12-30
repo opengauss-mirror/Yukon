@@ -88,7 +88,6 @@ yk_tool:yk_tool.cpp
 
 distclean: clean
 	rm -f Makefile
-  rm -f yk_tool
 
 # And there's nothing to check
 check check-unit check-regress:
