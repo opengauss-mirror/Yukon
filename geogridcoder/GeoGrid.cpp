@@ -1252,7 +1252,10 @@ Datum gsg_get_level_extremum(PG_FUNCTION_ARGS)
 		{
 			GEOSOTGRID *grid = PointerGetGEOSOTGrid(DatumGetPointer(value));
 			level_max = grid->level > level_max ? grid->level : level_max;
-			level_min = grid->level_min < level_min ? grid->level_min : level_min;
+			if (0 == grid->level_min)
+				level_min = grid->level < level_min ? grid->level : level_min;
+			else
+				level_min = grid->level_min < level_min ? grid->level_min : level_min;
 		}
 		else
 		{

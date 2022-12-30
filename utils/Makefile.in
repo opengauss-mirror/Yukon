@@ -41,7 +41,7 @@ SCRIPTS = \
 SRID_MAXIMUM = @SRID_MAX@
 SRID_USER_MAXIMUM = @SRID_USR_MAX@
 
-all: postgis_restore.pl
+all: postgis_restore.pl yk_tool
 	chmod +x $(SCRIPTS)
 
 DROP_FILES = \
@@ -73,8 +73,22 @@ update-restore:
 postgis_restore.pl: postgis_restore.pl.in
 	sed 's,@SRID_MAXIMUM@,$(SRID_MAXIMUM),g;s,@SRID_USER_MAXIMUM@,$(SRID_USER_MAXIMUM),' $< >$@
 
+
+uname_m = $(shell uname -m)
+LD_FLAGS.x86_64 = ../geomodel/libUGC/Builds/MakeProject/Bin64_Linux
+LD_FLAGS.aarch64 = ../geomodel/libUGC/Builds/MakeProject/Binaarch64_Linux
+LD_FLAGS += $(LD_FLAGS.$(uname_m)) @YUKON_LICENSE_LDFLAGS@ -D_UGUNICODE  -lYkBase
+
+
+COMPILETIME = $(shell date +"%Y-%m-%d %H:%M:%S")
+COMMITID = $(shell git show -s --pretty=format:%h)
+
+yk_tool:yk_tool.cpp
+	g++ -std=c++11 $^ -I../geomodel/libUGC/Include -L$(LD_FLAGS) -DCOMPILEINFO="\" compiled at:$(COMPILETIME)\"""\" commit id:$(COMMITID) \"" -o $@
+
 distclean: clean
 	rm -f Makefile
+  rm -f yk_tool
 
 # And there's nothing to check
 check check-unit check-regress:

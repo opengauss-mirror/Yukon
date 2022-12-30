@@ -6,7 +6,7 @@
 
 SUBDIRS = liblwgeom
 ifeq (@LIBLWGEOM_ONLY@,no)
-SUBDIRS += libpgcommon postgis regress @RASTER@ @TOPOLOGY@ @SFCGAL@ loader utils doc @EXTENSIONS@ @DEPS_SUBDIR@ 
+SUBDIRS += libpgcommon postgis regress @RASTER@ @TOPOLOGY@ @SFCGAL@ loader  doc @EXTENSIONS@ @DEPS_SUBDIR@ 
 endif
 
 ifeq (@CHECK_GEOMODEL@,yes)
@@ -16,6 +16,8 @@ endif
 ifeq (@CHECK_GEOGRIDCODER@,yes)
 SUBDIRS += geogridcoder
 endif
+
+SUBDIRS += utils
 
 HAVE_SFCGAL=@HAVE_SFCGAL@
 
