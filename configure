@@ -687,6 +687,7 @@ HAVE_PROTOBUF
 PROTOCC
 PROTOBUFC_LIBS
 PROTOBUFC_CFLAGS
+YUKON_LICENSE_LDFLAGS
 HAVE_JSON
 JSON_LDFLAGS
 JSON_CPPFLAGS
@@ -897,6 +898,7 @@ with_libintl_prefix
 with_projdir
 with_json
 with_jsondir
+with_license
 with_protobuf
 with_protobufdir
 with_protobuf_inc
@@ -1597,6 +1599,7 @@ Optional Packages:
   --with-projdir=PATH     specify the PROJ.4 installation directory
   --without-json          build without json-c support
   --with-jsondir=PATH     specify the json-c installation directory
+  --with-license          build with yukon license module
   --without-protobuf      build without protobuf-c support
   --with-protobufdir=PATH specify the protobuf-c installation directory
   --with-protobuf-inc=PATH
@@ -20426,6 +20429,25 @@ $as_echo "#define HAVE_LIBJSON 1" >>confdefs.h
 
 fi
 
+
+CHECK_WICHLICENSE=no
+
+
+# Check whether --with-license was given.
+if test "${with_license+set}" = set; then :
+  withval=$with_license; CHECK_WICHLICENSE="$withval"
+fi
+
+
+if test "$CHECK_WICHLICENSE" != "no"; then
+
+
+$as_echo "#define HAVE_LICENSE 1" >>confdefs.h
+
+YUKON_LICENSE_LDFLAGS=' -lYkLicense -lYkToolkit -lYkStream '
+
+
+fi
 
 
 CHECK_PROTOBUF=yes

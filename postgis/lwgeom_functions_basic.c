@@ -191,8 +191,14 @@ Datum yukon_version(PG_FUNCTION_ARGS)
 {
 	char src[100] = {0};
 	char *ver = YUKON_VERSION;
+#ifndef GAUSSDB
+	char *msg = "(Community Edition)";
+#else
+	char *msg = "(Professional Edition)";
+#endif
 	char *compileinfo = COMPILEINFO;
 	strcat(src, ver);
+	strcat(src, msg);
 	strcat(src, compileinfo);
 	text *result = cstring_to_text(src);
 	PG_RETURN_TEXT_P(result);

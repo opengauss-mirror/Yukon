@@ -984,6 +984,23 @@ if test "$CHECK_JSON" != "no"; then
 
 fi
 
+dnl ===========================================================================
+dnl Compile with license
+dnl ===========================================================================
+
+CHECK_WICHLICENSE=no 
+
+AC_ARG_WITH([license],
+	[AS_HELP_STRING([--with-license], [build with yukon license module])],
+	[CHECK_WICHLICENSE="$withval"], [])
+
+if test "$CHECK_WICHLICENSE" != "no"; then
+
+AC_DEFINE([HAVE_LICENSE], 1, [Define to 1 if want to compile with yukon license])
+YUKON_LICENSE_LDFLAGS=' -lYkLicense -lYkToolkit -lYkStream '
+AC_SUBST([YUKON_LICENSE_LDFLAGS])
+
+fi
 
 dnl ===========================================================================
 dnl Detect if protobuf-c installed
