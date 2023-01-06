@@ -77,7 +77,7 @@ postgis_restore.pl: postgis_restore.pl.in
 uname_m = $(shell uname -m)
 LD_FLAGS.x86_64 = ../geomodel/libUGC/Builds/MakeProject/Bin64_Linux
 LD_FLAGS.aarch64 = ../geomodel/libUGC/Builds/MakeProject/Binaarch64_Linux
-LD_FLAGS += $(LD_FLAGS.$(uname_m)) @YUKON_LICENSE_LDFLAGS@ -D_UGUNICODE  -lYkBase
+LD_FLAGS += $(LD_FLAGS.$(uname_m)) @YUKON_LICENSE_LDFLAGS@ -D_UGUNICODE
 
 
 COMPILETIME = $(shell date +"%Y-%m-%d %H:%M:%S")
