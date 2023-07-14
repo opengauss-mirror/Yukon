@@ -134,6 +134,7 @@ int lwgeom_parse_wkt(LWGEOM_PARSER_RESULT *parser_result, char *wktstr, int pars
 %token TRIANGLE_TOK TIN_TOK
 %token POLYHEDRALSURFACE_TOK
 %token ELLIPTICALSTRING_TOK
+%token BEZIER_TOK
 
 %token <doublevalue> DOUBLE_TOK
 %token <stringvalue> DIMENSIONALITY_TOK
@@ -179,6 +180,7 @@ int lwgeom_parse_wkt(LWGEOM_PARSER_RESULT *parser_result, char *wktstr, int pars
 %type <geometryvalue> triangle_list
 %type <geometryvalue> triangle_untagged
 %type <geometryvalue> ellipse
+%type <geometryvalue> bezier
 
 
 /* These clean up memory on errors and parser aborts. */
@@ -244,7 +246,8 @@ geometry_no_srid :
 	polyhedralsurface { $$ = $1; } |
 	triangle { $$ = $1; } |
 	geometrycollection { $$ = $1; } |
-	ellipse { $$ = $1; };
+	ellipse { $$ = $1; }; |
+	bezier { $$ = $1; };
 
 geometrycollection :
 	COLLECTION_TOK LBRACKET_TOK geometry_list RBRACKET_TOK
@@ -368,7 +371,8 @@ curvering :
 	linestring { $$ = $1; } |
 	compoundcurve { $$ = $1; } |
 	circularstring { $$ = $1; } |
-	ellipse { $$ = $1; } ;;
+	ellipse { $$ = $1; } |
+	bezier { $$ = $1; };
 
 patchring_list :
 	patchring_list COMMA_TOK patchring
@@ -407,6 +411,8 @@ compound_list :
 		{ $$ = wkt_parser_compound_add_geom($1,$3); WKT_ERROR(); } |
 	compound_list COMMA_TOK ellipse
 		{ $$ = wkt_parser_compound_add_geom($1,$3); WKT_ERROR(); } |
+	compound_list COMMA_TOK bezier
+		{ $$ = wkt_parser_compound_add_geom($1,$3); WKT_ERROR(); } |
 	circularstring
 		{ $$ = wkt_parser_compound_new($1); WKT_ERROR(); } |
 	linestring
@@ -414,7 +420,9 @@ compound_list :
 	linestring_untagged
 		{ $$ = wkt_parser_compound_new($1); WKT_ERROR(); } |
 	ellipse
-		{ $$ = wkt_parser_compound_new($1); WKT_ERROR(); } ;
+		{ $$ = wkt_parser_compound_new($1); WKT_ERROR(); } |
+	bezier
+		{ $$ = wkt_parser_compound_new($1); WKT_ERROR(); };
 
 multicurve :
 	MCURVE_TOK LBRACKET_TOK curve_list RBRACKET_TOK
@@ -435,11 +443,19 @@ curve_list :
 		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
 	curve_list COMMA_TOK linestring_untagged
 		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+	curve_list COMMA_TOK ellipse
+		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
+	curve_list COMMA_TOK bezier
+		{ $$ = wkt_parser_collection_add_geom($1,$3); WKT_ERROR(); } |
 	circularstring
 		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } |
 	compoundcurve
 		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } |
 	linestring
+		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } |
+	ellipse
+		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } |
+	bezier
 		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } |
 	linestring_untagged
 		{ $$ = wkt_parser_collection_new($1); WKT_ERROR(); } ;
@@ -558,6 +574,12 @@ ellipse :
 		{ $$ = wkt_parser_ellipse($3,$5,$7,$9,$11,$13,$15,$17,NULL); WKT_ERROR(); } |
 	ELLIPTICALSTRING_TOK  DIMENSIONALITY_TOK LBRACKET_TOK coordinate COMMA_TOK coordinate COMMA_TOK coordinate COMMA_TOK DOUBLE_TOK COMMA_TOK DOUBLE_TOK COMMA_TOK DOUBLE_TOK COMMA_TOK DOUBLE_TOK COMMA_TOK DOUBLE_TOK RBRACKET_TOK
 		{ $$ = wkt_parser_ellipse($4,$6,$8,$10,$12,$14,$16,$18,$2); WKT_ERROR(); } ;
-
+bezier :
+    // 三阶贝塞尔曲线
+	BEZIER_TOK LBRACKET_TOK coordinate COMMA_TOK coordinate COMMA_TOK coordinate COMMA_TOK coordinate RBRACKET_TOK 
+	{ $$ = wkt_parse_bezier3($3, $5, $7, $9, NULL); WKT_ERROR(); } |
+	BEZIER_TOK DIMENSIONALITY_TOK LBRACKET_TOK coordinate COMMA_TOK coordinate COMMA_TOK coordinate COMMA_TOK coordinate RBRACKET_TOK 
+	{ $$ = wkt_parse_bezier3($4, $6, $8, $10, $2); WKT_ERROR(); } ;
+   
 %%
 

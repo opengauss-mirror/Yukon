@@ -52,17 +52,10 @@ RUNTESTFLAGS_INTERNAL += \
 TESTS_REMAIN += \
 	$(topsrcdir)/regress/core/cluster \
 	$(topsrcdir)/regress/core/concave_hull\
-	$(topsrcdir)/regress/core/ctors \
 	$(topsrcdir)/regress/core/flatgeobuf \
 	$(topsrcdir)/regress/core/in_flatgeobuf \
 	$(topsrcdir)/regress/core/long_xact \
-	$(topsrcdir)/regress/core/lwgeom_regress \
 	$(topsrcdir)/regress/core/out_flatgeobuf \
-	$(topsrcdir)/regress/core/polygonize \
-	$(topsrcdir)/regress/core/regress_proj_4890 \
-	$(topsrcdir)/regress/core/temporal_knn \
-	$(topsrcdir)/regress/core/tickets \
-	$(topsrcdir)/regress/core/twkb \
 	$(topsrcdir)/regress/core/typmod \
 	$(topsrcdir)/regress/core/clean \
 	$(topsrcdir)/regress/core/regress_brin_index \
@@ -81,6 +74,7 @@ TESTS += \
 	$(topsrcdir)/regress/core/boundary \
 	$(topsrcdir)/regress/core/chaikin \
 	$(topsrcdir)/regress/core/filterm \
+	$(topsrcdir)/regress/core/ctors \
 	$(topsrcdir)/regress/core/curvetoline \
 	$(topsrcdir)/regress/core/dump \
 	$(topsrcdir)/regress/core/dumppoints \
@@ -98,6 +92,7 @@ TESTS += \
 	$(topsrcdir)/regress/core/in_encodedpolyline \
 	$(topsrcdir)/regress/core/iscollection \
 	$(topsrcdir)/regress/core/legacy \
+	$(topsrcdir)/regress/core/lwgeom_regress \
 	$(topsrcdir)/regress/core/measures \
 	$(topsrcdir)/regress/core/minimum_bounding_circle \
 	$(topsrcdir)/regress/core/normalize \
@@ -105,6 +100,7 @@ TESTS += \
 	$(topsrcdir)/regress/core/orientation \
 	$(topsrcdir)/regress/core/out_geometry \
 	$(topsrcdir)/regress/core/out_geography \
+	$(topsrcdir)/regress/core/polygonize \
 	$(topsrcdir)/regress/core/polyhedralsurface \
 	$(topsrcdir)/regress/core/postgis_type_name \
 	$(topsrcdir)/regress/core/quantize_coordinates \
@@ -123,6 +119,7 @@ TESTS += \
 	$(topsrcdir)/regress/core/regress_proj_basic \
 	$(topsrcdir)/regress/core/regress_proj_adhoc \
 	$(topsrcdir)/regress/core/regress_proj_cache_overflow \
+	$(topsrcdir)/regress/core/regress_proj_4890 \
 	$(topsrcdir)/regress/core/relate \
 	$(topsrcdir)/regress/core/remove_repeated_points \
 	$(topsrcdir)/regress/core/removepoint \
@@ -143,7 +140,9 @@ TESTS += \
 	$(topsrcdir)/regress/core/swapordinates \
 	$(topsrcdir)/regress/core/summary \
 	$(topsrcdir)/regress/core/temporal \
+	$(topsrcdir)/regress/core/temporal_knn \
 	$(topsrcdir)/regress/core/tickets \
+	$(topsrcdir)/regress/core/twkb \
 	$(topsrcdir)/regress/core/wkb \
 	$(topsrcdir)/regress/core/wkt \
 	$(topsrcdir)/regress/core/wmsservers \
@@ -163,7 +162,8 @@ TESTS += \
 	$(topsrcdir)/regress/core/oriented_envelope \
 	$(topsrcdir)/regress/core/point_coordinates \
 	$(topsrcdir)/regress/core/wrapx \
-	$(topsrcdir)/regress/core/misc
+	$(topsrcdir)/regress/core/misc \
+	$(topsrcdir)/regress/core/vector_pyramid
 
 # Slow slow tests
 TESTS_SLOW = \
@@ -222,7 +222,7 @@ ifeq ($(HAVE_SPGIST),yes)
 	$(topsrcdir)/regress/core/regress_spgist_index_nd
 endif
 
-ifeq (@HAVE_PROTOBUF@,yes)
+ifeq (no,yes)
 	# protobuf-c adds:
 	# ST_AsMVT, ST_AsGeobuf
 	TESTS += \

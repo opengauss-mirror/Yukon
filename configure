@@ -20449,6 +20449,7 @@ YUKON_LICENSE_LDFLAGS=' -lYkLicense -lYkToolkit -lYkStream '
 
 fi
 
+PYRAMID_MAKEFILE_LIST="pyramid/Makefile"
 
 CHECK_PROTOBUF=yes
 HAVE_PROTOBUF=no
@@ -23554,7 +23555,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files GNUmakefile extensions/Makefile extensions/postgis/Makefile extensions/postgis_raster/Makefile extensions/postgis_sfcgal/Makefile extensions/postgis_topology/Makefile extensions/postgis_tiger_geocoder/Makefile extensions/address_standardizer/Makefile liblwgeom/Makefile liblwgeom/cunit/Makefile liblwgeom/liblwgeom.h libpgcommon/Makefile libpgcommon/cunit/Makefile postgis/Makefile postgis/sqldefines.h sfcgal/Makefile sfcgal/regress/Makefile loader/Makefile loader/cunit/Makefile topology/Makefile topology/test/Makefile regress/Makefile regress/core/Makefile regress/core/tests.mk regress/dumper/Makefile regress/loader/Makefile doc/Makefile doc/Makefile.comments doc/html/image_src/Makefile utils/Makefile $RT_MAKEFILE_LIST $GEOMODEL_MAKEFILE_LIST $GEOGRIDCODER_MAKEFILE_LIST $DEPS_MAKEFILE_LIST"
+ac_config_files="$ac_config_files GNUmakefile extensions/Makefile extensions/postgis/Makefile extensions/postgis_raster/Makefile extensions/postgis_sfcgal/Makefile extensions/postgis_topology/Makefile extensions/postgis_tiger_geocoder/Makefile extensions/address_standardizer/Makefile liblwgeom/Makefile liblwgeom/cunit/Makefile liblwgeom/liblwgeom.h libpgcommon/Makefile libpgcommon/cunit/Makefile postgis/Makefile postgis/sqldefines.h sfcgal/Makefile sfcgal/regress/Makefile loader/Makefile loader/cunit/Makefile topology/Makefile topology/test/Makefile regress/Makefile regress/core/Makefile regress/core/tests.mk regress/dumper/Makefile regress/loader/Makefile doc/Makefile doc/Makefile.comments doc/html/image_src/Makefile utils/Makefile $RT_MAKEFILE_LIST $GEOMODEL_MAKEFILE_LIST $GEOGRIDCODER_MAKEFILE_LIST $DEPS_MAKEFILE_LIST $PYRAMID_MAKEFILE_LIST"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -24677,6 +24678,7 @@ do
     "$GEOMODEL_MAKEFILE_LIST") CONFIG_FILES="$CONFIG_FILES $GEOMODEL_MAKEFILE_LIST" ;;
     "$GEOGRIDCODER_MAKEFILE_LIST") CONFIG_FILES="$CONFIG_FILES $GEOGRIDCODER_MAKEFILE_LIST" ;;
     "$DEPS_MAKEFILE_LIST") CONFIG_FILES="$CONFIG_FILES $DEPS_MAKEFILE_LIST" ;;
+    "$PYRAMID_MAKEFILE_LIST") CONFIG_FILES="$CONFIG_FILES $PYRAMID_MAKEFILE_LIST" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

@@ -66,8 +66,9 @@ endif
 
 COMPILE_TIME = $(shell date +"%Y-%m-%d %H:%M:%S")
 GIT_REVISION = $(shell git show -s --pretty=format:%h)
+BUILDID = $(shell date +"%Y%m%d")
 
-COMPILEINFO=-DCOMPILEINFO="\" Compiled at:$(COMPILE_TIME)\"""\" Commit ID:$(GIT_REVISION) \""
+COMPILEINFO=-DCOMPILEINFO="\" BUILDID:$(BUILDID)\"""\" Compiled at:$(COMPILE_TIME)\"""\" Commit ID:$(GIT_REVISION) \""
 
 FLATGEOBUF_LIBPATH = ../deps/flatgeobuf/@FLATGEOBUF_LIB@
 FLATGEOBUF_INCLUDE = -I../deps/flatgeobuf

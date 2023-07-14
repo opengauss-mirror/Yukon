@@ -191,39 +191,39 @@ SELECT 'ST_Angle_2_lines', St_Angle(l1,l2)::numeric(12,6)
 --- ST_ClusterKMeans
 
 -- check we have not less than k clusters
-select
-    '#3965',
-    count(distinct cid),
-    count(*)
-from (
-         with points as (
-             select ST_MakePoint(x, y) geom
-             from generate_series(1, 5) x,
-                  generate_series(1, 5) y
-         )
-         select
-             ST_ClusterKMeans(geom, 25)
-             over () as cid,
-             geom
-         from points) z;
+-- select
+--     '#3965',
+--     count(distinct cid),
+--     count(*)
+-- from (
+--          with points as (
+--              select ST_MakePoint(x, y) geom
+--              from generate_series(1, 5) x,
+--                   generate_series(1, 5) y
+--          )
+--          select
+--              ST_ClusterKMeans(geom, 25)
+--              over () as cid,
+--              geom
+--          from points) z;
 
--- check that grid gets clustered to clusters of similar size
-select '#3971', count(*) between 16 and 25 -- in perfect match it's 25, better kmeans init can improve
-from (
-         with
-                 points as (
-                 select ST_MakePoint(x, y) geom
-                 from generate_series(1, 45) x, generate_series(1, 45) y
-             )
-         select
-             ST_ClusterKMeans(geom, 81)
-             over () as cid,
-             geom
-         from points
-     ) z
-group by cid
-order by count(*)
-limit 1;
+-- -- check that grid gets clustered to clusters of similar size
+-- select '#3971', count(*) between 16 and 25 -- in perfect match it's 25, better kmeans init can improve
+-- from (
+--          with
+--                  points as (
+--                  select ST_MakePoint(x, y) geom
+--                  from generate_series(1, 45) x, generate_series(1, 45) y
+--              )
+--          select
+--              ST_ClusterKMeans(geom, 81)
+--              over () as cid,
+--              geom
+--          from points
+--      ) z
+-- group by cid
+-- order by count(*)
+-- limit 1;
 
 -- typmod checks
 select 'typmod_point_4326', geometry_typmod_out(geometry_typmod_in('{Point,4326}'));

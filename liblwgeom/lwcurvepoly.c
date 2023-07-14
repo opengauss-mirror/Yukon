@@ -250,7 +250,7 @@ int lwcurvepoly_add_ring(LWCURVEPOLY *poly, LWGEOM *ring)
 	}
 
 	/* Check that we're adding an allowed ring type */
-	if ( ! ( ring->type == LINETYPE || ring->type == CIRCSTRINGTYPE || ring->type == COMPOUNDTYPE || ring->type == ELLIPSETYPE) )
+	if ( ! ( ring->type == LINETYPE || ring->type == CIRCSTRINGTYPE || ring->type == COMPOUNDTYPE || ring->type == ELLIPSETYPE || ring->type == BEZIERTYPE) )
 	{
 		LWDEBUGF(4,"got incorrect ring type: %s",lwtype_name(ring->type));
 		return LW_FAILURE;
@@ -472,12 +472,12 @@ lwsector_elliptic_arc_area(const LWELLIPSE *pEllipticArc, POINT2D Pnt)
 	if (isLeft(Pnt, pntStart, pntEnd) !=
 	    isLeft(pntMid, pntStart, pntEnd)) //弓形走向为逆时针时，指定面积为正，否则为负
 	{
-		if (dTriangleArea < 0)
+		if (dTriangleArea < 0 && dEachArea < 0 )
 		{
 			dEachArea = -dEachArea;
 		}
 	}
-	else
+	else  if (dTriangleArea > 0 && dEachArea < 0)
 	{
 		dEachArea = -dEachArea;
 	}

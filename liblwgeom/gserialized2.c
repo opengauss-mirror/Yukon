@@ -734,6 +734,21 @@ static size_t gserialized2_from_lwellipse_size(const LWELLIPSE *ellipse)
 	return size;
 }
 
+static size_t
+gserialized2_from_lwbezier_size(const LWBEZIER *bezier)
+{
+	size_t size = 4; /* Type number. */
+
+	assert(bezier);
+	POINTARRAY *point = bezier->data->points;
+	size += 4; /* Number of points (one or zero (empty)). */
+	size += point->npoints * FLAGS_NDIMS(point->flags) * sizeof(double);
+
+	LWDEBUGF(3, "bezier size = %d", size);
+
+	return size;
+}
+
 static size_t gserialized2_from_lwcollection_size(const LWCOLLECTION *col)
 {
 	size_t size = 4; /* Type number. */
@@ -773,6 +788,8 @@ static size_t gserialized2_from_any_size(const LWGEOM *geom)
 		return gserialized2_from_lwcircstring_size((LWCIRCSTRING *)geom);
 	case ELLIPSETYPE:
 		return gserialized2_from_lwellipse_size((LWELLIPSE *)geom);
+	case BEZIERTYPE:
+		return gserialized2_from_lwbezier_size((LWBEZIER *)geom);
 	case CURVEPOLYTYPE:
 	case COMPOUNDTYPE:
 	case MULTIPOINTTYPE:
@@ -1059,6 +1076,38 @@ static size_t gserialized2_from_lwellipse(const LWELLIPSE *ellipse, uint8_t *buf
 	return (size_t)(loc - buf);
 }
 
+static size_t gserialized2_from_lwbezier(const LWBEZIER *bezier, uint8_t *buf)
+{
+uint8_t *loc;
+	int ptsize;
+	size_t size;
+	int type = BEZIERTYPE;
+
+	assert(bezier);
+	assert(buf);
+	ptsize = ptarray_point_size(bezier->data->points);
+	loc = buf;
+
+	// write type
+	memcpy(loc, &type, sizeof(uint32_t));
+	loc += sizeof(uint32_t);
+
+	/* Write in the npoints. */
+	memcpy(loc, &bezier->data->points->npoints, sizeof(uint32_t));
+	loc += sizeof(uint32_t);
+
+	/* Copy in the ordinates. */
+	if (bezier->data->points->npoints > 0)
+	{
+		size = bezier->data->points->npoints * ptsize;
+		memcpy(loc, getPoint_internal(bezier->data->points, 0), size);
+		loc += size;
+	}
+
+	return (size_t)(loc - buf);
+}
+
+
 static size_t gserialized2_from_lwcollection(const LWCOLLECTION *coll, uint8_t *buf)
 {
 	size_t subsize = 0;
@@ -1116,6 +1165,8 @@ static size_t gserialized2_from_lwgeom_any(const LWGEOM *geom, uint8_t *buf)
 		return gserialized2_from_lwcircstring((LWCIRCSTRING *)geom, buf);
 	case ELLIPSETYPE:
 		return gserialized2_from_lwellipse((LWELLIPSE *)geom, buf);
+	case BEZIERTYPE:
+		return gserialized2_from_lwbezier((LWBEZIER *)geom, buf);
 	case CURVEPOLYTYPE:
 	case COMPOUNDTYPE:
 	case MULTIPOINTTYPE:
@@ -1454,6 +1505,37 @@ static LWELLIPSE * lwellipse_from_gserialized2_buffer(uint8_t *data_ptr, lwflags
 	return ellipse;
 }
 
+static LWBEZIER * lwbezier_from_gserialized2_buffer(uint8_t *data_ptr, lwflags_t lwflags, size_t *size, int32_t srid)
+{
+	uint8_t *start_ptr = data_ptr;
+	LWBEZIER *bezier;
+	int npoints = 0;
+	assert(data_ptr);
+
+	bezier = (LWBEZIER *)lwalloc(sizeof(LWBEZIER));
+	bezier->srid = srid; /* Default */
+	bezier->bbox = NULL;
+	bezier->type = BEZIERTYPE;
+	bezier->flags = lwflags;
+
+	data_ptr += 4; /* Skip past the type. */
+
+	npoints = gserialized2_get_uint32_t(data_ptr); /* Zero => empty geometry */
+	data_ptr += 4;                                 /* Skip past the npoints. */
+
+	//需要复制数据，否则会造成同一块空间释放两次
+	bezier->data = lwalloc(sizeof(BEZIER));
+
+	if (npoints > 0)
+		bezier->data->points =
+		    ptarray_construct_reference_data(FLAGS_GET_Z(lwflags), FLAGS_GET_M(lwflags), npoints, data_ptr);
+
+	data_ptr += FLAGS_NDIMS(lwflags) * npoints * sizeof(double);
+
+	if (size)
+		*size = data_ptr - start_ptr;
+	return bezier;
+}
 
 static LWCIRCSTRING *
 lwcircstring_from_gserialized2_buffer(uint8_t *data_ptr, lwflags_t lwflags, size_t *size, int32_t srid)
@@ -1572,6 +1654,8 @@ lwgeom_from_gserialized2_buffer(uint8_t *data_ptr, lwflags_t lwflags, size_t *g_
 		return (LWGEOM *)lwtriangle_from_gserialized2_buffer(data_ptr, lwflags, g_size, srid);
 	case ELLIPSETYPE:
 		return (LWGEOM *)lwellipse_from_gserialized2_buffer(data_ptr, lwflags, g_size, srid);
+	case BEZIERTYPE:
+		return (LWGEOM *)lwbezier_from_gserialized2_buffer(data_ptr, lwflags, g_size, srid);	
 	case MULTIPOINTTYPE:
 	case MULTILINETYPE:
 	case MULTIPOLYGONTYPE:

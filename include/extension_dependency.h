@@ -886,7 +886,11 @@ extern void heap_freetuple(HeapTuple htup);
 extern ArrayType* construct_array(Datum* elems, int nelems, Oid elmtype, int elmlen, bool elmbyval, char elmalign);
 #define ARR_ELEMTYPE(a) ((a)->elemtype)
 
-extern int32 pg_atoi(char* s, int size, int c);
+#if POSTGIS_GSSQL_VERSION == 210
+extern int32 pg_atoi(char *s, int size, int c, bool b = false);
+#else
+extern int32 pg_atoi(char *s, int size, int c, bool b = false);
+#endif
 extern void* SPI_palloc(Size size);
 typedef bool (*GucStringCheckHook)(char** newval, void** extra, GucSource source);
 typedef const char* (*GucShowHook)(void);

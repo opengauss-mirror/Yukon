@@ -644,6 +644,10 @@ LWGEOM* wkt_parser_curvepolygon_add_ring(LWGEOM *poly, LWGEOM *ring)
 			case ELLIPSETYPE:
 			is_closed = lwellipse_is_closed((LWELLIPSE*)ring);
 			break;
+
+			case BEZIERTYPE:
+			is_closed = lwbezier_is_closed((LWBEZIER*)ring);
+			break;
 		}
 		if ( ! is_closed )
 		{
@@ -919,6 +923,76 @@ wkt_parser_ellipse(POINT start,
 	return (LWGEOM *)ellipse;
 }
 
+LWGEOM *
+wkt_parse_bezier3(POINT _1th, POINT _2th, POINT _3th, POINT _4th, char *dimensionality)
+{
+	lwflags_t flags = 0;
+	lwflags_t dim = wkt_dimensionality(dimensionality);
+	LWBEZIER *bezier = lwalloc(sizeof(LWBEZIER));
+	// POINT3DZ p;
+	bezier->bbox = NULL;
+	bezier->data = lwalloc(sizeof(BEZIER));
+	/* 这里我们新建一个空的 pointarray */
+	bezier->data->points = ptarray_construct_empty(FLAGS_GET_Z(dim), FLAGS_GET_M(dim), 3);
+
+	POINT4D pt;
+	pt.z = 0;
+	pt.m = 0;
+	// 第一个点
+	pt.x = _1th.x;
+	pt.y = _1th.y;
+	if (FLAGS_GET_Z(bezier->data->points->flags))
+		pt.z = _1th.z;
+	if (FLAGS_GET_M(bezier->data->points->flags))
+		pt.m = _1th.m;
+	/* If the destination is XYM, we'll write the third coordinate to m */
+	if (FLAGS_GET_M(bezier->data->points->flags) && !FLAGS_GET_Z(bezier->data->points->flags))
+		pt.m = _1th.z;
+	ptarray_append_point(bezier->data->points, &pt, LW_TRUE);
+	// 第二个点
+	pt.x = _2th.x;
+	pt.y = _2th.y;
+	if (FLAGS_GET_Z(bezier->data->points->flags))
+		pt.z = _2th.z;
+	if (FLAGS_GET_M(bezier->data->points->flags))
+		pt.m = _2th.m;
+	/* If the destination is XYM, we'll write the third coordinate to m */
+	if (FLAGS_GET_M(bezier->data->points->flags) && !FLAGS_GET_Z(bezier->data->points->flags))
+		pt.m = _2th.z;
+	ptarray_append_point(bezier->data->points, &pt, LW_TRUE);
+	// 第三个点
+	pt.x = _3th.x;
+	pt.y = _3th.y;
+	if (FLAGS_GET_Z(bezier->data->points->flags))
+		pt.z = _3th.z;
+	if (FLAGS_GET_M(bezier->data->points->flags))
+		pt.m = _3th.m;
+	/* If the destination is XYM, we'll write the third coordinate to m */
+	if (FLAGS_GET_M(bezier->data->points->flags) && !FLAGS_GET_Z(bezier->data->points->flags))
+		pt.m = _3th.z;
+	ptarray_append_point(bezier->data->points, &pt, LW_TRUE);
+	// 第四个点
+	pt.x = _4th.x;
+	pt.y = _4th.y;
+	if (FLAGS_GET_Z(bezier->data->points->flags))
+		pt.z = _4th.z;
+	if (FLAGS_GET_M(bezier->data->points->flags))
+		pt.m = _4th.m;
+	/* If the destination is XYM, we'll write the third coordinate to m */
+	if (FLAGS_GET_M(bezier->data->points->flags) && !FLAGS_GET_Z(bezier->data->points->flags))
+		pt.m = _4th.z;
+	ptarray_append_point(bezier->data->points, &pt, LW_TRUE);
+
+	FLAGS_SET_BBOX(flags, 0);
+	FLAGS_SET_Z(flags, FLAGS_GET_Z(dim));
+	FLAGS_SET_M(flags, FLAGS_GET_M(dim));
+
+	bezier->flags = flags;
+	bezier->srid = 0;
+	bezier->type = BEZIERTYPE;
+
+	return (LWGEOM *)bezier;
+}
 
 LWGEOM* wkt_parser_collection_finalize(int lwtype, LWGEOM *geom, char *dimensionality)
 {

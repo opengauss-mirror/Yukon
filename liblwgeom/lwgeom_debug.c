@@ -30,7 +30,15 @@
 #include <string.h>
 
 /* Place to hold the ZM string used in other summaries */
-static char tflags[6];
+#ifndef THR_LOCAL
+#ifndef WIN32
+#define THR_LOCAL __thread
+#else
+#define THR_LOCAL  __declspec(thread)
+#endif
+#endif
+
+static THR_LOCAL char tflags[6];
 
 static char *
 lwgeom_flagchars(LWGEOM *lwg)

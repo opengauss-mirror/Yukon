@@ -1,0 +1,34 @@
+# pyramid extension makefile.in 
+PYRAMID_MAJRO_VERSION=1
+PYRAMID_MINOR_VERSION=0
+POSTGIS_PGSQL_VERSION=92
+
+EXTENSION = yukon_vector_pyramid        # the extensions name
+MODULE_big = yukon_vector_pyramid-$(PYRAMID_MAJRO_VERSION).$(PYRAMID_MINOR_VERSION)
+
+DATA = yukon_vector_pyramid--1.0.sql  # script files to install
+
+COMPILE_TIME = $(shell date +"%Y-%m-%d %H:%M:%S")
+GIT_REVISION = $(shell git show -s --pretty=format:%h)
+
+PYRAMID_OBJS= \
+		pyramid.o \
+		util.o
+
+OBJS=$(PYRAMID_OBJS)
+
+
+override CFLAGS := -fpermissive 
+PG_CPPFLAGS += -std=c++11 -g -O2 $(CFLAGS) @CPPFLAGS@ @LIBGDAL_CFLAGS@ -DCOMPILEINFO="\" Compiled at: $(COMPILE_TIME)\"""\" Commit ID:$(GIT_REVISION) \""
+
+#librtcore.a 的位置要放在 liblwgeom.a 的前面（librtcore.a 依赖于 liblwgeom.a），否则会造成有些函数无法链接到动态库
+SHLIB_LINK = @SHLIB_LINK@ -lstdc++
+
+# postgres build stuff
+PG_CONFIG := @PG_CONFIG@
+PGXS := $(shell $(PG_CONFIG) --pgxs)
+
+include $(PGXS)
+
+distclean: clean
+	rm -f Makefile

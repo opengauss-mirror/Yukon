@@ -2,7 +2,7 @@
  *
  * geomgrid_ops.cpp
  *
- * Copyright (C) 2021 SuperMap Software Co., Ltd.
+ * Copyright (C) 2021-2023 SuperMap Software Co., Ltd.
  *
  * Yukon is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,7 +50,6 @@ struct geosotgrid
 #define ARR_OVERHEAD_NONULLS(ndims) MAXALIGN(sizeof(ArrayType) + 2 * sizeof(int) * (ndims))
 #define ARR_DATA_OFFSET(a) (ARR_HASNULL(a) ? (a)->dataoffset : ARR_OVERHEAD_NONULLS(ARR_NDIM(a)))
 #define ARR_DATA_PTR(a) (((char *)(a)) + ARR_DATA_OFFSET(a))
-#define ARRPTR(x) ((ulong *)ARR_DATA_PTR(x))
 #define ARRNELEMS(x) ArrayGetNItems(ARR_NDIM(x), ARR_DIMS(x))
 
 #define CHECKARRVALID(x)                                                                                 \

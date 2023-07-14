@@ -54,18 +54,18 @@ BEGIN
 
 	-- Ensure that column_name is in geomodel_columns
 	okay = false;
-	
+
 	EXECUTE 'SELECT count(*) FROM geomodel_columns WHERE f_table_schema ='|| quote_literal(real_schema) ||
 	' and f_table_name = '|| quote_literal(table_name) ||'  and f_geomodel_column = '|| quote_literal(column_name)||';'
 	INTO count;
 
 
-	
+
 	if(count) then
 		EXECUTE 'SELECT type FROM geomodel_columns WHERE f_table_schema ='|| quote_literal(real_schema) ||
 		' and f_table_name = '|| quote_literal(table_name) ||'  and f_geomodel_column = '|| quote_literal(column_name)||';'
 		INTO gtype;
-		
+
 		EXECUTE 'SELECT coord_dimension FROM geomodel_columns WHERE f_table_schema ='|| quote_literal(real_schema) ||
 		' and f_table_name = '|| quote_literal(table_name) ||'  and f_geomodel_column = '|| quote_literal(column_name)||';'
 		INTO gcoord_dimension;
@@ -88,7 +88,7 @@ BEGIN
 	ELSE
 		new_srid = 0;
 	END IF;
-	
+
     EXECUTE 'ALTER TABLE ' || quote_ident(real_schema) || '.' || quote_ident(table_name) ||
         ' ALTER COLUMN ' || quote_ident(column_name) || ' TYPE  geomodel(' || gtype ||',' ||new_srid::text || ') USING ST_SetSRID(' || quote_ident(column_name) || ',' || new_srid::text || ');';
 
@@ -139,17 +139,17 @@ LANGUAGE 'plpgsql' VOLATILE STRICT;
 
 CREATE OR REPLACE VIEW geomodel_columns AS
 	SELECT
-		current_database() AS f_table_catalog, 
-		n.nspname AS f_table_schema, 
-		c.relname AS f_table_name, 
+		current_database() AS f_table_catalog,
+		n.nspname AS f_table_schema,
+		c.relname AS f_table_name,
 		a.attname AS f_geomodel_column,
 		geomodel_typmod_dims(a.atttypmod) AS coord_dimension,
 		geomodel_typmod_srid(a.atttypmod) AS srid,
 		geomodel_typmod_type(a.atttypmod) AS type
-	FROM 
-		pg_class c, 
-		pg_attribute a, 
-		pg_type t, 
+	FROM
+		pg_class c,
+		pg_attribute a,
+		pg_type t,
 		pg_namespace n
 	WHERE t.typname = 'geomodel'
 		AND a.attisdropped = false
@@ -207,7 +207,7 @@ BEGIN
 			RETURN 'fail';
 		END IF;
     ELSE
-		new_srid := 4326;		
+		new_srid := 4326;
     END IF;
 
    -- Verify schema
@@ -216,7 +216,7 @@ BEGIN
 			'WHERE text(nspname) = ' || quote_literal(schema_name) ||
 			'LIMIT 1';
 		EXECUTE sql_str INTO count;
-		
+
 		if(count) then
 			sql_str := 'SELECT nspname FROM pg_namespace ' ||
 				'WHERE text(nspname) = ' || quote_literal(schema_name) ||
@@ -233,40 +233,40 @@ BEGIN
   --- 检查数据表是否存在
   --- select count(*) from information_schema.tables where table_schema='schema_name'
   --- and table_type='BASE TABLE' and table_name='table_name'
-  sql_str := 'select count(*) from information_schema.tables where table_schema=' 
-  || quote_literal(schema_name) 
+  sql_str := 'select count(*) from information_schema.tables where table_schema='
+  || quote_literal(schema_name)
   || ' and table_type=' || quote_literal('BASE TABLE')
-  || ' and table_name=' || quote_literal(table_name);  
+  || ' and table_name=' || quote_literal(table_name);
   EXECUTE sql_str into table_cnt;
-  IF(table_cnt <= 0)THEN  
+  IF(table_cnt <= 0)THEN
     --- 数据表不存在，直接报错
-    RAISE  'the table %.% does not exist!',schema_name,table_name;  
-    RETURN 'fail';
-  END IF;  
-  
-  --- 检查数据库中是否已经存在 geomodel 列
-  --- select count(*) from geomodel_columns where table_name='table_name' and schema_name='schema_name'
-  sql_str := 'select count(*) from geomodel_columns where f_table_name=' 
-  || quote_literal(table_name) 
-  || ' and f_table_schema =' || quote_literal(schema_name);
-  EXECUTE sql_str into geocol_cnt;  
-  IF(geocol_cnt > 0)THEN
-    --- 数据表中已含有 geomodel 数据类型的列,有则报错
-    RAISE WARNING 'the table %.% already has a geomodel type column!',schema_name,table_name;  
+    RAISE  'the table %.% does not exist!',schema_name,table_name;
     RETURN 'fail';
   END IF;
-  
+
+  --- 检查数据库中是否已经存在 geomodel 列
+  --- select count(*) from geomodel_columns where table_name='table_name' and schema_name='schema_name'
+  sql_str := 'select count(*) from geomodel_columns where f_table_name='
+  || quote_literal(table_name)
+  || ' and f_table_schema =' || quote_literal(schema_name);
+  EXECUTE sql_str into geocol_cnt;
+  IF(geocol_cnt > 0)THEN
+    --- 数据表中已含有 geomodel 数据类型的列,有则报错
+    RAISE WARNING 'the table %.% already has a geomodel type column!',schema_name,table_name;
+    RETURN 'fail';
+  END IF;
+
   --- 添加新列并创建子表
   --- alter table "schema_name"."table_name" add "column_name" geomodel;
-  sql_str := 'alter table ' || quote_ident(schema_name) || '.' || quote_ident(table_name) || ' add ' 
- 			 || quote_ident(column_name) || ' geomodel('|| new_type || ','|| new_srid::TEXT || ')';  
+  sql_str := 'alter table ' || quote_ident(schema_name) || '.' || quote_ident(table_name) || ' add '
+ 			 || quote_ident(column_name) || ' geomodel('|| new_type || ','|| new_srid::TEXT || ')';
   EXECUTE sql_str;
   --- create table "schema_name"."table_name_elem"(id bigint,elemcol model_elem)
-  sql_str := 'create table ' || quote_ident(schema_name) || '.' ||quote_ident(concat(table_name,'_elem')) 
+  sql_str := 'create table ' || quote_ident(schema_name) || '.' ||quote_ident(concat(table_name,'_elem'))
  				|| '(id BIGINT primary key,elemcol model_elem('|| new_type || ','|| new_srid::TEXT || '))';
- 			
+
   EXECUTE sql_str;
-  
+
   RETURN 'success';
 END; $$ LANGUAGE 'plpgsql';
 
@@ -290,59 +290,59 @@ BEGIN
   --- 检查数据表是否存在
   --- select count(*) from information_schema.tables where table_schema='schema_name'
   --- and table_type='BASE TABLE' and table_name='table_name'
-  sql_str := 'select count(*) from information_schema.tables where table_schema=' 
-  || quote_literal(schema_name) 
+  sql_str := 'select count(*) from information_schema.tables where table_schema='
+  || quote_literal(schema_name)
   || ' and table_type=' || quote_literal('BASE TABLE')
   || ' and table_name=' || quote_literal(table_name);
   EXECUTE sql_str into table_cnt;
-  IF(table_cnt <= 0)THEN  
+  IF(table_cnt <= 0)THEN
     --- 数据表不存在，直接报错
-    RAISE  'the table %.% does not exist!',schema_name,table_name;  
+    RAISE  'the table %.% does not exist!',schema_name,table_name;
     RETURN FALSE;
   END IF;
-  
+
   --- 检查数据库中是否已经存在 geomodel 列
   --- select count(*) from geomodel_columns where table_name='table_name' and schema_name='schema_name'
-  sql_str := 'select count(*) from geomodel_columns where f_table_name=' 
-  || quote_literal(table_name) 
+  sql_str := 'select count(*) from geomodel_columns where f_table_name='
+  || quote_literal(table_name)
   || ' and f_table_schema=' || quote_literal(schema_name);
-  EXECUTE sql_str into geocol_cnt;  
+  EXECUTE sql_str into geocol_cnt;
   IF(geocol_cnt <= 0)THEN
     --- 数据表中不含有 geomodel 数据类型的列,无则报错
-    RAISE  'the table %.% does not have a geomodel type column!',schema_name,table_name;  
+    RAISE  'the table %.% does not have a geomodel type column!',schema_name,table_name;
     RETURN FALSE;
   END IF;
-  
+
   --- 获取 geomodel 列的字段名
   sql_str:= 'select f_geomodel_column from geomodel_columns where f_table_name='
   || quote_literal(table_name) || ' and f_table_schema= '
-  || quote_literal(schema_name);  
+  || quote_literal(schema_name);
   EXECUTE sql_str into field_name;
-  
+
   --- 删除 geomodel 列
   --- alter table "schema_name"."table_name" drop "field_name";
-  sql_str := 'alter table ' || quote_ident(schema_name) || '.' || quote_ident(table_name) || ' drop column ' || quote_ident(field_name) ;  
+  sql_str := 'alter table ' || quote_ident(schema_name) || '.' || quote_ident(table_name) || ' drop column ' || quote_ident(field_name) ;
   EXECUTE sql_str;
-  
+
   --- 查看子表是否存在
   --- select count(*) from information_schema.tables where table_schema='schema_name'
   --- and table_type='BASE TABLE' and table_name='table_name_elem'
-  sql_str := 'select count(*) from information_schema.tables where table_schema=' 
-  || quote_literal(schema_name) 
+  sql_str := 'select count(*) from information_schema.tables where table_schema='
+  || quote_literal(schema_name)
   || ' and table_type=' || quote_literal('BASE TABLE')
   || ' and table_name=' || quote_literal(concat(table_name,'_elem'));
   EXECUTE sql_str into table_cnt;
-  IF(table_cnt <= 0)THEN  
+  IF(table_cnt <= 0)THEN
     --- 数据表不存在，直接报错
-    RAISE NOTICE 'the child table %.%_elem does not exist!',schema_name,table_name;  
+    RAISE NOTICE 'the child table %.%_elem does not exist!',schema_name,table_name;
     RETURN FALSE;
   END IF;
-  
+
   --- 删除子表
   --- drop table "schema_name"."table_name_elem"
   sql_str := 'drop table ' || quote_ident(schema_name) || '.' ||quote_ident(concat(table_name,'_elem'));
   EXECUTE sql_str;
-  
+
   RETURN TRUE;
 END; $$ LANGUAGE 'plpgsql';
 
@@ -361,7 +361,7 @@ DECLARE
   --- sql 语句
   sql_str   varchar;
   real_schema name;
-  
+
 BEGIN
 
 	IF ( schema_name IS NULL ) THEN
@@ -370,50 +370,50 @@ BEGIN
 		real_schema = schema_name;
 	END IF;
   --- 检查数据表是否存在
-  	sql_str := 'select count(*) from information_schema.tables where table_schema=' 
-  	|| quote_literal(real_schema) 
+  	sql_str := 'select count(*) from information_schema.tables where table_schema='
+  	|| quote_literal(real_schema)
   	|| ' and table_type=' || quote_literal('BASE TABLE')
   	|| ' and table_name=' || quote_literal(table_name);
   	EXECUTE sql_str into table_cnt;
-  	IF(table_cnt <= 0)THEN  
+  	IF(table_cnt <= 0)THEN
     --- 数据表不存在，直接报错
-    RAISE 'the table %.% does not exist!',real_schema,table_name;  
+    RAISE 'the table %.% does not exist!',real_schema,table_name;
     RETURN FALSE;
   	END IF;
-  
+
   --- 检查数据库中是否已经存在 geomodel 列
-  	sql_str := 'select count(*) from geomodel_columns where f_table_name=' 
-  	|| quote_literal(table_name) 
+  	sql_str := 'select count(*) from geomodel_columns where f_table_name='
+  	|| quote_literal(table_name)
   	|| ' and f_table_schema=' || quote_literal(real_schema);
-  	EXECUTE sql_str into geocol_cnt;  
+  	EXECUTE sql_str into geocol_cnt;
   	IF(geocol_cnt <= 0)THEN
     --- 数据表中不含有 geomodel 数据类型的列,无则报错
-    RAISE 'the table %.% does not have a geomodel type column!',real_schema,table_name;  
+    RAISE 'the table %.% does not have a geomodel type column!',real_schema,table_name;
     RETURN FALSE;
   	END IF;
-  
+
   	--- 删除 geomodel 表
   	EXECUTE 'drop table if exists ' || quote_ident(real_schema) || '.' || quote_ident(table_name) || ' restrict';
-  
+
   	--- 查看子表是否存在
-  	sql_str := 'select count(*) from information_schema.tables where table_schema=' 
-  	|| quote_literal(real_schema) 
+  	sql_str := 'select count(*) from information_schema.tables where table_schema='
+  	|| quote_literal(real_schema)
   	|| ' and table_type=' || quote_literal('BASE TABLE')
   	|| ' and table_name=' || quote_literal(concat(table_name,'_elem'));
   	EXECUTE sql_str into table_cnt;
-  	IF(table_cnt <= 0)THEN  
+  	IF(table_cnt <= 0)THEN
     --- 数据表不存在，提示
-    RAISE NOTICE 'the child table %.%_elem does not exist!',real_schema,table_name;  
+    RAISE NOTICE 'the child table %.%_elem does not exist!',real_schema,table_name;
     RETURN FALSE;
   	END IF;
-  
+
  	--- 删除子表
   	sql_str := 'drop table ' || quote_ident(real_schema) || '.' ||quote_ident(concat(table_name,'_elem'));
   	EXECUTE sql_str;
   	RETURN TRUE;
-	  
+
 END;
-$$ 
+$$
 LANGUAGE 'plpgsql';
 
 CREATE OR REPLACE FUNCTION DropGeomodelTable(schema_name varchar, table_name varchar)
@@ -622,7 +622,12 @@ CREATE OR REPLACE FUNCTION ST_SRID(geom geomodel)
 CREATE OR REPLACE FUNCTION ST_SETSRID(geom geomodel, srid integer)
 	RETURNS geomodel
 	AS '$libdir/yukon_geomodel-1.0', 'geomodel_set_srid'
-	LANGUAGE 'c' NOT FENCED IMMUTABLE STRICT ;	
+	LANGUAGE 'c' NOT FENCED IMMUTABLE STRICT ;
+
+CREATE OR REPLACE FUNCTION geomodel_analyze(internal)
+	RETURNS bool
+	AS '$libdir/postgis-3', 'gserialized_analyze_nd'
+	LANGUAGE 'c' VOLATILE STRICT;
 
 CREATE TYPE geomodel (
 	internallength = variable,
@@ -634,9 +639,80 @@ CREATE TYPE geomodel (
 	typmod_out = geomodel_typmod_out,
 	-- delimiter = ':',
 	alignment = double,
-	-- analyze = geomodel_analyze,
+	analyze = geomodel_analyze,
 	storage = main
 );
+
+CREATE OR REPLACE FUNCTION geomodel_lt(geom1 geomodel, geom2 geomodel)
+	RETURNS bool
+	AS '$libdir/postgis-3', 'lwgeom_lt'
+	LANGUAGE 'c' IMMUTABLE STRICT ;
+
+CREATE OR REPLACE FUNCTION geomodel_le(geom1 geomodel, geom2 geomodel)
+	RETURNS bool
+	AS '$libdir/postgis-3', 'lwgeom_le'
+	LANGUAGE 'c' IMMUTABLE STRICT ;
+
+CREATE OR REPLACE FUNCTION geomodel_gt(geom1 geomodel, geom2 geomodel)
+	RETURNS bool
+	AS '$libdir/postgis-3', 'lwgeom_gt'
+	LANGUAGE 'c' IMMUTABLE STRICT ;
+
+CREATE OR REPLACE FUNCTION geomodel_ge(geom1 geomodel, geom2 geomodel)
+	RETURNS bool
+	AS '$libdir/postgis-3', 'lwgeom_ge'
+	LANGUAGE 'c' IMMUTABLE STRICT ;
+
+CREATE OR REPLACE FUNCTION geomodel_eq(geom1 geomodel, geom2 geomodel)
+	RETURNS bool
+	AS '$libdir/postgis-3', 'lwgeom_eq'
+	LANGUAGE 'c' IMMUTABLE STRICT ;
+
+CREATE OR REPLACE FUNCTION geomodel_cmp(geom1 geomodel, geom2 geomodel)
+	RETURNS integer
+	AS '$libdir/postgis-3', 'lwgeom_cmp'
+	LANGUAGE 'c' IMMUTABLE STRICT ;
+
+CREATE OPERATOR < (
+	LEFTARG = geomodel, RIGHTARG = geomodel, PROCEDURE = geomodel_lt,
+	COMMUTATOR = '>', NEGATOR = '>=',
+	RESTRICT = contsel, JOIN = contjoinsel
+);
+
+CREATE OPERATOR <= (
+	LEFTARG = geomodel, RIGHTARG = geomodel, PROCEDURE = geomodel_le,
+	COMMUTATOR = '>=', NEGATOR = '>',
+	RESTRICT = contsel, JOIN = contjoinsel
+);
+
+CREATE OPERATOR = (
+	LEFTARG = geomodel, RIGHTARG = geomodel, PROCEDURE = geomodel_eq,
+	COMMUTATOR = '=', -- we might implement a faster negator here
+	RESTRICT = contsel, JOIN = contjoinsel, HASHES, MERGES
+);
+
+CREATE OPERATOR >= (
+	LEFTARG = geomodel, RIGHTARG = geomodel, PROCEDURE = geomodel_ge,
+	COMMUTATOR = '<=', NEGATOR = '<',
+	RESTRICT = contsel, JOIN = contjoinsel
+);
+
+CREATE OPERATOR > (
+	LEFTARG = geomodel, RIGHTARG = geomodel, PROCEDURE = geomodel_gt,
+	COMMUTATOR = '<', NEGATOR = '<=',
+	RESTRICT = contsel, JOIN = contjoinsel
+);
+
+CREATE OPERATOR CLASS btree_geomodel_ops
+	DEFAULT FOR TYPE geomodel USING btree AS
+	OPERATOR	1	< ,
+	OPERATOR	2	<= ,
+	OPERATOR	3	= ,
+	OPERATOR	4	>= ,
+	OPERATOR	5	> ,
+	FUNCTION	1	geomodel_cmp (geom1 geomodel, geom2 geomodel);
+
+
 
 ----------------------------------------- }} geomodel ----------------------------------------------------
 
@@ -708,7 +784,7 @@ CREATE OR REPLACE FUNCTION ST_Boundary(geomodel)
 CREATE OR REPLACE FUNCTION ST_CombineBBox(box3d, geomodel)
 		RETURNS box3D
 		AS '$libdir/yukon_geomodel-1.0', 'BOX3D_combine'
-		LANGUAGE 'c' NOT FENCED IMMUTABLE ;		
+		LANGUAGE 'c' NOT FENCED IMMUTABLE ;
 
 CREATE AGGREGATE ST_Extent(geomodel) (
 	sfunc = ST_CombineBBox,
@@ -718,7 +794,7 @@ CREATE AGGREGATE ST_Extent(geomodel) (
 
 CREATE AGGREGATE ST_3DExtent(geomodel) (
 	sfunc = ST_CombineBBox,
-	stype = box3d	
+	stype = box3d
 );
 
 
@@ -728,14 +804,14 @@ CREATE OR REPLACE FUNCTION ST_GeoModelType(geomodel)
 	LANGUAGE 'c' NOT FENCED IMMUTABLE STRICT ;
 
 ----------------------------------------- {{ -- Gist (wrap) for geomodel --  ------------------------------------------------------
-CREATE OR REPLACE FUNCTION geomodel_gist_consistent(internal,geomodel,int4) 
-	RETURNS bool 
+CREATE OR REPLACE FUNCTION geomodel_gist_consistent(internal,geomodel,int4)
+	RETURNS bool
 	AS '$libdir/postgis-3' ,'gserialized_gist_consistent'
 	LANGUAGE 'c' NOT FENCED;
 
------- overlaps ------ 
-CREATE OR REPLACE FUNCTION geomodel_overlaps(geomodel, geometry) 
-	RETURNS boolean 
+------ overlaps ------
+CREATE OR REPLACE FUNCTION geomodel_overlaps(geomodel, geometry)
+	RETURNS boolean
 	AS '$libdir/postgis-3' ,'gserialized_overlaps'
 	LANGUAGE 'c' NOT FENCED IMMUTABLE STRICT ;
 
@@ -743,7 +819,7 @@ CREATE OPERATOR && (
 	LEFTARG = geomodel, RIGHTARG = geometry, PROCEDURE = geomodel_overlaps,
 	COMMUTATOR = '&&',
 	RESTRICT = gserialized_gist_sel_nd,
-	JOIN = gserialized_gist_joinsel_nd	
+	JOIN = gserialized_gist_joinsel_nd
 );
 
 CREATE OPERATOR CLASS gist_geomodel_ops
@@ -765,7 +841,7 @@ CREATE OPERATOR CLASS gist_geomodel_ops
 CREATE OR REPLACE FUNCTION ST_MakeSkeletonFromTIN(geometry, cstring, cstring)
        RETURNS model_elem
        AS '$libdir/yukon_geomodel-1.0','make_skeleton_from_tin'
-       LANGUAGE 'c' NOT FENCED IMMUTABLE STRICT ;	   
+       LANGUAGE 'c' NOT FENCED IMMUTABLE STRICT ;
 
 CREATE OR REPLACE FUNCTION ST_MakeDefaultMaterial(cstring)
        RETURNS model_elem

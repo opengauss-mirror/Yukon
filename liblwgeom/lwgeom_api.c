@@ -32,6 +32,15 @@
 #include <assert.h>
 #include "../postgis_revision.h"
 
+
+#ifndef THR_LOCAL
+#ifndef WIN32
+#define THR_LOCAL __thread
+#else
+#define THR_LOCAL  __declspec(thread)
+#endif
+#endif
+
 #define xstr(s) str(s)
 #define str(s) #s
 
@@ -658,7 +667,7 @@ interpolate_point4d(const POINT4D *A, const POINT4D *B, POINT4D *I, double F)
 }
 
 
-int _lwgeom_interrupt_requested = 0;
+THR_LOCAL int _lwgeom_interrupt_requested = 0;
 void
 lwgeom_request_interrupt() {
   _lwgeom_interrupt_requested = 1;
@@ -668,7 +677,7 @@ lwgeom_cancel_interrupt() {
   _lwgeom_interrupt_requested = 0;
 }
 
-lwinterrupt_callback *_lwgeom_interrupt_callback = 0;
+THR_LOCAL lwinterrupt_callback *_lwgeom_interrupt_callback = 0;
 lwinterrupt_callback *
 lwgeom_register_interrupt_callback(lwinterrupt_callback *cb) {
   lwinterrupt_callback *old = _lwgeom_interrupt_callback;

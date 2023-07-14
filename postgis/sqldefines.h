@@ -6,11 +6,11 @@
 /*
  * Define just the version numbers; otherwise we get some strange substitutions in postgis.sql.in
  */
-#define POSTGIS_PGSQL_VERSION 96
-#define POSTGIS_PGSQL_HR_VERSION 9.6
-#define POSTGIS_GEOS_VERSION 30606
-#define POSTGIS_PROJ_VERSION 72
-#define POSTGIS_LIB_VERSION '3.2.0'
+#define POSTGIS_PGSQL_VERSION 92
+#define POSTGIS_PGSQL_HR_VERSION 5.0
+#define POSTGIS_GEOS_VERSION 31004
+#define POSTGIS_PROJ_VERSION 81
+#define POSTGIS_LIB_VERSION '3.2.1'
 #define POSTGIS_LIBXML2_VERSION 2.9.12
 #define POSTGIS_SFCGAL_VERSION 10308
 
@@ -45,8 +45,8 @@
  * won't substitute within apostrophes)
  */
 #define _POSTGIS_SQL_SELECT_POSTGIS_VERSION 'SELECT ''3.2 USE_GEOS=1 USE_PROJ=1 USE_STATS=1''::text AS version'
-#define _POSTGIS_SQL_SELECT_POSTGIS_BUILD_DATE 'SELECT ''2021-12-18 02:46:04''::text AS version'
-#define _POSTGIS_SQL_SELECT_POSTGIS_PGSQL_VERSION 'SELECT ''96''::text AS version'
+#define _POSTGIS_SQL_SELECT_POSTGIS_BUILD_DATE 'SELECT ''2023-07-14 06:41:43''::text AS version'
+#define _POSTGIS_SQL_SELECT_POSTGIS_PGSQL_VERSION 'SELECT ''92''::text AS version'
 
 #ifdef POSTGIS_REVISION
 /*
@@ -55,9 +55,9 @@
 * which means we need to then trim it to get rid of the extra spaces we added.
 * Maybe someone smarter can come up with a less goofy solution that makes all OS happy
 */
-#define _POSTGIS_SQL_SELECT_POSTGIS_SCRIPTS_VERSION $$ SELECT trim('3.2.0'::text || $rev$ POSTGIS_REVISION $rev$) AS version $$
+#define _POSTGIS_SQL_SELECT_POSTGIS_SCRIPTS_VERSION $$ SELECT trim('3.2.1'::text || $rev$ POSTGIS_REVISION $rev$) AS version $$
 #else
-#define _POSTGIS_SQL_SELECT_POSTGIS_SCRIPTS_VERSION $$ SELECT '3.2.0'::text AS version $$
+#define _POSTGIS_SQL_SELECT_POSTGIS_SCRIPTS_VERSION $$ SELECT '3.2.1'::text AS version $$
 #endif
 
 #define SRID_USR_MAX 998999
