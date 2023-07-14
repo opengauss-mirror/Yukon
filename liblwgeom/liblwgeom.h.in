@@ -130,7 +130,8 @@ const char* lwgeom_version(void);
 #define TINTYPE                 15
 
 #define ELLIPSETYPE				16
-#define NUMTYPES                17
+#define BEZIERTYPE				17	
+#define NUMTYPES                18
 
 /**
 * Flags applied in EWKB to indicate Z/M dimensions and
@@ -690,7 +691,7 @@ typedef struct
 }
 LWTIN;
 
-/* TINTYPE */
+/* ELLIPSE TYPE */
 typedef struct
 {
 	GBOX *bbox;
@@ -701,6 +702,22 @@ typedef struct
 	char pad[1]; /* Padding to 24 bytes (unused) */
 }
 LWELLIPSE;
+
+/* BEZIER TYPE */
+typedef struct 
+{
+	POINTARRAY *points;
+} BEZIER;
+
+typedef struct 
+{
+	GBOX *bbox;
+	BEZIER *data;
+	int32_t srid;
+	lwflags_t flags;
+	uint8_t type; /* BEZIERTYPE */
+	char pad[1];  /* Padding to 24 bytes (unused) */
+} LWBEZIER;
 
 /* Casts LWGEOM->LW* (return NULL if cast is illegal) */
 extern "C" LWMPOLY *lwgeom_as_lwmpoly(const LWGEOM *lwgeom);
@@ -1289,6 +1306,7 @@ extern "C" void lwcollection_free(LWCOLLECTION *col);
 extern "C" void lwcircstring_free(LWCIRCSTRING *curve);
 extern "C" void lwgeom_free(LWGEOM *geom);
 extern "C" void lwellipse_free(LWELLIPSE* e);
+extern "C" void lwbezier_free(LWBEZIER* e);
 
 /*
 * The *_release family of functions frees the LWGEOM structures
@@ -1696,7 +1714,7 @@ int lwline_crossing_direction(const LWLINE *l1, const LWLINE *l2);
 /**
 * Given a geometry clip  based on the from/to range of one of its ordinates (x, y, z, m). Use for m- and z- clipping.
 */
-LWCOLLECTION* lwgeom_clip_to_ordinate_range(const LWGEOM *lwin, char ordinate, double from, double to, double offset);
+extern "C" LWCOLLECTION* lwgeom_clip_to_ordinate_range(const LWGEOM *lwin, char ordinate, double from, double to, double offset);
 
 /**
  * Macros for specifying GML options.

@@ -43,7 +43,7 @@
 #define xstr(s) str(s)
 #define str(s) #s
 
-#define YUKON_VERSION "1.0.1"
+#define YUKON_VERSION "2.0"
 
 extern "C" Datum LWGEOM_mem_size(PG_FUNCTION_ARGS);
 extern "C" Datum LWGEOM_summary(PG_FUNCTION_ARGS);
@@ -191,11 +191,7 @@ Datum yukon_version(PG_FUNCTION_ARGS)
 {
 	char src[100] = {0};
 	char *ver = YUKON_VERSION;
-#ifndef GAUSSDB
 	char *msg = "(Community Edition)";
-#else
-	char *msg = "(Professional Edition)";
-#endif
 	char *compileinfo = COMPILEINFO;
 	strcat(src, ver);
 	strcat(src, msg);
@@ -378,6 +374,11 @@ Datum ST_AreaParam(PG_FUNCTION_ARGS)
 				else if (comptmp->type == ELLIPSETYPE)
 				{
 					area += lwsector_elliptic_arc_area((LWELLIPSE *)comptmp, pntAnchar);
+				}
+				else if (comptmp->type == BEZIERTYPE)
+				{
+					const LWBEZIER *ber = (const LWBEZIER *)comptmp;
+					area -= lwbezier_area(ber, &pntAnchar);
 				}
 			}
 		}

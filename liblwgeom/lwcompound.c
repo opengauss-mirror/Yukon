@@ -146,6 +146,11 @@ int lwcompound_add_lwgeom(LWCOMPOUND *comp, LWGEOM *geom)
 			LWELLIPSE *ellipse = (LWELLIPSE *)geom;
 			getPoint4d_p(ellipse->data->points, 0, &first);
 		}
+		else if(geom->type == BEZIERTYPE)
+		{
+			LWBEZIER *bezier = (LWBEZIER *)geom;
+			getPoint4d_p(bezier->data->points, 0, &first);
+		}
 		else
 		{
 			newline = (LWLINE *)geom;
@@ -157,6 +162,12 @@ int lwcompound_add_lwgeom(LWCOMPOUND *comp, LWGEOM *geom)
 			LWGEOM *prelwgeom = col->geoms[col->ngeoms - 1];
 			LWELLIPSE *ellipse = (LWELLIPSE *)prelwgeom;
 			getPoint4d_p(ellipse->data->points, 1, &last);
+		}
+		else if ( col->geoms[col->ngeoms - 1]->type == BEZIERTYPE )
+		{
+			LWGEOM *prelwgeom = col->geoms[col->ngeoms - 1];
+			LWBEZIER *beizer = (LWBEZIER *)prelwgeom;
+			getPoint4d_p(beizer->data->points, 3, &last);
 		}
 		else
 		{

@@ -43,7 +43,15 @@
 #define FP_TOLERANCE 5e-14
 #endif
 
-extern int gbox_geocentric_slow;
+#ifndef THR_LOCAL
+#ifndef WIN32
+#define THR_LOCAL __thread
+#else
+#define THR_LOCAL  __declspec(thread)
+#endif
+#endif
+
+extern THR_LOCAL int gbox_geocentric_slow;
 
 #define POW2(x) ((x)*(x))
 

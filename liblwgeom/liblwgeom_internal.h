@@ -48,6 +48,13 @@
 
 #include "liblwgeom.h"
 
+#ifndef THR_LOCAL
+#ifndef WIN32
+#define THR_LOCAL __thread
+#else
+#define THR_LOCAL  __declspec(thread)
+#endif
+#endif
 /**
 * Floating point comparators.
 */
@@ -118,6 +125,7 @@
 #define WKB_TIN_TYPE 16
 #define WKB_TRIANGLE_TYPE 17
 #define WKB_ELLIPSE_TYPE 18
+#define WKB_BEZIER_TYPE 19
 
 
 /**
@@ -201,6 +209,7 @@ uint32_t lwline_count_vertices(LWLINE *line);
 uint32_t lwpoly_count_vertices(LWPOLY *poly);
 uint32_t lwcollection_count_vertices(LWCOLLECTION *col);
 uint32_t lwellipse_count_vertices(LWELLIPSE *ellipse);
+uint32_t lwbezier_count_vertices(LWBEZIER *bezier);
 
 /*
 * DP simplification
@@ -265,12 +274,14 @@ double lwellipse_area(const LWELLIPSE *ellipse);
 double lwtriangle_area1(const POINT2D pntA, const POINT2D pntB, const POINT2D pntC);
 double lwsector_arc_area(LWCIRCSTRING *pcirArc, POINT2D Pnt);
 double lwsector_elliptic_arc_area(const LWELLIPSE* pGeoSub, POINT2D pntAnchar);
+double lwbezier_area(const LWBEZIER *bezier, const POINT2D *pt);
 
 /**
  * 参数化对象拟合函数
  * 
  */
-LWLINE* lwellipse_get_spatialdata(LWELLIPSE* ellipse,unsigned int);
+LWLINE* lwellipse_get_spatialdata(LWELLIPSE* ellipse, unsigned int);
+LWLINE* lwbezier_linearize(LWBEZIER * bezier, unsigned int);
 
 /**
 * Pull a #GBOX from the header of a #GSERIALIZED, if one is available. If
@@ -306,6 +317,7 @@ double lwcurvepoly_perimeter(const LWCURVEPOLY *poly);
 double lwcurvepoly_perimeter_2d(const LWCURVEPOLY *poly);
 double lwtriangle_perimeter(const LWTRIANGLE *triangle);
 double lwtriangle_perimeter_2d(const LWTRIANGLE *triangle);
+double lwbezier_length_2d(const LWBEZIER *bezier);
 
 /*
 * Segmentization
@@ -422,6 +434,7 @@ int lwcompound_is_closed(const LWCOMPOUND *curve);
 int lwpsurface_is_closed(const LWPSURFACE *psurface);
 int lwtin_is_closed(const LWTIN *tin);
 int lwellipse_is_closed(const LWELLIPSE *ellipse);
+int lwbezier_is_closed(const LWBEZIER *beizer);
 
 /**
 * Snap to grid
@@ -476,8 +489,8 @@ int gbox_centroid(const GBOX* gbox, POINT2D* out);
 int lwprint_double(double d, int maxdd, char *buf);
 extern uint8_t MULTITYPE[NUMTYPES];
 
-extern lwinterrupt_callback *_lwgeom_interrupt_callback;
-extern int _lwgeom_interrupt_requested;
+extern THR_LOCAL lwinterrupt_callback *_lwgeom_interrupt_callback;
+extern THR_LOCAL int _lwgeom_interrupt_requested;
 #define LW_ON_INTERRUPT(x) { \
 	if ( _lwgeom_interrupt_callback ) { \
 		(*_lwgeom_interrupt_callback)(); \

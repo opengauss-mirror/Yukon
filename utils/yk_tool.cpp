@@ -11,17 +11,13 @@
 
 #include "../postgis_config.h"
 
-#if HAVE_LICENSE
 #include "Toolkit/YkLicenseRSA.h"
-#endif
 
 #define YUKONDEPFILE "yukondepfile.txt"
+#define YUKONPKGFILE "yukonpkgfile.txt"
+#define YUKONSQLFILE "yukonsqlfile.txt"
 
-#ifndef GAUSSDB
-#define YUKONVERSION "Yukon 1.0.1(Community Edition)"
-#else
-#define YUKONVERSION "Yukon 1.0.1(Professional Edition)"
-#endif
+#define YUKONVERSION "Yukon 2.0(Community Edition)"
 
 enum class InfoLevel
 {
@@ -512,48 +508,79 @@ int uninstall(std::string pkg)
   log(InfoLevel::INFO, "start uninstall...");
 
   log(InfoLevel::INFO, "uninstall extension file ...");
-  exec(("rm -rf " + sharedir + "/extension/postgis*").c_str());
-  exec(("rm -rf " + sharedir + "/extension/yukon*").c_str());
-  exec(("rm -rf " + sharedir + "/extension/citus*").c_str());
-  exec(("rm -rf " + sharedir + "/extension/ogr_fdw*").c_str());
-  exec(("rm -rf " + sharedir + "/extension/oracle_fdw*").c_str());
-  exec(("rm -rf " + sharedir + "/extension/postgres_fdw*").c_str());
-
-  log(InfoLevel::INFO, "uninstall lib file ...");
-  exec(("rm -rf " + pkglibdir + "/postgis*").c_str());
-  exec(("rm -rf " + pkglibdir + "/yukon*").c_str());
-  exec(("rm -rf " + pkglibdir + "/citus*").c_str());
-  exec(("rm -rf " + pkglibdir + "/ogr_fdw*").c_str());
-  exec(("rm -rf " + pkglibdir + "/oracle_fdw*").c_str());
-  exec(("rm -rf " + pkglibdir + "/postgres_fdw*").c_str());
-
-  log(InfoLevel::INFO, "uninstall binary file ...");
-  exec(("rm -rf " + bindir + "/raster2pgsql").c_str());
-  exec(("rm -rf " + bindir + "/shp2pgsql").c_str());
-  exec(("rm -rf " + bindir + "/pgsql2shp").c_str());
-  exec(("rm -rf " + bindir + "/yk_tool").c_str());
-
-  log(InfoLevel::INFO, "uninstall dependendy file ...");
-
-  std::string path = libdir + "/" + YUKONDEPFILE;
-  std::ifstream infile(path, std::ios::in);
-
-  if (infile.is_open())
   {
-    std::string libname;
-    while (infile >> libname)
+    std::string path = sharedir + "/extension/" + YUKONSQLFILE;
+    std::ifstream infile(path, std::ios::in);
+    if (infile.is_open())
     {
-      exec(("rm -rf " + libdir + "/" + libname).c_str());
+      std::string libname;
+      while (infile >> libname)
+      {
+        exec(("rm -rf " + libdir + "/extension/" + libname).c_str());
+      }
+      // 关闭文件，删除第三方库记录文件
+      infile.close();
+      exec((std::string("rm -rf ") + path).c_str());
     }
-    // 关闭文件，删除第三方库记录文件
-    infile.close();
-    exec((std::string("rm -rf ") + path).c_str());
-  }
-  else
-  {
-    // 如果找不到，则提示用户
-    log(InfoLevel::WARNING,
-        "yukondepfile file not found,delete third-party dependent library files manually");
+    else
+    {
+      // 如果找不到，则提示用户
+      log(InfoLevel::WARNING,
+          "yukonsqlfile file not found,delete sql files manually");
+    }
+
+    log(InfoLevel::INFO, "uninstall lib file ...");
+    {
+      std::string path = pkglibdir + "/" + YUKONPKGFILE;
+      std::ifstream infile(path, std::ios::in);
+      if (infile.is_open())
+      {
+        std::string libname;
+        while (infile >> libname)
+        {
+          exec(("rm -rf " + pkglibdir + "/" + libname).c_str());
+        }
+        // 关闭文件，删除第三方库记录文件
+        infile.close();
+        exec((std::string("rm -rf ") + path).c_str());
+      }
+      else
+      {
+        // 如果找不到，则提示用户
+        log(InfoLevel::WARNING,
+            "yukonpkgfile file not found,delete pkg files manually");
+      }
+    }
+
+    log(InfoLevel::INFO, "uninstall binary file ...");
+    exec(("rm -rf " + bindir + "/raster2pgsql").c_str());
+    exec(("rm -rf " + bindir + "/shp2pgsql").c_str());
+    exec(("rm -rf " + bindir + "/pgsql2shp").c_str());
+    exec(("rm -rf " + bindir + "/yk_tool").c_str());
+
+    log(InfoLevel::INFO, "uninstall dependendy file ...");
+
+    {
+      std::string path = libdir + "/" + YUKONDEPFILE;
+      std::ifstream infile(path, std::ios::in);
+      if (infile.is_open())
+      {
+        std::string libname;
+        while (infile >> libname)
+        {
+          exec(("rm -rf " + libdir + "/" + libname).c_str());
+        }
+        // 关闭文件，删除第三方库记录文件
+        infile.close();
+        exec((std::string("rm -rf ") + path).c_str());
+      }
+      else
+      {
+        // 如果找不到，则提示用户
+        log(InfoLevel::WARNING,
+            "yukondepfile file not found,delete third-party dependent library files manually");
+      }
+    }
   }
 
   log(InfoLevel::INFO, "uninstall finished");
@@ -563,7 +590,6 @@ int uninstall(std::string pkg)
 
 int version()
 {
-
   std::ostringstream version;
   version << YUKONVERSION;
   version << COMPILEINFO;
@@ -571,10 +597,8 @@ int version()
   return 0;
 }
 
-#if HAVE_LICENSE
 int license()
 {
-
   std::string licstr = "";
   YkLicenseRSA rsa;
   int ret = rsa.Connect(20100);
@@ -613,9 +637,11 @@ int license()
   {
     licstr = "license file is invalid";
   }
+
+  std::cout << licstr << std::endl;
+
   return 0;
 }
-#endif
 
 int main(int argc, char *argv[])
 {
@@ -631,9 +657,7 @@ int main(int argc, char *argv[])
 
   cmdline::parser toolparser;
   toolparser.add("version", 'v', "Yukon Version Infomation");
-#if HAVE_LICENSE
   toolparser.add("license", 'l', "Yukon License Information");
-#endif
   toolparser.add("remove", 'r', "Remove Yukon");
   toolparser.add("install", 'i', "Install Yukon");
   toolparser.add<std::string>("pkgpath", 0, "pg_config path", false, "");
@@ -665,10 +689,8 @@ int main(int argc, char *argv[])
   {
     uninstall(pgconfigPath);
   }
-#if HAVE_LICENSE
   if (toolparser.exist("license"))
   {
     license();
   }
-#endif
 }

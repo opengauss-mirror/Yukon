@@ -86,4 +86,5 @@ LWGEOM* wkt_parser_collection_new(LWGEOM *geom);
 LWGEOM* wkt_parser_collection_add_geom(LWGEOM *col, LWGEOM *geom);
 LWGEOM* wkt_parser_collection_finalize(int lwtype, LWGEOM *col, char *dimensionality);
 LWGEOM* wkt_parser_ellipse(POINT start,POINT end, POINT center, double minor, double clockwise, double roattion, double axis,double ratio,char *dimensionality);
+LWGEOM *wkt_parse_bezier3(POINT _1th, POINT _2th, POINT _3th, POINT _4th, char *dimensionality);
 void wkt_parser_geometry_new(LWGEOM *geom, int32_t srid);

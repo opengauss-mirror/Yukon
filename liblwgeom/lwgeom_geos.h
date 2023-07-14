@@ -28,6 +28,14 @@
 #include "liblwgeom.h"
 #include "lwunionfind.h"
 
+#ifndef THR_LOCAL
+#ifndef WIN32
+#define THR_LOCAL __thread
+#else
+#define THR_LOCAL  __declspec(thread)
+#endif
+#endif
+
 /*
 ** Public prototypes for GEOS utility functions.
 */
@@ -48,5 +56,5 @@ int union_dbscan(LWGEOM **geoms, uint32_t num_geoms, UNIONFIND *uf, double eps, 
 
 POINTARRAY* ptarray_from_GEOSCoordSeq(const GEOSCoordSequence* cs, uint8_t want3d);
 
-extern char lwgeom_geos_errmsg[];
+extern THR_LOCAL char lwgeom_geos_errmsg[];
 extern void lwgeom_geos_error(const char* fmt, ...);

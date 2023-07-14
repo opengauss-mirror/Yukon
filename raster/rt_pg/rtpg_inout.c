@@ -29,6 +29,7 @@
 
 #include <postgres.h>
 #include <fmgr.h>
+#include <access/hash.h>
 
 #include "rtpostgis.h"
 extern "C"
@@ -39,6 +40,7 @@ Datum RASTER_out(PG_FUNCTION_ARGS);
 Datum RASTER_to_bytea(PG_FUNCTION_ARGS);
 
 Datum RASTER_noop(PG_FUNCTION_ARGS);
+Datum RASTER_varlena(PG_FUNCTION_ARGS);
 }
 /**
  * Input is Hex WKB
@@ -177,3 +179,24 @@ Datum RASTER_noop(PG_FUNCTION_ARGS)
 	PG_RETURN_POINTER(result);
 }
 
+PG_FUNCTION_INFO_V1(RASTER_varlena);
+Datum RASTER_varlena(PG_FUNCTION_ARGS)
+{
+    struct varlena *key = PG_GETARG_VARLENA_PP(0);
+    Datum result;
+
+#ifdef PGXC
+    if (g_instance.attr.attr_sql.string_hash_compatible) {
+        result = hash_any((unsigned char *)VARDATA_ANY(key), bcTruelen(key));
+    } else {
+#endif
+        result = hash_any((unsigned char *)VARDATA_ANY(key), VARSIZE_ANY_EXHDR(key));
+#ifdef PGXC
+    }
+#endif
+
+    /* Avoid leaking memory for toasted inputs */
+    PG_FREE_IF_COPY(key, 0);
+
+    return result;
+}

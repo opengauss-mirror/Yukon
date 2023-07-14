@@ -33,11 +33,12 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+
 LWTIN* lwtin_from_geos(const GEOSGeometry* geom, uint8_t want3d);
 
 #define AUTOFIX LW_TRUE
 #define LWGEOM_GEOS_ERRMSG_MAXSIZE 256
-char lwgeom_geos_errmsg[LWGEOM_GEOS_ERRMSG_MAXSIZE];
+THR_LOCAL char lwgeom_geos_errmsg[LWGEOM_GEOS_ERRMSG_MAXSIZE];
 
 extern void
 lwgeom_geos_error(const char* fmt, ...)

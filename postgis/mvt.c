@@ -512,13 +512,13 @@ static uint32_t *parse_jsonb(mvt_agg_context *ctx, Jsonb *jb,
 	JsonbIterator *it;
 	JsonbValue v;
 	bool skipNested = false;
-	JsonbIteratorToken r;
+	int r;
 	uint32_t k;
 
 	if (!JB_ROOT_IS_OBJECT(jb))
 		return tags;
 
-	it = JsonbIteratorInit(&jb->root);
+	it = JsonbIteratorInit(VARDATA(jb));
 
 	while ((r = JsonbIteratorNext(&it, &v, skipNested)) != WJB_DONE)
 	{
@@ -527,15 +527,15 @@ static uint32_t *parse_jsonb(mvt_agg_context *ctx, Jsonb *jb,
 		if (r == WJB_KEY && v.type != jbvNull)
 		{
 
-			k = get_key_index_with_size(ctx, v.val.string.val, v.val.string.len);
+			k = get_key_index_with_size(ctx, v.string.val, v.string.len);
 			if (k == UINT32_MAX)
 			{
 				char *key;
 				uint32_t newSize = ctx->keys_hash_i + 1;
 
-				key = palloc(v.val.string.len + 1);
-				memcpy(key, v.val.string.val, v.val.string.len);
-				key[v.val.string.len] = '\0';
+				key = palloc(v.string.len + 1);
+				memcpy(key, v.string.val, v.string.len);
+				key[v.string.len] = '\0';
 
 				tags = repalloc(tags, newSize * 2 * sizeof(*tags));
 				k = add_key(ctx, key);
@@ -545,16 +545,16 @@ static uint32_t *parse_jsonb(mvt_agg_context *ctx, Jsonb *jb,
 
 			if (v.type == jbvString)
 			{
-				char *value = palloc(v.val.string.len + 1);
-				memcpy(value, v.val.string.val, v.val.string.len);
-				value[v.val.string.len] = '\0';
+				char *value = palloc(v.string.len + 1);
+				memcpy(value, v.string.val, v.string.len);
+				value[v.string.len] = '\0';
 				add_value_as_string(ctx, value, tags, k);
 				ctx->row_columns++;
 			}
 			else if (v.type == jbvBool)
 			{
 				MVT_PARSE_VALUE(bool_values_hash,
-						v.val.boolean,
+						v.boolean,
 						sizeof(protobuf_c_boolean),
 						bool_value,
 						VECTOR_TILE__TILE__VALUE__TEST_ONEOF_BOOL_VALUE);
@@ -566,7 +566,7 @@ static uint32_t *parse_jsonb(mvt_agg_context *ctx, Jsonb *jb,
 				double d;
 				long l;
 				str = DatumGetCString(DirectFunctionCall1(numeric_out,
-					PointerGetDatum(v.val.numeric)));
+					PointerGetDatum(v.numeric)));
 				d = strtod(str, NULL);
 				l = strtol(str, NULL, 10);
 

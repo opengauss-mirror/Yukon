@@ -190,7 +190,8 @@ static char *stTypeName[] = {"Unknown",
 			     "ST_PolyhedralSurface",
 			     "ST_Triangle",
 			     "ST_Tin",
-				 "ST_ELLIPTICALSTRING"};
+				 "ST_ELLIPTICALSTRING",
+				 "ST_BEZIER3CURVE"};
 
 /* returns a string representation of this geometry's type */
 PG_FUNCTION_INFO_V1(geometry_geometrytype);

@@ -33,7 +33,7 @@
 * When this is true (when the cunit tests set it), use the slow, but
 * guaranteed correct, algorithm. Otherwise use the regular one.
 */
-int gbox_geocentric_slow = LW_FALSE;
+THR_LOCAL int gbox_geocentric_slow = LW_FALSE;
 
 /**
 * Utility function for ptarray_contains_point_sphere()

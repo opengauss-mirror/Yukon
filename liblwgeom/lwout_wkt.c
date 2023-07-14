@@ -307,6 +307,22 @@ static void lwellipse_to_wkt_sb(const LWELLIPSE *ellipse, stringbuffer_t *sb, in
 }
 
 /*
+ * BEZIER
+ */
+static void lwbezier_to_wkt_sb(const LWBEZIER *bezier, stringbuffer_t *sb, int precision, uint8_t variant)
+{
+	if (!(variant & WKT_NO_TYPE))
+	{
+		stringbuffer_append_len(sb, "BEZIER3CURVE", 12);
+		dimension_qualifiers_to_wkt_sb((LWGEOM *)bezier, sb, variant);
+	}
+	stringbuffer_append_len(sb, "(", 1);
+	ptarray_to_wkt_sb(bezier->data->points, sb, precision, variant | WKT_NO_PARENS);
+	stringbuffer_append_len(sb, ")", 1);
+}
+
+
+/*
 * MULTIPOLYGON
 */
 static void lwmpoly_to_wkt_sb(const LWMPOLY *mpoly, stringbuffer_t *sb, int precision, uint8_t variant)
@@ -373,9 +389,13 @@ static void lwcompound_to_wkt_sb(const LWCOMPOUND *comp, stringbuffer_t *sb, int
 		{
 			lwcircstring_to_wkt_sb((LWCIRCSTRING*)comp->geoms[i], sb, precision, variant );
 		}
-		else if (type == ELLIPSETYPE)
+		else if ( type == ELLIPSETYPE )
 		{
 			lwellipse_to_wkt_sb((LWELLIPSE *)comp->geoms[i], sb, precision, variant);
+		}
+		else if ( type == BEZIERTYPE )
+		{
+			lwbezier_to_wkt_sb((LWBEZIER *)comp->geoms[i], sb, precision, variant);
 		}
 		else
 		{
@@ -429,6 +449,10 @@ static void lwcurvepoly_to_wkt_sb(const LWCURVEPOLY *cpoly, stringbuffer_t *sb, 
 			/* And ellipse subgeoms *do* get type identifiers */
 			lwellipse_to_wkt_sb((LWELLIPSE*)cpoly->rings[i], sb, precision, variant );
 			break;
+		case BEZIERTYPE:
+			/* And bezier subgeoms *do* get type identifiers */
+			lwbezier_to_wkt_sb((LWBEZIER*)cpoly->rings[i], sb, precision, variant );
+			break;
 		default:
 			lwerror("lwcurvepoly_to_wkt_sb: Unknown type received %d - %s", type, lwtype_name(type));
 		}
@@ -476,6 +500,12 @@ static void lwmcurve_to_wkt_sb(const LWMCURVE *mcurv, stringbuffer_t *sb, int pr
 		case COMPOUNDTYPE:
 			/* And compoundcurve subgeoms *do* get type identifiers */
 			lwcompound_to_wkt_sb((LWCOMPOUND*)mcurv->geoms[i], sb, precision, variant );
+			break;
+		case ELLIPSETYPE:
+			lwellipse_to_wkt_sb((LWELLIPSE*)mcurv->geoms[i], sb, precision, variant);
+			break;
+		case BEZIERTYPE:
+			lwbezier_to_wkt_sb((LWBEZIER*)mcurv->geoms[i], sb, precision, variant);
 			break;
 		default:
 			lwerror("lwmcurve_to_wkt_sb: Unknown type received %d - %s", type, lwtype_name(type));
@@ -671,6 +701,9 @@ static void lwgeom_to_wkt_sb(const LWGEOM *geom, stringbuffer_t *sb, int precisi
 		break;
 	case ELLIPSETYPE:
 		lwellipse_to_wkt_sb((LWELLIPSE*)geom, sb, precision, variant);
+		break;
+	case BEZIERTYPE:
+		lwbezier_to_wkt_sb((LWBEZIER*)geom, sb, precision, variant);
 		break;
 	case COLLECTIONTYPE:
 		lwcollection_to_wkt_sb((LWCOLLECTION*)geom, sb, precision, variant);

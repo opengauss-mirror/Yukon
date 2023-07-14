@@ -5552,8 +5552,8 @@ CREATE CAST (raster AS bytea)
 -- Availability: 2.1.0
 CREATE OR REPLACE FUNCTION raster_hash(raster)
 	RETURNS integer
-	AS 'hashvarlena'
-	LANGUAGE 'internal' IMMUTABLE STRICT _PARALLEL;
+	AS 'MODULE_PATHNAME','RASTER_varlena'
+	LANGUAGE 'c' IMMUTABLE STRICT _PARALLEL;
 
 -- use raster_hash() to compare
 -- Availability: 2.1.0

@@ -64,6 +64,7 @@ SA_OBJS = \
 	lwline.o \
 	lwpoly.o \
 	lwellipse.o \
+	lwbezier.o \
 	lwtriangle.o \
 	lwmpoint.o \
 	lwmline.o \

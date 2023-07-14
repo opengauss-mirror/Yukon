@@ -617,10 +617,19 @@ lwcompound_linearize(const LWCOMPOUND *icompound, double tol,
 				ptarray_append_point(ptarray, &p, LW_TRUE);
 			}
 		}
-		else if(geom->type == ELLIPSETYPE)
+		else if (geom->type == ELLIPSETYPE)
 		{
-			//convert ellipsearc to linestring
-			LWLINE *tmp = lwellipse_get_spatialdata((LWELLIPSE*)geom,72);
+			// convert ellipsearc to linestring
+			tmp = lwellipse_get_spatialdata((LWELLIPSE *)geom, 72);
+			for (j = 0; j < tmp->points->npoints; j++)
+			{
+				getPoint4d_p(tmp->points, j, &p);
+				ptarray_append_point(ptarray, &p, LW_TRUE);
+			}
+		}
+		else if (geom->type == BEZIERTYPE)
+		{
+			tmp = lwbezier_linearize((LWBEZIER*)geom,72);
 			for (j = 0; j < tmp->points->npoints; j++)
 			{
 				getPoint4d_p(tmp->points, j, &p);
@@ -688,6 +697,12 @@ lwcurvepoly_linearize(const LWCURVEPOLY *curvepoly, double tol,
 			ptarray[i] = ptarray_clone_deep(line->points);
 			lwline_free(line);
 		}
+		else if (tmp->type == BEZIERTYPE)
+		{
+			line = lwbezier_linearize((LWBEZIER *)tmp, 72);
+			ptarray[i] = ptarray_clone_deep(line->points);
+			lwline_free(line);
+		}
 		else
 		{
 			lwerror("Invalid ring type found in CurvePoly.");
@@ -742,6 +757,14 @@ lwmcurve_linearize(const LWMCURVE *mcurve, double tol,
 		else if (tmp->type == COMPOUNDTYPE)
 		{
 			lines[i] = (LWGEOM *)lwcompound_linearize((LWCOMPOUND *)tmp, tol, type, flags);
+		}
+		else if (tmp->type == ELLIPSETYPE)
+		{
+			lines[i] = (LWGEOM *)lwellipse_get_spatialdata((LWELLIPSE *)tmp, tol);
+		}
+		else if (tmp->type == BEZIERTYPE)
+		{
+			lines[i] = (LWGEOM *)lwbezier_linearize((LWBEZIER *)tmp, tol);
 		}
 		else
 		{
@@ -878,6 +901,9 @@ lwcurve_linearize(const LWGEOM *geom, double tol,
 		break;
 	case ELLIPSETYPE:
 		ogeom = (LWGEOM *)lwellipse_get_spatialdata((LWELLIPSE *)geom, 72);
+	case BEZIERTYPE:
+		ogeom = (LWGEOM *)lwbezier_linearize((LWBEZIER *)geom, 72);
+		break;
 	default:
 		ogeom = lwgeom_clone_deep(geom);
 	}

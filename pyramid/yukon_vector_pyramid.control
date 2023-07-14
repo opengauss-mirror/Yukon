@@ -1,0 +1,4 @@
+comment = 'yukon vector pyramid extension'
+default_version = '1.0'
+module_pathname = '$libdir/yukon_vector_pyramid'
+relocatable = true

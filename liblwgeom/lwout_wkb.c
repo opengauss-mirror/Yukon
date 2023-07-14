@@ -134,6 +134,9 @@ static uint32_t lwgeom_wkb_type(const LWGEOM *geom, uint8_t variant)
 	case ELLIPSETYPE:
 		wkb_type = WKB_ELLIPSE_TYPE;
 		break;
+	case BEZIERTYPE:
+		wkb_type = WKB_BEZIER_TYPE;
+		break;
 	default:
 		lwerror("%s: Unsupported geometry type: %s", __func__, lwtype_name(geom->type));
 	}
@@ -692,6 +695,25 @@ static size_t lwellipse_to_wkb_size(const LWELLIPSE *e, uint8_t variant)
 	return size;
 }
 
+/*
+ BEZIER
+*/
+static size_t lwbezier_to_wkb_size(const LWBEZIER *bezier, uint8_t variant)
+{
+	/* endian flag + type number */
+	size_t size = WKB_BYTE_SIZE + WKB_INT_SIZE;
+
+	/* Extended WKB needs space for optional SRID integer */
+	if (lwgeom_wkb_needs_srid((LWGEOM *)bezier, variant))
+		size += WKB_INT_SIZE;
+
+	/* control points */
+	size += ptarray_to_wkb_size(bezier->data->points, variant);
+
+	return size;
+}
+
+
 static uint8_t* lwellipse_to_wkb_buf(const LWELLIPSE *e, uint8_t *buf, uint8_t variant)
 {
 	/* Set the endian flag */
@@ -719,6 +741,33 @@ static uint8_t* lwellipse_to_wkb_buf(const LWELLIPSE *e, uint8_t *buf, uint8_t v
 
 	return buf;
 }
+
+/*
+	BEZIER 
+*/
+static uint8_t* lwbezier_to_wkb_buf(const LWBEZIER *bezier, uint8_t *buf, uint8_t variant)
+{
+	/* Set the endian flag */
+	LWDEBUGF(4, "Entering function, buf = %p", buf);
+	buf = endian_to_wkb_buf(buf, variant);
+	LWDEBUGF(4, "Endian set, buf = %p", buf);
+	/* Set the geometry type */
+	buf = integer_to_wkb_buf(lwgeom_wkb_type((LWGEOM*)bezier, variant), buf, variant);
+	LWDEBUGF(4, "Type set, buf = %p", buf);
+	
+	/* Set the optional SRID for extended variant */
+	if ( lwgeom_wkb_needs_srid((LWGEOM*)bezier, variant) )
+	{
+		buf = integer_to_wkb_buf(bezier->srid, buf, variant);
+		LWDEBUGF(4, "SRID set, buf = %p", buf);
+	}
+
+	/* control points */
+	buf = ptarray_to_wkb_buf(bezier->data->points, buf, variant);
+
+	return buf;
+}
+
 
 /*
 * GEOMETRY
@@ -765,7 +814,10 @@ lwgeom_to_wkb_size(const LWGEOM *geom, uint8_t variant)
 		case ELLIPSETYPE:
 			size += lwellipse_to_wkb_size((LWELLIPSE*)geom, variant);
 			break;
-
+		case BEZIERTYPE:
+			size += lwbezier_to_wkb_size((LWBEZIER*)geom, variant);
+			break;
+		
 		/* All these Collection types have ngeoms and geoms elements */
 		case MULTIPOINTTYPE:
 		case MULTILINETYPE:
@@ -816,6 +868,8 @@ static uint8_t* lwgeom_to_wkb_buf(const LWGEOM *geom, uint8_t *buf, uint8_t vari
 			return lwtriangle_to_wkb_buf((LWTRIANGLE*)geom, buf, variant);
 		case ELLIPSETYPE:
 			return lwellipse_to_wkb_buf((LWELLIPSE*)geom, buf, variant);
+		case BEZIERTYPE:
+			return lwbezier_to_wkb_buf((LWBEZIER*)geom, buf, variant);
 		/* All these Collection types have 'ngeoms' and 'geoms' elements */
 		case MULTIPOINTTYPE:
 		case MULTILINETYPE:
