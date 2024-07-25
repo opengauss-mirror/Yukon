@@ -44,6 +44,7 @@ to_dec(POINT4D *pt)
 	pt->y *= 180.0/M_PI;
 }
 
+__thread PJ_CONTEXT *pj_ctx = NULL;
 /***************************************************************************/
 
 #if POSTGIS_PROJ_VERSION < 61
@@ -162,7 +163,13 @@ lwproj_from_str(const char* str_in, const char* str_out)
 	if (! (str_in && str_out))
 		return NULL;
 
-	PJ* pj = proj_create_crs_to_crs(PJ_DEFAULT_CTX, str_in, str_out, NULL);
+	if (!pj_ctx)
+	{
+		pj_ctx = proj_context_create();
+	}
+	
+	PJ* pj = proj_create_crs_to_crs(pj_ctx, str_in, str_out, NULL);
+	
 	if (!pj)
 		return NULL;
 
@@ -171,7 +178,7 @@ lwproj_from_str(const char* str_in, const char* str_out)
 	/* that info in the cache */
 	if (strcmp(str_in, str_out) == 0)
 	{
-		PJ *pj_source_crs = proj_get_source_crs(PJ_DEFAULT_CTX, pj);
+		PJ *pj_source_crs = proj_get_source_crs(pj_ctx, pj);
 		PJ *pj_ellps;
 		PJ_TYPE pj_type = proj_get_type(pj_source_crs);
 		if (pj_type == PJ_TYPE_UNKNOWN)
@@ -182,7 +189,7 @@ lwproj_from_str(const char* str_in, const char* str_out)
 		}
 		source_is_latlong = (pj_type == PJ_TYPE_GEOGRAPHIC_2D_CRS) || (pj_type == PJ_TYPE_GEOGRAPHIC_3D_CRS);
 
-		pj_ellps = proj_get_ellipsoid(PJ_DEFAULT_CTX, pj_source_crs);
+		pj_ellps = proj_get_ellipsoid(pj_ctx, pj_source_crs);
 		proj_destroy(pj_source_crs);
 		if (!pj_ellps)
 		{
@@ -190,7 +197,7 @@ lwproj_from_str(const char* str_in, const char* str_out)
 			lwerror("%s: unable to access source crs ellipsoid", __func__);
 			return NULL;
 		}
-		if (!proj_ellipsoid_get_parameters(PJ_DEFAULT_CTX,
+		if (!proj_ellipsoid_get_parameters(pj_ctx,
 						   pj_ellps,
 						   &semi_major_metre,
 						   &semi_minor_metre,
@@ -206,7 +213,7 @@ lwproj_from_str(const char* str_in, const char* str_out)
 	}
 
 	/* Add in an axis swap if necessary */
-	PJ* pj_norm = proj_normalize_for_visualization(PJ_DEFAULT_CTX, pj);
+	PJ* pj_norm = proj_normalize_for_visualization(pj_ctx, pj);
 	/* Swap failed for some reason? Fall back to coordinate operation */
 	if (!pj_norm)
 		pj_norm = pj;
@@ -226,17 +233,21 @@ lwproj_from_str(const char* str_in, const char* str_out)
 int
 lwgeom_transform_from_str(LWGEOM *geom, const char* instr, const char* outstr)
 {
+	if (!pj_ctx)
+	{
+		pj_ctx = proj_context_create();
+	}
 	LWPROJ *lp = lwproj_from_str(instr, outstr);
 	if (!lp)
 	{
-		PJ *pj_in = proj_create(PJ_DEFAULT_CTX, instr);
+		PJ *pj_in = proj_create(pj_ctx, instr);
 		if (!pj_in)
 		{
 			lwerror("could not parse proj string '%s'", instr);
 		}
 		proj_destroy(pj_in);
 
-		PJ *pj_out = proj_create(PJ_DEFAULT_CTX, outstr);
+		PJ *pj_out = proj_create(pj_ctx, outstr);
 		if (!pj_out)
 		{
 			lwerror("could not parse proj string '%s'", outstr);
@@ -263,8 +274,13 @@ ptarray_transform(POINTARRAY *pa, LWPROJ *pj)
 	double *pa_double = (double*)(pa->serialized_pointlist);
 
 	/* Convert to radians if necessary */
+	if(!pj->pj)
+	{
+		return LW_FAILURE;
+	}
 	if (proj_angular_input(pj->pj, PJ_FWD))
 	{
+		
 		for (i = 0; i < pa->npoints; i++)
 		{
 			getPoint4d_p(pa, i, &p);

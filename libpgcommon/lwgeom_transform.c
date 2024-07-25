@@ -45,7 +45,8 @@
 #define PROJ_BACKEND_HASH_SIZE 256
 
 /* Global to hold the Proj object cache */
-PROJSRSCache *PROJ_CACHE = NULL;
+__thread PROJSRSCache *PROJ_CACHE = NULL;
+__thread MemoryContext PROJ_CONTEXT = NULL;
 
 
 /**
@@ -104,6 +105,9 @@ PROJSRSDestroyPortalCache(void *portalCache)
 	}
 }
 
+extern __thread PJ_CONTEXT *pj_ctx;
+
+
 static void
 #if POSTGIS_PGSQL_VERSION < 96
 PROJSRSCacheDelete(MemoryContext context)
@@ -117,6 +121,12 @@ PROJSRSCacheDelete(void *ptr)
 		PROJSRSDestroyPortalCache(PROJ_CACHE);
 		PROJ_CACHE = NULL;
 	}	
+	if (pj_ctx)
+	{
+		proj_context_destroy(pj_ctx);
+		pj_ctx = NULL;
+	}	
+
 }
 
 
@@ -198,12 +208,17 @@ GetPROJSRSCache()
 	if (!cache)
 	{
 		/* Put proj cache in a child of the CacheContext */
-		MemoryContext context = AllocSetContextCreate(
-		    CacheMemoryContext,
-		    "Proj Context",
-		    ALLOCSET_SMALL_MINSIZE,
-        	ALLOCSET_SMALL_INITSIZE,
-        	ALLOCSET_SMALL_MAXSIZE);
+		MemoryContext context = PROJ_CONTEXT;
+		if(!context)
+		{
+			PROJ_CONTEXT = AllocSetContextCreate(
+				g_instance.instance_context,
+				"Proj Context",
+				ALLOCSET_SMALL_MINSIZE,
+				ALLOCSET_SMALL_INITSIZE,
+				ALLOCSET_SMALL_MAXSIZE);
+			context = PROJ_CONTEXT;
+		}
 
 		/* Allocate in the upper context */
 		cache = MemoryContextAllocZero(context, sizeof(PROJSRSCache));
@@ -507,7 +522,7 @@ AddToPROJSRSCache(PROJSRSCache *PROJCache, int32_t srid_from, int32_t srid_to)
 	if (!pjstrs_has_entry(&to_strs))
 		elog(ERROR, "got NULL for SRID (%d)", srid_to);
 
-	oldContext = MemoryContextSwitchTo(CacheMemoryContext);
+	oldContext = MemoryContextSwitchTo(PROJ_CONTEXT);
 
 #if POSTGIS_PROJ_VERSION < 61
 	PJ *projection = palloc(sizeof(PJ));
