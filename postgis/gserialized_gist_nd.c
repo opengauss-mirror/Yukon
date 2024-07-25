@@ -1341,7 +1341,7 @@ Datum gserialized_gist_distance(PG_FUNCTION_ARGS)
 	GIDX *query_box = (GIDX *)query_box_mem;
 	GIDX *entry_box;
 #if POSTGIS_GSSQL_VERSION >= 500
-	bool *recheck = PG_NARGS > 4 ? (bool *)PG_GETARG_POINTER(4) : NULL;
+	bool *recheck = PG_NARGS() > 4 ? (bool *)PG_GETARG_POINTER(4) : NULL;
 #endif
 	double distance;
 
