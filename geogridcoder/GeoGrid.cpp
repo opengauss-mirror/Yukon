@@ -2,7 +2,7 @@
  *
  * GeoGrid.cpp
  *
- * Copyright (C) 2021-2023 SuperMap Software Co., Ltd.
+ * Copyright (C) 2021-2024 SuperMap Software Co., Ltd.
  *
  * Yukon is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,6 +18,17 @@
  * along with this program; If not, see <http://www.gnu.org/licenses/>. *
  */
 
+#include "libpq/pqsignal.h"
+#include "utils/array.h"
+#include "catalog/pg_type.h"
+#include "utils/syscache.h"
+#include "utils/lsyscache.h"
+#include "utils/builtins.h"
+#include "catalog/pg_extension.h"
+#include "catalog/indexing.h"
+#include "utils/fmgroids.h"
+#include "access/sysattr.h"
+#include <commands/extension.h>
 #include "GeoGrid.h"
 #include <math.h>
 #include <algorithm>
@@ -74,7 +85,7 @@ extern "C" Datum gsg_get_level_extremum(PG_FUNCTION_ARGS);
 extern "C" Datum gsg_aggregate(PG_FUNCTION_ARGS);
 extern "C" Datum gsg_aggregate_array(PG_FUNCTION_ARGS);
 static void handleInterrupt(int sig);
-void _PG_init(void);
+extern "C" void _PG_init(void);
 void _PG_fini(void);
 
 /**
@@ -720,6 +731,7 @@ Datum gsg_mingeosotgrid(PG_FUNCTION_ARGS)
 {
 	int level_ = 0;
 	GSERIALIZED *gser = PG_GETARG_GSERIALIZED_P(0);
+	uint16_t has_z = gserialized_has_z(gser);
 	LWGEOM *geom = lwgeom_from_gserialized(gser);
 	int srid = gserialized_get_srid(gser);
 	if (srid != 4490)
@@ -749,13 +761,48 @@ Datum gsg_mingeosotgrid(PG_FUNCTION_ARGS)
 		}
 	}
 
-	GEOSOTGRID *buf_data = (GEOSOTGRID *)palloc0(GEOSOTGRIDSIZE);
-	SET_VARSIZE(buf_data, GEOSOTGRIDSIZE);
-	buf_data->flag = 0;
-	buf_data->level = level_;
-	buf_data->level_min = level_;
-	buf_data->data = pt1 & (0XFFFFFFFFFFFFFFFF << (64 - level_ * 2));
+	void *buf_data = nullptr;
+	if (has_z == 0)
+	{
+		buf_data = (GEOSOTGRID *)palloc0(GEOSOTGRIDSIZE);
+		GEOSOTGRID * buf_data_2d = buf_data;
+		SET_VARSIZE(buf_data, GEOSOTGRIDSIZE);
+		buf_data_2d->flag = 0;
+		buf_data_2d->level = level_;
+		buf_data_2d->level_min = level_;
+		buf_data_2d->data = pt1 & (0XFFFFFFFFFFFFFFFF << (64 - level_ * 2));
+	}
+	else {
+		bitset<96> grid_code;
+		buf_data = (GEOSOTGRID3D *)palloc0(GEOSOTGRID3DSIZE);
+		GEOSOTGRID3D * buf_data_3d = buf_data;
+		SET_VARSIZE(buf_data_3d, GEOSOTGRID3DSIZE);
+		buf_data_3d->flag = has_z;
+		double z_min = Min(box->zmin, box->zmax);
+		double z_max = Max(box->zmin, box->zmax);
+		int z_begin = AltitudeToInt(z_min, level_);
+		int z_end = AltitudeToInt(z_max, level_);
+		while (z_begin != z_end)
+		{
+			level_--;
+			z_begin = AltitudeToInt(z_min, level_);
+			z_end = AltitudeToInt(z_max, level_);
+		}
+		buf_data_3d->level = level_;
+		grid_code = GetCode(xmin, ymin, z_begin, level_);
+		string str_grid = grid_code.to_string();
+		string str_a = string(str_grid.begin(), str_grid.begin() + 32);
+		string str_b = string(str_grid.begin() + 32, str_grid.begin() + 64);
+		string str_c = string(str_grid.begin() + 64, str_grid.end());
 
+		uint32_t la = stoll(str_a, nullptr, 2);
+		uint32_t lb = stoll(str_b, nullptr, 2);
+		uint32_t lc = stoll(str_c, nullptr, 2);
+
+		memcpy(buf_data_3d->data, &lc, 4);
+		memcpy(buf_data_3d->data + 4, &lb, 4);
+		memcpy(buf_data_3d->data + 8, &la, 4);
+	}
 	lwgeom_free(geom);
 	lwfree(box);
 	PG_FREE_IF_COPY(gser, 0);

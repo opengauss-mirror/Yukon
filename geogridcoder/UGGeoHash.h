@@ -2,7 +2,7 @@
  *
  * UGGeoHash.h
  *
- * Copyright (C) 2021-2023 SuperMap Software Co., Ltd.
+ * Copyright (C) 2021-2024 SuperMap Software Co., Ltd.
  *
  * Yukon is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

@@ -2,7 +2,7 @@
  *
  * geomgrid_ops.cpp
  *
- * Copyright (C) 2021-2023 SuperMap Software Co., Ltd.
+ * Copyright (C) 2021-2024 SuperMap Software Co., Ltd.
  *
  * Yukon is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,8 +17,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; If not, see <http://www.gnu.org/licenses/>. *
  */
+#include "postgres.h"
+#include "access/gist.h"
 #include "GSGUtil.h"
-#include "../include/extension_dependency.h"
+//#include "../include/extension_dependency.h"
 #include <algorithm>
 #include <string.h>
 #include "geosot.h"
