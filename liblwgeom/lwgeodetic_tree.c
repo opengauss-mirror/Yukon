@@ -88,7 +88,7 @@ circ_node_leaf_new(const POINTARRAY* pa, int i)
 		return NULL;
 
 	/* Allocate */
-	node = lwalloc(sizeof(CIRC_NODE));
+	node = (CIRC_NODE*)lwalloc(sizeof(CIRC_NODE));
 	node->p1 = p1;
 	node->p2 = p2;
 
@@ -122,7 +122,7 @@ circ_node_leaf_new(const POINTARRAY* pa, int i)
 static CIRC_NODE*
 circ_node_leaf_point_new(const POINTARRAY* pa)
 {
-	CIRC_NODE* tree = lwalloc(sizeof(CIRC_NODE));
+	CIRC_NODE* tree = (CIRC_NODE*)lwalloc(sizeof(CIRC_NODE));
 	tree->p1 = tree->p2 = (POINT2D*)getPoint_internal(pa, 0);
 	geographic_point_init(tree->p1->x, tree->p1->y, &(tree->center));
 	tree->radius = 0.0;
@@ -334,7 +334,7 @@ circ_node_internal_new(CIRC_NODE** c, uint32_t num_nodes)
 		LWDEBUGF(3, " new center is (%g %g) new radius is %g", new_center.lon, new_center.lat, new_radius);
 	}
 
-	node = lwalloc(sizeof(CIRC_NODE));
+	node = (CIRC_NODE*)lwalloc(sizeof(CIRC_NODE));
 	node->p1 = NULL;
 	node->p2 = NULL;
 	node->center = new_center;
@@ -370,7 +370,7 @@ circ_tree_new(const POINTARRAY* pa)
 
 	/* First create a flat list of nodes, one per edge. */
 	num_edges = pa->npoints - 1;
-	nodes = lwalloc(sizeof(CIRC_NODE*) * pa->npoints);
+	nodes = (CIRC_NODE**)lwalloc(sizeof(CIRC_NODE*) * pa->npoints);
 	j = 0;
 	for ( i = 0; i < num_edges; i++ )
 	{
@@ -425,7 +425,7 @@ circ_nodes_merge(CIRC_NODE** nodes, int num_nodes)
 		{
 			inode_num = (j % CIRC_NODE_SIZE);
 			if ( inode_num == 0 )
-				inodes = lwalloc(sizeof(CIRC_NODE*)*CIRC_NODE_SIZE);
+				inodes = (CIRC_NODE**)lwalloc(sizeof(CIRC_NODE*)*CIRC_NODE_SIZE);
 
 			inodes[inode_num] = nodes[j];
 
@@ -949,7 +949,7 @@ lwpoly_calculate_circ_tree(const LWPOLY* lwpoly)
 	else
 	{
 		/* Calculate a tree for each non-trivial ring of the polygon */
-		nodes = lwalloc(lwpoly->nrings * sizeof(CIRC_NODE*));
+		nodes = (CIRC_NODE**)lwalloc(lwpoly->nrings * sizeof(CIRC_NODE*));
 		for ( i = 0; i < lwpoly->nrings; i++ )
 		{
 			node = circ_tree_new(lwpoly->rings[i]);
@@ -984,7 +984,7 @@ lwcollection_calculate_circ_tree(const LWCOLLECTION* lwcol)
 		return lwgeom_calculate_circ_tree(lwcol->geoms[0]);
 
 	/* Calculate a tree for each sub-geometry*/
-	nodes = lwalloc(lwcol->ngeoms * sizeof(CIRC_NODE*));
+	nodes = (CIRC_NODE**)lwalloc(lwcol->ngeoms * sizeof(CIRC_NODE*));
 	for ( i = 0; i < lwcol->ngeoms; i++ )
 	{
 		node = lwgeom_calculate_circ_tree(lwcol->geoms[i]);

@@ -125,7 +125,7 @@ lwcollection_wrapx(const LWCOLLECTION* lwcoll_in, double cutx, double amount)
 	uint32_t i;
 	int outtype = lwcoll_in->type;
 
-	wrap_geoms = lwalloc(lwcoll_in->ngeoms * sizeof(LWGEOM*));
+	wrap_geoms = (LWGEOM**)lwalloc(lwcoll_in->ngeoms * sizeof(LWGEOM*));
 	if ( ! wrap_geoms )
 	{
 		lwerror("Out of virtual memory");

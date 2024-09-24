@@ -237,7 +237,7 @@ gserialized1_hash(const GSERIALIZED *g1)
 	/* Calculate size of srid/type/coordinate buffer */
 	int32_t srid = gserialized1_get_srid(g1);
 	size_t bsz2 = bsz1 + sizeof(int);
-	uint8_t *b2 = lwalloc(bsz2);
+	uint8_t *b2 = (uint8_t*)lwalloc(bsz2);
 	/* Copy srid into front of combined buffer */
 	memcpy(b2, &srid, sizeof(int));
 	/* Copy type/coordinates into rest of combined buffer */
@@ -1114,7 +1114,7 @@ GSERIALIZED* gserialized1_from_lwgeom(LWGEOM *geom, size_t *size)
 
 	/* Set up the uint8_t buffer into which we are going to write the serialized geometry. */
 	expected_size = gserialized1_from_lwgeom_size(geom);
-	serialized = lwalloc(expected_size);
+	serialized = (uint8_t*)lwalloc(expected_size);
 	ptr = serialized;
 
 	/* Move past size, srid and flags. */
@@ -1368,7 +1368,7 @@ static LWCOLLECTION* lwcollection_from_gserialized1_buffer(uint8_t *data_ptr, lw
 
 	if ( ngeoms > 0 )
 	{
-		collection->geoms = lwalloc(sizeof(LWGEOM*) * ngeoms);
+		collection->geoms = (LWGEOM**)lwalloc(sizeof(LWGEOM*) * ngeoms);
 		collection->maxgeoms = ngeoms;
 	}
 	else
@@ -1535,7 +1535,7 @@ GSERIALIZED* gserialized1_set_gbox(GSERIALIZED *g, GBOX *gbox)
 	{
 		size_t varsize_new = LWSIZE_GET(g->size) + box_size;
 		uint8_t *ptr;
-		g_out = lwalloc(varsize_new);
+		g_out = (GSERIALIZED*)lwalloc(varsize_new);
 		/* Copy the head of g into place */
 		memcpy(g_out, g, 8);
 		/* Copy the body of g into place after leaving space for the box */
@@ -1580,7 +1580,7 @@ GSERIALIZED* gserialized1_drop_gbox(GSERIALIZED *g)
 	int g_ndims = G1FLAGS_NDIMS_BOX(g->gflags);
 	size_t box_size = 2 * g_ndims * sizeof(float);
 	size_t g_out_size = LWSIZE_GET(g->size) - box_size;
-	GSERIALIZED *g_out = lwalloc(g_out_size);
+	GSERIALIZED *g_out = (GSERIALIZED*)lwalloc(g_out_size);
 
 	/* Copy the contents while omitting the box */
 	if ( G1FLAGS_GET_BBOX(g->gflags) )

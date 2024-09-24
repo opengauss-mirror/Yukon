@@ -34,7 +34,7 @@ bezier_interpolation_func(float t, POINT2D *points, int count)
 {
 	assert(count > 0);
 
-	POINT2D *tmp_points = malloc(sizeof(POINT2D) * count);
+	POINT2D *tmp_points = (POINT2D*)malloc(sizeof(POINT2D) * count);
 	for (int i = 1; i < count; ++i)
 	{
 		for (int j = 0; j < count - i; ++j)
@@ -80,11 +80,11 @@ LWLINE *
 lwbezier_linearize(LWBEZIER *bezier, unsigned int seg)
 {
 	// 拟合后的点
-	POINT2D *output_points = malloc(sizeof(POINT2D) * seg);
+	POINT2D *output_points = (POINT2D*)malloc(sizeof(POINT2D) * seg);
 
 	// 构造初始点
 	int npoints = bezier->data->points->npoints;
-	POINT2D *source_point = malloc(sizeof(POINT2D) * npoints);
+	POINT2D *source_point = (POINT2D*)malloc(sizeof(POINT2D) * npoints);
 
 	for (int i = 0; i < npoints; i++)
 	{

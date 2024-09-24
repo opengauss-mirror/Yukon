@@ -258,7 +258,7 @@ lwpoly_make_geos_friendly(LWPOLY* poly)
 	if (!poly->nrings) return (LWGEOM*)poly;
 
 	/* Allocate enough pointers for all rings */
-	new_rings = lwalloc(sizeof(POINTARRAY*) * poly->nrings);
+	new_rings = (POINTARRAY**)lwalloc(sizeof(POINTARRAY*) * poly->nrings);
 
 	/* All rings must be closed and have > 3 points */
 	for (i = 0; i < poly->nrings; i++)
@@ -329,9 +329,9 @@ lwcollection_make_geos_friendly(LWCOLLECTION* g)
 	}
 
 	/* enough space for all components */
-	new_geoms = lwalloc(sizeof(LWGEOM*) * g->ngeoms);
+	new_geoms = (LWGEOM**)lwalloc(sizeof(LWGEOM*) * g->ngeoms);
 
-	ret = lwalloc(sizeof(LWCOLLECTION));
+	ret = (LWCOLLECTION*)lwalloc(sizeof(LWCOLLECTION));
 	memcpy(ret, g, sizeof(LWCOLLECTION));
 	ret->maxgeoms = g->ngeoms;
 
@@ -1002,7 +1002,7 @@ lwgeom_make_valid_params(LWGEOM* lwgeom_in, char* make_valid_params)
 
 	if (lwgeom_is_collection(lwgeom_in) && !lwgeom_is_collection(lwgeom_out))
 	{
-		LWGEOM** ogeoms = lwalloc(sizeof(LWGEOM*));
+		LWGEOM** ogeoms = (LWGEOM**)lwalloc(sizeof(LWGEOM*));
 		LWGEOM* ogeom;
 		LWDEBUG(3, "lwgeom_make_valid: forcing multi");
 		/* NOTE: this is safe because lwgeom_out is surely not lwgeom_in or

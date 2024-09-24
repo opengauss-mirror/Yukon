@@ -202,11 +202,11 @@ BuildArc(POINT2D **arr,
 		return false;
 	}
 
-	*arr = malloc(sizeof(POINT2D) * (*len));
+	*arr = (POINT2D*)malloc(sizeof(POINT2D) * (*len));
 
 	if (arr != NULL)
 	{
-		int i = 0;
+		size_t i = 0;
 		if (flag == 0)
 		{
 			for (i = *len - 1; i> 0; dRadianBeginT += step, i--)
@@ -361,8 +361,8 @@ lwellipse_get_middle_point(const LWELLIPSE *ellipse)
 			    ellipse->data->minor,
 			    &dRadianBegin,
 			    &dRadianEnd);
-	int nPointCount = 0;
-	POINT2D *pPoints = NULL;
+	// int nPointCount = 0;
+	// POINT2D *pPoints = NULL;
 
 	double dSemiMajorAxis = fabs(ellipse->data->axis);
 	double dSemiMinorAxis = fabs(ellipse->data->axis * ellipse->data->ratio);

@@ -42,7 +42,7 @@ bytebuffer_init_with_size(bytebuffer_t *s, size_t size)
 	}
 	else
 	{
-		s->buf_start = lwalloc(size);
+		s->buf_start = (uint8_t*)lwalloc(size);
 		s->capacity = size;
 	}
 	s->readcursor = s->writecursor = s->buf_start;
@@ -86,12 +86,12 @@ bytebuffer_makeroom(bytebuffer_t *s, size_t size_to_add)
 		LWDEBUGF(4,"We need to realloc more memory. New capacity is %d", capacity);
 		if ( s->buf_start == s->buf_static )
 		{
-			s->buf_start = lwalloc(capacity);
+			s->buf_start = (uint8_t*)lwalloc(capacity);
 			memcpy(s->buf_start, s->buf_static, s->capacity);
 		}
 		else
 		{
-			s->buf_start = lwrealloc(s->buf_start, capacity);
+			s->buf_start = (uint8_t*)lwrealloc(s->buf_start, capacity);
 		}
 		s->capacity = capacity;
 		s->writecursor = s->buf_start + current_write_size;
@@ -105,7 +105,7 @@ lwvarlena_t *
 bytebuffer_get_buffer_varlena(const bytebuffer_t *s)
 {
 	size_t bufsz = bytebuffer_getlength(s);
-	lwvarlena_t *v = lwalloc(bufsz + LWVARHDRSZ);
+	lwvarlena_t *v = (lwvarlena_t*)lwalloc(bufsz + LWVARHDRSZ);
 	memcpy(v->data, s->buf_start, bufsz);
 	LWSIZE_SET(v->size, bufsz + LWVARHDRSZ);
 	return v;

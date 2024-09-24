@@ -63,7 +63,7 @@ static char *
 lwpoint_summary(LWPOINT *point, int offset)
 {
 	char *result;
-	char *pad="";
+	const char *pad="";
 	char *zmflags = lwgeom_flagchars((LWGEOM*)point);
 
 	result = (char *)lwalloc(128+offset);
@@ -78,7 +78,7 @@ static char *
 lwline_summary(LWLINE *line, int offset)
 {
 	char *result;
-	char *pad="";
+	const char *pad="";
 	char *zmflags = lwgeom_flagchars((LWGEOM*)line);
 
 	result = (char *)lwalloc(128+offset);
@@ -98,8 +98,8 @@ lwcollection_summary(LWCOLLECTION *col, int offset)
 	char *result;
 	char *tmp;
 	uint32_t i;
-	static char *nl = "\n";
-	char *pad="";
+	static const char *nl = "\n";
+	const char *pad="";
 	char *zmflags = lwgeom_flagchars((LWGEOM*)col);
 
 	LWDEBUG(2, "lwcollection_summary called");
@@ -118,7 +118,7 @@ lwcollection_summary(LWCOLLECTION *col, int offset)
 	{
 		tmp = lwgeom_summary(col->geoms[i], offset+2);
 		size += strlen(tmp)+1;
-		result = lwrealloc(result, size);
+		result = (char*)lwrealloc(result, size);
 
 		LWDEBUGF(4, "Reallocated %d bytes for result", size);
 		if ( i > 0 ) strcat(result,nl);
@@ -139,8 +139,8 @@ lwpoly_summary(LWPOLY *poly, int offset)
 	size_t size = 64*(poly->nrings+1)+128;
 	char *result;
 	uint32_t i;
-	char *pad="";
-	static char *nl = "\n";
+	const char *pad="";
+	static const char *nl = "\n";
 	char *zmflags = lwgeom_flagchars((LWGEOM*)poly);
 
 	LWDEBUG(2, "lwpoly_summary called");

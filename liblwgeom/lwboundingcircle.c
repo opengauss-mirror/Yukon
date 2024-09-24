@@ -35,7 +35,7 @@ typedef struct {
 static SUPPORTING_POINTS*
 supporting_points_create()
 {
-	SUPPORTING_POINTS* s = lwalloc(sizeof(SUPPORTING_POINTS));
+	SUPPORTING_POINTS* s = (SUPPORTING_POINTS*)lwalloc(sizeof(SUPPORTING_POINTS));
 	s->p1 = NULL;
 	s->p2 = NULL;
 	s->p3 = NULL;
@@ -216,8 +216,8 @@ calculate_mbc(const POINT2D** points, uint32_t max_n, SUPPORTING_POINTS* support
 static LWBOUNDINGCIRCLE*
 lwboundingcircle_create()
 {
-	LWBOUNDINGCIRCLE* c = lwalloc(sizeof(LWBOUNDINGCIRCLE));
-	c->center = lwalloc(sizeof(POINT2D));
+	LWBOUNDINGCIRCLE* c = (LWBOUNDINGCIRCLE*)lwalloc(sizeof(LWBOUNDINGCIRCLE));
+	c->center = (POINT2D*)lwalloc(sizeof(POINT2D));
 
 	c->radius = 0.0;
 	c->center->x = 0.0;
@@ -250,7 +250,7 @@ lwgeom_calculate_mbc(const LWGEOM* g)
 
 	num_points = lwgeom_count_vertices(g);
 	it = lwpointiterator_create(g);
-	points = lwalloc(num_points * sizeof(POINT2D*));
+	points = (POINT2D**)lwalloc(num_points * sizeof(POINT2D*));
 	for (i = 0; i < num_points; i++)
 	{
 		if(!lwpointiterator_next(it, &p))
@@ -265,7 +265,7 @@ lwgeom_calculate_mbc(const LWGEOM* g)
 			return LW_FAILURE;
 		}
 
-		points[i] = lwalloc(sizeof(POINT2D));
+		points[i] = (POINT2D*)lwalloc(sizeof(POINT2D));
 		points[i]->x = p.x;
 		points[i]->y = p.y;
 	}

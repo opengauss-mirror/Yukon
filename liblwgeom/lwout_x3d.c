@@ -42,7 +42,7 @@ lwgeom_to_x3d3(const LWGEOM *geom, int precision, int opts, const char *defid)
 	/* Empty varlena for empties */
 	if( lwgeom_is_empty(geom) )
 	{
-		lwvarlena_t *v = lwalloc(LWVARHDRSZ);
+		lwvarlena_t *v = (lwvarlena_t*)lwalloc(LWVARHDRSZ);
 		LWSIZE_SET(v->size, LWVARHDRSZ);
 		return v;
 	}
@@ -281,7 +281,7 @@ asx3d3_triangle_sb(const LWTRIANGLE *triangle,
 static int
 asx3d3_multi_sb(const LWCOLLECTION *col, int precision, int opts, const char *defid, stringbuffer_t *sb)
 {
-	char *x3dtype;
+	const char *x3dtype;
 	uint32_t i;
 	int dimension=2;
 

@@ -78,7 +78,7 @@ lwcircstring_construct(int32_t srid, GBOX *bbox, POINTARRAY *points)
 LWCIRCSTRING *
 lwcircstring_construct_empty(int32_t srid, char hasz, char hasm)
 {
-	LWCIRCSTRING *result = lwalloc(sizeof(LWCIRCSTRING));
+	LWCIRCSTRING *result = (LWCIRCSTRING*)lwalloc(sizeof(LWCIRCSTRING));
 	result->type = CIRCSTRINGTYPE;
 	result->flags = lwflags(hasz,hasm,0);
 	result->srid = srid;
@@ -170,7 +170,7 @@ lwcircstring_from_lwpointarray(int32_t srid, uint32_t npoints, LWPOINT **points)
 	 * Allocate output points array
 	 */
 	size = ptsize * npoints;
-	newpoints = lwalloc(size);
+	newpoints = (uint8_t*)lwalloc(size);
 	memset(newpoints, 0, size);
 
 	ptr = newpoints;
@@ -203,7 +203,7 @@ lwcircstring_from_lwmpoint(int32_t srid, LWMPOINT *mpoint)
 
 	/* Allocate space for output points */
 	size = ptsize * mpoint->ngeoms;
-	newpoints = lwalloc(size);
+	newpoints = (uint8_t*)lwalloc(size);
 	memset(newpoints, 0, size);
 
 	ptr = newpoints;

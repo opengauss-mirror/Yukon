@@ -61,7 +61,7 @@ lwgeom_to_svg(const LWGEOM *geom, int precision, int relative)
 	/* Empty varlena for empties */
 	if( lwgeom_is_empty(geom) )
 	{
-		lwvarlena_t *v = lwalloc(LWVARHDRSZ);
+		lwvarlena_t *v = (lwvarlena_t*)lwalloc(LWVARHDRSZ);
 		LWSIZE_SET(v->size, LWVARHDRSZ);
 		return v;
 	}
@@ -138,7 +138,7 @@ static lwvarlena_t *
 assvg_point(const LWPOINT *point, int circle, int precision)
 {
 	size_t size = assvg_point_size(point, circle, precision);
-	lwvarlena_t *v = lwalloc(LWVARHDRSZ + size);
+	lwvarlena_t *v = (lwvarlena_t*)lwalloc(LWVARHDRSZ + size);
 	size = assvg_point_buf(point, v->data, circle, precision);
 	LWSIZE_SET(v->size, LWVARHDRSZ + size);
 	return v;
@@ -179,7 +179,7 @@ static lwvarlena_t *
 assvg_line(const LWLINE *line, int relative, int precision)
 {
 	size_t size = assvg_line_size(line, relative, precision);
-	lwvarlena_t *v = lwalloc(LWVARHDRSZ + size);
+	lwvarlena_t *v = (lwvarlena_t*)lwalloc(LWVARHDRSZ + size);
 	size = assvg_line_buf(line, v->data, relative, precision);
 	LWSIZE_SET(v->size, LWVARHDRSZ + size);
 	return v;
@@ -233,7 +233,7 @@ static lwvarlena_t *
 assvg_polygon(const LWPOLY *poly, int relative, int precision)
 {
 	size_t size = assvg_polygon_size(poly, relative, precision);
-	lwvarlena_t *v = lwalloc(LWVARHDRSZ + size);
+	lwvarlena_t *v = (lwvarlena_t*)lwalloc(LWVARHDRSZ + size);
 	size = assvg_polygon_buf(poly, v->data, relative, precision);
 	LWSIZE_SET(v->size, LWVARHDRSZ + size);
 	return v;
@@ -282,7 +282,7 @@ static lwvarlena_t *
 assvg_multipoint(const LWMPOINT *mpoint, int relative, int precision)
 {
 	size_t size = assvg_multipoint_size(mpoint, relative, precision);
-	lwvarlena_t *v = lwalloc(LWVARHDRSZ + size);
+	lwvarlena_t *v = (lwvarlena_t*)lwalloc(LWVARHDRSZ + size);
 	size = assvg_multipoint_buf(mpoint, v->data, relative, precision);
 	LWSIZE_SET(v->size, LWVARHDRSZ + size);
 	return v;
@@ -331,7 +331,7 @@ static lwvarlena_t *
 assvg_multiline(const LWMLINE *mline, int relative, int precision)
 {
 	size_t size = assvg_multiline_size(mline, relative, precision);
-	lwvarlena_t *v = lwalloc(LWVARHDRSZ + size);
+	lwvarlena_t *v = (lwvarlena_t*)lwalloc(LWVARHDRSZ + size);
 	size = assvg_multiline_buf(mline, v->data, relative, precision);
 	LWSIZE_SET(v->size, LWVARHDRSZ + size);
 	return v;
@@ -380,7 +380,7 @@ static lwvarlena_t *
 assvg_multipolygon(const LWMPOLY *mpoly, int relative, int precision)
 {
 	size_t size = assvg_multipolygon_size(mpoly, relative, precision);
-	lwvarlena_t *v = lwalloc(LWVARHDRSZ + size);
+	lwvarlena_t *v = (lwvarlena_t*)lwalloc(LWVARHDRSZ + size);
 	size = assvg_multipolygon_buf(mpoly, v->data, relative, precision);
 	LWSIZE_SET(v->size, LWVARHDRSZ + size);
 	return v;
@@ -436,7 +436,7 @@ static lwvarlena_t *
 assvg_collection(const LWCOLLECTION *col, int relative, int precision)
 {
 	size_t size = assvg_collection_size(col, relative, precision);
-	lwvarlena_t *v = lwalloc(LWVARHDRSZ + size);
+	lwvarlena_t *v = (lwvarlena_t*)lwalloc(LWVARHDRSZ + size);
 	size = assvg_collection_buf(col, v->data, relative, precision);
 	LWSIZE_SET(v->size, LWVARHDRSZ + size);
 	return v;

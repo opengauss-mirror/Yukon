@@ -36,7 +36,7 @@ stringlist_init_with_size(stringlist_t *s, size_t size)
 {
 	s->capacity = size;
 	s->length = 0;
-	s->data = lwalloc(stringlist_capacity_in_bytes(s->capacity));
+	s->data = (char**)lwalloc(stringlist_capacity_in_bytes(s->capacity));
 	memset(s->data, 0, stringlist_capacity_in_bytes(s->capacity));
 }
 
@@ -61,7 +61,7 @@ stringlist_release(stringlist_t *s)
 stringlist_t *
 stringlist_create_with_size(size_t size)
 {
-	stringlist_t *s = lwalloc(sizeof(stringlist_t));
+	stringlist_t *s = (stringlist_t*)lwalloc(sizeof(stringlist_t));
 	memset(s, 0, sizeof(stringlist_t));
 	stringlist_init(s);
 	return s;
@@ -99,7 +99,7 @@ stringlist_add_string_internal(stringlist_t *s, const char* string, int dosort)
 	if (s->length == s->capacity)
 	{
 		s->capacity *= 2;
-		s->data = lwrealloc(s->data, stringlist_capacity_in_bytes(s->capacity));
+		s->data = (char**)lwrealloc(s->data, stringlist_capacity_in_bytes(s->capacity));
 	};
 	s->data[s->length++] = lwstrdup(string);
 	if (dosort)
@@ -128,7 +128,7 @@ stringlist_sort(stringlist_t *s)
 const char *
 stringlist_find(stringlist_t *s, const char *key)
 {
-	char ** rslt = bsearch(&key, s->data, s->length, sizeof(char*), stringlist_cmp);
+	char ** rslt = (char**)bsearch(&key, s->data, s->length, sizeof(char*), stringlist_cmp);
 	if (! rslt) return NULL;
 	return *rslt;
 }

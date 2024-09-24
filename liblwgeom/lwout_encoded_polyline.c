@@ -76,12 +76,12 @@ pointarray_to_encoded_polyline(const POINTARRAY *pa, int precision)
 	/* Empty input is empty string */
 	if (pa->npoints == 0)
 	{
-		lwvarlena_t *v = lwalloc(LWVARHDRSZ);
+		lwvarlena_t *v = (lwvarlena_t*)lwalloc(LWVARHDRSZ);
 		LWSIZE_SET(v->size, LWVARHDRSZ);
 		return v;
 	}
 
-	delta = lwalloc(2 * sizeof(int) * pa->npoints);
+	delta = (int*)lwalloc(2 * sizeof(int) * pa->npoints);
 
 	/* Take the double value and multiply it by 1x10^precision, rounding the
 	 * result */

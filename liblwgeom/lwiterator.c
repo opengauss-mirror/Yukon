@@ -52,7 +52,7 @@ struct LWPOINTITERATOR
 static LISTNODE*
 prepend_node(void* g, LISTNODE* front)
 {
-	LISTNODE* n = lwalloc(sizeof(LISTNODE));
+	LISTNODE* n = (LISTNODE*)lwalloc(sizeof(LISTNODE));
 	n->item = g;
 	n->next = front;
 
@@ -142,7 +142,7 @@ unroll_collection(LWPOINTITERATOR* s)
 static void
 unroll_collections(LWPOINTITERATOR* s)
 {
-	while(s->geoms && lwgeom_is_collection(s->geoms->item))
+	while(s->geoms && lwgeom_is_collection((LWGEOM*)(s->geoms->item)))
 	{
 		unroll_collection(s);
 	}
@@ -174,7 +174,7 @@ lwpointiterator_advance(LWPOINTITERATOR* s)
 		}
 
 		s->i = 0;
-		g = s->geoms->item;
+		g = (LWGEOM*)(s->geoms->item);
 		s->pointarrays = extract_pointarrays_from_lwgeom(g);
 
 		s->geoms = pop_node(s->geoms);
@@ -195,7 +195,7 @@ lwpointiterator_peek(LWPOINTITERATOR* s, POINT4D* p)
 	if (!lwpointiterator_has_next(s))
 		return LW_FAILURE;
 
-	return getPoint4d_p(s->pointarrays->item, s->i, p);
+	return getPoint4d_p((POINTARRAY*)(s->pointarrays->item), s->i, p);
 }
 
 int
@@ -232,7 +232,7 @@ lwpointiterator_modify_next(LWPOINTITERATOR* s, const POINT4D* p)
 		return LW_FAILURE;
 	}
 
-	ptarray_set_point4d(s->pointarrays->item, s->i, p);
+	ptarray_set_point4d((POINTARRAY*)(s->pointarrays->item), s->i, p);
 
 	lwpointiterator_advance(s);
 	return LW_SUCCESS;
@@ -250,7 +250,7 @@ lwpointiterator_create(const LWGEOM* g)
 LWPOINTITERATOR*
 lwpointiterator_create_rw(LWGEOM* g)
 {
-	LWPOINTITERATOR* it = lwalloc(sizeof(LWPOINTITERATOR));
+	LWPOINTITERATOR* it = (LWPOINTITERATOR*)lwalloc(sizeof(LWPOINTITERATOR));
 
 	it->geoms = NULL;
 	it->pointarrays = NULL;

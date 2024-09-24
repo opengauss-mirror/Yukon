@@ -222,7 +222,7 @@ lwproj_from_str(const char* str_in, const char* str_out)
 		proj_destroy(pj);
 
 	/* Allocate and populate return value */
-	LWPROJ *lp = lwalloc(sizeof(LWPROJ));
+	LWPROJ *lp = (LWPROJ*)lwalloc(sizeof(LWPROJ));
 	lp->pj = pj_norm; /* Caller is going to have to explicitly proj_destroy this */
 	lp->source_is_latlong = source_is_latlong;
 	lp->source_semi_major_metre = semi_major_metre;
@@ -280,7 +280,6 @@ ptarray_transform(POINTARRAY *pa, LWPROJ *pj)
 	}
 	if (proj_angular_input(pj->pj, PJ_FWD))
 	{
-		
 		for (i = 0; i < pa->npoints; i++)
 		{
 			getPoint4d_p(pa, i, &p);

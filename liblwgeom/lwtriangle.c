@@ -57,7 +57,7 @@ lwtriangle_construct(int32_t srid, GBOX *bbox, POINTARRAY *points)
 LWTRIANGLE *
 lwtriangle_construct_empty(int32_t srid, char hasz, char hasm)
 {
-	LWTRIANGLE *result = lwalloc(sizeof(LWTRIANGLE));
+	LWTRIANGLE *result = (LWTRIANGLE*)lwalloc(sizeof(LWTRIANGLE));
 	result->type = TRIANGLETYPE;
 	result->flags = lwflags(hasz,hasm,0);
 	result->srid = srid;

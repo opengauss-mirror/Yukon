@@ -279,7 +279,7 @@ gserialized2_hash(const GSERIALIZED *g1)
 	/* Calculate size of srid/type/coordinate buffer */
 	int32_t srid = gserialized2_get_srid(g1);
 	size_t bsz2 = bsz1 + sizeof(int);
-	uint8_t *b2 = lwalloc(bsz2);
+	uint8_t *b2 = (uint8_t*)lwalloc(bsz2);
 	/* Copy srid into front of combined buffer */
 	memcpy(b2, &srid, sizeof(int));
 	/* Copy type/coordinates into rest of combined buffer */
@@ -1273,7 +1273,7 @@ GSERIALIZED* gserialized2_from_lwgeom(LWGEOM *geom, size_t *size)
 
 	/* Set up the uint8_t buffer into which we are going to write the serialized geometry. */
 	expected_size = gserialized2_from_lwgeom_size(geom);
-	ptr = lwalloc(expected_size);
+	ptr = (uint8_t*)lwalloc(expected_size);
 	g = (GSERIALIZED*)(ptr);
 
 	/* Set the SRID! */
@@ -1490,7 +1490,7 @@ static LWELLIPSE * lwellipse_from_gserialized2_buffer(uint8_t *data_ptr, lwflags
 	data_ptr += 4;                                 /* Skip past the npoints. */
 
 	//需要复制数据，否则会造成同一块空间释放两次
-	ellipse->data = lwalloc(sizeof(ELLIPSE));
+	ellipse->data = (ELLIPSE*)lwalloc(sizeof(ELLIPSE));
 
 	if (npoints > 0)
 		ellipse->data->points =
@@ -1524,7 +1524,7 @@ static LWBEZIER * lwbezier_from_gserialized2_buffer(uint8_t *data_ptr, lwflags_t
 	data_ptr += 4;                                 /* Skip past the npoints. */
 
 	//需要复制数据，否则会造成同一块空间释放两次
-	bezier->data = lwalloc(sizeof(BEZIER));
+	bezier->data = (BEZIER*)lwalloc(sizeof(BEZIER));
 
 	if (npoints > 0)
 		bezier->data->points =
@@ -1595,7 +1595,7 @@ lwcollection_from_gserialized2_buffer(uint8_t *data_ptr, lwflags_t lwflags, size
 
 	if (ngeoms > 0)
 	{
-		collection->geoms = lwalloc(sizeof(LWGEOM*) * ngeoms);
+		collection->geoms = (LWGEOM**)lwalloc(sizeof(LWGEOM*) * ngeoms);
 		collection->maxgeoms = ngeoms;
 	}
 	else
@@ -1765,7 +1765,7 @@ GSERIALIZED* gserialized2_set_gbox(GSERIALIZED *g, GBOX *gbox)
 		size_t varsize_in = LWSIZE_GET(g->size);
 		size_t varsize_out = varsize_in + box_size;
 		uint8_t *ptr_out, *ptr_in, *ptr;
-		g_out = lwalloc(varsize_out);
+		g_out = (GSERIALIZED*)lwalloc(varsize_out);
 		ptr_out = (uint8_t*)g_out;
 		ptr = ptr_in = (uint8_t*)g;
 		/* Copy the head of g into place */
@@ -1816,7 +1816,7 @@ GSERIALIZED* gserialized2_drop_gbox(GSERIALIZED *g)
 	int g_ndims = G2FLAGS_NDIMS_BOX(g->gflags);
 	size_t box_size = 2 * g_ndims * sizeof(float);
 	size_t g_out_size = LWSIZE_GET(g->size) - box_size;
-	GSERIALIZED *g_out = lwalloc(g_out_size);
+	GSERIALIZED *g_out = (GSERIALIZED*)lwalloc(g_out_size);
 
 	/* Copy the contents while omitting the box */
 	if (G2FLAGS_GET_BBOX(g->gflags))

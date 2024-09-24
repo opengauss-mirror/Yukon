@@ -77,7 +77,7 @@ static void adjust_radian(double *d)
 
 static void get_arc_info(LWCIRCSTRING *pcirArc,POINT2D *pntCenter,double *dRadius,double *dStartAngle,double *dEndAngle)
 {
-	double x10, y10;
+	// double x10, y10;
 	POINT2D m_pntStart = getPoint2d(pcirArc->points, 0);
 	POINT2D m_pntMiddle = getPoint2d(pcirArc->points, 1);
 	POINT2D m_pntEnd = getPoint2d(pcirArc->points, 2);
@@ -198,13 +198,13 @@ lwcurvepoly_construct_empty(int32_t srid, char hasz, char hasm)
 {
 	LWCURVEPOLY *ret;
 
-	ret = lwalloc(sizeof(LWCURVEPOLY));
+	ret = (LWCURVEPOLY*)lwalloc(sizeof(LWCURVEPOLY));
 	ret->type = CURVEPOLYTYPE;
 	ret->flags = lwflags(hasz, hasm, 0);
 	ret->srid = srid;
 	ret->nrings = 0;
 	ret->maxrings = 1; /* Allocate room for sub-members, just in case. */
-	ret->rings = lwalloc(ret->maxrings * sizeof(LWGEOM*));
+	ret->rings = (LWGEOM**)lwalloc(ret->maxrings * sizeof(LWGEOM*));
 	ret->bbox = NULL;
 
 	return ret;
@@ -215,13 +215,13 @@ lwcurvepoly_construct_from_lwpoly(LWPOLY *lwpoly)
 {
 	LWCURVEPOLY *ret;
 	uint32_t i;
-	ret = lwalloc(sizeof(LWCURVEPOLY));
+	ret = (LWCURVEPOLY*)lwalloc(sizeof(LWCURVEPOLY));
 	ret->type = CURVEPOLYTYPE;
 	ret->flags = lwpoly->flags;
 	ret->srid = lwpoly->srid;
 	ret->nrings = lwpoly->nrings;
 	ret->maxrings = lwpoly->nrings; /* Allocate room for sub-members, just in case. */
-	ret->rings = lwalloc(ret->maxrings * sizeof(LWGEOM*));
+	ret->rings = (LWGEOM**)lwalloc(ret->maxrings * sizeof(LWGEOM*));
 	ret->bbox = lwpoly->bbox ? gbox_clone(lwpoly->bbox) : NULL;
 	for ( i = 0; i < ret->nrings; i++ )
 	{
@@ -262,14 +262,14 @@ int lwcurvepoly_add_ring(LWCURVEPOLY *poly, LWGEOM *ring)
 	{
 		poly->maxrings = 2;
 		poly->nrings = 0;
-		poly->rings = lwalloc(poly->maxrings * sizeof(LWGEOM*));
+		poly->rings = (LWGEOM**)lwalloc(poly->maxrings * sizeof(LWGEOM*));
 	}
 
 	/* Allocate more space if we need it */
 	if ( poly->nrings == poly->maxrings )
 	{
 		poly->maxrings *= 2;
-		poly->rings = lwrealloc(poly->rings, sizeof(LWGEOM*) * poly->maxrings);
+		poly->rings = (LWGEOM**)lwrealloc(poly->rings, sizeof(LWGEOM*) * poly->maxrings);
 	}
 
 	/* Make sure we don't already have a reference to this geom */

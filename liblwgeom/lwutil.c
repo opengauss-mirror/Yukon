@@ -57,7 +57,7 @@ lwdebuglogger lwdebug_var = default_debuglogger;
 
 #define LW_MSG_MAXLEN 256
 
-static char *lwgeomTypeName[] =
+static const char *lwgeomTypeName[] =
 {
 	"Unknown",
 	"Point",
@@ -250,7 +250,7 @@ char *
 lwstrdup(const char* a)
 {
 	size_t l = strlen(a)+1;
-	char *b = lwalloc(l);
+	char *b = (char*)lwalloc(l);
 	strncpy(b, a, l);
 	return b;
 }
@@ -273,7 +273,7 @@ char *lwmessage_truncate(char *str, int startpos, int endpos, int maxlength, int
 	char *outstart;
 
 	/* Allocate space for new string */
-	output = lwalloc(maxlength + 4);
+	output = (char*)lwalloc(maxlength + 4);
 	output[0] = '\0';
 
 	/* Start truncation */
@@ -358,7 +358,7 @@ clamp_srid(int32_t srid)
 /* Structure for the type array */
 struct geomtype_struct
 {
-	char *typename_C;
+	const char *typename_C;
 	int type;
 	int z;
 	int m;
@@ -471,7 +471,7 @@ struct geomtype_struct geomtype_struct_array[] =
 * We could also count on PgSQL sending us *lower* case inputs, as it seems to do that
 * regardless of the case the user provides for the type arguments.
 */
-const char dumb_upper_map[128] = "................................................0123456789.......ABCDEFGHIJKLMNOPQRSTUVWXYZ......ABCDEFGHIJKLMNOPQRSTUVWXYZ.....";
+const char dumb_upper_map[129] = "................................................0123456789.......ABCDEFGHIJKLMNOPQRSTUVWXYZ......ABCDEFGHIJKLMNOPQRSTUVWXYZ.....";
 
 static char dumb_toupper(int in)
 {
@@ -536,7 +536,7 @@ int geometry_type_from_string(const char *str, uint8_t *type, int *z, int *m)
 	}
 
 	/* Copy and convert to upper case for comparison */
-	tmpstr = lwalloc(tmpendpos - tmpstartpos + 2);
+	tmpstr = (char*)lwalloc(tmpendpos - tmpstartpos + 2);
 	for (i = tmpstartpos; i <= tmpendpos; i++)
 		tmpstr[i - tmpstartpos] = dumb_toupper(str[i]);
 
