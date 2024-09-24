@@ -23,11 +23,11 @@
  **********************************************************************/
 
 #include "lwgeom_cache.h"
-
+#include "utils/memutils.h"
 SHARED_GSERIALIZED *
 shared_gserialized_new_nocache(Datum d)
 {
-	SHARED_GSERIALIZED *s = palloc(sizeof(SHARED_GSERIALIZED));
+	SHARED_GSERIALIZED *s = (SHARED_GSERIALIZED*)palloc(sizeof(SHARED_GSERIALIZED));
 	s->count = 0;
 	s->geom = (GSERIALIZED *)PG_DETOAST_DATUM(d);
 	return s;
@@ -36,7 +36,7 @@ shared_gserialized_new_nocache(Datum d)
 SHARED_GSERIALIZED *
 shared_gserialized_new_cached(FunctionCallInfo fcinfo, Datum d)
 {
-	SHARED_GSERIALIZED *s = MemoryContextAlloc(PostgisCacheContext(fcinfo), sizeof(SHARED_GSERIALIZED));
+	SHARED_GSERIALIZED *s = (SHARED_GSERIALIZED*)MemoryContextAlloc(PostgisCacheContext(fcinfo), sizeof(SHARED_GSERIALIZED));
 	MemoryContext old_context = MemoryContextSwitchTo(PostgisCacheContext(fcinfo));
 	s->geom = (GSERIALIZED *)PG_DETOAST_DATUM_COPY(d);
 	MemoryContextSwitchTo(old_context);
@@ -54,12 +54,13 @@ shared_gserialized_ref(FunctionCallInfo fcinfo, SHARED_GSERIALIZED *ref)
 	}
 	else
 	{
-		SHARED_GSERIALIZED *sg = MemoryContextAlloc(PostgisCacheContext(fcinfo), sizeof(SHARED_GSERIALIZED));
+		SHARED_GSERIALIZED *sg = (SHARED_GSERIALIZED*)MemoryContextAlloc(PostgisCacheContext(fcinfo), sizeof(SHARED_GSERIALIZED));
 		sg->count = 1;
-		sg->geom = MemoryContextAlloc(PostgisCacheContext(fcinfo), VARSIZE(ref->geom));
+		sg->geom = (GSERIALIZED*)MemoryContextAlloc(PostgisCacheContext(fcinfo), VARSIZE(ref->geom));
 		memcpy(sg->geom, ref->geom, VARSIZE(ref->geom));
 		return sg;
 	}
+	return NULL;
 }
 
 void

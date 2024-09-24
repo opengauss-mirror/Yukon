@@ -10,10 +10,10 @@
  *
  **********************************************************************/
 
-// #include "postgres.h"
+#include "postgres.h"
 
 // #include "catalog/pg_type.h" /* for CSTRINGOID */
-// #include "executor/spi.h"
+#include "executor/spi.h"
 // #include "fmgr.h"
 // #include "utils/memutils.h"
 
@@ -76,11 +76,11 @@ GetGenericCacheCollection(FunctionCallInfo fcinfo)
 	if (!fcinfo->flinfo)
 		elog(ERROR, "%s: Could not find upper context", __func__);
 
-	internal_cache = fcinfo->flinfo->fn_extra;
+	internal_cache = (GenericCacheCollection*)(fcinfo->flinfo->fn_extra);
 
 	if (!internal_cache)
 	{
-		internal_cache = MemoryContextAllocZero(PostgisCacheContext(fcinfo), sizeof(GenericCacheCollection));
+		internal_cache = (GenericCacheCollection*)MemoryContextAllocZero(PostgisCacheContext(fcinfo), sizeof(GenericCacheCollection));
 		fcinfo->flinfo->fn_extra = internal_cache;
 	}
 	return internal_cache;
@@ -205,7 +205,7 @@ ToastCacheGet(FunctionCallInfo fcinfo)
 	ToastCache* cache = (ToastCache*)(generic_cache->entry[entry_number]);
 	if (!cache)
 	{
-		cache = MemoryContextAllocZero(PostgisCacheContext(fcinfo), sizeof(ToastCache));
+		cache = (ToastCache*)MemoryContextAllocZero(PostgisCacheContext(fcinfo), sizeof(ToastCache));
 		cache->type = entry_number;
 		generic_cache->entry[entry_number] = (GenericCache*)cache;
 	}
@@ -324,7 +324,7 @@ getSRSbySRID(FunctionCallInfo fcinfo, int32_t srid, bool short_crs)
 
 	size = strlen(srs) + 1;
 
-	srscopy = MemoryContextAllocZero(PostgisCacheContext(fcinfo), size);
+	srscopy = (char*)MemoryContextAllocZero(PostgisCacheContext(fcinfo), size);
 	memcpy(srscopy, srs, size);
 
 	/* disconnect from SPI */
@@ -341,7 +341,7 @@ SRSDescCacheGet(FunctionCallInfo fcinfo)
 	SRSDescCache *cache = (SRSDescCache *)(generic_cache->entry[entry_number]);
 	if (!cache)
 	{
-		cache = MemoryContextAllocZero(PostgisCacheContext(fcinfo), sizeof(SRSDescCache));
+		cache = (SRSDescCache*)MemoryContextAllocZero(PostgisCacheContext(fcinfo), sizeof(SRSDescCache));
 		cache->type = entry_number;
 		generic_cache->entry[entry_number] = (GenericCache *)cache;
 	}
@@ -445,7 +445,7 @@ SRIDCacheGet(FunctionCallInfo fcinfo)
 	SRIDCache *cache = (SRIDCache *)(generic_cache->entry[entry_number]);
 	if (!cache)
 	{
-		cache = MemoryContextAllocZero(PostgisCacheContext(fcinfo), sizeof(SRIDCache));
+		cache = (SRIDCache*)MemoryContextAllocZero(PostgisCacheContext(fcinfo), sizeof(SRIDCache));
 		cache->type = entry_number;
 		generic_cache->entry[entry_number] = (GenericCache *)cache;
 	}
@@ -462,7 +462,7 @@ GetSRIDCacheBySRS(FunctionCallInfo fcinfo, const char *srs)
 	{
 		size_t size = strlen(srs) + 1;
 		arg->srid = getSRIDbySRS(fcinfo, srs);
-		arg->srs = MemoryContextAlloc(PostgisCacheContext(fcinfo), size);
+		arg->srs = (char*)MemoryContextAlloc(PostgisCacheContext(fcinfo), size);
 		memcpy(arg->srs, srs, size);
 	}
 

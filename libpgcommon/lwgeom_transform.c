@@ -12,11 +12,11 @@
 
 
 /* PostgreSQL headers */
-//#include "postgres.h"
+#include "postgres.h"
 //#include "fmgr.h"
 //#include "miscadmin.h"
 //#include "utils/memutils.h"
-//#include "executor/spi.h"
+#include "executor/spi.h"
 //#include "access/hash.h"
 //#include "utils/hsearch.h"
 
@@ -129,7 +129,6 @@ PROJSRSCacheDelete(void *ptr)
 
 }
 
-
 static void
 PROJSRSCacheInit(MemoryContext context)
 {
@@ -179,7 +178,7 @@ PROJSRSCacheCheck(MemoryContext context)
 	 */
 }
 #endif /* MEMORY_CONTEXT_CHECKING */
-
+#if 0
 /* Memory context definition must match the current version of PostgreSQL */
 static MemoryContextMethods PROJSRSCacheContextMethods =
 {
@@ -196,6 +195,8 @@ static MemoryContextMethods PROJSRSCacheContextMethods =
 	,PROJSRSCacheCheck
 #endif
 };
+
+#endif
 
 /**
 * Get the Proj cache entry from the global variable if one exists.
@@ -221,7 +222,7 @@ GetPROJSRSCache()
 		}
 
 		/* Allocate in the upper context */
-		cache = MemoryContextAllocZero(context, sizeof(PROJSRSCache));
+		cache = (PROJSRSCache*)MemoryContextAllocZero(context, sizeof(PROJSRSCache));
 		context->methods->delete_context = PROJSRSCacheDelete;
 
 		if (!cache)
@@ -271,7 +272,7 @@ SPI_pstrdup(const char* str)
 	char* ostr = NULL;
 	if (str)
 	{
-		ostr = SPI_palloc(strlen(str)+1);
+		ostr = (char*)SPI_palloc(strlen(str)+1);
 		strcpy(ostr, str);
 	}
 	return ostr;
@@ -292,7 +293,7 @@ GetProjStringsSPI(int32_t srid)
 		elog(ERROR, "Could not connect to database using SPI");
 	}
 
-	static char *proj_str_tmpl =
+	static const char *proj_str_tmpl =
 	    "SELECT proj4text, auth_name, auth_srid, srtext "
 	    "FROM %s "
 	    "WHERE srid = %d "
@@ -367,7 +368,7 @@ GetProjStrings(int32_t srid)
 	/* Automagic SRIDs */
 	else
 	{
-		strs.proj4text = palloc(maxprojlen);
+		strs.proj4text = (char*)palloc(maxprojlen);
 		int id = srid;
 		/* UTM North */
 		if ( id >= SRID_NORTH_UTM_START && id <= SRID_NORTH_UTM_END )
