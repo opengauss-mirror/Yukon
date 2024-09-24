@@ -18,7 +18,7 @@ MODULE_doc=postgis-@POSTGIS_MAJOR_VERSION@.@POSTGIS_MINOR_VERSION@
 MODULEDIR=contrib/$(MODULE_doc)
 
 # Files to be copied to the contrib/ directory
-DATA_built=postgis_restore.pl
+DATA_built=postgis_restore.pl 
 
 # PGXS information
 PG_CONFIG := @PG_CONFIG@
@@ -83,13 +83,6 @@ LD_FLAGS += $(LD_FLAGS.$(uname_m)) -D_UGUNICODE -lYkBase -lYkToolkit -lYkStream 
 COMPILETIME = $(shell date +"%Y-%m-%d %H:%M:%S")
 COMMITID = $(shell git show -s --pretty=format:%h)
 
-ifeq (@CHECK_GEOGRIDCODER@,yes)
-yk_tool:yk_tool.cpp
-	g++ -std=c++11 $^ -I../geomodel/libUGC/Include -L$(LD_FLAGS) -DCOMPILEINFO="\" compiled at:$(COMPILETIME)\"""\" commit id:$(COMMITID) \"" -o $@
-else
-yk_tool:yk_tool.cpp
-  echo "yk_tool must be compile after geomodel compiled."
-endif
 distclean: clean
 	rm -f Makefile
 
