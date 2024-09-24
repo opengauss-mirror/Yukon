@@ -71,7 +71,7 @@ static _rti_warp_arg
 _rti_warp_arg_init() {
 	_rti_warp_arg arg = NULL;
 
-	arg = rtalloc(sizeof(struct _rti_warp_arg_t));
+	arg = (_rti_warp_arg)rtalloc(sizeof(struct _rti_warp_arg_t));
 	if (arg == NULL) {
 		rterror("_rti_warp_arg_init: Could not allocate memory for _rti_warp_arg");
 		return NULL;
@@ -186,7 +186,7 @@ rt_raster rt_raster_gdal_warp(
 	GDALResampleAlg resample_alg, double max_err
 ) {
 	CPLErr cplerr;
-	char *dst_options[] = {"SUBCLASS=VRTWarpedDataset", NULL};
+	const char *dst_options[] = {"SUBCLASS=VRTWarpedDataset", NULL};
 	_rti_warp_arg arg = NULL;
 
 	int hasnodata = 0;
@@ -316,7 +316,7 @@ rt_raster rt_raster_gdal_warp(
 	/* set transform options */
 	if (arg->src.srs != NULL || arg->dst.srs != NULL) {
 		arg->transform.option.len = 2;
-		arg->transform.option.item = rtalloc(sizeof(char *) * (arg->transform.option.len + 1));
+		arg->transform.option.item = (char**)rtalloc(sizeof(char *) * (arg->transform.option.len + 1));
 		if (NULL == arg->transform.option.item) {
 			rterror("rt_raster_gdal_warp: Could not allocation memory for transform options");
 			_rti_warp_arg_destroy(arg);
@@ -908,7 +908,7 @@ rt_raster rt_raster_gdal_warp(
 				return NULL;
 			}
 
-			if (!rt_band_get_hasnodata_flag(band)) {
+			if (!rt_band_get_hasnodata_flag((rt_band)band)) {
 				/*
 					based on line 1004 of gdalwarp.cpp
 					the problem is that there is a chance that this number is a legitimate value
@@ -916,7 +916,7 @@ rt_raster rt_raster_gdal_warp(
 				arg->wopts->padfSrcNoDataReal[i] = -123456.789;
 			}
 			else {
-				rt_band_get_nodata(band, &(arg->wopts->padfSrcNoDataReal[i]));
+				rt_band_get_nodata((rt_band)band, &(arg->wopts->padfSrcNoDataReal[i]));
 			}
 
 			arg->wopts->padfDstNoDataReal[i] = arg->wopts->padfSrcNoDataReal[i];

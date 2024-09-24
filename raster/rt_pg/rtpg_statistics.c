@@ -27,15 +27,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  */
-#include "../../include/extension_dependency.h"
-// #include <postgres.h>
-// #include <fmgr.h>
-// #include <utils/builtins.h> /* for text_to_cstring() */
-// #include "utils/lsyscache.h" /* for get_typlenbyvalalign */
-// #include "utils/array.h" /* for ArrayType */
-// #include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
-// #include <executor/spi.h>
-// #include <funcapi.h> /* for SRF */
+//#include "../../include/extension_dependency.h"
+#include <postgres.h>
+#include <fmgr.h>
+#include <utils/builtins.h> /* for text_to_cstring() */
+#include "utils/lsyscache.h" /* for get_typlenbyvalalign */
+#include "utils/array.h" /* for ArrayType */
+#include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
+#include <executor/spi.h>
+#include <funcapi.h> /* for SRF */
 
 #include "../../postgis_config.h"
 
@@ -518,7 +518,7 @@ static rtpg_summarystats_arg
 rtpg_summarystats_arg_init() {
 	rtpg_summarystats_arg arg = NULL;
 
-	arg = palloc(sizeof(struct rtpg_summarystats_arg_t));
+	arg = (rtpg_summarystats_arg)palloc(sizeof(struct rtpg_summarystats_arg_t));
 	if (arg == NULL) {
 		elog(
 			ERROR,
@@ -1044,7 +1044,7 @@ Datum RASTER_histogram(PG_FUNCTION_ARGS)
 			deconstruct_array(array, etype, typlen, typbyval, typalign, &e,
 				&nulls, &n);
 
-			bin_width = palloc(sizeof(double) * n);
+			bin_width = (double*)palloc(sizeof(double) * n);
 			for (i = 0, j = 0; i < n; i++) {
 				if (nulls[i]) continue;
 
@@ -1155,7 +1155,7 @@ Datum RASTER_histogram(PG_FUNCTION_ARGS)
 	call_cntr = funcctx->call_cntr;
 	max_calls = funcctx->max_calls;
 	tupdesc = funcctx->tuple_desc;
-	hist2 = funcctx->user_fctx;
+	hist2 = (rt_histogram)(funcctx->user_fctx);
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
@@ -1308,7 +1308,7 @@ Datum RASTER_quantile(PG_FUNCTION_ARGS)
 			deconstruct_array(array, etype, typlen, typbyval, typalign, &e,
 				&nulls, &n);
 
-			quantiles = palloc(sizeof(double) * n);
+			quantiles = (double*)palloc(sizeof(double) * n);
 			for (i = 0, j = 0; i < n; i++) {
 				if (nulls[i]) continue;
 
@@ -1409,7 +1409,7 @@ Datum RASTER_quantile(PG_FUNCTION_ARGS)
 	call_cntr = funcctx->call_cntr;
 	max_calls = funcctx->max_calls;
 	tupdesc = funcctx->tuple_desc;
-	quant2 = funcctx->user_fctx;
+	quant2 = (rt_quantile)(funcctx->user_fctx);
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
@@ -1539,7 +1539,7 @@ Datum RASTER_valueCount(PG_FUNCTION_ARGS) {
 			deconstruct_array(array, etype, typlen, typbyval, typalign, &e,
 				&nulls, &n);
 
-			search_values = palloc(sizeof(double) * n);
+			search_values = (double*)palloc(sizeof(double) * n);
 			for (i = 0, j = 0; i < n; i++) {
 				if (nulls[i]) continue;
 
@@ -1621,7 +1621,7 @@ Datum RASTER_valueCount(PG_FUNCTION_ARGS) {
 	call_cntr = funcctx->call_cntr;
 	max_calls = funcctx->max_calls;
 	tupdesc = funcctx->tuple_desc;
-	vcnts2 = funcctx->user_fctx;
+	vcnts2 = (rt_valuecount)(funcctx->user_fctx);
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
@@ -1774,7 +1774,7 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 			deconstruct_array(array, etype, typlen, typbyval, typalign, &e,
 				&nulls, &n);
 
-			search_values = palloc(sizeof(double) * n);
+			search_values = (double*)palloc(sizeof(double) * n);
 			for (i = 0, j = 0; i < (uint32_t) n; i++) {
 				if (nulls[i]) continue;
 
@@ -1980,7 +1980,7 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 					}
 					else {
 						covcount++;
-						covvcnts = SPI_repalloc(covvcnts, sizeof(struct rt_valuecount_t) * covcount);
+						covvcnts = (rt_valuecount)SPI_repalloc(covvcnts, sizeof(struct rt_valuecount_t) * covcount);
 						if (!covvcnts) {
 							SPI_freetuptable(SPI_tuptable);
 							SPI_cursor_close(portal);
@@ -2048,7 +2048,7 @@ Datum RASTER_valueCountCoverage(PG_FUNCTION_ARGS) {
 	call_cntr = funcctx->call_cntr;
 	max_calls = funcctx->max_calls;
 	tupdesc = funcctx->tuple_desc;
-	covvcnts2 = funcctx->user_fctx;
+	covvcnts2 = (rt_valuecount)(funcctx->user_fctx);
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {

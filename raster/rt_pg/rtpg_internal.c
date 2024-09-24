@@ -126,7 +126,7 @@ rtpg_chartrim(const char *input, char *remove) {
 	while (strchr(remove, *--ptr) != NULL)
 		offset++;
 
-	rtn = palloc(sizeof(char) * (strlen(input) - offset + 1));
+	rtn = (char*)palloc(sizeof(char) * (strlen(input) - offset + 1));
 	if (!rtn) {
 		fprintf(stderr, "Not enough memory\n");
 		return NULL;
@@ -150,7 +150,7 @@ rtpg_strsplit(const char *str, const char *delimiter, uint32_t *n) {
 		return NULL;
 
 	/* copy str to tmp as strtok_r will mangle the string */
-	tmp = palloc(sizeof(char) * (strlen(str) + 1));
+	tmp = (char*)palloc(sizeof(char) * (strlen(str) + 1));
 	if (NULL == tmp) {
 		fprintf(stderr, "Not enough memory\n");
 		return NULL;
@@ -247,7 +247,7 @@ rtpg_trim(const char *input) {
 			offset++;
 	}
 
-	rtn = palloc(sizeof(char) * (inputlen - offset + 1));
+	rtn = (char*)palloc(sizeof(char) * (inputlen - offset + 1));
 	if (rtn == NULL) {
 		fprintf(stderr, "Not enough memory\n");
 		return NULL;
@@ -357,7 +357,7 @@ LIMIT 1
 			POSTGIS_RT_DEBUGF(4, "Value for column %d is %s", i, tmp);
 
 			len = strlen(tmp) + 1;
-			srs = SPI_palloc(sizeof(char) * len);
+			srs = (char*)SPI_palloc(sizeof(char) * len);
 			if (NULL == srs) {
 				pfree(tmp);
 				if (SPI_tuptable) SPI_freetuptable(tuptable);

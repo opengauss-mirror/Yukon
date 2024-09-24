@@ -30,14 +30,14 @@
 // For stat64()
 #define _LARGEFILE64_SOURCE 1
 
-// #include <postgres.h>
-// #include <fmgr.h>
-// #include <funcapi.h>
-// #include <utils/builtins.h> /* for text_to_cstring() */
-// #include "utils/lsyscache.h" /* for get_typlenbyvalalign */
-// #include "utils/array.h" /* for ArrayType */
-// #include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
-#include "../../include/extension_dependency.h"
+#include <postgres.h>
+#include <fmgr.h>
+#include <funcapi.h>
+#include <utils/builtins.h> /* for text_to_cstring() */
+#include "utils/lsyscache.h" /* for get_typlenbyvalalign */
+#include "utils/array.h" /* for ArrayType */
+#include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
+//#include "../../include/extension_dependency.h"
 #include "../../postgis_config.h"
 
 
@@ -164,7 +164,7 @@ Datum RASTER_getBandPixelTypeName(PG_FUNCTION_ARGS)
 
     pixtype = rt_band_get_pixtype(band);
 
-    result = palloc(VARHDRSZ + name_size);
+    result = (text*)palloc(VARHDRSZ + name_size);
     /* We don't need to check for NULL pointer, because if out of memory, palloc
      * exit via elog(ERROR). It never returns NULL.
      */
@@ -603,7 +603,7 @@ Datum RASTER_bandmetadata(PG_FUNCTION_ARGS)
 		deconstruct_array(array, etype, typlen, typbyval, typalign, &e,
 			&nulls, &n);
 
-		bandNums = palloc(sizeof(uint32_t) * n);
+		bandNums = (uint32_t*)palloc(sizeof(uint32_t) * n);
 		for (i = 0, j = 0; i < n; i++) {
 			if (nulls[i]) continue;
 
@@ -637,12 +637,12 @@ Datum RASTER_bandmetadata(PG_FUNCTION_ARGS)
 
 		if (j < 1) {
 			j = numBands;
-			bandNums = repalloc(bandNums, sizeof(uint32_t) * j);
+			bandNums = (uint32_t*)repalloc(bandNums, sizeof(uint32_t) * j);
 			for (i = 0; i < j; i++)
 				bandNums[i] = i + 1;
 		}
 		else if (j < n)
-			bandNums = repalloc(bandNums, sizeof(uint32_t) * j);
+			bandNums = (uint32_t*)repalloc(bandNums, sizeof(uint32_t) * j);
 
 		bmd = (struct bandmetadata *) palloc0(sizeof(struct bandmetadata) * j);
 
@@ -665,7 +665,7 @@ Datum RASTER_bandmetadata(PG_FUNCTION_ARGS)
 			/* pixeltype */
 			chartmp = rt_pixtype_name(rt_band_get_pixtype(band));
 			charlen = strlen(chartmp) + 1;
-			bmd[i].pixeltype = palloc(sizeof(char) * charlen);
+			bmd[i].pixeltype = (char*)palloc(sizeof(char) * charlen);
 			strncpy(bmd[i].pixeltype, chartmp, charlen);
 
 			/* hasnodatavalue */
@@ -684,7 +684,7 @@ Datum RASTER_bandmetadata(PG_FUNCTION_ARGS)
 			chartmp = rt_band_get_ext_path(band);
 			if (chartmp) {
 				charlen = strlen(chartmp) + 1;
-				bmd[i].bandpath = palloc(sizeof(char) * charlen);
+				bmd[i].bandpath = (char*)palloc(sizeof(char) * charlen);
 				strncpy(bmd[i].bandpath, chartmp, charlen);
 			}
 			else
@@ -732,7 +732,7 @@ Datum RASTER_bandmetadata(PG_FUNCTION_ARGS)
 	call_cntr = funcctx->call_cntr;
 	max_calls = funcctx->max_calls;
 	tupdesc = funcctx->tuple_desc;
-	bmd2 = funcctx->user_fctx;
+	bmd2 = (bandmetadata*)(funcctx->user_fctx);
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
@@ -863,7 +863,7 @@ Datum RASTER_setBandNoDataValue(PG_FUNCTION_ARGS)
 		}
 	}
 
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 	if (!pgrtn)
@@ -922,7 +922,7 @@ Datum RASTER_setBandIsNoData(PG_FUNCTION_ARGS)
 	}
 
 	/* Serialize raster again */
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 	if (!pgrtn) PG_RETURN_NULL();
@@ -1014,7 +1014,7 @@ Datum RASTER_setBandPath(PG_FUNCTION_ARGS)
 	}
 
 	/* Serialize raster again */
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 	if (!pgrtn) PG_RETURN_NULL();

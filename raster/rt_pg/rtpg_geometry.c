@@ -27,14 +27,14 @@
  *
  */
 
-// #include <postgres.h>
-// #include <fmgr.h>
-// #include <funcapi.h>
-// #include <utils/lsyscache.h> /* for get_typlenbyvalalign */
-// #include <utils/array.h> /* for ArrayType */
-// #include <catalog/pg_type.h> /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
-// #include <utils/builtins.h> /* for text_to_cstring() */
-#include "../../include/extension_dependency.h"
+#include <postgres.h>
+#include <fmgr.h>
+#include <funcapi.h>
+#include <utils/lsyscache.h> /* for get_typlenbyvalalign */
+#include <utils/array.h> /* for ArrayType */
+#include <catalog/pg_type.h> /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
+#include <utils/builtins.h> /* for text_to_cstring() */
+//#include "../../include/extension_dependency.h"
 #include "../../postgis_config.h"
 
 // #include "access/htup_details.h" /* for heap_form_tuple() */
@@ -308,7 +308,7 @@ Datum RASTER_dumpAsPolygons(PG_FUNCTION_ARGS) {
 	call_cntr = funcctx->call_cntr;
 	max_calls = funcctx->max_calls;
 	tupdesc = funcctx->tuple_desc;
-	geomval2 = funcctx->user_fctx;
+	geomval2 = (rt_geomval)(funcctx->user_fctx);
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
@@ -534,9 +534,9 @@ Datum RASTER_getPixelPolygons(PG_FUNCTION_ARGS)
 				}
 
 				if (!pixcount)
-					pix = palloc(sizeof(struct rt_pixel_t) * (pixcount + 1));
+					pix = (rt_pixel)palloc(sizeof(struct rt_pixel_t) * (pixcount + 1));
 				else
-					pix = repalloc(pix, sizeof(struct rt_pixel_t) * (pixcount + 1));
+					pix = (rt_pixel)repalloc(pix, sizeof(struct rt_pixel_t) * (pixcount + 1));
 				if (pix == NULL) {
 
 					lwpoly_free(poly);
@@ -612,7 +612,7 @@ Datum RASTER_getPixelPolygons(PG_FUNCTION_ARGS)
 	call_cntr = funcctx->call_cntr;
 	max_calls = funcctx->max_calls;
 	tupdesc = funcctx->tuple_desc;
-	pix2 = funcctx->user_fctx;
+	pix2 = (rt_pixel)(funcctx->user_fctx);
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
@@ -846,10 +846,10 @@ Datum RASTER_getPixelCentroids(PG_FUNCTION_ARGS)
 
 				/* allocate space for new point */
 				if (!pixcount) {
-					pix = palloc(sizeof(struct rt_pixel_t) * (pixcount + 1));
+					pix = (rt_pixel)palloc(sizeof(struct rt_pixel_t) * (pixcount + 1));
 				}
 				else {
-					pix = repalloc(pix, sizeof(struct rt_pixel_t) * (pixcount + 1));
+					pix = (rt_pixel)repalloc(pix, sizeof(struct rt_pixel_t) * (pixcount + 1));
 				}
 				if (pix == NULL) {
 					lwpoint_free(point);
@@ -930,7 +930,7 @@ Datum RASTER_getPixelCentroids(PG_FUNCTION_ARGS)
 	call_cntr = funcctx->call_cntr;
 	max_calls = funcctx->max_calls;
 	tupdesc = funcctx->tuple_desc;
-	pix2 = funcctx->user_fctx;
+	pix2 = (rt_pixel)(funcctx->user_fctx);
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
@@ -1135,7 +1135,7 @@ Datum RASTER_asRaster(PG_FUNCTION_ARGS)
 		if (rast == NULL)
 			PG_RETURN_NULL();
 
-		pgrast = rt_raster_serialize(rast);
+		pgrast = (rt_pgraster*)rt_raster_serialize(rast);
 		rt_raster_destroy(rast);
 
 		if (NULL == pgrast)
@@ -1239,7 +1239,7 @@ Datum RASTER_asRaster(PG_FUNCTION_ARGS)
 
 			if (j > 0) {
 				/* trim allocation */
-				pixtypes = repalloc(pixtypes, j * sizeof(rt_pixtype));
+				pixtypes = (rt_pixtype*)repalloc(pixtypes, j * sizeof(rt_pixtype));
 				pixtypes_len = j;
 			}
 			else {
@@ -1302,7 +1302,7 @@ Datum RASTER_asRaster(PG_FUNCTION_ARGS)
 
 			if (j > 0) {
 				/* trim allocation */
-				values = repalloc(values, j * sizeof(double));
+				values = (double*)repalloc(values, j * sizeof(double));
 				values_len = j;
 			}
 			else {
@@ -1371,8 +1371,8 @@ Datum RASTER_asRaster(PG_FUNCTION_ARGS)
 
 			if (j > 0) {
 				/* trim allocation */
-				nodatavals = repalloc(nodatavals, j * sizeof(double));
-				hasnodatas = repalloc(hasnodatas, j * sizeof(uint8_t));
+				nodatavals = (double*)repalloc(nodatavals, j * sizeof(double));
+				hasnodatas = (uint8_t*)repalloc(hasnodatas, j * sizeof(uint8_t));
 				nodatavals_len = j;
 			}
 			else {
@@ -1535,7 +1535,7 @@ Datum RASTER_asRaster(PG_FUNCTION_ARGS)
 			options = (char **) repalloc(options, sizeof(char *) * options_len);
 		}
 
-		options[options_len - 1] = palloc(sizeof(char*) * (strlen("ALL_TOUCHED=TRUE") + 1));
+		options[options_len - 1] = (char*)palloc(sizeof(char*) * (strlen("ALL_TOUCHED=TRUE") + 1));
 		strcpy(options[options_len - 1], "ALL_TOUCHED=TRUE");
 	}
 
@@ -1642,7 +1642,7 @@ Datum RASTER_asRaster(PG_FUNCTION_ARGS)
 	/* add target srid */
 	rt_raster_set_srid(rast, srid);
 
-	pgrast = rt_raster_serialize(rast);
+	pgrast = (rt_pgraster*)rt_raster_serialize(rast);
 	rt_raster_destroy(rast);
 
 	if (NULL == pgrast) PG_RETURN_NULL();

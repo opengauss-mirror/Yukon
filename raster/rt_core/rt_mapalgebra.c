@@ -115,7 +115,7 @@ rt_band_reclass(
 		switch (pixtype) {
 			case PT_1BB:
 			{
-				uint8_t *ptr = mem;
+				uint8_t *ptr = (uint8_t*)mem;
 				uint8_t clamped_initval = rt_util_clamp_to_1BB(nodataval);
 				for (i = 0; i < numval; i++)
 					ptr[i] = clamped_initval;
@@ -124,7 +124,7 @@ rt_band_reclass(
 			}
 			case PT_2BUI:
 			{
-				uint8_t *ptr = mem;
+				uint8_t *ptr = (uint8_t*)mem;
 				uint8_t clamped_initval = rt_util_clamp_to_2BUI(nodataval);
 				for (i = 0; i < numval; i++)
 					ptr[i] = clamped_initval;
@@ -133,7 +133,7 @@ rt_band_reclass(
 			}
 			case PT_4BUI:
 			{
-				uint8_t *ptr = mem;
+				uint8_t *ptr = (uint8_t*)mem;
 				uint8_t clamped_initval = rt_util_clamp_to_4BUI(nodataval);
 				for (i = 0; i < numval; i++)
 					ptr[i] = clamped_initval;
@@ -142,7 +142,7 @@ rt_band_reclass(
 			}
 			case PT_8BSI:
 			{
-				int8_t *ptr = mem;
+				int8_t *ptr = (int8_t*)mem;
 				int8_t clamped_initval = rt_util_clamp_to_8BSI(nodataval);
 				for (i = 0; i < numval; i++)
 					ptr[i] = clamped_initval;
@@ -151,7 +151,7 @@ rt_band_reclass(
 			}
 			case PT_8BUI:
 			{
-				uint8_t *ptr = mem;
+				uint8_t *ptr = (uint8_t*)mem;
 				uint8_t clamped_initval = rt_util_clamp_to_8BUI(nodataval);
 				for (i = 0; i < numval; i++)
 					ptr[i] = clamped_initval;
@@ -160,7 +160,7 @@ rt_band_reclass(
 			}
 			case PT_16BSI:
 			{
-				int16_t *ptr = mem;
+				int16_t *ptr = (int16_t*)mem;
 				int16_t clamped_initval = rt_util_clamp_to_16BSI(nodataval);
 				for (i = 0; i < numval; i++)
 					ptr[i] = clamped_initval;
@@ -169,7 +169,7 @@ rt_band_reclass(
 			}
 			case PT_16BUI:
 			{
-				uint16_t *ptr = mem;
+				uint16_t *ptr = (uint16_t*)mem;
 				uint16_t clamped_initval = rt_util_clamp_to_16BUI(nodataval);
 				for (i = 0; i < numval; i++)
 					ptr[i] = clamped_initval;
@@ -178,7 +178,7 @@ rt_band_reclass(
 			}
 			case PT_32BSI:
 			{
-				int32_t *ptr = mem;
+				int32_t *ptr = (int32_t*)mem;
 				int32_t clamped_initval = rt_util_clamp_to_32BSI(nodataval);
 				for (i = 0; i < numval; i++)
 					ptr[i] = clamped_initval;
@@ -187,7 +187,7 @@ rt_band_reclass(
 			}
 			case PT_32BUI:
 			{
-				uint32_t *ptr = mem;
+				uint32_t *ptr = (uint32_t*)mem;
 				uint32_t clamped_initval = rt_util_clamp_to_32BUI(nodataval);
 				for (i = 0; i < numval; i++)
 					ptr[i] = clamped_initval;
@@ -196,7 +196,7 @@ rt_band_reclass(
 			}
 			case PT_32BF:
 			{
-				float *ptr = mem;
+				float *ptr = (float*)mem;
 				float clamped_initval = rt_util_clamp_to_32F(nodataval);
 				for (i = 0; i < numval; i++)
 					ptr[i] = clamped_initval;
@@ -205,7 +205,7 @@ rt_band_reclass(
 			}
 			case PT_64BF:
 			{
-				double *ptr = mem;
+				double *ptr = (double*)mem;
 				for (i = 0; i < numval; i++)
 					ptr[i] = nodataval;
 				checkvaldouble = ptr[0];
@@ -229,7 +229,7 @@ rt_band_reclass(
 	}
 	RASTER_DEBUGF(3, "rt_band_reclass: width = %d height = %d", width, height);
 
-	band = rt_band_new_inline(width, height, pixtype, hasnodata, nodataval, mem);
+	band = rt_band_new_inline(width, height, pixtype, hasnodata, nodataval, (uint8_t*)mem);
 	if (!band) {
 		rterror("rt_band_reclass: Could not create new band");
 		rtdealloc(mem);
@@ -429,7 +429,7 @@ static _rti_iterator_arg
 _rti_iterator_arg_init() {
 	_rti_iterator_arg _param;
 
-	_param = rtalloc(sizeof(struct _rti_iterator_arg_t));
+	_param = (_rti_iterator_arg)rtalloc(sizeof(struct _rti_iterator_arg_t));
 	if (_param == NULL) {
 		rterror("_rti_iterator_arg_init: Could not allocate memory for _rti_iterator_arg");
 		return NULL;
@@ -551,18 +551,18 @@ _rti_iterator_arg_populate(
 	_param->dimension.rows = distancey * 2 + 1;
 
 	/* allocate memory for children */
-	_param->raster = rtalloc(sizeof(rt_raster) * itrcount);
-	_param->isempty = rtalloc(sizeof(int) * itrcount);
-	_param->width = rtalloc(sizeof(int) * itrcount);
-	_param->height = rtalloc(sizeof(int) * itrcount);
+	_param->raster = (rt_raster_t**)rtalloc(sizeof(rt_raster) * itrcount);
+	_param->isempty = (int*)rtalloc(sizeof(int) * itrcount);
+	_param->width = (int*)rtalloc(sizeof(int) * itrcount);
+	_param->height = (int*)rtalloc(sizeof(int) * itrcount);
 
-	_param->offset = rtalloc(sizeof(double *) * itrcount);
+	_param->offset = (double**)rtalloc(sizeof(double *) * itrcount);
 
-	_param->band.rtband = rtalloc(sizeof(rt_band) * itrcount);
-	_param->band.hasnodata = rtalloc(sizeof(int) * itrcount);
-	_param->band.isnodata = rtalloc(sizeof(int) * itrcount);
-	_param->band.nodataval = rtalloc(sizeof(double) * itrcount);
-	_param->band.minval = rtalloc(sizeof(double) * itrcount);
+	_param->band.rtband = (rt_band_t**)rtalloc(sizeof(rt_band) * itrcount);
+	_param->band.hasnodata = (int*)rtalloc(sizeof(int) * itrcount);
+	_param->band.isnodata = (int*)rtalloc(sizeof(int) * itrcount);
+	_param->band.nodataval = (double*)rtalloc(sizeof(double) * itrcount);
+	_param->band.minval = (double*)rtalloc(sizeof(double) * itrcount);
 
 	if (
 		_param->raster == NULL ||
@@ -663,7 +663,7 @@ _rti_iterator_arg_populate(
 		_param->height[i] = rt_raster_get_height(_param->raster[i]);
 
 		/* init offset */
-		_param->offset[i] = rtalloc(sizeof(double) * 2);
+		_param->offset[i] = (double*)rtalloc(sizeof(double) * 2);
 		if (_param->offset[i] == NULL) {
 			rterror("_rti_iterator_arg_populate: Could not allocate memory for offsets");
 			return 0;
@@ -678,16 +678,16 @@ _rti_iterator_arg_empty_init(_rti_iterator_arg _param) {
 	uint32_t x = 0;
 	uint32_t y = 0;
 
-	_param->empty.values = rtalloc(sizeof(double *) * _param->dimension.rows);
-	_param->empty.nodata = rtalloc(sizeof(int *) * _param->dimension.rows);
+	_param->empty.values = (double**)rtalloc(sizeof(double *) * _param->dimension.rows);
+	_param->empty.nodata = (int**)rtalloc(sizeof(int *) * _param->dimension.rows);
 	if (_param->empty.values == NULL || _param->empty.nodata == NULL) {
 		rterror("_rti_iterator_arg_empty_init: Could not allocate memory for empty values and NODATA");
 		return 0;
 	}
 
 	for (y = 0; y < _param->dimension.rows; y++) {
-		_param->empty.values[y] = rtalloc(sizeof(double) * _param->dimension.columns);
-		_param->empty.nodata[y] = rtalloc(sizeof(int) * _param->dimension.columns);
+		_param->empty.values[y] = (double*)rtalloc(sizeof(double) * _param->dimension.columns);
+		_param->empty.nodata[y] = (int*)rtalloc(sizeof(int) * _param->dimension.columns);
 
 		if (_param->empty.values[y] == NULL || _param->empty.nodata[y] == NULL) {
 			rterror("_rti_iterator_arg_empty_init: Could not allocate memory for elements of empty values and NODATA");
@@ -707,7 +707,7 @@ static int
 _rti_iterator_arg_callback_init(_rti_iterator_arg _param) {
 	uint32_t i = 0;
 
-	_param->arg = rtalloc(sizeof(struct rt_iterator_arg_t));
+	_param->arg = (rt_iterator_arg)rtalloc(sizeof(struct rt_iterator_arg_t));
 	if (_param->arg == NULL) {
 		rterror("_rti_iterator_arg_callback_init: Could not allocate memory for rt_iterator_arg");
 		return 0;
@@ -718,9 +718,9 @@ _rti_iterator_arg_callback_init(_rti_iterator_arg _param) {
 	_param->arg->src_pixel = NULL;
 
 	/* initialize argument components */
-	_param->arg->values = rtalloc(sizeof(double **) * _param->count);
-	_param->arg->nodata = rtalloc(sizeof(int **) * _param->count);
-	_param->arg->src_pixel = rtalloc(sizeof(int *) * _param->count);
+	_param->arg->values = (double***)rtalloc(sizeof(double **) * _param->count);
+	_param->arg->nodata = (int***)rtalloc(sizeof(int **) * _param->count);
+	_param->arg->src_pixel = (int**)rtalloc(sizeof(int *) * _param->count);
 	if (_param->arg->values == NULL || _param->arg->nodata == NULL || _param->arg->src_pixel == NULL) {
 		rterror("_rti_iterator_arg_callback_init: Could not allocate memory for element of rt_iterator_arg");
 		return 0;
@@ -731,7 +731,7 @@ _rti_iterator_arg_callback_init(_rti_iterator_arg _param) {
 	/* initialize pos */
 	for (i = 0; i < _param->count; i++) {
 
-		_param->arg->src_pixel[i] = rtalloc(sizeof(int) * 2);
+		_param->arg->src_pixel[i] = (int*)rtalloc(sizeof(int) * 2);
 		if (_param->arg->src_pixel[i] == NULL) {
 			rterror("_rti_iterator_arg_callback_init: Could not allocate memory for position elements of rt_iterator_arg");
 			return 0;
@@ -1019,7 +1019,7 @@ rt_raster_iterator(
 		case ET_INTERSECTION:
 		case ET_UNION:
 			/* make copy of first "real" raster */
-			rtnrast = rtalloc(sizeof(struct rt_raster_t));
+			rtnrast = (rt_raster)rtalloc(sizeof(struct rt_raster_t));
 			if (rtnrast == NULL) {
 				rterror("rt_raster_iterator: Could not allocate memory for output raster");
 
@@ -1122,7 +1122,7 @@ rt_raster_iterator(
 			/* FALLTHROUGH */
 		/* copy the custom extent raster */
 		case ET_CUSTOM:
-			rtnrast = rtalloc(sizeof(struct rt_raster_t));
+			rtnrast = (rt_raster)rtalloc(sizeof(struct rt_raster_t));
 			if (rtnrast == NULL) {
 				rterror("rt_raster_iterator: Could not allocate memory for output raster");
 
@@ -1462,7 +1462,7 @@ static _rti_colormap_arg
 _rti_colormap_arg_init(rt_raster raster) {
 	_rti_colormap_arg arg = NULL;
 
-	arg = rtalloc(sizeof(struct _rti_colormap_arg_t));
+	arg = (_rti_colormap_arg)rtalloc(sizeof(struct _rti_colormap_arg_t));
 	if (arg == NULL) {
 		rterror("_rti_colormap_arg_init: Could not allocate memory for _rti_color_arg");
 		return NULL;
@@ -1600,7 +1600,7 @@ rt_raster rt_raster_colormap(
 
 	/* find non-NODATA entries */
 	arg->npos = 0;
-	arg->pos = rtalloc(sizeof(uint16_t) * colormap->nentry);
+	arg->pos = (uint16_t*)rtalloc(sizeof(uint16_t) * colormap->nentry);
 	if (arg->pos == NULL) {
 		rterror("rt_raster_colormap: Could not allocate memory for valid entries");
 		_rti_colormap_arg_destroy(arg);
@@ -1647,7 +1647,7 @@ rt_raster rt_raster_colormap(
 	/* NODATA entry exists, add expression */
 	if (arg->nodataentry != NULL)
 		arg->nexpr += 1;
-	arg->expr = rtalloc(sizeof(rt_reclassexpr) * arg->nexpr);
+	arg->expr = (rt_reclassexpr_t**)rtalloc(sizeof(rt_reclassexpr) * arg->nexpr);
 	if (arg->expr == NULL) {
 		rterror("rt_raster_colormap: Could not allocate memory for reclass expressions");
 		_rti_colormap_arg_destroy(arg);
@@ -1657,7 +1657,7 @@ rt_raster rt_raster_colormap(
 	RASTER_DEBUGF(4, "expr @ %p", arg->expr);
 
 	for (i = 0; i < arg->nexpr; i++) {
-		arg->expr[i] = rtalloc(sizeof(struct rt_reclassexpr_t));
+		arg->expr[i] = (rt_reclassexpr)rtalloc(sizeof(struct rt_reclassexpr_t));
 		if (arg->expr[i] == NULL) {
 			rterror("rt_raster_colormap: Could not allocate memory for reclass expression");
 			_rti_colormap_arg_destroy(arg);

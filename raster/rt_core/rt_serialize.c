@@ -776,7 +776,7 @@ rt_raster_deserialize(void* serialized, int header_only) {
 
 	/* Allocate registry of raster bands */
 	RASTER_DEBUG(3, "rt_raster_deserialize: Allocating memory for bands");
-	rast->bands = rtalloc(rast->numBands * sizeof (rt_band));
+	rast->bands = (rt_band_t**)rtalloc(rast->numBands * sizeof (rt_band));
 	if (rast->bands == NULL) {
 		rterror("rt_raster_deserialize: Out of memory allocating bands");
 		rtdealloc(rast);
@@ -795,7 +795,7 @@ rt_raster_deserialize(void* serialized, int header_only) {
 		uint8_t type = 0;
 		int pixbytes = 0;
 
-		band = rtalloc(sizeof(struct rt_band_t));
+		band = (rt_band)rtalloc(sizeof(struct rt_band_t));
 		if (!band) {
 			rterror("rt_raster_deserialize: Out of memory allocating rt_band during deserialization");
 			for (j = 0; j < i; j++) rt_band_destroy(rast->bands[j]);
@@ -807,7 +807,7 @@ rt_raster_deserialize(void* serialized, int header_only) {
 
 		type = *ptr;
 		ptr++;
-		band->pixtype = type & BANDTYPE_PIXTYPE_MASK;
+		band->pixtype = (rt_pixtype)(type & BANDTYPE_PIXTYPE_MASK);
 
 		RASTER_DEBUGF(3, "rt_raster_deserialize: band %d with pixel type %s", i, rt_pixtype_name(band->pixtype));
 
@@ -892,7 +892,7 @@ rt_raster_deserialize(void* serialized, int header_only) {
 
 			/* Register path */
 			pathlen = strlen((char*) ptr);
-			band->data.offline.path = rtalloc(sizeof(char) * (pathlen + 1));
+			band->data.offline.path = (char*)rtalloc(sizeof(char) * (pathlen + 1));
 			if (band->data.offline.path == NULL) {
 				rterror("rt_raster_deserialize: Could not allocate memory for offline band path");
 				for (j = 0; j <= i; j++) rt_band_destroy(rast->bands[j]);

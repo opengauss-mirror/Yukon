@@ -27,15 +27,15 @@
  *
  */
 
-// #include <postgres.h>
-// #include <fmgr.h>
-// #include "utils/lsyscache.h" /* for get_typlenbyvalalign */
-// #include <funcapi.h>
-// #include "utils/array.h" /* for ArrayType */
-// #include "utils/builtins.h" /* for text_to_cstring */
-// #include "utils/formatting.h" /* for asc_tolower */
-// #include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
-#include "../../include/extension_dependency.h"
+#include <postgres.h>
+#include <fmgr.h>
+#include "utils/lsyscache.h" /* for get_typlenbyvalalign */
+#include <funcapi.h>
+#include "utils/array.h" /* for ArrayType */
+#include "utils/builtins.h" /* for text_to_cstring */
+#include "utils/formatting.h" /* for asc_tolower */
+#include "catalog/pg_type.h" /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
+//#include "../../include/extension_dependency.h"
 #include "../../postgis_config.h"
 #include "lwgeom_pg.h"
 
@@ -265,7 +265,7 @@ Datum RASTER_getGeometryValues(PG_FUNCTION_ARGS)
 	LWGEOM *lwgeom_in, *lwgeom_out;
 	rt_resample_type resample_type = RT_NEAREST;
 	rt_errorstate err;
-	char dimension;
+	char dimension = 'z';
 	const char *func_name;
 	uint16_t num_bands;
 	int32_t band;
@@ -354,7 +354,7 @@ struct rtpg_dumpvalues_arg_t {
 static rtpg_dumpvalues_arg rtpg_dumpvalues_arg_init() {
 	rtpg_dumpvalues_arg arg = NULL;
 
-	arg = palloc(sizeof(struct rtpg_dumpvalues_arg_t));
+	arg = (rtpg_dumpvalues_arg)palloc(sizeof(struct rtpg_dumpvalues_arg_t));
 	if (arg == NULL) {
 		elog(ERROR, "rtpg_dumpvalues_arg_init: Could not allocate memory for arguments");
 		return NULL;
@@ -516,7 +516,7 @@ Datum RASTER_dumpValues(PG_FUNCTION_ARGS)
 
 			deconstruct_array(array, etype, typlen, typbyval, typalign, &e, &nulls, &(arg1->numbands));
 
-			arg1->nbands = palloc(sizeof(int) * arg1->numbands);
+			arg1->nbands = (int*)palloc(sizeof(int) * arg1->numbands);
 			if (arg1->nbands == NULL) {
 				rtpg_dumpvalues_arg_destroy(arg1);
 				rt_raster_destroy(raster);
@@ -542,7 +542,7 @@ Datum RASTER_dumpValues(PG_FUNCTION_ARGS)
 			}
 
 			if (j < arg1->numbands) {
-				arg1->nbands = repalloc(arg1->nbands, sizeof(int) * j);
+				arg1->nbands = (int*)repalloc(arg1->nbands, sizeof(int) * j);
 				if (arg1->nbands == NULL) {
 					rtpg_dumpvalues_arg_destroy(arg1);
 					rt_raster_destroy(raster);
@@ -571,7 +571,7 @@ Datum RASTER_dumpValues(PG_FUNCTION_ARGS)
 		/* no bands specified, return all bands */
 		else {
 			arg1->numbands = numbands;
-			arg1->nbands = palloc(sizeof(int) * arg1->numbands);
+			arg1->nbands = (int*)palloc(sizeof(int) * arg1->numbands);
 
 			if (arg1->nbands == NULL) {
 				rtpg_dumpvalues_arg_destroy(arg1);
@@ -597,8 +597,8 @@ Datum RASTER_dumpValues(PG_FUNCTION_ARGS)
 		POSTGIS_RT_DEBUGF(4, "exclude_nodata_value = %d", exclude_nodata_value);
 
 		/* allocate memory for each band's values and nodata flags */
-		arg1->values = palloc(sizeof(Datum *) * arg1->numbands);
-		arg1->nodata = palloc(sizeof(bool *) * arg1->numbands);
+		arg1->values = (Datum**)palloc(sizeof(Datum *) * arg1->numbands);
+		arg1->nodata = (bool**)palloc(sizeof(bool *) * arg1->numbands);
 		if (arg1->values == NULL || arg1->nodata == NULL) {
 			rtpg_dumpvalues_arg_destroy(arg1);
 			rt_raster_destroy(raster);
@@ -628,8 +628,8 @@ Datum RASTER_dumpValues(PG_FUNCTION_ARGS)
 			}
 
 			/* allocate memory for values and nodata flags */
-			arg1->values[z] = palloc(sizeof(Datum) * arg1->rows * arg1->columns);
-			arg1->nodata[z] = palloc(sizeof(bool) * arg1->rows * arg1->columns);
+			arg1->values[z] = (Datum*)palloc(sizeof(Datum) * arg1->rows * arg1->columns);
+			arg1->nodata[z] = (bool*)palloc(sizeof(bool) * arg1->rows * arg1->columns);
 			if (arg1->values[z] == NULL || arg1->nodata[z] == NULL) {
 				rtpg_dumpvalues_arg_destroy(arg1);
 				rt_raster_destroy(raster);
@@ -713,7 +713,7 @@ Datum RASTER_dumpValues(PG_FUNCTION_ARGS)
 	call_cntr = funcctx->call_cntr;
 	max_calls = funcctx->max_calls;
 	tupdesc = funcctx->tuple_desc;
-	arg2 = funcctx->user_fctx;
+	arg2 = (rtpg_dumpvalues_arg)(funcctx->user_fctx);
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
@@ -849,7 +849,7 @@ Datum RASTER_setPixelValue(PG_FUNCTION_ARGS)
 		}
 	}
 
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 	if (!pgrtn)
@@ -1035,7 +1035,7 @@ Datum RASTER_setPixelValuesArray(PG_FUNCTION_ARGS)
 
 	/* allocate memory for pixval */
 	numpixval = num;
-	pixval = palloc(sizeof(struct pixelvalue) * numpixval);
+	pixval = (pixelvalue*)palloc(sizeof(struct pixelvalue) * numpixval);
 	if (pixval == NULL) {
 		pfree(elements);
 		pfree(nulls);
@@ -1260,7 +1260,7 @@ Datum RASTER_setPixelValuesArray(PG_FUNCTION_ARGS)
 	pfree(pixval);
 
 	/* serialize new raster */
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 	if (!pgrtn)
@@ -1295,7 +1295,7 @@ struct rtpg_setvaluesgv_geomval_t {
 };
 
 static rtpg_setvaluesgv_arg rtpg_setvaluesgv_arg_init() {
-	rtpg_setvaluesgv_arg arg = palloc(sizeof(struct rtpg_setvaluesgv_arg_t));
+	rtpg_setvaluesgv_arg arg = (rtpg_setvaluesgv_arg)palloc(sizeof(struct rtpg_setvaluesgv_arg_t));
 	if (arg == NULL) {
 		elog(ERROR, "rtpg_setvaluesgv_arg_init: Could not allocate memory for function arguments");
 		return NULL;
@@ -1494,7 +1494,7 @@ Datum RASTER_setPixelValuesGeomval(PG_FUNCTION_ARGS)
 		PG_RETURN_NULL();
 	}
 
-	arg->gv = palloc(sizeof(struct rtpg_setvaluesgv_geomval_t) * n);
+	arg->gv = (rtpg_setvaluesgv_geomval)palloc(sizeof(struct rtpg_setvaluesgv_geomval_t) * n);
 	if (arg->gv == NULL) {
 		rtpg_setvaluesgv_arg_destroy(arg);
 		rt_raster_destroy(raster);
@@ -1628,7 +1628,7 @@ Datum RASTER_setPixelValuesGeomval(PG_FUNCTION_ARGS)
 
 	/* redim arg->gv if needed */
 	if (arg->ngv < n) {
-		arg->gv = repalloc(arg->gv, sizeof(struct rtpg_setvaluesgv_geomval_t) * arg->ngv);
+		arg->gv = (rtpg_setvaluesgv_geomval)repalloc(arg->gv, sizeof(struct rtpg_setvaluesgv_geomval_t) * arg->ngv);
 		if (arg->gv == NULL) {
 			rtpg_setvaluesgv_arg_destroy(arg);
 			rt_raster_destroy(raster);
@@ -1726,7 +1726,7 @@ Datum RASTER_setPixelValuesGeomval(PG_FUNCTION_ARGS)
 		POSTGIS_RT_DEBUG(3, "a mix of geometries, using iterator method");
 
 		/* init itrset */
-		itrset = palloc(sizeof(struct rt_iterator_t) * (arg->ngv + 1));
+		itrset = (rt_iterator)palloc(sizeof(struct rt_iterator_t) * (arg->ngv + 1));
 		if (itrset == NULL) {
 			rtpg_setvaluesgv_arg_destroy(arg);
 			rt_raster_destroy(raster);
@@ -1796,7 +1796,7 @@ Datum RASTER_setPixelValuesGeomval(PG_FUNCTION_ARGS)
 
 	rtpg_setvaluesgv_arg_destroy(arg);
 
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 
@@ -1911,7 +1911,7 @@ Datum RASTER_pixelOfValue(PG_FUNCTION_ARGS)
 		deconstruct_array(array, etype, typlen, typbyval, typalign, &e,
 			&nulls, &n);
 
-		search = palloc(sizeof(double) * n);
+		search = (double*)palloc(sizeof(double) * n);
 		for (i = 0, nsearch = 0; i < n; i++) {
 			if (nulls[i]) continue;
 
@@ -1939,7 +1939,7 @@ Datum RASTER_pixelOfValue(PG_FUNCTION_ARGS)
 			SRF_RETURN_DONE(funcctx);
 		}
 		else if (nsearch < n)
-			search = repalloc(search, sizeof(double) * nsearch);
+			search = (double*)repalloc(search, sizeof(double) * nsearch);
 
 		/* exclude_nodata_value flag */
 		if (!PG_ARGISNULL(3))
@@ -2006,7 +2006,7 @@ Datum RASTER_pixelOfValue(PG_FUNCTION_ARGS)
 	call_cntr = funcctx->call_cntr;
 	max_calls = funcctx->max_calls;
 	tupdesc = funcctx->tuple_desc;
-	pixels2 = funcctx->user_fctx;
+	pixels2 = (rt_pixel)(funcctx->user_fctx);
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
@@ -2453,8 +2453,8 @@ Datum RASTER_neighborhood(PG_FUNCTION_ARGS)
 	}
 
 	/* 1D arrays for values and nodata from 2D arrays */
-	value1D = palloc(sizeof(Datum) * dim[0] * dim[1]);
-	nodata1D = palloc(sizeof(bool) * dim[0] * dim[1]);
+	value1D = (Datum*)palloc(sizeof(Datum) * dim[0] * dim[1]);
+	nodata1D = (bool*)palloc(sizeof(bool) * dim[0] * dim[1]);
 
 	if (value1D == NULL || nodata1D == NULL) {
 

@@ -44,6 +44,7 @@ PG_FUNCTION_INFO_V1(RASTER_to_binary);
 Datum RASTER_to_binary(PG_FUNCTION_ARGS)
 {
 	elog(ERROR, "RASTER_to_binary: This function is out of date. Run: ALTER EXTENSION postgis UPDATE; SELECT PostGIS_Extensions_Upgrade();");
+	PG_RETURN_NULL();
 }
 
 /* Removed in PostGIS 3.1.0 */
@@ -51,10 +52,12 @@ PG_FUNCTION_INFO_V1(RASTER_histogramCoverage);
 Datum RASTER_histogramCoverage(PG_FUNCTION_ARGS)
 {
 	elog(ERROR, "RASTER_histogramCoverage: This function is out of date. Run: ALTER EXTENSION postgis UPDATE; SELECT PostGIS_Extensions_Upgrade();");
+	PG_RETURN_NULL();
 }
 
 PG_FUNCTION_INFO_V1(RASTER_quantileCoverage);
 Datum RASTER_quantileCoverage(PG_FUNCTION_ARGS)
 {
 	elog(ERROR, "RASTER_quantileCoverage: This function is out of date. Run: ALTER EXTENSION postgis UPDATE; SELECT PostGIS_Extensions_Upgrade();");
+	PG_RETURN_NULL();
 }

@@ -265,7 +265,7 @@ rtstrdup(const char *str) {
 	char* dup;
 	if (!str) return NULL;
 	sz = strlen(str) + 1;
-	dup = rtalloc(sz);
+	dup = (char*)rtalloc(sz);
 	memcpy(dup, str, sz);
 	return dup;
 }

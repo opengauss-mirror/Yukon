@@ -111,7 +111,7 @@ Datum RASTER_makeEmpty(PG_FUNCTION_ARGS)
 	rt_raster_set_skews(raster, skewx, skewy);
 	rt_raster_set_srid(raster, srid);
 
-	pgraster = rt_raster_serialize(raster);
+	pgraster = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	if (!pgraster)
 		PG_RETURN_NULL();
@@ -337,7 +337,7 @@ Datum RASTER_addBand(PG_FUNCTION_ARGS)
 
 	pfree(arg);
 
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 	if (!pgrtn)
@@ -506,7 +506,7 @@ Datum RASTER_addBandRasterArray(PG_FUNCTION_ARGS)
 
 		/* destination raster is empty, new raster */
 		if (raster == NULL) {
-			uint32_t srcnbands[1] = {srcnband};
+			uint32_t srcnbands[1] = {(uint32_t)srcnband};
 
 			POSTGIS_RT_DEBUG(4, "empty destination raster, using rt_raster_from_band");
 
@@ -546,7 +546,7 @@ Datum RASTER_addBandRasterArray(PG_FUNCTION_ARGS)
 	}
 
 	if (raster != NULL) {
-		pgrtn = rt_raster_serialize(raster);
+		pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 		rt_raster_destroy(raster);
 		if (pgraster != NULL)
 			PG_FREE_IF_COPY(pgraster, 0);
@@ -676,7 +676,7 @@ Datum RASTER_addBandOutDB(PG_FUNCTION_ARGS)
 
 		deconstruct_array(array, etype, typlen, typbyval, typalign, &e, &nulls, &numsrcnband);
 
-		srcnband = palloc(sizeof(int) * numsrcnband);
+		srcnband = (int*)palloc(sizeof(int) * numsrcnband);
 		if (srcnband == NULL) {
 			if (pgraster != NULL) {
 				rt_raster_destroy(raster);
@@ -701,7 +701,7 @@ Datum RASTER_addBandOutDB(PG_FUNCTION_ARGS)
 		}
 
 		if (j < numsrcnband) {
-			srcnband = repalloc(srcnband, sizeof(int) * j);
+			srcnband = (int*)repalloc(srcnband, sizeof(int) * j);
 			if (srcnband == NULL) {
 				if (pgraster != NULL) {
 					rt_raster_destroy(raster);
@@ -818,7 +818,7 @@ Datum RASTER_addBandOutDB(PG_FUNCTION_ARGS)
 		numsrcnband = GDALGetRasterCount(hdsOut);
 		GDALClose(hdsOut);
 
-		srcnband = palloc(sizeof(int) * numsrcnband);
+		srcnband = (int*)palloc(sizeof(int) * numsrcnband);
 		if (srcnband == NULL) {
 			if (raster != NULL)
 				rt_raster_destroy(raster);
@@ -864,7 +864,7 @@ Datum RASTER_addBandOutDB(PG_FUNCTION_ARGS)
 		}
 	}
 
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	if (pgraster != NULL)
 		PG_FREE_IF_COPY(pgraster, 0);
@@ -946,7 +946,7 @@ Datum RASTER_copyBand(PG_FUNCTION_ARGS)
 	}
 
 	/* Serialize and return torast */
-	pgrtn = rt_raster_serialize(torast);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(torast);
 	rt_raster_destroy(torast);
 	PG_FREE_IF_COPY(pgto, 0);
 	if (!pgrtn) PG_RETURN_NULL();
@@ -1026,7 +1026,7 @@ Datum RASTER_tile(PG_FUNCTION_ARGS)
 		}
 
 		/* allocate arg1 */
-		arg1 = palloc(sizeof(struct tile_arg_t));
+		arg1 = (tile_arg_t*)palloc(sizeof(struct tile_arg_t));
 		if (arg1 == NULL) {
 			MemoryContextSwitchTo(oldcontext);
 			elog(ERROR, "RASTER_tile: Could not allocate memory for arguments");
@@ -1119,7 +1119,7 @@ Datum RASTER_tile(PG_FUNCTION_ARGS)
 
 			deconstruct_array(array, etype, typlen, typbyval, typalign, &e, &nulls, &(arg1->numbands));
 
-			arg1->nbands = palloc(sizeof(int) * arg1->numbands);
+			arg1->nbands = (int*)palloc(sizeof(int) * arg1->numbands);
 			if (arg1->nbands == NULL) {
 				rt_raster_destroy(arg1->raster.raster);
 				pfree(arg1);
@@ -1145,7 +1145,7 @@ Datum RASTER_tile(PG_FUNCTION_ARGS)
 			}
 
 			if (j < arg1->numbands) {
-				arg1->nbands = repalloc(arg1->nbands, sizeof(int) * j);
+				arg1->nbands = (int*)repalloc(arg1->nbands, sizeof(int) * j);
 				if (arg1->nbands == NULL) {
 					rt_raster_destroy(arg1->raster.raster);
 					pfree(arg1);
@@ -1175,7 +1175,7 @@ Datum RASTER_tile(PG_FUNCTION_ARGS)
 			arg1->numbands = numbands;
 
 			if (numbands) {
-				arg1->nbands = palloc(sizeof(int) * arg1->numbands);
+				arg1->nbands = (int*)palloc(sizeof(int) * arg1->numbands);
 
 				if (arg1->nbands == NULL) {
 					rt_raster_destroy(arg1->raster.raster);
@@ -1237,7 +1237,7 @@ Datum RASTER_tile(PG_FUNCTION_ARGS)
 
 	call_cntr = funcctx->call_cntr;
 	max_calls = funcctx->max_calls;
-	arg2 = funcctx->user_fctx;
+	arg2 = (tile_arg_t*)(funcctx->user_fctx);
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
@@ -1442,7 +1442,7 @@ Datum RASTER_tile(PG_FUNCTION_ARGS)
 			}
 		}
 
-		pgtile = rt_raster_serialize(tile);
+		pgtile = (rt_pgraster*)rt_raster_serialize(tile);
 		rt_raster_destroy(tile);
 		if (!pgtile) {
 			rt_raster_destroy(arg2->raster.raster);
@@ -1529,7 +1529,7 @@ Datum RASTER_band(PG_FUNCTION_ARGS)
 		deconstruct_array(array, etype, typlen, typbyval, typalign, &e,
 			&nulls, &n);
 
-		bandNums = palloc(sizeof(uint32_t) * n);
+		bandNums = (uint32_t*)palloc(sizeof(uint32_t) * n);
 		for (i = 0, j = 0; i < n; i++) {
 			if (nulls[i]) continue;
 
@@ -1570,7 +1570,7 @@ Datum RASTER_band(PG_FUNCTION_ARGS)
 			PG_RETURN_NULL();
 		}
 
-		pgrast = rt_raster_serialize(rast);
+		pgrast = (rt_pgraster*)rt_raster_serialize(rast);
 		rt_raster_destroy(rast);
 
 		if (!pgrast)

@@ -228,7 +228,7 @@ rt_errorstate rt_raster_get_perimeter(
 
 	RASTER_DEBUGF(3, "rt_raster_get_perimeter: nband, numband = %d, %d", nband, numband);
 
-	_nband = rtalloc(sizeof(uint16_t) * numband);
+	_nband = (uint16_t*)rtalloc(sizeof(uint16_t) * numband);
 	if (_nband == NULL) {
 		rterror("rt_raster_get_boundary: Could not allocate memory for band indices");
 		return ES_ERROR;
@@ -448,7 +448,7 @@ rt_errorstate rt_raster_surface(rt_raster raster, int nband, LWMPOLY **surface) 
 	else if (gvcount > 1) {
 		/* convert LWPOLY to GEOSGeometry */
 		geomscount = gvcount;
-		geoms = rtalloc(sizeof(GEOSGeometry *) * geomscount);
+		geoms = (GEOSGeometry**)rtalloc(sizeof(GEOSGeometry *) * geomscount);
 		if (geoms == NULL) {
 			rterror("rt_raster_surface: Could not allocate memory for pixel polygons as GEOSGeometry");
 			for (i = 0; i < gvcount; i++) lwpoly_free(gv[i].geom);
@@ -627,7 +627,7 @@ rt_raster_pixel_as_polygon(rt_raster rast, int x, int y)
     ul_y = rt_raster_get_y_offset(rast);
     srid = rt_raster_get_srid(rast);
 
-    points = rtalloc(sizeof(POINTARRAY *)*1);
+    points = (POINTARRAY**)rtalloc(sizeof(POINTARRAY *)*1);
     points[0] = ptarray_construct(0, 0, 5);
 
     p0.x = scale_x * x + skew_x * y + ul_x;
@@ -788,7 +788,7 @@ rt_raster_get_envelope_geom(rt_raster raster, LWGEOM **env) {
 		err = rt_raster_get_envelope(raster, &rtenv);
 		if (err != ES_NONE) {
 			rterror("rt_raster_get_envelope_geom: Could not get raster envelope");
-			return err;
+			return (rt_errorstate)err;
 		}
 
 		/* build ring */
@@ -1009,7 +1009,7 @@ rt_raster_gdal_polygonize(
 	int isValid;
 	LWGEOM *lwgeomValid = NULL;
 
-	uint32_t bandNums[1] = {nband};
+	uint32_t bandNums[1] = {(uint32_t)nband};
 	int excludeNodataValues[1] = {exclude_nodata_value};
 
 	/* checks */
@@ -1225,7 +1225,7 @@ rt_raster_gdal_polygonize(
 		wkbsize = OGR_G_WkbSize(hGeom);
 
 		/* allocate wkb buffer */
-		wkb = rtalloc(sizeof(unsigned char) * wkbsize);
+		wkb = (unsigned char*)rtalloc(sizeof(unsigned char) * wkbsize);
 		if (wkb == NULL) {
 			rterror("rt_raster_gdal_polygonize: Could not allocate memory for WKB buffer");
 

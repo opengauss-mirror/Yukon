@@ -273,7 +273,7 @@ rt_errorstate rt_raster_geos_spatial_relationship(
 	else
 		flag = ES_ERROR;
 
-	return flag;
+	return (rt_errorstate)flag;
 }
 
 /**
