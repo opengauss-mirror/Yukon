@@ -737,6 +737,7 @@ XCRUN
 LIBXML2_LIBS
 LIBXML2_CFLAGS
 XML2CONFIG
+POSTGIS_VDSQL_VERSION
 POSTGIS_GSSQL_VERSION
 HAVE_SPGIST
 POSTGIS_PGSQL_HR_VERSION
@@ -748,6 +749,7 @@ PGSQL_DOCDIR
 PGSQL_BE_CPPFLAGS
 PGSQL_FE_CPPFLAGS
 PGSQL_FE_LDFLAGS
+GSQL
 PGXS
 PG_CONFIG
 LIBLWGEOM_ONLY
@@ -17051,17 +17053,78 @@ if test "x$LIBLWGEOM_ONLY" = "xno"; then
   fi
 
   POSTGIS_PGSQL_VERSION="92"
-  POSTGIS_PGSQL_HR_VERSION="$PGSQL_MAJOR_VERSION.$PGSQL_MINOR_VERSION"
+  POSTGIS_PGSQL_HR_VERSION="92"
 
   POSTGIS_GSSQL_MAJOR_VERSION=`$PG_CONFIG --version | sed -n '/openGauss/p' | sed 's/[^0-9]*openGauss[^0-9]*\([0-9]\)\.\([0-9]\).\([0-9]\).*/\1/'`
   POSTGIS_GSSQL_MINOR_VERSION=`$PG_CONFIG --version | sed -n '/openGauss/p' | sed 's/[^0-9]*openGauss[^0-9]*\([0-9]\)\.\([0-9]\).\([0-9]\).*/\2/'`
   POSTGIS_GSSQL_PATCH_VERSION=`$PG_CONFIG --version | sed -n '/openGauss/p' | sed 's/[^0-9]*openGauss[^0-9]*\([0-9]\)\.\([0-9]\).\([0-9]\).*/\3/'`
 
   POSTGIS_GSSQL_VERSION="$POSTGIS_GSSQL_MAJOR_VERSION$POSTGIS_GSSQL_MINOR_VERSION$POSTGIS_GSSQL_PATCH_VERSION"
-
+  POSTGIS_VDSQL_VERSION="0"
   PGSQL_PKGLIBDIR=`"$PG_CONFIG" --pkglibdir`
   PGSQL_LIBDIR=`"$PG_CONFIG" --libdir`
   PGSQL_SHAREDIR=`"$PG_CONFIG" --sharedir`
+
+  if test -z "$POSTGIS_GSSQL_VERSION"; then :
+
+		POSTGIS_GSSQL_VERSION="0"
+        # 如果为空，则检查程序是否存在
+        for ac_prog in gsql
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_GSQL+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$GSQL"; then
+  ac_cv_prog_GSQL="$GSQL" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_GSQL="$ac_prog"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+GSQL=$ac_cv_prog_GSQL
+if test -n "$GSQL"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GSQL" >&5
+$as_echo "$GSQL" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$GSQL" && break
+done
+test -n "$GSQL" || GSQL="no"
+
+        # 检查程序是否找到
+        if test "$GSQL" = "no"; then :
+  as_fn_error $? "gsql is required but not found" "$LINENO" 5
+fi
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: checking gsql path... $GSQL" >&5
+$as_echo "checking gsql path... $GSQL" >&6; }
+				POSTGIS_VDSQL_MAJOR_VERSION=`$GSQL --version | sed -n '/Vastbase/p' | sed 's/.*Vastbase G\([0-9]\+\) V.*/\1/'`
+        POSTGIS_VDSQL_MINOR_VERSION=`$GSQL --version | sed -n '/Vastbase/p' | sed 's/.*Vastbase G.* V\([0-9]\+\)\.\([0-9]\+\).*/\2/'`
+        POSTGIS_VDSQL_PATCH_VERSION=`$GSQL --version | sed -n '/Vastbase/p' | sed 's/.*Vastbase G.* V[0-9]\+\.\([0-9]\+\).*/\1/'`
+		POSTGIS_VDSQL_VERSION="$POSTGIS_VDSQL_MAJOR_VERSION$POSTGIS_VDSQL_MINOR_VERSION$POSTGIS_VDSQL_PATCH_VERSION"
+
+
+fi
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: checking PostgreSQL version... $PGSQL_FULL_VERSION" >&5
 $as_echo "checking PostgreSQL version... $PGSQL_FULL_VERSION" >&6; }
@@ -17200,6 +17263,12 @@ _ACEOF
 
 cat >>confdefs.h <<_ACEOF
 #define POSTGIS_GSSQL_VERSION $POSTGIS_GSSQL_VERSION
+_ACEOF
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define POSTGIS_VDSQL_VERSION $POSTGIS_VDSQL_VERSION
 _ACEOF
 
 
@@ -21675,7 +21744,7 @@ fi
 
 
 
-CPPFLAGS="$PGSQL_CPPFLAGS $GEOS_CPPFLAGS $PROJ_CPPFLAGS $PROTOBUF_CPPFLAGS $XML2_CPPFLAGS $SFCGAL_CPPFLAGS $JSON_CPPFLAGS $PCRE_CPPFLAGS $PGSQL_FE_CPPFLAGS/postgresql/server/libpq $PGSQL_FE_CPPFLAGS/postgresql/server -fpermissive -DPGXC -g -O2 -fno-math-errno -fno-signed-zeros -Wall"
+CPPFLAGS="$PGSQL_CPPFLAGS $GEOS_CPPFLAGS $PROJ_CPPFLAGS $PROTOBUF_CPPFLAGS $XML2_CPPFLAGS $SFCGAL_CPPFLAGS $JSON_CPPFLAGS $PCRE_CPPFLAGS $PGSQL_FE_CPPFLAGS/postgresql/server/libpq $PGSQL_FE_CPPFLAGS/postgresql/server -DPGXC -g -O2 -fno-math-errno -fno-signed-zeros -Wall -Werror -Wno-write-strings -Wno-unused-variable -Wno-unused-function $CPPFLAGS"
 
 SHLIB_LINK="$PGSQL_LDFLAGS $GEOS_LDFLAGS $PROJ_LDFLAGS $JSON_LDFLAGS $PROTOBUF_LDFLAGS $XML2_LDFLAGS $SFCGAL_LDFLAGS $EXCLUDELIBS_LDFLAGS $LDFLAGS"
 
