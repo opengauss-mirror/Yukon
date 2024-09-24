@@ -1,6 +1,12 @@
+NOTICE:  CREATE TABLE will create implicit sequence "geometry_point_id_seq" for serial column "geometry_point.id"
 t
 t
-yukon_pyramid 1.0.0 Compiled at: 2023-06-16 17:18:04 Commit ID:27246b1 
+NOTICE:  buildpyramid:you may need to specify the resolution parameter for current layer.
+NOTICE:  buildpyramid:you may need to specify the resolution parameter for current layer.
+t
+NOTICE:  buildpyramid:you may need to specify the resolution parameter for current layer.
+NOTICE:  buildpyramid:you may need to specify the resolution parameter for current layer.
+t
 t
 { "level": 5, "resolution": 0.02197265625, "filter": "null", "attribute": [ "id" ] }
 { "level": 6, "resolution": 0.010986328125, "filter": "null", "attribute": [ "id" ] }
@@ -10,4 +16,18 @@ t
 t
 20
 880018
+f
+NOTICE:  CREATE TABLE will create implicit sequence "geometry_line_id_seq" for serial column "geometry_line.id"
+t
+t
+t
+{ "level": 5, "resolution": 1222.9924530000001, "filter": "null", "attribute": [ "id" ] }
+{ "level": 6, "resolution": 611.49622629999999, "filter": "null", "attribute": [ "id" ] }
+16
+t
+16
+t
+17
+NOTICE:  generate:z:4,x:15,y:2
+0
 f
