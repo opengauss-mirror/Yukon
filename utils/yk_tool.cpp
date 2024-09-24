@@ -17,7 +17,7 @@
 #define YUKONPKGFILE "yukonpkgfile.txt"
 #define YUKONSQLFILE "yukonsqlfile.txt"
 
-#define YUKONVERSION "Yukon 2.0(Community Edition)"
+#define YUKONVERSION "Yukon 2.1(Community Edition)"
 
 enum class InfoLevel
 {
