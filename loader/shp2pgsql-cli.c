@@ -23,14 +23,14 @@
 static void
 usage()
 {
-	printf(_( "RELEASE: %s (%s)\n" ),
+	printf(_NLS( "RELEASE: %s (%s)\n" ),
 		POSTGIS_LIB_VERSION, xstr(POSTGIS_REVISION));
-	printf(_( "USAGE: shp2pgsql [<options>] <shapefile> [[<schema>.]<table>]\n"
+	printf(_NLS( "USAGE: shp2pgsql [<options>] <shapefile> [[<schema>.]<table>]\n"
 	          "OPTIONS:\n" ));
-	printf(_( "  -s [<from>:]<srid> Set the SRID field. Defaults to %d.\n"
+	printf(_NLS( "  -s [<from>:]<srid> Set the SRID field. Defaults to %d.\n"
 	          "      Optionally reprojects from given SRID.\n"),
 	          SRID_UNKNOWN);
-	printf(_( " (-d|a|c|p) These are mutually exclusive options:\n"
+	printf(_NLS( " (-d|a|c|p) These are mutually exclusive options:\n"
 	          "     -d  Drops the table, then recreates it and populates\n"
 	          "         it with current shape file data.\n"
 	          "     -a  Appends shape file into current table, must be\n"
@@ -38,41 +38,41 @@ usage()
 	          "     -c  Creates a new table and populates it, this is the\n"
 	          "         default if you do not specify any options.\n"
 	          "     -p  Prepare mode, only creates the table.\n" ));
-	printf(_( "  -g <geocolumn> Specify the name of the geometry/geography column\n"
+	printf(_NLS( "  -g <geocolumn> Specify the name of the geometry/geography column\n"
 	          "      (mostly useful in append mode).\n" ));
-	printf(_( "  -D  Use postgresql dump format (defaults to SQL insert statements).\n" ));
-	printf(_( "  -e  Execute each statement individually, do not use a transaction.\n"
+	printf(_NLS( "  -D  Use postgresql dump format (defaults to SQL insert statements).\n" ));
+	printf(_NLS( "  -e  Execute each statement individually, do not use a transaction.\n"
 	          "      Not compatible with -D.\n" ));
-	printf(_( "  -G  Use geography type (requires lon/lat data or -s to reproject).\n" ));
-	printf(_( "  -k  Keep postgresql identifiers case.\n" ));
-	printf(_( "  -i  Use int4 type for all integer dbf fields.\n" ));
-	printf(_( "  -I  Create a spatial index on the geocolumn.\n" ));
-	printf(_("  -m <filename>  Specify a file containing a set of mappings of (long) column\n"
+	printf(_NLS( "  -G  Use geography type (requires lon/lat data or -s to reproject).\n" ));
+	printf(_NLS( "  -k  Keep postgresql identifiers case.\n" ));
+	printf(_NLS( "  -i  Use int4 type for all integer dbf fields.\n" ));
+	printf(_NLS( "  -I  Create a spatial index on the geocolumn.\n" ));
+	printf(_NLS("  -m <filename>  Specify a file containing a set of mappings of (long) column\n"
 	         "     names to 10 character DBF column names. The content of the file is one or\n"
 	         "     more lines of two names separated by white space and no trailing or\n"
 	         "     leading space. For example:\n"
 	         "         COLUMNNAME DBFFIELD1\n"
 	         "         AVERYLONGCOLUMNNAME DBFFIELD2\n" ));
-	printf(_( "  -S  Generate simple geometries instead of MULTI geometries.\n" ));
-	printf(_( "  -t <dimensionality> Force geometry to be one of '2D', '3DZ', '3DM', or '4D'\n" ));
+	printf(_NLS( "  -S  Generate simple geometries instead of MULTI geometries.\n" ));
+	printf(_NLS( "  -t <dimensionality> Force geometry to be one of '2D', '3DZ', '3DM', or '4D'\n" ));
 
-	printf(_( "  -w  Output WKT instead of WKB.  Note that this can result in\n"
+	printf(_NLS( "  -w  Output WKT instead of WKB.  Note that this can result in\n"
 	          "      coordinate drift.\n" ));
-	printf(_( "  -W <encoding> Specify the character encoding of Shape's\n"
+	printf(_NLS( "  -W <encoding> Specify the character encoding of Shape's\n"
 	          "      attribute column. (default: \"UTF-8\")\n" ));
-	printf(_( "  -N <policy> NULL geometries handling policy (insert*,skip,abort).\n" ));
-	printf(_( "  -n  Only import DBF file.\n" ));
-	printf(_( "  -T <tablespace> Specify the tablespace for the new table.\n"
+	printf(_NLS( "  -N <policy> NULL geometries handling policy (insert*,skip,abort).\n" ));
+	printf(_NLS( "  -n  Only import DBF file.\n" ));
+	printf(_NLS( "  -T <tablespace> Specify the tablespace for the new table.\n"
                   "      Note that indexes will still use the default tablespace unless the\n"
                   "      -X flag is also used.\n"));
-	printf(_( "  -X <tablespace> Specify the tablespace for the table's indexes.\n"
+	printf(_NLS( "  -X <tablespace> Specify the tablespace for the table's indexes.\n"
                   "      This applies to the primary key, and the spatial index if\n"
                   "      the -I flag is used.\n" ));
-	printf(_( "  -Z  Prevent tables from being analyzed.\n" ));
-	printf(_( "  -?  Display this help screen.\n" ));
+	printf(_NLS( "  -Z  Prevent tables from being analyzed.\n" ));
+	printf(_NLS( "  -?  Display this help screen.\n" ));
 	printf( "\n" );
-	printf(_( "  An argument of `--' disables further option processing.\n" ));
-	printf(_( "  (useful for unusual file names starting with '-')\n" ));
+	printf(_NLS( "  An argument of `--' disables further option processing.\n" ));
+	printf(_NLS( "  (useful for unusual file names starting with '-')\n" ));
 }
 
 
@@ -99,7 +99,7 @@ main (int argc, char **argv)
 	}
 
 	/* Parse command line options and set configuration */
-	config = malloc(sizeof(SHPLOADERCONFIG));
+	config = (SHPLOADERCONFIG*)malloc(sizeof(SHPLOADERCONFIG));
 	set_loader_config_defaults(config);
 
 	/* Keep the flag list alphabetic so it's easy to see what's left. */

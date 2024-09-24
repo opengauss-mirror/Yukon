@@ -27,31 +27,31 @@ usage(int status)
 {
 	/* TODO: if status != 0 print all to stderr */
 
-	printf(_( "RELEASE: %s (%s)\n" ), POSTGIS_LIB_VERSION,
+	printf(_NLS( "RELEASE: %s (%s)\n" ), POSTGIS_LIB_VERSION,
 		xstr(POSTGIS_REVISION));
-	printf(_("USAGE: pgsql2shp [<options>] <database> [<schema>.]<table>\n"
+	printf(_NLS("USAGE: pgsql2shp [<options>] <database> [<schema>.]<table>\n"
 	         "       pgsql2shp [<options>] <database> <query>\n"
 	         "\n"
 	         "OPTIONS:\n" ));
-	printf(_("  -f <filename>  Use this option to specify the name of the file to create.\n" ));
-	printf(_("  -h <host>  Allows you to specify connection to a database on a\n"
+	printf(_NLS("  -f <filename>  Use this option to specify the name of the file to create.\n" ));
+	printf(_NLS("  -h <host>  Allows you to specify connection to a database on a\n"
 	         "     machine other than the default.\n" ));
-	printf(_("  -p <port>  Allows you to specify a database port other than the default.\n" ));
-	printf(_("  -P <password>  Connect to the database with the specified password.\n" ));
-	printf(_("  -u <user>  Connect to the database as the specified user.\n" ));
-	printf(_("  -g <geometry_column> Specify the geometry column to be exported.\n" ));
-	printf(_("  -b Use a binary cursor.\n" ));
-	printf(_("  -r Raw mode. Do not assume table has been created by the loader. This would\n"
+	printf(_NLS("  -p <port>  Allows you to specify a database port other than the default.\n" ));
+	printf(_NLS("  -P <password>  Connect to the database with the specified password.\n" ));
+	printf(_NLS("  -u <user>  Connect to the database as the specified user.\n" ));
+	printf(_NLS("  -g <geometry_column> Specify the geometry column to be exported.\n" ));
+	printf(_NLS("  -b Use a binary cursor.\n" ));
+	printf(_NLS("  -r Raw mode. Do not assume table has been created by the loader. This would\n"
 	         "     not unescape attribute names and will not skip the 'gid' attribute.\n" ));
-	printf(_("  -k Keep PostgreSQL identifiers case.\n" ));
-	printf(_("  -m <filename>  Specify a file containing a set of mappings of (long) column\n"
+	printf(_NLS("  -k Keep PostgreSQL identifiers case.\n" ));
+	printf(_NLS("  -m <filename>  Specify a file containing a set of mappings of (long) column\n"
 	         "     names to 10 character DBF column names. The content of the file is one or\n"
 	         "     more lines of two names separated by white space and no trailing or\n"
 	         "     leading space. For example:\n"
 	         "         COLUMNNAME DBFFIELD1\n"
 	         "         AVERYLONGCOLUMNNAME DBFFIELD2\n" ));
-	printf(_("  -q Quiet mode. No messages to stdout.\n" ));
-	printf(_("  -? Display this help screen.\n\n" ));
+	printf(_NLS("  -q Quiet mode. No messages to stdout.\n" ));
+	printf(_NLS("  -? Display this help screen.\n\n" ));
 	exit(status);
 }
 
@@ -70,7 +70,7 @@ main(int argc, char **argv)
 	}
 
 	/* Parse command line options and set configuration */
-	config = malloc(sizeof(SHPDUMPERCONFIG));
+	config = (SHPDUMPERCONFIG*)malloc(sizeof(SHPDUMPERCONFIG));
 	set_dumper_config_defaults(config);
 
 	while ((c = pgis_getopt(argc, argv, "bf:h:du:p:P:g:rkm:q")) != EOF)
@@ -190,14 +190,14 @@ main(int argc, char **argv)
 	/* Display a warning if the -d switch is used with PostGIS >= 1.0 */
 	if (state->pgis_major_version > 0 && state->config->dswitchprovided)
 	{
-		fprintf(stderr, _("WARNING: -d switch is useless when dumping from postgis-1.0.0+\n"));
+		fprintf(stderr, _NLS("WARNING: -d switch is useless when dumping from postgis-1.0.0+\n"));
 		fflush(stderr);
 	}
 
 	/* Open the table ready to return rows */
 	if (!state->config->quiet)
 	{
-		fprintf(stdout, _("Initializing... \n"));
+		fprintf(stdout, _NLS("Initializing... \n"));
 		fflush(stdout);
 	}
 
@@ -213,9 +213,9 @@ main(int argc, char **argv)
 
 	if (!state->config->quiet)
 	{
-		fprintf(stdout, _("Done (postgis major version: %d).\n"), state->pgis_major_version);
-		fprintf(stdout, _("Output shape: %s\n"), shapetypename(state->outshptype));
-		fprintf(stdout, _("Dumping: "));
+		fprintf(stdout, _NLS("Done (postgis major version: %d).\n"), state->pgis_major_version);
+		fprintf(stdout, _NLS("Output shape: %s\n"), shapetypename(state->outshptype));
+		fprintf(stdout, _NLS("Dumping: "));
 		fflush(stdout);
 	}
 
@@ -241,7 +241,7 @@ main(int argc, char **argv)
 
 	if (!state->config->quiet)
 	{
-		fprintf(stdout, _(" [%d rows].\n"), ShpDumperGetRecordCount(state));
+		fprintf(stdout, _NLS(" [%d rows].\n"), ShpDumperGetRecordCount(state));
 		fflush(stdout);
 	}
 
