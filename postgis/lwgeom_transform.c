@@ -211,7 +211,7 @@ Datum LWGEOM_asKML(PG_FUNCTION_ARGS)
 		if (VARSIZE_ANY_EXHDR(prefix_text) > 0)
 		{
 			/* +2 is one for the ':' and one for term null */
-			prefixbuf = palloc(VARSIZE_ANY_EXHDR(prefix_text) + 2);
+			prefixbuf = (char*)palloc(VARSIZE_ANY_EXHDR(prefix_text) + 2);
 			memcpy(prefixbuf, VARDATA(prefix_text),
 				   VARSIZE_ANY_EXHDR(prefix_text));
 			/* add colon and null terminate */

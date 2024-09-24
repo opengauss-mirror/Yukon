@@ -31,7 +31,7 @@
 #include "lwgeom_pg.h"
 #include "liblwgeom.h"
 #include "lwgeom_cache.h"
-// #include "funcapi.h"
+#include "funcapi.h"
 #include <executor/spi.h>
 #include <utils/builtins.h>
 #include "flatgeobuf.h"
@@ -68,6 +68,7 @@ static char *get_pgtype(uint8_t column_type) {
 		return "jsonb";
 	}
 	elog(ERROR, "unknown column_type %d", column_type);
+	return "";
 }
 
 PG_FUNCTION_INFO_V1(pgis_tablefromflatgeobuf);
@@ -99,18 +100,18 @@ Datum pgis_tablefromflatgeobuf(PG_FUNCTION_ARGS)
 
 	data = PG_GETARG_BYTEA_PP(2);
 
-	ctx = palloc0(sizeof(*ctx));
-	ctx->ctx = palloc0(sizeof(flatgeobuf_ctx));
+	ctx = (flatgeobuf_decode_ctx*)palloc0(sizeof(*ctx));
+	ctx->ctx = (flatgeobuf_ctx*)palloc0(sizeof(flatgeobuf_ctx));
 	ctx->ctx->size = VARSIZE_ANY_EXHDR(data);
 	POSTGIS_DEBUGF(3, "bytea data size is %ld", ctx->ctx->size);
-	ctx->ctx->buf = lwalloc(ctx->ctx->size);
+	ctx->ctx->buf = (uint8_t*)lwalloc(ctx->ctx->size);
 	memcpy(ctx->ctx->buf, VARDATA_ANY(data), ctx->ctx->size);
 	ctx->ctx->offset = 0;
 
 	flatgeobuf_check_magicbytes(ctx);
 	flatgeobuf_decode_header(ctx->ctx);
 
-	column_defs = palloc(sizeof(char *) * ctx->ctx->columns_size);
+	column_defs = (char**)palloc(sizeof(char *) * ctx->ctx->columns_size);
 	column_defs_total_len = 0;
 	POSTGIS_DEBUGF(2, "found %d columns", ctx->ctx->columns_size);
 	for (i = 0; i < ctx->ctx->columns_size; i++) {
@@ -119,13 +120,13 @@ Datum pgis_tablefromflatgeobuf(PG_FUNCTION_ARGS)
 		uint8_t column_type = column->type;
 		char *pgtype = get_pgtype(column_type);
 		size_t len = strlen(name) + 1 + strlen(pgtype) + 1;
-		column_defs[i] = palloc0(sizeof(char) * len);
+		column_defs[i] = (char*)palloc0(sizeof(char) * len);
 		strcat(column_defs[i], name);
 		strcat(column_defs[i], " ");
 		strcat(column_defs[i], pgtype);
 		column_defs_total_len += len;
 	}
-	column_defs_str = palloc0(sizeof(char) * column_defs_total_len + (ctx->ctx->columns_size * 2) + 2 + 1);
+	column_defs_str = (char*)palloc0(sizeof(char) * column_defs_total_len + (ctx->ctx->columns_size * 2) + 2 + 1);
 	if (ctx->ctx->columns_size > 0)
 		strcat(column_defs_str, ", ");
 	for (i = 0; i < ctx->ctx->columns_size; i++) {
@@ -137,7 +138,7 @@ Datum pgis_tablefromflatgeobuf(PG_FUNCTION_ARGS)
 	POSTGIS_DEBUGF(2, "column_defs_str %s", column_defs_str);
 
 	format = "create table %s.%s (id int, geom geometry%s)";
-	sql = palloc0(strlen(format) + strlen(schema) + strlen(table) + strlen(column_defs_str) + 1);
+	sql = (char*)palloc0(strlen(format) + strlen(schema) + strlen(table) + strlen(column_defs_str) + 1);
 
 	sprintf(sql, format, schema, table, column_defs_str);
 
@@ -183,12 +184,12 @@ Datum pgis_fromflatgeobuf(PG_FUNCTION_ARGS)
 
 		data = PG_GETARG_BYTEA_PP(1);
 
-		ctx = palloc0(sizeof(*ctx));
+		ctx = (flatgeobuf_decode_ctx*)palloc0(sizeof(*ctx));
 		ctx->tupdesc = tupdesc;
-		ctx->ctx = palloc0(sizeof(flatgeobuf_ctx));
+		ctx->ctx = (flatgeobuf_ctx*)palloc0(sizeof(flatgeobuf_ctx));
 		ctx->ctx->size = VARSIZE_ANY_EXHDR(data);
 		POSTGIS_DEBUGF(3, "VARSIZE_ANY_EXHDR %ld", ctx->ctx->size);
-		ctx->ctx->buf = palloc(ctx->ctx->size);
+		ctx->ctx->buf = (uint8_t*)palloc(ctx->ctx->size);
 		memcpy(ctx->ctx->buf, VARDATA_ANY(data), ctx->ctx->size);
 		ctx->ctx->offset = 0;
 		ctx->done = false;
@@ -218,7 +219,7 @@ Datum pgis_fromflatgeobuf(PG_FUNCTION_ARGS)
 	}
 
 	funcctx = SRF_PERCALL_SETUP();
-	ctx = funcctx->user_fctx;
+	ctx = (flatgeobuf_decode_ctx*)(funcctx->user_fctx);
 
 	if (!ctx->done) {
 		flatgeobuf_decode_row(ctx);

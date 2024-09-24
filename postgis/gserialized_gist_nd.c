@@ -36,10 +36,11 @@
 **     Proceedings of the ACM SIGMOD Conference. June 1990.
 */
 
-// #include "postgres.h"
-// #include "access/gist.h" /* For GiST */
+#include "postgres.h"
+#include "access/gist.h" /* For GiST */
 // #include "access/itup.h"
 // #include "access/skey.h"
+#include "utils/geo_decls.h"
 
 #include "../postgis_config.h"
 
@@ -932,7 +933,7 @@ Datum gserialized_gist_compress(PG_FUNCTION_ARGS)
 	}
 
 	POSTGIS_DEBUG(4, "[GIST] processing leafkey input");
-	entry_out = palloc(sizeof(GISTENTRY));
+	entry_out = (GISTENTRY*)palloc(sizeof(GISTENTRY));
 
 	/*
 	** Null key? Make a copy of the input entry and
@@ -1644,9 +1645,9 @@ Datum gserialized_gist_picksplit(PG_FUNCTION_ARGS)
 	nbytes = (max_offset + 2) * sizeof(OffsetNumber);
 	ndims_pageunion = GIDX_NDIMS(box_pageunion);
 	POSTGIS_DEBUGF(4, "[GIST] ndims_pageunion == %d", ndims_pageunion);
-	pos = palloc(2 * ndims_pageunion * sizeof(int));
-	list = palloc(2 * ndims_pageunion * sizeof(OffsetNumber *));
-	box_union = palloc(2 * ndims_pageunion * sizeof(GIDX *));
+	pos = (int*)palloc(2 * ndims_pageunion * sizeof(int));
+	list = (OffsetNumber**)palloc(2 * ndims_pageunion * sizeof(OffsetNumber *));
+	box_union = (GIDX**)palloc(2 * ndims_pageunion * sizeof(GIDX *));
 	for (d = 0; d < ndims_pageunion; d++)
 	{
 		list[BELOW(d)] = (OffsetNumber *)palloc(nbytes);
@@ -1692,7 +1693,7 @@ Datum gserialized_gist_picksplit(PG_FUNCTION_ARGS)
 		** Instead we split on center points and see if we do better.
 		** First calculate the average center point for each axis.
 		*/
-		double *avgCenter = palloc(ndims_pageunion * sizeof(double));
+		double *avgCenter = (double*)palloc(ndims_pageunion * sizeof(double));
 
 		for (d = 0; d < ndims_pageunion; d++)
 			avgCenter[d] = 0.0;

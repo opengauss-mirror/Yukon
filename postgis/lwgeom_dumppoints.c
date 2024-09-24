@@ -29,7 +29,8 @@
 // #include "utils/geo_decls.h"
 // #include "utils/lsyscache.h"
 // #include "catalog/pg_type.h"
-// #include "funcapi.h"
+#include "funcapi.h"
+#include "utils/lsyscache.h"
 
 #include "../postgis_config.h"
 #include "lwgeom_pg.h"
@@ -106,7 +107,7 @@ Datum LWGEOM_dumppoints(PG_FUNCTION_ARGS) {
 		}
 
 		/* Create function state */
-		state = lwalloc(sizeof *state);
+		state = (dumpstate*)lwalloc(sizeof *state);
 		state->root = lwgeom;
 		state->stacklen = 0;
 		state->pathlen = 0;
@@ -144,7 +145,7 @@ Datum LWGEOM_dumppoints(PG_FUNCTION_ARGS) {
 	newcontext = funcctx->multi_call_memory_ctx;
 
 	/* get state */
-	state = funcctx->user_fctx;
+	state = (dumpstate*)(funcctx->user_fctx);
 
 	while (1) {
 		node = &state->stack[state->stacklen-1];
@@ -327,7 +328,7 @@ Datum LWGEOM_dumpsegments(PG_FUNCTION_ARGS)
 		}
 
 		/* Create function state */
-		state = lwalloc(sizeof *state);
+		state = (dumpstate*)(lwalloc(sizeof *state));
 		state->root = lwgeom;
 		state->stacklen = 0;
 		state->pathlen = 0;
@@ -366,7 +367,7 @@ Datum LWGEOM_dumpsegments(PG_FUNCTION_ARGS)
 	newcontext = funcctx->multi_call_memory_ctx;
 
 	/* get state */
-	state = funcctx->user_fctx;
+	state = (dumpstate*)(funcctx->user_fctx);
 
 	while (1)
 	{

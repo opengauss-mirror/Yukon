@@ -90,7 +90,7 @@ pgis_geometry_accum_transfn(PG_FUNCTION_ARGS)
 	{
 		int n = ((PG_NARGS()-2) <= CollectionBuildStateDataSize) ? (PG_NARGS()-2) : CollectionBuildStateDataSize;
 
-		state = MemoryContextAlloc(aggcontext, sizeof(CollectionBuildState));
+		state = (CollectionBuildState*)MemoryContextAlloc(aggcontext, sizeof(CollectionBuildState));
 		state->geoms = NULL;
 		state->geomOid = argType;
 		state->gridSize = gridSize;
@@ -169,8 +169,8 @@ pgis_accum_finalfn(CollectionBuildState *state, MemoryContext mctx, __attribute_
 
 	/* Build up an array, because that's what we pass to all the */
 	/* specific final functions */
-	elems = palloc(nelems * sizeof(Datum));
-	nulls = palloc(nelems * sizeof(bool));
+	elems = (Datum*)palloc(nelems * sizeof(Datum));
+	nulls = (bool*)palloc(nelems * sizeof(bool));
 
 	foreach (l, state->geoms)
 	{

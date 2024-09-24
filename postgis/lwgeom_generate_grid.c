@@ -22,9 +22,11 @@
  *
  **********************************************************************/
 
-// #include "postgres.h"
-// #include "fmgr.h"
-// #include "funcapi.h"
+#include "postgres.h"
+#include "fmgr.h"
+#include "funcapi.h"
+#include "utils/lsyscache.h"
+#include "utils/palloc.h"
 // #include "access/htup_details.h"
 
 #include "../postgis_config.h"
@@ -73,7 +75,7 @@ static const double hex_y[] = {0.0, -0.5, -0.5, 0.0, 0.5, 0.5, 0.0};
 static LWGEOM *
 hexagon(double origin_x, double origin_y, double size, int cell_i, int cell_j, int32_t srid)
 {
-	POINTARRAY **ppa = lwalloc(sizeof(POINTARRAY*));
+	POINTARRAY **ppa = (POINTARRAY**)lwalloc(sizeof(POINTARRAY*));
 	POINTARRAY *pa = ptarray_construct(0, 0, 7);
 
 	for (uint32_t i = 0; i < 7; ++i)
@@ -107,7 +109,7 @@ HexagonGridState;
 static HexagonGridState *
 hexagon_grid_state(double size, const GBOX *gbox, int32_t srid)
 {
-	HexagonGridState *state = palloc0(sizeof(HexagonGridState));
+	HexagonGridState *state = (HexagonGridState*)palloc0(sizeof(HexagonGridState));
 	double col_width = 1.5 * size;
 	double row_height = size * 2 * H;
 
@@ -188,7 +190,7 @@ SquareGridState;
 static SquareGridState *
 square_grid_state(double size, const GBOX *gbox, int32_t srid)
 {
-	SquareGridState *state = palloc0(sizeof(SquareGridState));
+	SquareGridState *state = (SquareGridState*)palloc0(sizeof(SquareGridState));
 
 	/* fill in state */
 	state->cell_shape = SHAPE_SQUARE;
@@ -235,7 +237,7 @@ Datum ST_ShapeGrid(PG_FUNCTION_ARGS)
 	FuncCallContext *funcctx;
 
 	GSERIALIZED *gbounds;
-	GeometryGridState *state;
+	GeometryGridState *state = nullptr;
 
 	LWGEOM *lwgeom;
 	bool isnull[3] = {0,0,0}; /* needed to say no value is null */
@@ -303,7 +305,7 @@ Datum ST_ShapeGrid(PG_FUNCTION_ARGS)
 	funcctx = SRF_PERCALL_SETUP();
 
 	/* get state */
-	state = funcctx->user_fctx;
+	state = (GeometryGridState*)funcctx->user_fctx;
 
 	/* Stop when we've used up all the grid squares */
 	if (state->done)

@@ -542,7 +542,7 @@ Datum pgis_union_geometry_array(PG_FUNCTION_ARGS)
 	** Collect the non-empty inputs and stuff them into a GEOS collection
 	*/
 	geoms_size = nelems;
-	geoms = palloc(sizeof(GEOSGeometry*) * geoms_size);
+	geoms = (GEOSGeometry**)palloc(sizeof(GEOSGeometry*) * geoms_size);
 
 	/*
 	** We need to convert the array of GSERIALIZED into a GEOS collection.
@@ -594,7 +594,7 @@ Datum pgis_union_geometry_array(PG_FUNCTION_ARGS)
 			if ( curgeom == geoms_size )
 			{
 				geoms_size *= 2;
-				geoms = repalloc( geoms, sizeof(GEOSGeometry*) * geoms_size );
+				geoms = (GEOSGeometry**)repalloc( geoms, sizeof(GEOSGeometry*) * geoms_size );
 			}
 
 			geoms[curgeom] = g;
@@ -663,7 +663,7 @@ Datum pgis_geometry_union_finalfn(PG_FUNCTION_ARGS)
 		PG_RETURN_NULL(); /* returns null iff no input values */
 
 	state = (CollectionBuildState *)PG_GETARG_POINTER(0);
-	geoms = palloc(list_length(state->geoms) * sizeof(LWGEOM*));
+	geoms = (LWGEOM**)palloc(list_length(state->geoms) * sizeof(LWGEOM*));
 
 	/* Read contents of list into an array of only non-null values */
 	foreach (l, state->geoms)
@@ -1666,7 +1666,7 @@ Datum isvaliddetail(PG_FUNCTION_ARGS)
 	}
 
 	/* the boolean validity */
-	values[0] =  valid ? "t" : "f";
+	values[0] =  valid ? (char*)"t" : (char*)"f";
 
 	/* the reason */
 	values[1] =  reason;
@@ -2782,7 +2782,7 @@ LWGEOM** ARRAY2LWGEOM(ArrayType* array, uint32_t nelems,  int* is3d, int* srid)
     bool gotsrid = false;
     uint32_t i = 0;
 
-	LWGEOM** lw_geoms = palloc(nelems * sizeof(LWGEOM*));
+	LWGEOM** lw_geoms = (LWGEOM**)palloc(nelems * sizeof(LWGEOM*));
 
     iterator = array_create_iterator(array, 0);
 
@@ -2824,7 +2824,7 @@ GEOSGeometry** ARRAY2GEOS(ArrayType* array, uint32_t nelems, int* is3d, int* sri
     bool gotsrid = false;
     uint32_t i = 0;
 
-	GEOSGeometry** geos_geoms = palloc(nelems * sizeof(GEOSGeometry*));
+	GEOSGeometry** geos_geoms = (GEOSGeometry**)palloc(nelems * sizeof(GEOSGeometry*));
 
     iterator = array_create_iterator(array, 0);
 
@@ -2996,7 +2996,7 @@ Datum clusterintersecting_garray(PG_FUNCTION_ARGS)
 
 	if (!geos_results) PG_RETURN_NULL();
 
-	result_array_data = palloc(nclusters * sizeof(Datum));
+	result_array_data = (Datum*)palloc(nclusters * sizeof(Datum));
 	for (i=0; i<nclusters; ++i)
 	{
 		result_array_data[i] = PointerGetDatum(GEOS2POSTGIS(geos_results[i], is3d));
@@ -3072,7 +3072,7 @@ Datum cluster_within_distance_garray(PG_FUNCTION_ARGS)
 
 	if (!lw_results) PG_RETURN_NULL();
 
-	result_array_data = palloc(nclusters * sizeof(Datum));
+	result_array_data = (Datum*)palloc(nclusters * sizeof(Datum));
 	for (i=0; i<nclusters; ++i)
 	{
 		result_array_data[i] = PointerGetDatum(geometry_serialize(lw_results[i]));

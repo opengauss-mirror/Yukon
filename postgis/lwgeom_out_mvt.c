@@ -25,6 +25,7 @@
 #include "postgres.h"
 #include "utils/builtins.h"
 #include "executor/spi.h"
+#include "utils/lsyscache.h"
 #include "../postgis_config.h"
 #include "lwgeom_pg.h"
 #include "lwgeom_log.h"
@@ -147,7 +148,7 @@ Datum pgis_asmvt_transfn(PG_FUNCTION_ARGS)
 
 	if (PG_ARGISNULL(0)) {
 		old_context = MemoryContextSwitchTo(aggcontext);
-		ctx = palloc(sizeof(*ctx));
+		ctx = (mvt_agg_context*)palloc(sizeof(*ctx));
 		ctx->name = "default";
 		if (PG_NARGS() > 2 && !PG_ARGISNULL(2))
 			ctx->name = text_to_cstring(PG_GETARG_TEXT_P(2));
@@ -202,7 +203,7 @@ Datum pgis_asmvt_finalfn(PG_FUNCTION_ARGS)
 
 	if (PG_ARGISNULL(0))
 	{
-		bytea *emptybuf = palloc(VARHDRSZ);
+		bytea *emptybuf = (bytea*)palloc(VARHDRSZ);
 		SET_VARSIZE(emptybuf, VARHDRSZ);
 		PG_RETURN_BYTEA_P(emptybuf);
 	}
@@ -228,7 +229,7 @@ Datum pgis_asmvt_serialfn(PG_FUNCTION_ARGS)
 
 	if (PG_ARGISNULL(0))
 	{
-		bytea *emptybuf = palloc(VARHDRSZ);
+		bytea *emptybuf = (bytea*)palloc(VARHDRSZ);
 		SET_VARSIZE(emptybuf, VARHDRSZ);
 		PG_RETURN_BYTEA_P(emptybuf);
 	}

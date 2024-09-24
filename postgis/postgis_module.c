@@ -57,7 +57,7 @@ static void interruptCallback() {
 /*
  * Module load callback
  */
-void _PG_init(void);
+extern "C" void _PG_init(void);
 void
 _PG_init(void)
 {

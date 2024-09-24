@@ -281,7 +281,7 @@ Datum geography_as_gml(PG_FUNCTION_ARGS)
 		if (VARSIZE_ANY_EXHDR(prefix_text) > 0)
 		{
 			/* +2 is one for the ':' and one for term null */
-			prefix_buf = palloc(VARSIZE_ANY_EXHDR(prefix_text) + 2);
+			prefix_buf = (char*)palloc(VARSIZE_ANY_EXHDR(prefix_text) + 2);
 			memcpy(prefix_buf, VARDATA_ANY(prefix_text),
 				   VARSIZE_ANY_EXHDR(prefix_text));
 			/* add colon and null terminate */
@@ -303,7 +303,7 @@ Datum geography_as_gml(PG_FUNCTION_ARGS)
 		id_text = PG_GETARG_TEXT_P(argnum++);
 		if (VARSIZE_ANY_EXHDR(id_text) > 0)
 		{
-			id_buf = palloc(VARSIZE_ANY_EXHDR(id_text) + 1);
+			id_buf = (char*)palloc(VARSIZE_ANY_EXHDR(id_text) + 1);
 			memcpy(id_buf, VARDATA(id_text), VARSIZE_ANY_EXHDR(id_text));
 			prefix_buf[VARSIZE_ANY_EXHDR(id_text) + 1] = '\0';
 			id = id_buf;
@@ -391,7 +391,7 @@ Datum geography_as_kml(PG_FUNCTION_ARGS)
 		if (VARSIZE_ANY_EXHDR(prefix_text) > 0)
 		{
 			/* +2 is one for the ':' and one for term null */
-			prefixbuf = palloc(VARSIZE_ANY_EXHDR(prefix_text) + 2);
+			prefixbuf = (char*)palloc(VARSIZE_ANY_EXHDR(prefix_text) + 2);
 			memcpy(prefixbuf, VARDATA(prefix_text),
 				   VARSIZE_ANY_EXHDR(prefix_text));
 			/* add colon and null terminate */

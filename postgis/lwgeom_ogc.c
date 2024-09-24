@@ -34,7 +34,7 @@
 // #include "access/itup.h"
 
 // #include "fmgr.h"
-// #include "utils/builtins.h"
+#include "utils/builtins.h"
 // #include "utils/elog.h"
 
 #include "../postgis_config.h"
@@ -123,7 +123,7 @@ Datum LWGEOM_getTYPE(PG_FUNCTION_ARGS)
 	static int maxtyplen = 20;
 
 	gser = PG_GETARG_GSERIALIZED_HEADER(0);
-	text_ob = palloc0(VARHDRSZ + maxtyplen);
+	text_ob = (text*)palloc0(VARHDRSZ + maxtyplen);
 	result = VARDATA(text_ob);
 
 	type = gserialized_get_type(gser);
@@ -522,7 +522,7 @@ Datum LWGEOM_interiorringn_polygon(PG_FUNCTION_ARGS)
 		/* COMPUTE_BBOX==TAINTING */
 		if ( poly->bbox )
 		{
-			bbox = lwalloc(sizeof(GBOX));
+			bbox = (GBOX*)lwalloc(sizeof(GBOX));
 			ptarray_calculate_gbox_cartesian(ring, bbox);
 		}
 

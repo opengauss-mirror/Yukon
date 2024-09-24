@@ -63,7 +63,7 @@ Datum pgis_asgeobuf_transfn(PG_FUNCTION_ARGS)
 	oldcontext = MemoryContextSwitchTo(aggcontext);
 
 	if (PG_ARGISNULL(0)) {
-		ctx = palloc(sizeof(*ctx));
+		ctx = (geobuf_agg_context*)palloc(sizeof(*ctx));
 
 		ctx->geom_name = NULL;
 		if (PG_NARGS() > 2 && !PG_ARGISNULL(2))

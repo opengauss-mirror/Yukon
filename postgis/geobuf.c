@@ -24,6 +24,7 @@
 
 #include <math.h>
 #include "geobuf.h"
+#include "utils/geo_decls.h"
 #include "pgsql_compat.h"
 
 #if defined HAVE_LIBPROTOBUF
@@ -36,7 +37,7 @@ static Data__Geometry *encode_geometry(struct geobuf_agg_context *ctx,
 
 static Data__Geometry *galloc(Data__Geometry__Type type) {
 	Data__Geometry *geometry;
-	geometry = palloc (sizeof (Data__Geometry));
+	geometry = (Data__Geometry*)palloc (sizeof (Data__Geometry));
 	data__geometry__init(geometry);
 	geometry->type = type;
 	return geometry;
@@ -54,7 +55,7 @@ static void encode_keys(struct geobuf_agg_context *ctx)
 {
 	TupleDesc tupdesc = get_tuple_desc(ctx);
 	uint32_t natts = (uint32_t) tupdesc->natts;
-	char **keys = palloc(natts * sizeof(*keys));
+	char **keys = (char**)palloc(natts * sizeof(*keys));
 	uint32_t i, k = 0;
 	bool geom_found = false;
 	for (i = 0; i < natts; i++) {
@@ -102,8 +103,8 @@ static void encode_properties(struct geobuf_agg_context *ctx,
 	uint32_t i, k = 0, c = 0;
 	TupleDesc tupdesc = get_tuple_desc(ctx);
 	uint32_t natts = (uint32_t) tupdesc->natts;
-	properties = palloc(sizeof (*properties) * (natts - 1) * 2);
-	values = palloc (sizeof (*values) * (natts - 1));
+	properties = (uint32_t*)palloc(sizeof (*properties) * (natts - 1) * 2);
+	values = (Data__Value**)palloc (sizeof (*values) * (natts - 1));
 
 	for (i = 0; i < natts; i++) {
 		Data__Value *value;
@@ -116,7 +117,7 @@ static void encode_properties(struct geobuf_agg_context *ctx,
 			continue;
 		k++;
 
-		value = palloc (sizeof (*value));
+		value = (Data__Value*)palloc (sizeof (*value));
 		data__value__init(value);
 
 		type = SPI_gettype(tupdesc, i + 1);
@@ -167,9 +168,9 @@ static int64_t *encode_coords(struct geobuf_agg_context *ctx, POINTARRAY *pa,
 	int64_t sum[] = { 0, 0, 0, 0 };
 
 	if (offset == 0)
-		coords = palloc(sizeof (int64_t) * len * ctx->dimensions);
+		coords = (int64_t*)palloc(sizeof (int64_t) * len * ctx->dimensions);
 	else
-		coords = repalloc(coords, sizeof (int64_t) *
+		coords = (int64_t*)repalloc(coords, sizeof (int64_t) *
 			((len * ctx->dimensions) + offset));
 
 	c = offset;
@@ -286,7 +287,7 @@ static Data__Geometry *encode_mline(struct geobuf_agg_context *ctx,
 	if (ngeoms == 0)
 		return geometry;
 
-	lengths = palloc (sizeof (uint32_t) * ngeoms);
+	lengths = (uint32_t*)palloc (sizeof (uint32_t) * ngeoms);
 
 	offset = 0;
 	for (i = 0; i < ngeoms; i++) {
@@ -323,7 +324,7 @@ static Data__Geometry *encode_poly(struct geobuf_agg_context *ctx,
 	if (nrings == 0)
 		return geometry;
 
-	lengths = palloc (sizeof (uint32_t) * nrings);
+	lengths = (uint32_t*)palloc (sizeof (uint32_t) * nrings);
 
 	offset = 0;
 	for (i = 0; i < nrings; i++) {
@@ -368,7 +369,7 @@ static Data__Geometry *encode_mpoly(struct geobuf_agg_context *ctx,
 			n_lengths++;
 	}
 
-	lengths = palloc (sizeof (uint32_t) * n_lengths);
+	lengths = (uint32_t*)palloc(sizeof (uint32_t) * n_lengths);
 
 	c = 0;
 	offset = 0;
@@ -409,7 +410,7 @@ static Data__Geometry *encode_collection(struct geobuf_agg_context *ctx,
 	if (ngeoms == 0)
 		return geometry;
 
-	geometries = palloc (sizeof (Data__Geometry *) * ngeoms);
+	geometries = (Data__Geometry**)palloc (sizeof (Data__Geometry *) * ngeoms);
 	for (i = 0; i < ngeoms; i++) {
 		LWGEOM *lwgeom = lwcollection->geoms[i];
 		Data__Geometry *geom = encode_geometry(ctx, lwgeom);
@@ -528,7 +529,7 @@ static Data__Feature *encode_feature(struct geobuf_agg_context *ctx)
 {
 	Data__Feature *feature;
 
-	feature = palloc (sizeof (Data__Feature));
+	feature = (Data__Feature*)palloc(sizeof (Data__Feature));
 	data__feature__init(feature);
 
 	encode_properties(ctx, feature);
@@ -550,16 +551,16 @@ void geobuf_agg_init_context(struct geobuf_agg_context *ctx)
 	ctx->e = 1;
 	ctx->features_capacity = FEATURES_CAPACITY_INITIAL;
 
-	data = palloc(sizeof(*data));
+	data = (Data*)palloc(sizeof(*data));
 	data__init(data);
 
-	fc = palloc(sizeof(*fc));
+	fc = (Data__FeatureCollection*)palloc(sizeof(*fc));
 	data__feature_collection__init(fc);
 
-	fc->features = palloc (ctx->features_capacity *
+	fc->features = (Data__Feature**)palloc (ctx->features_capacity *
 		sizeof(*fc->features));
 
-	ctx->lwgeoms = palloc (ctx->features_capacity *
+	ctx->lwgeoms = (LWGEOM**)palloc (ctx->features_capacity *
 		sizeof(*ctx->lwgeoms));
 
 	data->data_type_case = DATA__DATA_TYPE_FEATURE_COLLECTION;
@@ -586,9 +587,9 @@ void geobuf_agg_transfn(struct geobuf_agg_context *ctx)
 	GSERIALIZED *gs;
 	if (fc->n_features >= ctx->features_capacity) {
 		size_t new_capacity = ctx->features_capacity * 2;
-		fc->features = repalloc(fc->features, new_capacity *
+		fc->features = (Data__Feature**)repalloc(fc->features, new_capacity *
 			sizeof(*fc->features));
-		ctx->lwgeoms = repalloc(ctx->lwgeoms, new_capacity *
+		ctx->lwgeoms = (LWGEOM**)repalloc(ctx->lwgeoms, new_capacity *
 			sizeof(*ctx->lwgeoms));
 		ctx->features_capacity = new_capacity;
 	}
@@ -650,7 +651,7 @@ uint8_t *geobuf_agg_finalfn(struct geobuf_agg_context *ctx)
 		fc->features[i]->geometry = encode_geometry(ctx, ctx->lwgeoms[i]);
 
 	len = data__get_packed_size(data);
-	buf = palloc(sizeof(*buf) * (len + VARHDRSZ));
+	buf = (uint8_t*)palloc(sizeof(*buf) * (len + VARHDRSZ));
 	data__pack(data, buf + VARHDRSZ);
 
 	SET_VARSIZE(buf, VARHDRSZ + len);

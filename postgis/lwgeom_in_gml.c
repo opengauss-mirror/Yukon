@@ -250,7 +250,7 @@ static xmlNodePtr get_xlink_node(xmlNodePtr xnode)
 	xmlChar *href, *p, *node_id;
 
 	href = xmlGetNsProp(xnode, (xmlChar *)"href", (xmlChar *) XLINK_NS);
-	id = lwalloc((xmlStrlen(xnode->ns->prefix) * 2 + xmlStrlen(xnode->name)
+	id = (char*)lwalloc((xmlStrlen(xnode->ns->prefix) * 2 + xmlStrlen(xnode->name)
 	              + xmlStrlen(href) + sizeof("//:[@:id='']") + 1));
 	p = href;
 	p++; /* ignore '#' first char */

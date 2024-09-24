@@ -272,7 +272,11 @@ static uint32 gserialized_typmod_in(ArrayType *arr, int is_geography)
 		}
 		if ( i == 1 ) /* SRID */
 		{
+#if POSTGIS_GSSQL_VERSION >= 500 || POSTGIS_VDSQL_VERSION >= 10022
+			int32_t srid = pg_atoi(DatumGetCString(elem_values[i]), sizeof(int32), '\0', 0);
+#else
 			int32_t srid = pg_atoi(DatumGetCString(elem_values[i]), sizeof(int32), '\0');
+#endif
 			srid = clamp_srid(srid);
 			POSTGIS_DEBUGF(3, "srid: %d", srid);
 			if ( srid != SRID_UNKNOWN )
