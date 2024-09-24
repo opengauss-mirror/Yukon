@@ -2,7 +2,7 @@
  *
  * geomodel.c
  *
- * Copyright (C) 2021 SuperMap Software Co., Ltd.
+ * Copyright (C) 2021-2024 SuperMap Software Co., Ltd.
  *
  * Yukon is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@
 #include "geomodel.h"
 #include "gmserialized.h"
 #include "geomodel_util.h"
-#include "extension_dependency.h"
+//#include "extension_dependency.h"
 #include "Geometry3D/YkGeoModel.h"
 #include "Geometry3D/YkWrapCGeoModel.h"
 #include "Toolkit/YkLicenseRSA.h"
@@ -91,11 +91,11 @@ Datum geomodel_in(PG_FUNCTION_ARGS)
     len = len - 1;
   }
 
-  char *data = palloc(len / 2 + 4);
+  char *data = (char*)palloc(len / 2 + 4);
   SET_VARSIZE(data, len / 2 + 4);
   for (int i = 0, j = 0; i < len; i += 2, j++)
   {
-    data[j + 4] = Char2Hex(input + i);
+    data[j + 4] = Char2Hex((const unsigned char*)(input + i));
   }
   PG_RETURN_POINTER(data);
   //PG_RETURN_NULL();
@@ -109,10 +109,10 @@ Datum geomodel_out(PG_FUNCTION_ARGS)
 
   char *buf_data = VARDATA(buf);
   //申请两倍空间，存放字符
-  char *result = palloc((buf_size - 4) * 2 + 1);
+  char *result = (char*)palloc((buf_size - 4) * 2 + 1);
   memset(result, 0, (buf_size - 4) * 2 + 1);
   //依次将字符转换成字符串
-  for (int i = 0; i < buf_size - 4; i++)
+  for (size_t i = 0; i < buf_size - 4; i++)
   {
     Hex2Char((unsigned char)buf_data[i], dst);
     result[i * 2 + 1] = dst[0];
@@ -137,6 +137,7 @@ bool geomodel_reset_flags(GSERIALIZED *gs)
   FLAGS_SET_GEODETIC(gs->gflags, true);
   //TODO
   //geomodel 或者 element 是否要设置具体的子类型，目前还剩余两个 bit 可用
+  return true;
 }
 
 GSERIALIZED *wrap_header_geomodeldata(char *pData, int nLen, YkBoundingBox& bbox)
@@ -209,7 +210,7 @@ Datum geomodel_send(PG_FUNCTION_ARGS)
   // 这里的数据没有包含 size 字段，只有 srid flags data（里边包含 bbox 数据） 数据
   char *buf_data = VARDATA(buf);
   //这里分配大小时要包含 size 的大小，4个字节，
-  char *result = palloc(buf_size - 28);
+  char *result = (char*)palloc(buf_size - 28);
   //拷贝具体的数据，不包括 srid,flags data,同时也不包括 bbox 数据
   memcpy(result + 4, buf_data + 28, buf_size - 32);
   //设置大小时，要包含 size 的大小
@@ -233,11 +234,11 @@ Datum model_elem_in(PG_FUNCTION_ARGS)
     len = len - 1;
   }
 
-  char *data = palloc(len / 2 + 4);
+  char *data = (char*)palloc(len / 2 + 4);
   SET_VARSIZE(data, len / 2 + 4);
   for (int i = 0, j = 0; i < len; i += 2, j++)
   {
-    data[j + 4] = Char2Hex(input + i);
+    data[j + 4] = Char2Hex((const unsigned char*)(input + i));
   }
   PG_RETURN_POINTER(data);
 }
@@ -255,10 +256,10 @@ Datum model_elem_out(PG_FUNCTION_ARGS)
 
   char *buf_data = VARDATA(buf);
   //申请两倍空间，存放字符
-  char *result = palloc((buf_size - 4) * 2 + 1);
+  char *result = (char*)palloc((buf_size - 4) * 2 + 1);
   memset(result, 0, (buf_size - 4) * 2 + 1);
   //依次将字符转换成字符串
-  for (int i = 0; i < buf_size - 4; i++)
+  for (size_t i = 0; i < buf_size - 4; i++)
   {
     Hex2Char((unsigned char)buf_data[i], dst);
     result[i * 2 + 1] = dst[0];
@@ -403,7 +404,17 @@ Datum make_skeleton_from_tin(PG_FUNCTION_ARGS)
   YkIndexPackage *pIndexData = new YkIndexPackage();
 
   LWCOLLECTION *col = lwgeom_as_lwcollection(geom);
-  LWCOLLECTION *g1 = lwgeom_as_lwcollection(col->geoms[0]);
+  if (col == nullptr)
+	{
+		elog(ERROR, "TIN is not valid!");
+		PG_RETURN_NULL();
+	}
+	LWCOLLECTION *g1 = lwgeom_as_lwcollection(col->geoms[0]);
+	if (g1 == nullptr)
+	{
+		elog(ERROR, "TIN is not valid!");
+		PG_RETURN_NULL();
+	}
   LWTIN *item = lwgeom_as_lwtin(g1->geoms[0]);
 
   //数据填充
@@ -412,7 +423,7 @@ Datum make_skeleton_from_tin(PG_FUNCTION_ARGS)
   pIndexData->m_enIndexType = IT_16BIT;
   pIndexData->SetIndexNum(pVertexDataPack->m_nVerticesCount);
 
-  for (int i = 0; i < item->ngeoms; i++)
+  for (size_t i = 0; i < item->ngeoms; i++)
   {
     LWTRIANGLE *trig = item->geoms[i];
     POINTARRAY *arr = trig->points;
@@ -429,7 +440,7 @@ Datum make_skeleton_from_tin(PG_FUNCTION_ARGS)
   }
   lwgeom_free(geom);
 
-  for (int i = 0; i < pVertexDataPack->m_nVerticesCount; i++)
+  for (size_t i = 0; i < pVertexDataPack->m_nVerticesCount; i++)
   {
     pIndexData->m_pIndexes[i] = i;
   }
@@ -443,7 +454,7 @@ Datum make_skeleton_from_tin(PG_FUNCTION_ARGS)
   SaveElement(pSkeleton, pData, nSize);
   delete pSkeleton;
 
-  char* output = (void *)palloc(nSize + 4);
+  char* output = (char*)palloc(nSize + 4);
   memcpy(output + 4, (char *)pData, nSize);
   SET_VARSIZE(output, nSize + 4);
 
@@ -467,7 +478,7 @@ Datum make_default_material(PG_FUNCTION_ARGS)
   SaveElement(pMaterial, pData, nSize);
   delete pMaterial;
 
-  char* output = (void *)palloc(nSize + 4);
+  char* output = (char*)palloc(nSize + 4);
   memcpy(output + 4, (char *)pData, nSize);
   delete pData;
 

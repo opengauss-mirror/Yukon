@@ -2,7 +2,7 @@
  *
  * gmserialized_typmpd.c
  *
- * Copyright (C) 2021 SuperMap Software Co., Ltd.
+ * Copyright (C) 2021-2024 SuperMap Software Co., Ltd.
  *
  * Yukon is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,10 +21,13 @@
 
 #include "postgres.h"
 #include "fmgr.h"
+#include "utils/array.h"
+#include "catalog/pg_type.h"
+#include "utils/builtins.h"
 #include "geomodel.h"
 #include "gmserialized.h"
 #include "geomodel_util.h"
-#include "extension_dependency.h"
+//#include "extension_dependency.h"
 #include "../../libpgcommon/lwgeom_pg.h"
 #include "../../liblwgeom/lwgeom_log.h"
 #include "Geometry3D/YkWrapCGeoModel.h"
@@ -76,7 +79,7 @@ Datum model_elem_typmod_in(PG_FUNCTION_ARGS)
 {
     ArrayType *arr = (ArrayType *)DatumGetPointer(PG_GETARG_DATUM(0));
     uint32 typmod = gmserialized_typmod_in(arr);
-    int srid = TYPMOD_GET_SRID(typmod);
+    int srid = GEOMODEL_TYPMOD_GET_SRID(typmod);
     /* Check the SRID is legal (geographic coordinates) */
     //srid_is_latlong(fcinfo, srid);
 
@@ -93,10 +96,10 @@ Datum model_elem_typmod_out(PG_FUNCTION_ARGS)
     char *s = (char *)palloc(64);
     char *str = s;
     uint32 typmod = PG_GETARG_INT32(0);
-    uint32 srid = TYPMOD_GET_SRID(typmod);
-    uint32 type = TYPMOD_GET_TYPE(typmod);
-    uint32 hasz = TYPMOD_GET_Z(typmod);
-    uint32 hasm = TYPMOD_GET_M(typmod);
+    uint32 srid = GEOMODEL_TYPMOD_GET_SRID(typmod);
+    uint32 type = GEOMODEL_TYPMOD_GET_TYPE(typmod);
+    uint32 hasz = GEOMODEL_TYPMOD_GET_Z(typmod);
+    uint32 hasm = GEOMODEL_TYPMOD_GET_M(typmod);
 
     /* 如果没有 SRID ，类型和维度，则直接返回空字符串 */
     if (!(srid || type || hasz || hasm))
@@ -138,7 +141,7 @@ Datum geomodel_typmod_in(PG_FUNCTION_ARGS)
 {
     ArrayType *arr = (ArrayType *)DatumGetPointer(PG_GETARG_DATUM(0));
     uint32 typmod = gmserialized_typmod_in(arr);
-    int srid = TYPMOD_GET_SRID(typmod);
+    int srid = GEOMODEL_TYPMOD_GET_SRID(typmod);
     /* Check the SRID is legal (geographic coordinates) */
     //srid_is_latlong(fcinfo, srid);
 
@@ -155,10 +158,10 @@ Datum geomodel_typmod_out(PG_FUNCTION_ARGS)
     char *s = (char *)palloc(64);
     char *str = s;
     uint32 typmod = PG_GETARG_INT32(0);
-    uint32 srid = TYPMOD_GET_SRID(typmod);
-    uint32 type = TYPMOD_GET_TYPE(typmod);
-    uint32 hasz = TYPMOD_GET_Z(typmod);
-    uint32 hasm = TYPMOD_GET_M(typmod);
+    uint32 srid = GEOMODEL_TYPMOD_GET_SRID(typmod);
+    uint32 type = GEOMODEL_TYPMOD_GET_TYPE(typmod);
+    uint32 hasz = GEOMODEL_TYPMOD_GET_Z(typmod);
+    uint32 hasm = GEOMODEL_TYPMOD_GET_M(typmod);
 
     /* 如果没有 SRID ，类型和维度，则直接返回空字符串 */
     if (!(srid || type || hasz || hasm))
@@ -246,7 +249,7 @@ uint32 gmserialized_typmod_in(ArrayType *arr)
                       &elem_values, NULL, &n);
 
     /* 先将 SRID 设置为默认值 */
-    TYPMOD_SET_SRID(typmod, SRID_DEFAULT);
+    GEOMODEL_TYPMOD_SET_SRID(typmod, SRID_DEFAULT);
 
     for (i = 0; i < n; i++)
     {
@@ -263,21 +266,26 @@ uint32 gmserialized_typmod_in(ArrayType *arr)
             }
             else
             {
-                TYPMOD_SET_TYPE(typmod, type);
+                GEOMODEL_TYPMOD_SET_TYPE(typmod, type);
                 // 固定为 1
-                TYPMOD_SET_Z(typmod);
+                GEOMODEL_TYPMOD_SET_Z(typmod);
                 // 固定为 0
-                TYPMOD_SET_M(typmod);
+                GEOMODEL_TYPMOD_SET_M(typmod);
             }
         }
         if (i == 1) /* SRID */
         {
+#if POSTGIS_GSSQL_VERSION >= 500 || POSTGIS_VDSQL_VERSION >= 10022
+            int srid = pg_atoi(DatumGetCString(elem_values[i]),
+                               sizeof(int32), '\0', 0);
+#else
             int srid = pg_atoi(DatumGetCString(elem_values[i]),
                                sizeof(int32), '\0');
+#endif 
             //srid = clamp_srid(srid);
             if (srid != SRID_UNKNOWN)
             {
-                TYPMOD_SET_SRID(typmod, srid);
+                GEOMODEL_TYPMOD_SET_SRID(typmod, srid);
             }
         }
     }
@@ -297,7 +305,7 @@ Datum geomodel_typmod_srid(PG_FUNCTION_ARGS)
     int32 typmod = PG_GETARG_INT32(0);
     if (typmod < 0)
         PG_RETURN_INT32(0);
-    PG_RETURN_INT32(TYPMOD_GET_SRID(typmod));
+    PG_RETURN_INT32(GEOMODEL_TYPMOD_GET_SRID(typmod));
 }
 
 /**
@@ -312,9 +320,9 @@ Datum geomodel_typmod_dims(PG_FUNCTION_ARGS)
     /* 当 typmod 小于0 时，表示没有使用类型修改器，geomodel_columns 中显示为 0 */
     if (typmod < 0)
         PG_RETURN_INT32(0);
-    if (TYPMOD_GET_Z(typmod))
+    if (GEOMODEL_TYPMOD_GET_Z(typmod))
         dims++;
-    if (TYPMOD_GET_M(typmod))
+    if (GEOMODEL_TYPMOD_GET_M(typmod))
         dims++;
     PG_RETURN_INT32(dims);
 }
@@ -327,7 +335,7 @@ Datum geomodel_typmod_dims(PG_FUNCTION_ARGS)
 Datum geomodel_typmod_type(PG_FUNCTION_ARGS)
 {
     int32 typmod = PG_GETARG_INT32(0);
-    int32 type = TYPMOD_GET_TYPE(typmod);
+    int32 type = GEOMODEL_TYPMOD_GET_TYPE(typmod);
     char *s = (char *)palloc(64);
     char *ptr = s;
     text *stext;
@@ -337,10 +345,10 @@ Datum geomodel_typmod_type(PG_FUNCTION_ARGS)
     else
         ptr += sprintf(ptr, "%s", geomodel_type_name(type));
 
-    //if ( typmod >= 0 && TYPMOD_GET_Z(typmod) )
+    //if ( typmod >= 0 && GEOMODEL_TYPMOD_GET_Z(typmod) )
     //	ptr += sprintf(ptr, "%s", "Z");
 
-    //if ( typmod >= 0 && TYPMOD_GET_M(typmod) )
+    //if ( typmod >= 0 && GEOMODEL_TYPMOD_GET_M(typmod) )
     //	ptr += sprintf(ptr, "%s", "M");
 
     stext = cstring2text(s);
@@ -390,11 +398,11 @@ Datum geomodel_geomodeltype(PG_FUNCTION_ARGS)
     YkModelElement *pElement = LoadElement(buf_data, len);
     if (pElement != NULL)
     {
-        if (pElement->GetType() == etSkeleton)
+        if (pElement->GetType() == YkModelElement::METype::etSkeleton)
         {
             YkModelSkeleton *pSkeleton = (YkModelSkeleton *)pElement;
             bool bExact = pSkeleton->GetExactDataTag(); //mesh(bExact=false)  surface(bExact=true)
-            switch (bExact)
+            switch ((uint8_t)bExact)
             {
             case 0: sprintf(ptr, "MESH");
             break;
@@ -431,14 +439,14 @@ Datum model_elem_enforce_typmod(PG_FUNCTION_ARGS)
         PG_RETURN_NULL();
     }
 
-    if (pElement->GetType() == etSkeleton)
+    if (pElement->GetType() == YkModelElement::METype::etSkeleton)
     {
         YkModelSkeleton *pSkeleton = (YkModelSkeleton *)pElement;
         bool bExact = pSkeleton->GetExactDataTag(); //mesh(1,bExact=false) or surface(2,bExact=true)
 
         int32 typmod = PG_GETARG_INT32(1);
-        int32 typmod_srid = TYPMOD_GET_SRID(typmod);
-        int32 typmod_type = TYPMOD_GET_TYPE(typmod);
+        int32 typmod_srid = GEOMODEL_TYPMOD_GET_SRID(typmod);
+        int32 typmod_type = GEOMODEL_TYPMOD_GET_TYPE(typmod);
 
         //如果 bExact 为真则为高精度数据，则不能存入 MESH 类型的数据库中
         //如果 bExact 为假，则为低精度数据，则不能存入 SURFACE 类型的数据库中
