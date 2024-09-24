@@ -99,7 +99,7 @@ using namespace Yk;
 #define ISPATHSEP(c) ((c)==_U('/'))
 #define EOLSTRING _U("\n")
 
-#define YKCALLBACK  
+
 #define YKSTDCALL
 
 /*设置函数在生成符号表时为不可见,防止因为linux同名符号只加载一次，函数重名导致加载符号表出错。

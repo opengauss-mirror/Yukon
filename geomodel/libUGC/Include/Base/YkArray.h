@@ -27,9 +27,6 @@
 #include <vector>
 #include <algorithm>
 
-// 忽略警告 "warning C4018: '<' : signed/unsigned mismatch"
-#pragma warning (disable: 4018) 
-
 namespace Yk {
 
 //! \brief 数组类

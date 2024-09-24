@@ -11,7 +11,7 @@ CFLAGS.x86_64 = -m64
 CFLAGS.aarch64 = 
 
 CFLAGS = -I../../Include -Wall -DSYSTEM_WCHAR_SIZE=4 -D_UGUNICODE -D_UGQSTRING -D_UGLICENSE -fshort-wchar \
-		 -DSTATIC_LIBMONGOCLIENT -fstack-protector-all -fPIE -pie -fPIC -c  -fopenmp -std=c++11  \
+		 -DSTATIC_LIBMONGOCLIENT -fstack-protector-all -fPIE -pie -fPIC -c  -fopenmp -std=c++11  -fpermissive \
 		 -I../../LibShared/Spatialite/Include -D_FORTIFY_SOURCE=2 $(CFLAGS.$(uname_m))
 
 LD_FLAGS += $(LD_FLAGS.$(uname_m)) 
