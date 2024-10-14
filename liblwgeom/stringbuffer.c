@@ -38,7 +38,7 @@ stringbuffer_create(void)
 static void
 stringbuffer_init_with_size(stringbuffer_t *s, size_t size)
 {
-	s->str_start = lwalloc(size);
+	s->str_start = (char*)lwalloc(size);
 	s->str_end = s->str_start;
 	s->capacity = size;
 	memset(s->str_start, 0, size);
@@ -64,7 +64,7 @@ stringbuffer_create_with_size(size_t size)
 {
 	stringbuffer_t *s;
 
-	s = lwalloc(sizeof(stringbuffer_t));
+	s = (stringbuffer_t*)lwalloc(sizeof(stringbuffer_t));
 	stringbuffer_init_with_size(s, size);
 	return s;
 }
@@ -124,7 +124,7 @@ char*
 stringbuffer_getstringcopy(stringbuffer_t *s)
 {
 	size_t size = (s->str_end - s->str_start) + 1;
-	char *str = lwalloc(size);
+	char *str = (char*)lwalloc(size);
 	memcpy(str, s->str_start, size);
 	str[size - 1] = '\0';
 	return str;

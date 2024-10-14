@@ -450,7 +450,7 @@ void printPA(POINTARRAY *pa)
 {
 	uint32_t t;
 	POINT4D pt;
-	char *mflag;
+	const char *mflag;
 
 
 	if ( FLAGS_GET_M(pa->flags) ) mflag = "M";

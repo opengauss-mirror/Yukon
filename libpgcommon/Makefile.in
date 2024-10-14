@@ -10,7 +10,7 @@
 # **********************************************************************
 
 CC=@CXX@
-CFLAGS= -I../liblwgeom @CPPFLAGS@ @PGSQL_BE_CPPFLAGS@ @PROJ_CPPFLAGS@ @PICFLAGS@ @GETTEXT_CFLAGS@
+CFLAGS=-fno-strict-aliasing -Wno-write-strings -Wno-unused-function -I../liblwgeom @CPPFLAGS@ @PGSQL_BE_CPPFLAGS@ @PROJ_CPPFLAGS@ @PICFLAGS@ @GETTEXT_CFLAGS@
 LDFLAGS=@GETTEXT_LDFLAGS@ @LIBINTL@
 
 YACC=@YACC@

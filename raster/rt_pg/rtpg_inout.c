@@ -170,7 +170,7 @@ Datum RASTER_noop(PG_FUNCTION_ARGS)
 		elog(ERROR, "RASTER_noop: Cannot deserialize raster");
 		PG_RETURN_NULL();
 	}
-	result = rt_raster_serialize(raster);
+	result = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	if (result == NULL)
 		PG_RETURN_NULL();

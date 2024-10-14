@@ -718,7 +718,7 @@ LWGEOM* wkt_parser_collection_new(LWGEOM *geom)
 	}
 
 	/* Create our geometry array */
-	geoms = lwalloc(sizeof(LWGEOM*) * ngeoms);
+	geoms = (LWGEOM**)lwalloc(sizeof(LWGEOM*) * ngeoms);
 	geoms[0] = geom;
 
 	/* Make a new collection */
@@ -753,7 +753,7 @@ LWGEOM* wkt_parser_compound_new(LWGEOM *geom)
 	}
 
 	/* Create our geometry array */
-	geoms = lwalloc(sizeof(LWGEOM*) * ngeoms);
+	geoms = (LWGEOM**)lwalloc(sizeof(LWGEOM*) * ngeoms);
 	geoms[0] = geom;
 
 	/* Make a new collection */
@@ -864,10 +864,10 @@ wkt_parser_ellipse(POINT start,
 	lwflags_t dim = wkt_dimensionality(dimensionality);
 	lwflags_t flags = 0;
 	POINT4D pt;
-	LWELLIPSE *ellipse = lwalloc(sizeof(LWELLIPSE));
+	LWELLIPSE *ellipse = (LWELLIPSE*)lwalloc(sizeof(LWELLIPSE));
 	//POINT3DZ p;
 	ellipse->bbox = NULL;
-	ellipse->data = lwalloc(sizeof(ELLIPSE));
+	ellipse->data = (ELLIPSE*)lwalloc(sizeof(ELLIPSE));
 	/* 这里我们新建一个空的 pointarray */
 	ellipse->data->points = ptarray_construct_empty(FLAGS_GET_Z(dim), FLAGS_GET_M(dim), 3);
 
@@ -928,10 +928,10 @@ wkt_parse_bezier3(POINT _1th, POINT _2th, POINT _3th, POINT _4th, char *dimensio
 {
 	lwflags_t flags = 0;
 	lwflags_t dim = wkt_dimensionality(dimensionality);
-	LWBEZIER *bezier = lwalloc(sizeof(LWBEZIER));
+	LWBEZIER *bezier = (LWBEZIER*)lwalloc(sizeof(LWBEZIER));
 	// POINT3DZ p;
 	bezier->bbox = NULL;
-	bezier->data = lwalloc(sizeof(BEZIER));
+	bezier->data = (BEZIER*)lwalloc(sizeof(BEZIER));
 	/* 这里我们新建一个空的 pointarray */
 	bezier->data->points = ptarray_construct_empty(FLAGS_GET_Z(dim), FLAGS_GET_M(dim), 3);
 

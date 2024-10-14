@@ -51,7 +51,7 @@ public:
 
 public:
 	YkModelElement(){};
-	~YkModelElement(){};
+	virtual ~YkModelElement(){};
 
 public:
 	virtual YkModelElement::METype GetType() = 0;

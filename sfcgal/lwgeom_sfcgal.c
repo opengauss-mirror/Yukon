@@ -21,13 +21,13 @@
  * Copyright 2012-2020 Oslandia <infos@oslandia.com>
  *
  **********************************************************************/
-// #include "postgres.h"
-// #include "fmgr.h"
-// #include "utils/builtins.h"
+#include "postgres.h"
+#include "fmgr.h"
+#include "utils/builtins.h"
 #include "lwgeom_pg.h"
 #include "lwgeom_sfcgal.h"
 #include "../postgis_config.h"
-#include "../include/extension_dependency.h"
+//#include "../include/extension_dependency.h"
 
 #include "utils/elog.h"
 #include "utils/guc.h"
@@ -51,7 +51,7 @@ static void handleInterrupt(int sig);
 /*
  * Module load callback
  */
-void _PG_init(void);
+extern "C" void _PG_init(void);
 void
 _PG_init(void)
 {

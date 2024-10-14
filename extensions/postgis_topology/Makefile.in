@@ -69,7 +69,7 @@ sql/$(EXTENSION)--$(EXTVERSION).sql: $(EXTENSION_SCRIPTS) | sql
 #strip CREATE SCHEMA since we force extension
 # to create schema by setting schema to topology in control
 sql_bits/topology.sql: ../../topology/topology.sql
-	sed -e 's/BEGIN;//g' -e 's/COMMIT;//g' -e '/^CREATE SCHEMA/d;'  $< > $@
+	sed -e 's/BEGIN;//g' -e 's/COMMIT;//g'  $< > $@
 
 ../../doc/topology_comments.sql:
 	$(MAKE) -C ../../doc comments
@@ -94,7 +94,7 @@ sql/$(EXTENSION)--unpackaged--$(EXTVERSION).sql: ../../topology/topology.sql ../
 #they can be dropped but we need to remove
 #them from the extension first
 sql/topology_upgrade.sql:  ../../topology/topology_upgrade.sql | sql
-	sed -e 's/BEGIN;//g' -e 's/COMMIT;//g' -e '/^CREATE SCHEMA/d;'  $< > $@
+	sed -e 's/BEGIN;//g' -e 's/COMMIT;//g'  $< > $@
 
 sql/$(EXTENSION)--ANY--$(EXTVERSION).sql: $(EXTENSION_UPGRADE_SCRIPTS)
 	cat $(EXTENSION_UPGRADE_SCRIPTS) > $@

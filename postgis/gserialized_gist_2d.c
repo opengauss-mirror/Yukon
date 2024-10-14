@@ -38,11 +38,12 @@
 **     http://syrcose.ispras.ru/2011/files/SYRCoSE2011_Proceedings.pdf#page=36
 */
 
-// #include "postgres.h"
-// #include "access/gist.h"    /* For GiST */
+#include "postgres.h"
+#include "access/gist.h"    /* For GiST */
 // #include "access/itup.h"
 // #include "access/skey.h"
-// #include "utils/sortsupport.h"    /* For index building sort support */
+#include "utils/sortsupport.h"    /* For index building sort support */
+#include "utils/geo_decls.h"
 
 #include "../postgis_config.h"
 
@@ -850,7 +851,7 @@ Datum gserialized_gist_compress_2d(PG_FUNCTION_ARGS)
 	}
 
 	POSTGIS_DEBUG(4, "[GIST] processing leafkey input");
-	entry_out = palloc(sizeof(GISTENTRY));
+	entry_out = (GISTENTRY*)palloc(sizeof(GISTENTRY));
 
 	/*
 	** Null key? Make a copy of the input entry and
@@ -1956,8 +1957,8 @@ Datum gserialized_gist_picksplit_2d(PG_FUNCTION_ARGS)
 	v->spl_nright = 0;
 
 	/* Allocate bounding boxes of left and right groups */
-	leftBox = palloc0(sizeof(BOX2DF));
-	rightBox = palloc0(sizeof(BOX2DF));
+	leftBox = (BOX2DF*)palloc0(sizeof(BOX2DF));
+	rightBox = (BOX2DF*)palloc0(sizeof(BOX2DF));
 
 	/*
 	 * Allocate an array for "common entries" - entries which can be placed to

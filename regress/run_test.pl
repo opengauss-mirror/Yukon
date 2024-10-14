@@ -144,7 +144,7 @@ my $ORIG_LANG = $ENV{"LANG"};
 $ENV{"LC_ALL"} = "C";
 $ENV{"LANG"} = "C";
 
-# Add locale info to the psql options
+# Add locale info to the gsql options
 # Add pg12 precision suppression
 my $PGOPTIONS = $ENV{"PGOPTIONS"};
 $PGOPTIONS .= " -c lc_messages=C";
@@ -227,7 +227,7 @@ print "TMPDIR is $TMPDIR\n";
 # Prepare the database
 ##################################################################
 
-my @dblist = grep(/\b$DB\b/, split(/\n/, `psql -Xl`));
+my @dblist = grep(/\b$DB\b/, split(/\n/, `gsql -Xl`));
 my $dbcount = @dblist;
 
 if ( $dbcount == 0 )
@@ -397,7 +397,7 @@ foreach $TEST (@ARGV)
 		my $scriptdir = scriptdir($libver, $OPT_EXTENSIONS);
 		print "-- Entering interactive shell --\n";
 		# TODO: add more variables?
-		my $cmd = "psql -Xq"
+		my $cmd = "gsql -Xq"
 		  . " -v \"regdir=$REGDIR\""
 		  . " -v \"scriptdir=$scriptdir\""
 		  . " -v \"schema=$OPT_SCHEMA.\""
@@ -657,12 +657,12 @@ sub run_simple_sql
 
 	# Dump output to a temp file.
 	my $tmpfile = sprintf("%s/test_%s_tmp", $TMPDIR, $RUN);
-	my $cmd = "psql -v \"VERBOSITY=terse\" "
+	my $cmd = "gsql -v \"VERBOSITY=terse\" "
 		. " -v \"regdir=$REGDIR\""
 		. " -tXAq $DB < $sql > $tmpfile 2>&1";
 	#print($cmd);
 	my $rv = system($cmd);
-	# Check if psql errored out.
+	# Check if gsql errored out.
 	if ( $rv != 0 )
 	{
 		fail("Unable to run sql script $sql", $tmpfile);
@@ -688,7 +688,7 @@ sub run_simple_sql
 sub drop_table
 {
 	my $tblname = shift;
-	my $cmd = "psql -tXAq -d $DB -c \"DROP TABLE IF EXISTS $tblname\" >> $REGRESS_LOG 2>&1";
+	my $cmd = "gsql -tXAq -d $DB -c \"DROP TABLE IF EXISTS $tblname\" >> $REGRESS_LOG 2>&1";
 	my $rv = system($cmd);
 	die "Could not run: $cmd\n" if $rv;
 }
@@ -696,7 +696,7 @@ sub drop_table
 sub sql
 {
 	my $sql = shift;
-	my $result = `psql -tXA -d $DB -c 'SET search_path TO public,$OPT_SCHEMA' -c "$sql" | sed '/^SET\$/d'`;
+	my $result = `gsql -tXA -d $DB -c 'SET search_path TO public,$OPT_SCHEMA' -c "$sql" | sed '/^SET\$/d'`;
 	$result =~ s/[\n\r]*$//;
 	$result;
 }
@@ -752,7 +752,7 @@ sub run_simple_test
 	my $scriptdir = scriptdir($libver, $OPT_EXTENSIONS);
 
 	my ($sqlfile,$sqldir) = fileparse($sql);
-	my $cmd = "cd $sqldir; psql -v \"VERBOSITY=terse\""
+	my $cmd = "cd $sqldir; gsql -v \"VERBOSITY=terse\""
           . " -v \"tmpfile='$tmpfile'\""
           . " -v \"scriptdir=$scriptdir\""
           . " -v \"regdir=$REGDIR\""
@@ -761,7 +761,7 @@ sub run_simple_test
           . " -tXAq -f $sqlfile $DB > $outfile 2>&1";
 	my $rv = system($cmd);
     if ( $rv ) {
-        fail "psql exited with an error", $outfile;
+        fail "gsql exited with an error", $outfile;
         die;
     }
 
@@ -860,8 +860,8 @@ sub run_loader_and_check_output
 	my $outfile = "${TMPDIR}/loader.out";
 	my $errfile = "${TMPDIR}/loader.err";
 
-	# ON_ERROR_STOP is used by psql to return non-0 on an error
-	my $psql_opts = " --no-gsqlrc --variable ON_ERROR_STOP=true";
+	# ON_ERROR_STOP is used by gsql to return non-0 on an error
+	my $gsql_opts = "  --variable ON_ERROR_STOP=true";
 
 	if ( $run_always || -r $expected_sql_file || -r $expected_select_results_file )
 	{
@@ -890,7 +890,7 @@ sub run_loader_and_check_output
 
 		# Run the loader SQL script.
 		show_progress();
-		$cmd = "psql $psql_opts -f $outfile $DB > $errfile 2>&1";
+		$cmd = "gsql $gsql_opts -f $outfile $DB > $errfile 2>&1";
 		$rv = system($cmd);
 		if ( $rv )
 		{
@@ -987,8 +987,8 @@ sub run_raster_loader_and_check_output
 	my $loader_options = shift;
 	my $run_always = shift;
 
-	# ON_ERROR_STOP is used by psql to return non-0 on an error
-	my $psql_opts="--no-gsqlrc --variable ON_ERROR_STOP=true";
+	# ON_ERROR_STOP is used by gsql to return non-0 on an error
+	my $gsql_opts=" --variable ON_ERROR_STOP=true";
 
 	my ($cmd, $rv);
 	my $outfile = "${TMPDIR}/loader.out";
@@ -1022,7 +1022,7 @@ sub run_raster_loader_and_check_output
 
 		# Run the loader SQL script.
 		show_progress();
-		$cmd = "psql $psql_opts -f $outfile $DB > $errfile 2>&1";
+		$cmd = "gsql $gsql_opts -f $outfile $DB > $errfile 2>&1";
     	$rv = system($cmd);
     	if ( $rv )
     	{
@@ -1155,8 +1155,8 @@ sub run_dumper_test
 {
   my $dump_file  = "${TEST}.dmp";
 
-  # ON_ERROR_STOP is used by psql to return non-0 on an error
-  my $psql_opts="--no-gsqlrc --variable ON_ERROR_STOP=true";
+  # ON_ERROR_STOP is used by gsql to return non-0 on an error
+  my $gsql_opts=" --variable ON_ERROR_STOP=true";
 
   my $shpfile = "${TMPDIR}/dumper-" . basename(${TEST}) . "-shp";
   my $outfile = "${TMPDIR}/dumper-" . basename(${TEST}) . ".out";
@@ -1342,9 +1342,9 @@ sub load_sql_file
 
 	if ( -e $file )
 	{
-		# ON_ERROR_STOP is used by psql to return non-0 on an error
-		my $psql_opts = "--no-gsqlrc --variable ON_ERROR_STOP=true";
-		my $cmd = "psql $psql_opts -c 'CREATE SCHEMA IF NOT EXISTS $OPT_SCHEMA' ";
+		# ON_ERROR_STOP is used by gsql to return non-0 on an error
+		my $gsql_opts = " --variable ON_ERROR_STOP=true";
+		my $cmd = "gsql $gsql_opts -c 'CREATE SCHEMA IF NOT EXISTS $OPT_SCHEMA' ";
 		$cmd .= "-c 'SET search_path TO $OPT_SCHEMA,topology'";
 		$cmd .= " -Xf $file $DB >> $REGRESS_LOG 2>&1";
 		#print "  $file\n" if $VERBOSE;
@@ -1362,11 +1362,11 @@ sub load_sql_file
 # Prepare the database for spatial operations (extension method)
 sub prepare_spatial_extensions
 {
-	# ON_ERROR_STOP is used by psql to return non-0 on an error
-	my $psql_opts = "--no-gsqlrc --variable ON_ERROR_STOP=true";
+	# ON_ERROR_STOP is used by gsql to return non-0 on an error
+	my $gsql_opts = " --variable ON_ERROR_STOP=true";
 
 	my $sql = "CREATE SCHEMA IF NOT EXISTS ${OPT_SCHEMA}";
-	my $cmd = "psql $psql_opts -c \"". $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+	my $cmd = "gsql $gsql_opts -c \"". $sql . "\" $DB >> $REGRESS_LOG 2>&1";
 	# my $rv = system($cmd);
 	# if ( $rv ) {
 	#   fail "Error encountered creating target schema ${OPT_SCHEMA}", $REGRESS_LOG;
@@ -1387,7 +1387,7 @@ sub prepare_spatial_extensions
 
 	print "Preparing db '${DB}' using: ${sql}\n";
 
-	my $cmd = "psql $psql_opts -c \"". $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+	my $cmd = "gsql $gsql_opts -c \"". $sql . "\" $DB >> $REGRESS_LOG 2>&1";
 	my $rv = system($cmd);
 
   if ( $rv ) {
@@ -1404,7 +1404,7 @@ sub prepare_spatial_extensions
 
 		print "Preparing db '${DB}' using: ${sql}\n";
 
- 		$cmd = "psql $psql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+ 		$cmd = "gsql $gsql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
 		$rv = system($cmd);
   	if ( $rv ) {
   		fail "Error encountered creating EXTENSION POSTGIS_TOPOLOGY", $REGRESS_LOG;
@@ -1421,7 +1421,7 @@ sub prepare_spatial_extensions
 
 		print "Preparing db '${DB}' using: ${sql}\n";
 
- 		$cmd = "psql $psql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+ 		$cmd = "gsql $gsql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
 		$rv = system($cmd);
   	if ( $rv ) {
   		fail "Error encountered creating EXTENSION POSTGIS_TIGER_GEOCODER", $REGRESS_LOG;
@@ -1445,7 +1445,7 @@ sub prepare_spatial_extensions
 
 		print "Preparing db '${DB}' using: ${sql}\n";
 
- 		$cmd = "psql $psql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+ 		$cmd = "gsql $gsql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
 		$rv = system($cmd);
 		if ( $rv ) {
 			fail "Error encountered creating EXTENSION POSTGIS_RASTER", $REGRESS_LOG;
@@ -1471,7 +1471,7 @@ sub prepare_spatial_extensions
 
 			print "Preparing db '${DB}' using: ${sql}\n";
 
-			$cmd = "psql $psql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+			$cmd = "gsql $gsql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
 			$rv = system($cmd);
 			if ( $rv ) {
 				fail "Error encountered creating EXTENSION POSTGIS_SFCGAL", $REGRESS_LOG;
@@ -1482,7 +1482,7 @@ sub prepare_spatial_extensions
 
 	my $sql = "CREATE EXTENSION yukon_geomodel";
 	print "Preparing db '${DB}' using: ${sql}\n";
-	my $cmd = "psql $psql_opts -c \"". $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+	my $cmd = "gsql $gsql_opts -c \"". $sql . "\" $DB >> $REGRESS_LOG 2>&1";
 	my $rv = system($cmd);
 
   	if ( $rv ) {
@@ -1492,7 +1492,7 @@ sub prepare_spatial_extensions
 
 	my $sql = "CREATE EXTENSION yukon_geogridcoder";
 	print "Preparing db '${DB}' using: ${sql}\n";
-	my $cmd = "psql $psql_opts -c \"". $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+	my $cmd = "gsql $gsql_opts -c \"". $sql . "\" $DB >> $REGRESS_LOG 2>&1";
 	my $rv = system($cmd);
 
   	if ( $rv ) {
@@ -1501,7 +1501,7 @@ sub prepare_spatial_extensions
 	}
 
 	$sql = "create extension yukon_vector_pyramid";
-    $cmd = "psql $psql_opts -c \"". $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+    $cmd = "gsql $gsql_opts -c \"". $sql . "\" $DB >> $REGRESS_LOG 2>&1";
     my $rv = system($cmd);
     if ( $rv ) {
         fail "Error encountered creating extension yukon_vector_pyramid", $REGRESS_LOG;
@@ -1632,8 +1632,8 @@ sub upgrade_spatial
 # Upgrade an existing database (soft upgrade, extension method)
 sub upgrade_spatial_extensions
 {
-    # ON_ERROR_STOP is used by psql to return non-0 on an error
-    my $psql_opts = "--no-gsqlrc --variable ON_ERROR_STOP=true";
+    # ON_ERROR_STOP is used by gsql to return non-0 on an error
+    my $gsql_opts = " --variable ON_ERROR_STOP=true";
     my $sql;
     my $upgrade_via_function = 0;
 
@@ -1676,7 +1676,7 @@ sub upgrade_spatial_extensions
 
     print "Upgrading PostGIS in '${DB}' using: ${sql}\n" ;
 
-    my $cmd = "psql $psql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+    my $cmd = "gsql $gsql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
     #print "CMD: " . $cmd . "\n";
     my $rv = system($cmd);
     if ( $rv ) {
@@ -1697,7 +1697,7 @@ sub upgrade_spatial_extensions
 
         print "Upgrading PostGIS Raster in '${DB}' using: ${sql}\n" ;
 
-        my $cmd = "psql $psql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+        my $cmd = "gsql $gsql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
         my $rv = system($cmd);
         if ( $rv ) {
           fail "Error encountered creating EXTENSION POSTGIS_RASTER from unpackaged on upgrade", $REGRESS_LOG;
@@ -1712,7 +1712,7 @@ sub upgrade_spatial_extensions
 
 				$sql = package_extension_sql('postgis_raster', ${nextver});
 
-        $cmd = "psql $psql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+        $cmd = "gsql $gsql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
         $rv = system($cmd);
         if ( $rv ) {
           fail "Error encountered creating EXTENSION POSTGIS_RASTER from unpackaged on upgrade", $REGRESS_LOG;
@@ -1722,7 +1722,7 @@ sub upgrade_spatial_extensions
         print "Dropping PostGIS Raster in '${DB}' using: ${sql}\n" ;
 
         $sql = "DROP EXTENSION postgis_raster";
-        $cmd = "psql $psql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+        $cmd = "gsql $gsql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
         $rv = system($cmd);
         if ( $rv ) {
           fail "Error encountered dropping EXTENSION POSTGIS_RASTER on upgrade", $REGRESS_LOG;
@@ -1747,7 +1747,7 @@ sub upgrade_spatial_extensions
 
         print "Upgrading PostGIS Raster in '${DB}' using: ${sql}\n" ;
 
-        my $cmd = "psql $psql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+        my $cmd = "gsql $gsql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
         my $rv = system($cmd);
         if ( $rv ) {
           fail "Error encountered updating EXTENSION POSTGIS_RASTER", $REGRESS_LOG;
@@ -1765,7 +1765,7 @@ sub upgrade_spatial_extensions
 
       print "Upgrading PostGIS Topology in '${DB}' using: ${sql}\n";
 
-      my $cmd = "psql $psql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+      my $cmd = "gsql $gsql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
       my $rv = system($cmd);
       if ( $rv ) {
         fail "Error encountered updating EXTENSION POSTGIS_TOPOLOGY", $REGRESS_LOG;
@@ -1790,7 +1790,7 @@ sub upgrade_spatial_extensions
 			{
 				$sql = "ALTER EXTENSION postgis_sfcgal UPDATE TO '${nextver}'";
 			}
-      $cmd = "psql $psql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
+      $cmd = "gsql $gsql_opts -c \"" . $sql . "\" $DB >> $REGRESS_LOG 2>&1";
 
 			print "Upgrading PostGIS SFCGAL in '${DB}' using: ${sql}\n" ;
 
@@ -1827,8 +1827,8 @@ sub drop_spatial
 
 sub drop_spatial_extensions
 {
-    # ON_ERROR_STOP is used by psql to return non-0 on an error
-    my $psql_opts="--no-gsqlrc --variable ON_ERROR_STOP=true";
+    # ON_ERROR_STOP is used by gsql to return non-0 on an error
+    my $gsql_opts=" --variable ON_ERROR_STOP=true";
     my $ok = 1;
     my ($cmd, $rv);
 
@@ -1837,27 +1837,27 @@ sub drop_spatial_extensions
         # NOTE: "manually" dropping topology schema as EXTENSION does not
         #       take care of that itself, see
         #       http://trac.osgeo.org/postgis/ticket/2138
-        $cmd = "psql $psql_opts -c \"DROP EXTENSION postgis_topology; DROP SCHEMA topology;\" $DB >> $REGRESS_LOG 2>&1";
+        $cmd = "gsql $gsql_opts -c \"DROP EXTENSION postgis_topology; DROP SCHEMA topology;\" $DB >> $REGRESS_LOG 2>&1";
         $rv = system($cmd);
       	$ok = 0 if $rv;
     }
 
     if ( $OPT_WITH_SFCGAL )
     {
-        $cmd = "psql $psql_opts -c \"DROP EXTENSION postgis_sfcgal;\" $DB >> $REGRESS_LOG 2>&1";
+        $cmd = "gsql $gsql_opts -c \"DROP EXTENSION postgis_sfcgal;\" $DB >> $REGRESS_LOG 2>&1";
         $rv = system($cmd);
         $ok = 0 if $rv;
     }
 
     if ( $OPT_WITH_RASTER )
     {
-        $cmd = "psql $psql_opts -c \"DROP EXTENSION IF EXISTS postgis_raster;\" $DB >> $REGRESS_LOG 2>&1";
+        $cmd = "gsql $gsql_opts -c \"DROP EXTENSION IF EXISTS postgis_raster;\" $DB >> $REGRESS_LOG 2>&1";
         $rv = system($cmd);
       	$ok = 0 if $rv;
     }
     if ( $OPT_WITH_TIGER )
     {
-        $cmd = "psql $psql_opts -c \"DROP EXTENSION IF EXISTS postgis_tiger_geocoder;
+        $cmd = "gsql $gsql_opts -c \"DROP EXTENSION IF EXISTS postgis_tiger_geocoder;
                 DROP EXTENSION IF EXISTS fuzzystrmatch;
                 DROP SCHEMA IF EXISTS tiger;
                 DROP SCHEMA IF EXISTS tiger_data;
@@ -1866,7 +1866,7 @@ sub drop_spatial_extensions
       	$ok = 0 if $rv;
     }
 
-    $cmd = "psql $psql_opts -c \"DROP EXTENSION postgis CASCADE\" $DB >> $REGRESS_LOG 2>&1";
+    $cmd = "gsql $gsql_opts -c \"DROP EXTENSION postgis CASCADE\" $DB >> $REGRESS_LOG 2>&1";
     $rv = system($cmd);
     if ( $rv ) {
         fail "Error encountered dropping EXTENSION POSTGIS", $REGRESS_LOG;
@@ -1943,8 +1943,8 @@ sub dump_restore
   {
     # We need to re-add "topology" to the search_path as it is lost
     # on dump/reload, see https://trac.osgeo.org/postgis/ticket/3454
-    my $psql_opts = "--no-gsqlrc --variable ON_ERROR_STOP=true";
-    my $cmd = "psql $psql_opts -c \"SELECT topology.AddToSearchPath('topology')\" $DB >> $REGRESS_LOG 2>&1";
+    my $gsql_opts = " --variable ON_ERROR_STOP=true";
+    my $cmd = "gsql $gsql_opts -c \"SELECT topology.AddToSearchPath('topology')\" $DB >> $REGRESS_LOG 2>&1";
     $rv = system($cmd);
     if ( $rv ) {
       fail("Error encountered adding topology to search path after restore", $REGRESS_LOG);

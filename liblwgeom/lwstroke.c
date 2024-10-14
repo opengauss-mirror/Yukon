@@ -669,7 +669,7 @@ lwcurvepoly_linearize(const LWCURVEPOLY *curvepoly, double tol,
 
 	LWDEBUG(2, "lwcurvepoly_linearize called.");
 
-	ptarray = lwalloc(sizeof(POINTARRAY *)*curvepoly->nrings);
+	ptarray = (POINTARRAY**)lwalloc(sizeof(POINTARRAY *)*curvepoly->nrings);
 
 	for (i = 0; i < curvepoly->nrings; i++)
 	{
@@ -741,7 +741,7 @@ lwmcurve_linearize(const LWMCURVE *mcurve, double tol,
 
 	LWDEBUGF(2, "lwmcurve_linearize called, geoms=%d, dim=%d.", mcurve->ngeoms, FLAGS_NDIMS(mcurve->flags));
 
-	lines = lwalloc(sizeof(LWGEOM *)*mcurve->ngeoms);
+	lines = (LWGEOM**)lwalloc(sizeof(LWGEOM *)*mcurve->ngeoms);
 
 	for (i = 0; i < mcurve->ngeoms; i++)
 	{
@@ -799,7 +799,7 @@ lwmsurface_linearize(const LWMSURFACE *msurface, double tol,
 
 	LWDEBUG(2, "lwmsurface_linearize called.");
 
-	polys = lwalloc(sizeof(LWGEOM *)*msurface->ngeoms);
+	polys = (LWGEOM**)lwalloc(sizeof(LWGEOM *)*msurface->ngeoms);
 
 	for (i = 0; i < msurface->ngeoms; i++)
 	{
@@ -811,7 +811,7 @@ lwmsurface_linearize(const LWMSURFACE *msurface, double tol,
 		else if (tmp->type == POLYGONTYPE)
 		{
 			poly = (LWPOLY *)tmp;
-			ptarray = lwalloc(sizeof(POINTARRAY *)*poly->nrings);
+			ptarray = (POINTARRAY**)lwalloc(sizeof(POINTARRAY *)*poly->nrings);
 			for (j = 0; j < poly->nrings; j++)
 			{
 				ptarray[j] = ptarray_clone_deep(poly->rings[j]);
@@ -843,7 +843,7 @@ lwcollection_linearize(const LWCOLLECTION *collection, double tol,
 
 	LWDEBUG(2, "lwcollection_linearize called.");
 
-	geoms = lwalloc(sizeof(LWGEOM *)*collection->ngeoms);
+	geoms = (LWGEOM**)lwalloc(sizeof(LWGEOM *)*collection->ngeoms);
 
 	for (i=0; i<collection->ngeoms; i++)
 	{
@@ -901,6 +901,7 @@ lwcurve_linearize(const LWGEOM *geom, double tol,
 		break;
 	case ELLIPSETYPE:
 		ogeom = (LWGEOM *)lwellipse_get_spatialdata((LWELLIPSE *)geom, 72);
+		break;
 	case BEZIERTYPE:
 		ogeom = (LWGEOM *)lwbezier_linearize((LWBEZIER *)geom, 72);
 		break;
@@ -1060,7 +1061,7 @@ pta_unstroke(const POINTARRAY *points, int32_t srid)
 
 	/* Allocate our result array of vertices that are part of arcs */
 	num_edges = points->npoints - 1;
-	edges_in_arcs = lwalloc(num_edges + 1);
+	edges_in_arcs = (char*)lwalloc(num_edges + 1);
 	memset(edges_in_arcs, 0, num_edges + 1);
 
 	/* We make a candidate arc of the first two edges, */
@@ -1206,7 +1207,7 @@ lwpolygon_unstroke(const LWPOLY *poly)
 
 	LWDEBUG(2, "lwpolygon_unstroke called.");
 
-	geoms = lwalloc(sizeof(LWGEOM *)*poly->nrings);
+	geoms = (LWGEOM**)lwalloc(sizeof(LWGEOM *)*poly->nrings);
 	for (i=0; i<poly->nrings; i++)
 	{
 		geoms[i] = pta_unstroke(poly->rings[i], poly->srid);
@@ -1235,7 +1236,7 @@ lwmline_unstroke(const LWMLINE *mline)
 
 	LWDEBUG(2, "lwmline_unstroke called.");
 
-	geoms = lwalloc(sizeof(LWGEOM *)*mline->ngeoms);
+	geoms = (LWGEOM**)lwalloc(sizeof(LWGEOM *)*mline->ngeoms);
 	for (i=0; i<mline->ngeoms; i++)
 	{
 		geoms[i] = lwline_unstroke((LWLINE *)mline->geoms[i]);
@@ -1263,7 +1264,7 @@ lwmpolygon_unstroke(const LWMPOLY *mpoly)
 
 	LWDEBUG(2, "lwmpoly_unstroke called.");
 
-	geoms = lwalloc(sizeof(LWGEOM *)*mpoly->ngeoms);
+	geoms = (LWGEOM**)lwalloc(sizeof(LWGEOM *)*mpoly->ngeoms);
 	for (i=0; i<mpoly->ngeoms; i++)
 	{
 		geoms[i] = lwpolygon_unstroke((LWPOLY *)mpoly->geoms[i]);
@@ -1286,13 +1287,13 @@ lwmpolygon_unstroke(const LWMPOLY *mpoly)
 LWGEOM *
 lwcollection_unstroke(const LWCOLLECTION *c)
 {
-	LWCOLLECTION *ret = lwalloc(sizeof(LWCOLLECTION));
+	LWCOLLECTION *ret = (LWCOLLECTION*)lwalloc(sizeof(LWCOLLECTION));
 	memcpy(ret, c, sizeof(LWCOLLECTION));
 
 	if (c->ngeoms > 0)
 	{
 		uint32_t i;
-		ret->geoms = lwalloc(sizeof(LWGEOM *)*c->ngeoms);
+		ret->geoms = (LWGEOM**)lwalloc(sizeof(LWGEOM *)*c->ngeoms);
 		for (i=0; i < c->ngeoms; i++)
 		{
 			ret->geoms[i] = lwgeom_unstroke(c->geoms[i]);

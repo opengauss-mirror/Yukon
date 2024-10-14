@@ -51,7 +51,7 @@ iterate_4d(POINT3D* curr, const POINT4D* points, const uint32_t npoints, const u
 	double delta;
 	double sum_curr = 0, sum_next = 0;
 	int hit = LW_FALSE;
-	double *distances = lwalloc(npoints * sizeof(double));
+	double *distances = (double*)lwalloc(npoints * sizeof(double));
 
 	sum_curr = calc_weighted_distances_3d(curr, points, npoints, distances);
 
@@ -173,7 +173,7 @@ lwmpoint_extract_points_4d(const LWMPOINT* g, uint32_t* npoints, int* input_empt
 {
 	uint32_t i;
 	uint32_t n = 0;
-	POINT4D* points = lwalloc(g->ngeoms * sizeof(POINT4D));
+	POINT4D* points = (POINT4D*)lwalloc(g->ngeoms * sizeof(POINT4D));
 	int has_m = lwgeom_has_m((LWGEOM*) g);
 
 	for (i = 0; i < g->ngeoms; i++)

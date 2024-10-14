@@ -96,7 +96,7 @@ Datum LWGEOM_dump(PG_FUNCTION_ARGS)
 		lwgeom = lwgeom_from_gserialized(pglwgeom);
 
 		/* Create function state */
-		state = lwalloc(sizeof(GEOMDUMPSTATE));
+		state = (GEOMDUMPSTATE*)lwalloc(sizeof(GEOMDUMPSTATE));
 		state->root = lwgeom;
 		state->stacklen=0;
 
@@ -105,7 +105,7 @@ Datum LWGEOM_dump(PG_FUNCTION_ARGS)
 			/*
 			 * Push a GEOMDUMPNODE on the state stack
 			 */
-			node = lwalloc(sizeof(GEOMDUMPNODE));
+			node = (GEOMDUMPNODE*)lwalloc(sizeof(GEOMDUMPNODE));
 			node->idx=0;
 			node->geom = lwgeom;
 			PUSH(state, node);
@@ -135,7 +135,7 @@ Datum LWGEOM_dump(PG_FUNCTION_ARGS)
 	newcontext = funcctx->multi_call_memory_ctx;
 
 	/* get state */
-	state = funcctx->user_fctx;
+	state = (GEOMDUMPSTATE*)(funcctx->user_fctx);
 
 	/* Handled simple geometries */
 	if ( ! state->root ) SRF_RETURN_DONE(funcctx);
@@ -184,7 +184,7 @@ Datum LWGEOM_dump(PG_FUNCTION_ARGS)
 
 			oldcontext = MemoryContextSwitchTo(newcontext);
 
-			node = lwalloc(sizeof(GEOMDUMPNODE));
+			node = (GEOMDUMPNODE*)lwalloc(sizeof(GEOMDUMPNODE));
 			node->idx=0;
 			node->geom = lwgeom;
 			PUSH(state, node);
@@ -245,7 +245,7 @@ Datum LWGEOM_dump_rings(PG_FUNCTION_ARGS)
 		lwgeom = lwgeom_from_gserialized(pglwgeom);
 
 		/* Create function state */
-		state = lwalloc(sizeof(struct POLYDUMPSTATE));
+		state = (POLYDUMPSTATE*)lwalloc(sizeof(struct POLYDUMPSTATE));
 		state->poly = lwgeom_as_lwpoly(lwgeom);
 		assert (state->poly);
 		state->ringnum=0;
@@ -274,7 +274,7 @@ Datum LWGEOM_dump_rings(PG_FUNCTION_ARGS)
 	newcontext = funcctx->multi_call_memory_ctx;
 
 	/* get state */
-	state = funcctx->user_fctx;
+	state = (POLYDUMPSTATE*)(funcctx->user_fctx);
 
 	/* Loop trough polygon rings */
 	while (state->ringnum < state->poly->nrings )
@@ -398,7 +398,7 @@ Datum ST_Subdivide(PG_FUNCTION_ARGS)
 
 	/* stuff done on every call of the function */
 	funcctx = SRF_PERCALL_SETUP();
-	fctx = funcctx->user_fctx;
+	fctx = (collection_fctx *)(funcctx->user_fctx);
 
 	if (fctx->nextgeom < fctx->numgeoms)
 	{

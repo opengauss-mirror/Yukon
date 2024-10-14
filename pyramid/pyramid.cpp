@@ -2,7 +2,7 @@
  *
  * pyramid.cpp
  *
- * Copyright (C) 2023 SuperMap Software Co., Ltd.
+ * Copyright (C) 2021-2024 SuperMap Software Co., Ltd.
  *
  * Yukon is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,6 +24,7 @@
 #include <vector>
 #include <chrono>
 #include <queue>
+#include <cstring>
 
 using namespace std::chrono;
 
@@ -81,11 +82,6 @@ static void
 getextent(const char *str, double extent[])
 {
 	Assert(str);
-	Assert(xmin);
-	Assert(ymin);
-	Assert(xmax);
-	Assert(ymax);
-
 	char *temp = static_cast<char *>(palloc0(strlen(str) - 1));
 	memcpy(temp, str + 4, strlen(str) - 5);
 	char *pos[4] = {0};
@@ -174,8 +170,32 @@ buildpyramid(PG_FUNCTION_ARGS)
 		PG_RETURN_BOOL(false);
 	}
 
-	// 检查图层是否存在
+	// 检查矢量金字塔是否已经存在
 	char query[QUERYSIZE] = {0};
+	snprintf(query,QUERYSIZE,"SELECT ST_HasPyramid(\'%s\',\'%s\',\'%s\');",schemaname,tablename,columname);
+    ret = SPI_execute(query, true, 1);
+
+    // 获取执行结果
+    if (ret > 0 && SPI_tuptable != NULL)
+    {
+        SPITupleTable *tuptable = SPI_tuptable;
+        TupleDesc tupdesc = tuptable->tupdesc;
+        HeapTuple tuple = tuptable->vals[0];
+        char *tupleval = SPI_getvalue(tuple, tupdesc, 1);
+        if (strcasecmp(tupleval,"t") == 0)
+        {
+            elog(ERROR, "%s:%s pyramid table already exists.", __FUNCTION__, tablename);
+        }
+    }
+    else
+    {
+        elog(ERROR, "%s: SPI_execute error!", __FUNCTION__);
+        SPI_finish();
+        PG_RETURN_BOOL(false);
+    }
+
+	// 检查图层是否为合法图层
+	bzero(query, QUERYSIZE);
 	snprintf(
 		query,
 		QUERYSIZE,
@@ -379,9 +399,14 @@ buildpyramid(PG_FUNCTION_ARGS)
 				e.resolution = e.tolerance = rateconfigs[e.level + 1].distance;
 			}
 			else if (e.resolution == 0.0)
+            {
+                elog(NOTICE, "%s:you may need to specify the resolution parameter for current layer.", __FUNCTION__);
+                e.resolution = e.tolerance = rateconfigs[e.level + 1].resolution;
+            }
+            else 
 			{
-				elog(ERROR, "%s:Only supports 4326 and 3857 coordinate systems.", __FUNCTION__);
-			}
+                e.tolerance = e.resolution;
+            }
 
 			// 如果 level 大于 10，则使用简化算法，否则使用 snaptogrid 算法
 			if (e.level > 10)
@@ -440,7 +465,7 @@ buildpyramid(PG_FUNCTION_ARGS)
 			// 存储元信息
 			sql_buffer.str("");
 			sql_buffer
-				<< "insert into pyramid_columns (f_schema_name,  f_table_name, f_geometry_column, f_pyramid_table_name, resolution, config) values(";
+				<< "insert into SmPyramidColumns (SmSchemaName,  SmTableName ,SmGeometryColumn, SmPyramidTableName, SmResolution, SmConfigs) values(";
 			sql_buffer << "\'" << schemaname << "\'"
 					   << ","
 					   << "\'" << tablename << "\'"
@@ -519,7 +544,9 @@ buildpyramid(PG_FUNCTION_ARGS)
 			}
 			else if (e.resolution == 0.0)
 			{
-				elog(ERROR, "%s:Only supports 4326 and 3857 coordinate systems.", __FUNCTION__);
+				elog(NOTICE, "%s:you may need to specify the resolution parameter for current layer.", __FUNCTION__);
+                e.resolution = e.tolerance = rateconfigs[e.level + 1].resolution;
+          
 			}
 			int xbuckets = (int(dbbox[2]) - int(dbbox[0])) / e.resolution;
 			int ybuckets = (int(dbbox[3]) - int(dbbox[1])) / e.resolution;
@@ -628,7 +655,7 @@ buildpyramid(PG_FUNCTION_ARGS)
 			// 存储元信息
 			sql_buffer.str("");
 			sql_buffer
-				<< "insert into pyramid_columns (f_schema_name, f_table_name, f_geometry_column, f_pyramid_table_name, resolution, config) values(";
+				<< "insert into SmPyramidColumns (SmSchemaName, SmTableName, SmGeometryColumn, SmPyramidTableName, SmResolution, SmConfigs) values(";
 			sql_buffer << "\'" << schemaname << "\'"
 					   << ","
 					   << "\'" << tablename << "\'"
@@ -665,7 +692,8 @@ buildpyramid(PG_FUNCTION_ARGS)
 Datum buildTile(PG_FUNCTION_ARGS)
 {
 	int ret = 0;
-	int srid = 0;
+	int source_srid = 0;
+	int target_srid = 0;
 	char query[QUERYSIZE] = {0};
 	if (PG_ARGISNULL(0) || PG_ARGISNULL(1) || PG_ARGISNULL(2))
 	{
@@ -676,6 +704,9 @@ Datum buildTile(PG_FUNCTION_ARGS)
 	const char *table = text_to_cstring(PG_GETARG_TEXT_P(1));
 	const char *column = text_to_cstring(PG_GETARG_TEXT_P(2));
 	unsigned int max_level = PG_GETARG_INT32(3);
+	target_srid = PG_GETARG_INT32(4);
+	// 我们需要保存原来的表明用于生成瓦片表名称
+	const char *origin_table = text_to_cstring(PG_GETARG_TEXT_P(1));
 
 	if (SPI_OK_CONNECT != SPI_connect())
 	{
@@ -734,7 +765,7 @@ Datum buildTile(PG_FUNCTION_ARGS)
 		TupleDesc tupdesc = tuptable->tupdesc;
 		HeapTuple tuple = tuptable->vals[0];
 		char *tupleval = SPI_getvalue(tuple, tupdesc, 1);
-		srid = atoi(tupleval);
+		source_srid = atoi(tupleval);
 		pfree(tupleval);
 	}
 	else
@@ -744,13 +775,26 @@ Datum buildTile(PG_FUNCTION_ARGS)
 		PG_RETURN_BOOL(false);
 	}
 
-	// 创建矢量瓦片表
-	snprintf(query,
-			 QUERYSIZE,
-			 "CREATE TABLE IF NOT EXISTS \"%s\".\"tile_%s_%s\" (id bigint,mvt bytea);",
-			 schema,
-			 table,
-			 column);
+	if (source_srid == 0)
+    {
+        elog(ERROR, "%s: the srid is 0,geometry can not be processed!", __FUNCTION__);
+        PG_RETURN_BOOL(false);
+    }
+
+    if (target_srid != 4326 && target_srid != 3857 && source_srid != 4326 && source_srid != 3857)
+    {
+        elog(ERROR, "%s: target srid only support 4326 or 3857!", __FUNCTION__);
+        PG_RETURN_BOOL(false);
+    }
+
+    if (target_srid ==0)
+    {
+        target_srid = source_srid;
+    }
+
+	// 删除原来的矢量瓦片表
+	snprintf(query, QUERYSIZE, "DROP TABLE IF EXISTS \"%s\".\"tile_%s_%s\"", schema, table, column);
+
 	ret = SPI_exec(query, 1);
 
 	if (ret != SPI_OK_UTILITY)
@@ -760,11 +804,22 @@ Datum buildTile(PG_FUNCTION_ARGS)
 		PG_RETURN_BOOL(false);
 	}
 
-	// 构建稀疏矩阵
+	// 生成新的矢量瓦片表
+	snprintf(query,
+			 QUERYSIZE,
+			 "CREATE TABLE IF NOT EXISTS \"%s\".\"tile_%s_%s\" (id bigint,mvt bytea);",
+			 schema,
+			 origin_table,
+			 column);
 
-	std::queue<Tile> qtiles;
-	std::vector<Tile> vtiles;
-	vtiles.reserve(20000);
+	ret = SPI_exec(query, 1);
+
+	if (ret != SPI_OK_UTILITY)
+	{
+		elog(ERROR, "%s: SPI_execute error!", __FUNCTION__);
+		SPI_finish();
+		PG_RETURN_BOOL(false);
+	}
 
 	unsigned int point_thredhold = 10000;
 	double minx, miny, maxx, maxy, centerx, centery;
@@ -772,15 +827,66 @@ Datum buildTile(PG_FUNCTION_ARGS)
 	std::ostringstream _extent;
 	sql_buffer << std::setprecision(15);
 	_extent << std::setprecision(15);
+	std::string c_table;
 
-	if (srid == 4326)
+	// 如果 source_srid 不是 4326 或者 3857 则，需要根据 target_srid 进行转换
+    // 同时，如果数据集的 srid 和生成的 tile srid 不一致的话也需要进行转换
+    if ((source_srid != 4326 && source_srid != 3857) || source_srid != target_srid)
+    {
+        // 创建一个临时表
+        sql_buffer.str("");
+        sql_buffer << "CREATE TABLE \""  << schema << "\"."
+               << "\"temp_convert_" << table << "_" << column << "\""
+               << " AS SELECT ST_TRANSFORM( \"" << column << "\" ," << target_srid << ") as \"" << column
+               << "\" FROM "
+               << "\"" << schema << "\".\"" << table << "\"";
+        // 执行转换
+        ret = SPI_execute(sql_buffer.str().c_str(), false, 0);
+
+        if (ret < 0)
+        {
+            elog(ERROR, "%s:%s:%s", __FUNCTION__, SPI_result_code_string(ret), sql_buffer.str().c_str());
+            SPI_finish();
+            PG_RETURN_BOOL(false);
+        }
+
+        c_table = (std::string("temp_convert_")
+                 + std::string(table)
+                 + std::string("_")
+                 + std::string(column));
+        table = c_table.c_str();
+        source_srid = target_srid;
+
+        // 生成索引
+        sql_buffer.str("");
+        sql_buffer << "CREATE INDEX " << schema << "_" << table << "_index on "
+           << "\"" << schema << "\".\"" << table << "\" USING GIST(\"" << column <<"\")";
+
+        ret = SPI_execute(sql_buffer.str().c_str(), false, 0);
+
+        if (ret < 0)
+        {
+            elog(ERROR, "%s:%s:%s", __FUNCTION__, SPI_result_code_string(ret), sql_buffer.str().c_str());
+            SPI_finish();
+            PG_RETURN_BOOL(false);
+        }
+    }
+
+
+	// 构建稀疏矩阵
+
+	std::queue<Tile> qtiles;
+	std::vector<Tile> vtiles;
+	vtiles.reserve(20000);	
+
+	if (source_srid == 4326)
 	{
 		minx = -180.0000000000000000;
 		miny = -270.0000000000000000;
 		maxx = 180.0000000000000000;
 		maxy = 90.0000000000000000;
 	}
-	else if (srid == 3857)
+	else if (source_srid == 3857)
 	{
 		minx = -20037508.3427870012819767;
 		miny = -20037508.3427809961140156;
@@ -832,7 +938,7 @@ Datum buildTile(PG_FUNCTION_ARGS)
 					   << " && " << _extent.str() << ") select count(*) from a where a.geom && "
 					   << _extent.str();
 
-			ret = SPI_execute(sql_buffer.str().c_str(), true, 1);
+			ret = SPI_execute(sql_buffer.str().c_str(), false, 1);
 
 			// 获取执行结果
 			if (ret > 0 && SPI_tuptable != NULL)
@@ -879,7 +985,7 @@ Datum buildTile(PG_FUNCTION_ARGS)
 					   << "\"" << column << "\""
 					   << " && " << _extent.str() << ") select count(*) from a where a.geom && "
 					   << _extent.str();
-			ret = SPI_execute(sql_buffer.str().c_str(), true, 1);
+			ret = SPI_execute(sql_buffer.str().c_str(), false, 1);
 
 			// 获取执行结果
 			if (ret > 0 && SPI_tuptable != NULL)
@@ -925,7 +1031,7 @@ Datum buildTile(PG_FUNCTION_ARGS)
 					   << "\"" << column << "\""
 					   << " && " << _extent.str() << ") select count(*) from a where a.geom && "
 					   << _extent.str();
-			ret = SPI_execute(sql_buffer.str().c_str(), true, 1);
+			ret = SPI_execute(sql_buffer.str().c_str(), false, 1);
 
 			// 获取执行结果
 			if (ret > 0 && SPI_tuptable != NULL)
@@ -972,7 +1078,7 @@ Datum buildTile(PG_FUNCTION_ARGS)
 					   << " && " << _extent.str() << ") select count(*) from a where a.geom && "
 					   << _extent.str();
 
-			ret = SPI_execute(sql_buffer.str().c_str(), true, 1);
+			ret = SPI_execute(sql_buffer.str().c_str(), false, 1);
 
 			// 获取执行结果
 			if (ret > 0 && SPI_tuptable != NULL)
@@ -1040,67 +1146,12 @@ Datum buildTile(PG_FUNCTION_ARGS)
 	// 到这里我们就可以准备生成矢量瓦片了
 	std::vector<SimpleStatus> simple_table_status;
 	simple_table_status.resize(20, SimpleStatus::UNKNOWN);
-	std::string tablename;
 
 	for (auto t : vtiles)
 	{
 		if (t.pts == 0)
 		{
 			continue;
-		}
-		// 检查简化表是否存在
-		// 状态未知
-		if (simple_table_status.at(t.z) == SimpleStatus::UNKNOWN)
-		{
-			// 如果以前没有检查到存在简化表先判断一次
-			tablename = std::string("pyd_") + table + std::string("_") + column + std::string("_") +
-						std::to_string(t.z);
-			memset(query, 0, QUERYSIZE);
-			snprintf(
-				query,
-				QUERYSIZE,
-				"SELECT count(*) from pyramid_columns where f_schema_name= \'%s\' and f_pyramid_table_name = \'%s\';",
-				schema,
-				tablename.c_str());
-			ret = SPI_exec(query, 1);
-			// 这里我们重复使用 tablename 变量作为了全路径
-			tablename = "\"" + std::string(schema) + "\".\"" + std::string("pyd_") + table +
-						std::string("_") + column + std::string("_") + std::to_string(t.z) + "\"";
-
-			// 获取执行结果
-			if (ret > 0 && SPI_tuptable != NULL)
-			{
-				SPITupleTable *tuptable = SPI_tuptable;
-				TupleDesc tupdesc = tuptable->tupdesc;
-				HeapTuple tuple = tuptable->vals[0];
-				char *count = SPI_getvalue(tuple, tupdesc, 1);
-				if (atoi(count) == 0)
-				{
-					// 简化表不存在
-					tablename = "\"" + std::string(schema) + "\".\"" + std::string(table) + "\"";
-					simple_table_status.at(t.z) = SimpleStatus::NOTEXIST;
-				}
-				else
-				{
-					// 简化表存在
-					tablename = "\"" + std::string(schema) + "\".\"" + std::string("pyd_") + table +
-								std::string("_") + column + std::string("_") + std::to_string(t.z) +
-								"\"";
-					simple_table_status.at(t.z) = SimpleStatus::EXIST;
-				}
-				pfree(count);
-			}
-			else
-			{
-				elog(ERROR, "%s: SPI_execute error!SQL:%s", __FUNCTION__, query);
-				SPI_finish();
-				PG_RETURN_BOOL(false);
-			}
-		}
-		else if (simple_table_status.at(t.z) == SimpleStatus::NOTEXIST)
-		{
-			// 不存在
-			tablename = "\"" + std::string(schema) + "\".\"" + std::string(table) + "\"";
 		}
 
 		long long id = (((long long)t.z) << 50) + (((long long)t.x) << 25) + t.y;
@@ -1109,28 +1160,69 @@ Datum buildTile(PG_FUNCTION_ARGS)
 		auto tilestart = system_clock::now();
 #endif
 		// 这里我们可以开始生成矢量金字塔了
-		snprintf(query,
+		if (t.z < 10)
+        {
+            double gridsize = 0;
+            if (source_srid == 4326)
+            {
+                gridsize = rateconfigs[t.z + 1].resolution;
+            }
+            else
+            {
+                gridsize = rateconfigs[t.z + 1].distance;
+            }
+
+			snprintf(query,
+				 QUERYSIZE,
+				 "WITH mvtgeom AS(SELECT ST_AsMVTGeom(ST_SNAPTOGRID(\"%s\",%f), ST_MakeEnvelope(%f,%f,%f,%f,%d)) AS geom FROM %s "
+				 " WHERE \"%s\" && ST_MakeEnvelope(%f,%f,%f,%f,%d))"
+				 " insert into \"%s\".\"tile_%s_%s\"(id,mvt)(select %lld,ST_AsMVT(mvtgeom.*,'%s') from mvtgeom)",
+				 column,
+				 gridsize,
+				 t.minx,
+				 t.miny,
+				 t.maxx,
+				 t.maxy,
+				 source_srid,
+				 table,
+				 column,
+				 t.minx,
+				 t.miny,
+				 t.maxx,
+				 t.maxy,
+				 source_srid,
+				 schema,
+				 origin_table,
+				 column,
+				 id,
+				 origin_table);
+		}
+		else
+		{
+			snprintf(query,
 				 QUERYSIZE,
 				 "WITH mvtgeom AS(SELECT ST_AsMVTGeom(\"%s\", ST_MakeEnvelope(%f,%f,%f,%f,%d)) AS geom FROM %s "
 				 " WHERE \"%s\" && ST_MakeEnvelope(%f,%f,%f,%f,%d))"
-				 " insert into \"%s\".\"tile_%s_%s\"(id,mvt)(select %lld,ST_AsMVT(mvtgeom.*) from mvtgeom)",
+				 " insert into \"%s\".\"tile_%s_%s\"(id,mvt)(select %lld,ST_AsMVT(mvtgeom.*,'%s') from mvtgeom)",
 				 column,
 				 t.minx,
 				 t.miny,
 				 t.maxx,
 				 t.maxy,
-				 srid,
-				 tablename.c_str(),
-				 column,
-				 t.minx,
-				 t.miny,
-				 t.maxx,
-				 t.maxy,
-				 srid,
-				 schema,
+				 source_srid,
 				 table,
 				 column,
-				 id);
+				 t.minx,
+				 t.miny,
+				 t.maxx,
+				 t.maxy,
+				 source_srid,
+				 schema,
+				 origin_table,
+				 column,
+				 id,
+				 origin_table);
+		}
 
 		SPI_exec(query, 1);
 #ifdef DEBUG
@@ -1142,6 +1234,18 @@ Datum buildTile(PG_FUNCTION_ARGS)
 		elog(NOTICE, "%s", sql_buffer.str().c_str());
 #endif
 	}
+
+	// 删除创建的转换表
+    sql_buffer.str("");
+    sql_buffer << "DROP TABLE IF EXISTS\"" << schema << "\"."
+           << "\"temp_convert_" << origin_table << "_" << column << "\"";
+    ret = SPI_execute(sql_buffer.str().c_str(), false, 0);
+    if (ret < 0)
+    {
+        elog(ERROR, "%s:%s:%s", __FUNCTION__, SPI_result_code_string(ret), sql_buffer.str().c_str());
+        SPI_finish();
+        PG_RETURN_BOOL(false);
+    }
 
 	SPI_finish();
 	PG_RETURN_BOOL(true);
@@ -1258,11 +1362,11 @@ Datum updatePyramid(PG_FUNCTION_ARGS)
 
 	// 1.3 根据获取到的概化的表，然后我们来先删除原来的数据
 	sql_buffer.str("");
-	sql_buffer << " select f_pyramid_table_name,config from pyramid_columns where f_schema_name= "
+	sql_buffer << " select SmPyramidTableName,SmConfigs from SmPyramidColumns where SmSchemaName= "
 			   << "\'" << schemaname << "\'"
-			   << " and f_table_name = "
+			   << " and SmTableName = "
 			   << "\'" << tablename << "\'"
-			   << " and f_geometry_column = "
+			   << " and SmGeometryColumn = "
 			   << "\'" << columname << "\'";
 #ifdef DEBUG
 	elog(NOTICE, "%s:%d:sql:%s", __FUNCTION__, __LINE__, sql_buffer.str().c_str());
@@ -1888,9 +1992,9 @@ Datum updatePyramid(PG_FUNCTION_ARGS)
 			simptablename = std::string("pyd_") + tablename + std::string("_") + columname +
 							std::string("_") + std::to_string(t.z);
 			sql_buffer.str("");
-			sql_buffer << " SELECT count(*) from pyramid_columns where f_schema_name=  "
+			sql_buffer << " SELECT count(*) from SmPyramidColumns where SmSchemaName=  "
 					   << "\'" << schemaname << "\'"
-					   << " and f_pyramid_table_name = "
+					   << " and SmPyramidTableName = "
 					   << "\'" << simptablename << "\'";
 			ret = SPI_exec(sql_buffer.str().c_str(), 1);
 			// 这里我们重复使用 tablename 变量作为了全路径

@@ -141,7 +141,7 @@ Datum LWGEOM_asGML(PG_FUNCTION_ARGS)
 		else
 		{
 			len = VARSIZE_ANY_EXHDR(prefix_text);
-			prefix_buf = palloc(len + 2); /* +2 is one for the ':' and one for term null */
+			prefix_buf = (char*)palloc(len + 2); /* +2 is one for the ':' and one for term null */
 			memcpy(prefix_buf, VARDATA(prefix_text), len);
 			/* add colon and null terminate */
 			prefix_buf[len] = ':';
@@ -165,7 +165,7 @@ Datum LWGEOM_asGML(PG_FUNCTION_ARGS)
 		else
 		{
 			len = VARSIZE_ANY_EXHDR(gml_id_text);
-			gml_id_buf = palloc(len + 1);
+			gml_id_buf = (char*)palloc(len + 1);
 			memcpy(gml_id_buf, VARDATA(gml_id_text), len);
 			gml_id_buf[len] = '\0';
 			gml_id = gml_id_buf;
@@ -403,7 +403,7 @@ Datum LWGEOM_asX3D(PG_FUNCTION_ARGS)
 		else
 		{
 			/* +2 is one for the ':' and one for term null */
-			defidbuf = palloc(VARSIZE_ANY_EXHDR(defid_text)+2);
+			defidbuf = (char*)palloc(VARSIZE_ANY_EXHDR(defid_text)+2);
 			memcpy(defidbuf, VARDATA(defid_text),
 			       VARSIZE_ANY_EXHDR(defid_text));
 			/* add colon and null terminate */

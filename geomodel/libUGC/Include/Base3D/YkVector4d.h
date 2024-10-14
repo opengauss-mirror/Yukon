@@ -31,7 +31,6 @@ namespace Yk {
 class BASE3D_API YkVector4d  
 {
 public:
-#pragma warning(disable: 4201)   //使用了非标准扩展 : 无名称的结构/联合
 	//! \brief 公用体，实现[]操作
     union 
 	{
@@ -42,8 +41,6 @@ public:
         };
         YkDouble val[4];
     };
-#pragma warning(default: 4201)
-
 public:
 	//! \brief 构造函数
     YkVector4d();

@@ -26,7 +26,7 @@
 #endif
 // #include "utils/typcache.h"
 // #include "utils/syscache.h"
-#include "extension_dependency.h"
+//#include "extension_dependency.h"
 /* PostGIS headers */
 #include "lwgeom_pg.h"
 #include "lwgeom_log.h"

@@ -1,3 +1,6 @@
+#ifndef GSERIALIZED_GIST_H
+#define GSERIALIZED_GIST_H
+
 #include <float.h>
 /**********************************************************************
 **  GIDX structure.
@@ -124,3 +127,6 @@ void gidx_set_unknown(GIDX *a);
 bool gidx_overlaps(GIDX *a, GIDX *b);
 bool gidx_equals(GIDX *a, GIDX *b);
 bool gidx_contains(GIDX *a, GIDX *b);
+
+
+#endif

@@ -148,7 +148,7 @@ escape_copy_string(char *str)
 		return str;
 
 	size = ptr - str + toescape + 1;
-	result = calloc(1, size);
+	result = (char*)calloc(1, size);
 	optr = result;
 	ptr = str;
 
@@ -201,7 +201,7 @@ escape_insert_string(char *str)
 		return str;
 
 	size = ptr - str + toescape + 1;
-	result = calloc(1, size);
+	result = (char*)calloc(1, size);
 	optr = result;
 	ptr = str;
 
@@ -249,7 +249,7 @@ GeneratePointGeometry(SHPLOADERSTATE *state, SHPObject *obj, char **geometry, in
 	else
 	{
 		/* Allocate memory for our array of LWPOINTs and our dynptarrays */
-		lwmultipoints = malloc(sizeof(LWPOINT *) * obj->nVertices);
+		lwmultipoints = (LWGEOM**)malloc(sizeof(LWPOINT *) * obj->nVertices);
 
 		/* We need an array of pointers to each of our sub-geometries */
 		for (u = 0; u < obj->nVertices; u++)
@@ -332,13 +332,13 @@ GenerateLineStringGeometry(SHPLOADERSTATE *state, SHPObject *obj, char **geometr
 
 	if (state->config->simple_geometries == 1 && obj->nParts > 1)
 	{
-		snprintf(state->message, SHPLOADERMSGLEN, _("We have a Multilinestring with %d parts, can't use -S switch!"), obj->nParts);
+		snprintf(state->message, SHPLOADERMSGLEN, _NLS("We have a Multilinestring with %d parts, can't use -S switch!"), obj->nParts);
 
 		return SHPLOADERERR;
 	}
 
 	/* Allocate memory for our array of LWLINEs and our dynptarrays */
-	lwmultilinestrings = malloc(sizeof(LWPOINT *) * obj->nParts);
+	lwmultilinestrings = (LWGEOM**)malloc(sizeof(LWPOINT *) * obj->nParts);
 
 	/* We need an array of pointers to each of our sub-geometries */
 	for (u = 0; u < obj->nParts; u++)
@@ -636,13 +636,13 @@ GeneratePolygonGeometry(SHPLOADERSTATE *state, SHPObject *obj, char **geometry)
 
 	if (state->config->simple_geometries == 1 && polygon_total != 1) /* We write Non-MULTI geometries, but have several parts: */
 	{
-		snprintf(state->message, SHPLOADERMSGLEN, _("We have a Multipolygon with %d parts, can't use -S switch!"), polygon_total);
+		snprintf(state->message, SHPLOADERMSGLEN, _NLS("We have a Multipolygon with %d parts, can't use -S switch!"), polygon_total);
 
 		return SHPLOADERERR;
 	}
 
 	/* Allocate memory for our array of LWPOLYs */
-	lwpolygons = malloc(sizeof(LWPOLY *) * polygon_total);
+	lwpolygons = (LWGEOM**)malloc(sizeof(LWPOLY *) * polygon_total);
 
 	/* Cycle through each individual polygon */
 	for (pi = 0; pi < polygon_total; pi++)
@@ -784,7 +784,7 @@ ShpLoaderCreate(SHPLOADERCONFIG *config)
 	SHPLOADERSTATE *state;
 
 	/* Create a new state object and assign the config to it */
-	state = malloc(sizeof(SHPLOADERSTATE));
+	state = (SHPLOADERSTATE*)malloc(sizeof(SHPLOADERSTATE));
 	state->config = config;
 
 	/* Set any state defaults */
@@ -826,7 +826,7 @@ ShpLoaderCreate(SHPLOADERCONFIG *config)
 
 	if (!state->geo_col)
 	{
-		state->geo_col = config->geography ? GEOGRAPHY_DEFAULT : GEOMETRY_DEFAULT;
+		state->geo_col = (char*)(config->geography ? GEOGRAPHY_DEFAULT : GEOMETRY_DEFAULT);
 	}
 
 	colmap_init(&state->column_map);
@@ -853,7 +853,7 @@ ShpLoaderOpenShape(SHPLOADERSTATE *state)
 
 		if (state->hSHPHandle == NULL)
 		{
-			snprintf(state->message, SHPLOADERMSGLEN, _("%s: shape (.shp) or index files (.shx) can not be opened, will just import attribute data."), state->config->shp_file);
+			snprintf(state->message, SHPLOADERMSGLEN, _NLS("%s: shape (.shp) or index files (.shx) can not be opened, will just import attribute data."), state->config->shp_file);
 			state->config->readshape = 0;
 
 			ret = SHPLOADERWARN;
@@ -864,7 +864,7 @@ ShpLoaderOpenShape(SHPLOADERSTATE *state)
 	state->hDBFHandle = DBFOpen(state->config->shp_file, "rb");
 	if ((state->hSHPHandle == NULL && state->config->readshape == 1) || state->hDBFHandle == NULL)
 	{
-		snprintf(state->message, SHPLOADERMSGLEN, _("%s: dbf file (.dbf) can not be opened."), state->config->shp_file);
+		snprintf(state->message, SHPLOADERMSGLEN, _NLS("%s: dbf file (.dbf) can not be opened."), state->config->shp_file);
 
 		return SHPLOADERERR;
 	}
@@ -909,13 +909,13 @@ ShpLoaderOpenShape(SHPLOADERSTATE *state)
 
 				if (!obj)
 				{
-					snprintf(state->message, SHPLOADERMSGLEN, _("Error reading shape object %d"), j);
+					snprintf(state->message, SHPLOADERMSGLEN, _NLS("Error reading shape object %d"), j);
 					return SHPLOADERERR;
 				}
 
 				if (obj->nVertices == 0)
 				{
-					snprintf(state->message, SHPLOADERMSGLEN, _("Empty geometries found, aborted.)"));
+					snprintf(state->message, SHPLOADERMSGLEN, _NLS("Empty geometries found, aborted.)"));
 					return SHPLOADERERR;
 				}
 
@@ -1030,7 +1030,7 @@ ShpLoaderOpenShape(SHPLOADERSTATE *state)
 			state->has_m = 1;
 			state->pgdims = 4;
 
-			snprintf(state->message, SHPLOADERMSGLEN, _("Unknown geometry type: %d\n"), state->shpfiletype);
+			snprintf(state->message, SHPLOADERMSGLEN, _NLS("Unknown geometry type: %d\n"), state->shpfiletype);
 			return SHPLOADERERR;
 
 			break;
@@ -1091,12 +1091,12 @@ ShpLoaderOpenShape(SHPLOADERSTATE *state)
 	state->num_records = DBFGetRecordCount(state->hDBFHandle);
 
 	/* Allocate storage for field information */
-	state->field_names = malloc(state->num_fields * sizeof(char*));
+	state->field_names = (char**)malloc(state->num_fields * sizeof(char*));
 	state->types = (DBFFieldType *)malloc(state->num_fields * sizeof(int));
-	state->widths = malloc(state->num_fields * sizeof(int));
-	state->precisions = malloc(state->num_fields * sizeof(int));
-	state->pgfieldtypes = malloc(state->num_fields * sizeof(char *));
-	state->col_names = malloc((state->num_fields + 2) * sizeof(char) * MAXFIELDNAMELEN);
+	state->widths = (int*)malloc(state->num_fields * sizeof(int));
+	state->precisions = (int*)malloc(state->num_fields * sizeof(int));
+	state->pgfieldtypes = (char**)malloc(state->num_fields * sizeof(char *));
+	state->col_names = (char*)malloc((state->num_fields + 2) * sizeof(char) * MAXFIELDNAMELEN);
 
 	strcpy(state->col_names, "" );
 	/* Generate a string of comma separated column names of the form "col1, col2 ... colN" for the SQL
@@ -1114,18 +1114,18 @@ ShpLoaderOpenShape(SHPLOADERSTATE *state)
 
 		if (state->config->encoding)
 		{
-			char *encoding_msg = _("Try \"LATIN1\" (Western European), or one of the values described at http://www.gnu.org/software/libiconv/.");
+			char *encoding_msg = _NLS("Try \"LATIN1\" (Western European), or one of the values described at http://www.gnu.org/software/libiconv/.");
 
 			int rv = utf8(state->config->encoding, name, &utf8str);
 
 			if (rv != UTF8_GOOD_RESULT)
 			{
 				if ( rv == UTF8_BAD_RESULT )
-					snprintf(state->message, SHPLOADERMSGLEN, _("Unable to convert field name \"%s\" to UTF-8 (iconv reports \"%s\"). Current encoding is \"%s\". %s"), utf8str, strerror(errno), state->config->encoding, encoding_msg);
+					snprintf(state->message, SHPLOADERMSGLEN, _NLS("Unable to convert field name \"%s\" to UTF-8 (iconv reports \"%s\"). Current encoding is \"%s\". %s"), utf8str, strerror(errno), state->config->encoding, encoding_msg);
 				else if ( rv == UTF8_NO_RESULT )
-					snprintf(state->message, SHPLOADERMSGLEN, _("Unable to convert field name to UTF-8 (iconv reports \"%s\"). Current encoding is \"%s\". %s"), strerror(errno), state->config->encoding, encoding_msg);
+					snprintf(state->message, SHPLOADERMSGLEN, _NLS("Unable to convert field name to UTF-8 (iconv reports \"%s\"). Current encoding is \"%s\". %s"), strerror(errno), state->config->encoding, encoding_msg);
 				else
-					snprintf(state->message, SHPLOADERMSGLEN, _("Unexpected return value from utf8()"));
+					snprintf(state->message, SHPLOADERMSGLEN, _NLS("Unexpected return value from utf8()"));
 
 				if ( rv == UTF8_BAD_RESULT )
 					free(utf8str);
@@ -1247,7 +1247,7 @@ ShpLoaderOpenShape(SHPLOADERSTATE *state)
 			break;
 
 		default:
-			snprintf(state->message, SHPLOADERMSGLEN, _("Invalid type %x in DBF file"), state->types[j]);
+			snprintf(state->message, SHPLOADERMSGLEN, _NLS("Invalid type %x in DBF file"), state->types[j]);
 			return SHPLOADERERR;
 		}
 
@@ -1525,7 +1525,7 @@ ShpLoaderGetSQLCopyStatement(SHPLOADERSTATE *state, char **strheader)
 	else
 	{
 		/* Flag an error as something has gone horribly wrong */
-		snprintf(state->message, SHPLOADERMSGLEN, _("Internal error: attempt to generate a COPY statement for data that hasn't been requested in COPY format"));
+		snprintf(state->message, SHPLOADERMSGLEN, _NLS("Internal error: attempt to generate a COPY statement for data that hasn't been requested in COPY format"));
 
 		return SHPLOADERERR;
 	}
@@ -1573,7 +1573,7 @@ ShpLoaderGenerateSQLRowStatement(SHPLOADERSTATE *state, int item, char **strreco
 		obj = SHPReadObject(state->hSHPHandle, item);
 		if (!obj)
 		{
-			snprintf(state->message, SHPLOADERMSGLEN, _("Error reading shape object %d"), item);
+			snprintf(state->message, SHPLOADERMSGLEN, _NLS("Error reading shape object %d"), item);
 			return SHPLOADERERR;
 		}
 
@@ -1668,7 +1668,7 @@ ShpLoaderGenerateSQLRowStatement(SHPLOADERSTATE *state, int item, char **strreco
 				break;
 
 			default:
-				snprintf(state->message, SHPLOADERMSGLEN, _("Error: field %d has invalid or unknown field type (%d)"), i, state->types[i]);
+				snprintf(state->message, SHPLOADERMSGLEN, _NLS("Error: field %d has invalid or unknown field type (%d)"), i, state->types[i]);
 
 				/* clean up and return err */
 				SHPDestroyObject(obj);
@@ -1679,18 +1679,18 @@ ShpLoaderGenerateSQLRowStatement(SHPLOADERSTATE *state, int item, char **strreco
 
 			if (state->config->encoding)
 			{
-				char *encoding_msg = _("Try \"LATIN1\" (Western European), or one of the values described at http://www.postgresql.org/docs/current/static/multibyte.html.");
+				char *encoding_msg = _NLS("Try \"LATIN1\" (Western European), or one of the values described at http://www.postgresql.org/docs/current/static/multibyte.html.");
 
 				rv = utf8(state->config->encoding, val, &utf8str);
 
 				if (rv != UTF8_GOOD_RESULT)
 				{
 					if ( rv == UTF8_BAD_RESULT )
-						snprintf(state->message, SHPLOADERMSGLEN, _("Unable to convert data value \"%s\" to UTF-8 (iconv reports \"%s\"). Current encoding is \"%s\". %s"), utf8str, strerror(errno), state->config->encoding, encoding_msg);
+						snprintf(state->message, SHPLOADERMSGLEN, _NLS("Unable to convert data value \"%s\" to UTF-8 (iconv reports \"%s\"). Current encoding is \"%s\". %s"), utf8str, strerror(errno), state->config->encoding, encoding_msg);
 					else if ( rv == UTF8_NO_RESULT )
-						snprintf(state->message, SHPLOADERMSGLEN, _("Unable to convert data value to UTF-8 (iconv reports \"%s\"). Current encoding is \"%s\". %s"), strerror(errno), state->config->encoding, encoding_msg);
+						snprintf(state->message, SHPLOADERMSGLEN, _NLS("Unable to convert data value to UTF-8 (iconv reports \"%s\"). Current encoding is \"%s\". %s"), strerror(errno), state->config->encoding, encoding_msg);
 					else
-						snprintf(state->message, SHPLOADERMSGLEN, _("Unexpected return value from utf8()"));
+						snprintf(state->message, SHPLOADERMSGLEN, _NLS("Unexpected return value from utf8()"));
 
 					if ( rv == UTF8_BAD_RESULT )
 						free(utf8str);
@@ -1785,7 +1785,7 @@ done_cell:
 				break;
 
 			default:
-				snprintf(state->message, SHPLOADERMSGLEN, _("Shape type is not supported, type id = %d"), obj->nSHPType);
+				snprintf(state->message, SHPLOADERMSGLEN, _NLS("Shape type is not supported, type id = %d"), obj->nSHPType);
 				SHPDestroyObject(obj);
 				stringbuffer_destroy(sbwarn);
 				stringbuffer_destroy(sb);

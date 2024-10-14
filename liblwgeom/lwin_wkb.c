@@ -98,7 +98,7 @@ uint8_t* bytes_from_hexbytes(const char *hexbuf, size_t hexsize)
 	if( hexsize % 2 )
 		lwerror("Invalid hex string, length (%d) has to be a multiple of two!", hexsize);
 
-	buf = lwalloc(hexsize/2);
+	buf = (uint8_t*)lwalloc(hexsize/2);
 
 	if( ! buf )
 		lwerror("Unable to allocate memory buffer.");
@@ -690,7 +690,7 @@ static LWELLIPSE * lwellipse_from_wkb_state(wkb_parse_state *s)
 	if (s->error)
 		return NULL;
 
-	res = lwalloc(sizeof(LWELLIPSE));
+	res = (LWELLIPSE*)lwalloc(sizeof(LWELLIPSE));
 	if (res == NULL)
 	{
 		return NULL;
@@ -698,7 +698,7 @@ static LWELLIPSE * lwellipse_from_wkb_state(wkb_parse_state *s)
 	res->type = ELLIPSETYPE;
 	res->srid = s->srid;
 	res->bbox = NULL;	
-	res->data = lwalloc(sizeof(ELLIPSE));
+	res->data = (ELLIPSE*)lwalloc(sizeof(ELLIPSE));
 
 	// memcpy(res->data, s->wkb+5, sizeof(ELLIPSE));
 	res->data->points = ptarray_from_wkb_state(s);
@@ -725,7 +725,7 @@ lwbezier_from_wkb_state(wkb_parse_state *s)
 	if (s->error)
 		return NULL;
 
-	res = lwalloc(sizeof(LWBEZIER));
+	res = (LWBEZIER*)lwalloc(sizeof(LWBEZIER));
 	if (res == NULL)
 	{
 		return NULL;
@@ -733,7 +733,7 @@ lwbezier_from_wkb_state(wkb_parse_state *s)
 	res->type = BEZIERTYPE;
 	res->srid = s->srid;
 	res->bbox = NULL;
-	res->data = lwalloc(sizeof(BEZIER));
+	res->data = (BEZIER*)lwalloc(sizeof(BEZIER));
 	res->data->points = ptarray_from_wkb_state(s);
 	res->flags = res->data->points->flags;
 	return res;

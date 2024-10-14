@@ -250,7 +250,7 @@ rt_band_get_summary_stats(
 		, sample_size, (band->width * band->height), sample_per);
 
 	if (inc_vals) {
-		values = rtalloc(sizeof(double) * sample_size);
+		values = (double*)rtalloc(sizeof(double) * sample_size);
 		if (NULL == values) {
 			rtwarn("Could not allocate memory for values");
 			inc_vals = 0;
@@ -350,7 +350,7 @@ rt_band_get_summary_stats(
 		if (inc_vals) {
 			/* free unused memory */
 			if (sample_size != k) {
-				values = rtrealloc(values, k * sizeof(double));
+				values = (double*)rtrealloc(values, k * sizeof(double));
 			}
 
 			stats->values = values;
@@ -517,7 +517,7 @@ rt_band_get_histogram(
 
 	/* bin count = 1, all values are in one bin */
 	if (bin_count < 2) {
-		bins = rtalloc(sizeof(struct rt_histogram_t));
+		bins = (rt_histogram)rtalloc(sizeof(struct rt_histogram_t));
 		if (NULL == bins) {
 			rterror("rt_util_get_histogram: Could not allocate memory for histogram");
 			return NULL;
@@ -539,7 +539,7 @@ rt_band_get_histogram(
 
 		/* bin_width unallocated */
 		if (NULL == bin_width) {
-			bin_width = rtalloc(sizeof(double));
+			bin_width = (double*)rtalloc(sizeof(double));
 			if (NULL == bin_width) {
 				rterror("rt_util_get_histogram: Could not allocate memory for bin widths");
 				return NULL;
@@ -551,7 +551,7 @@ rt_band_get_histogram(
 	}
 
 	/* initialize bins */
-	bins = rtalloc(bin_count * sizeof(struct rt_histogram_t));
+	bins = (rt_histogram)rtalloc(bin_count * sizeof(struct rt_histogram_t));
 	if (NULL == bins) {
 		rterror("rt_util_get_histogram: Could not allocate memory for histogram");
 		if (init_width) rtdealloc(bin_width);
@@ -719,7 +719,7 @@ rt_band_get_quantiles(
 		if (quantiles_count < 2)
 			quantiles_count = 5;
 
-		quantiles = rtalloc(sizeof(double) * quantiles_count);
+		quantiles = (double*)rtalloc(sizeof(double) * quantiles_count);
 		init_quantiles = 1;
 		if (NULL == quantiles) {
 			rterror("rt_band_get_quantiles: Could not allocate memory for quantile input");
@@ -743,7 +743,7 @@ rt_band_get_quantiles(
 	quicksort(quantiles, quantiles + quantiles_count - 1);
 
 	/* initialize rt_quantile */
-	rtn = rtalloc(sizeof(struct rt_quantile_t) * quantiles_count);
+	rtn = (rt_quantile)rtalloc(sizeof(struct rt_quantile_t) * quantiles_count);
 	if (NULL == rtn) {
 		rterror("rt_band_get_quantiles: Could not allocate memory for quantile output");
 		if (init_quantiles) rtdealloc(quantiles);
@@ -816,7 +816,7 @@ static struct quantile_llist_element *quantile_llist_insert(
 	struct quantile_llist_element *qle = NULL;
 
 	if (NULL == element) {
-		qle = rtalloc(sizeof(struct quantile_llist_element));
+		qle = (quantile_llist_element*)rtalloc(sizeof(struct quantile_llist_element));
 		RASTER_DEBUGF(4, "qle @ %p is only element in list", qle);
 		if (NULL == qle) return NULL;
 
@@ -835,7 +835,7 @@ static struct quantile_llist_element *quantile_llist_insert(
 			return quantile_llist_insert(element->next, value, idx);
 		/* insert as last element in list */
 		else {
-			qle = rtalloc(sizeof(struct quantile_llist_element));
+			qle = (quantile_llist_element*)rtalloc(sizeof(struct quantile_llist_element));
 			RASTER_DEBUGF(4, "insert qle @ %p as last element", qle);
 			if (NULL == qle) return NULL;
 
@@ -851,7 +851,7 @@ static struct quantile_llist_element *quantile_llist_insert(
 	}
 	/* insert before current element */
 	else {
-		qle = rtalloc(sizeof(struct quantile_llist_element));
+		qle = (quantile_llist_element*)rtalloc(sizeof(struct quantile_llist_element));
 		RASTER_DEBUGF(4, "insert qle @ %p before current element", qle);
 		if (NULL == qle) return NULL;
 
@@ -1076,7 +1076,7 @@ rt_band_get_quantiles_stream(
 	}
 	RASTER_DEBUGF(3, "cov_count = %d", cov_count);
 
-	data = rt_band_get_data(band);
+	data = (uint8_t*)rt_band_get_data(band);
 	if (data == NULL) {
 		rterror("rt_band_get_summary_stats: Cannot get band data");
 		return NULL;
@@ -1094,7 +1094,7 @@ rt_band_get_quantiles_stream(
 			if (quantiles_count < 2)
 				quantiles_count = 5;
 
-			quantiles = rtalloc(sizeof(double) * quantiles_count);
+			quantiles = (double*)rtalloc(sizeof(double) * quantiles_count);
 			init_quantiles = 1;
 			if (NULL == quantiles) {
 				rterror("rt_band_get_quantiles_stream: Could not allocate memory for quantile input");
@@ -1120,7 +1120,7 @@ rt_band_get_quantiles_stream(
 		/* initialize linked-list set */
 		*qlls_count = quantiles_count * 2;
 		RASTER_DEBUGF(4, "qlls_count = %d", *qlls_count);
-		*qlls = rtalloc(sizeof(struct quantile_llist) * *qlls_count);
+		*qlls = (quantile_llist*)rtalloc(sizeof(struct quantile_llist) * *qlls_count);
 		if (NULL == *qlls) {
 			rterror("rt_band_get_quantiles_stream: Could not allocate memory for quantile output");
 			if (init_quantiles) rtdealloc(quantiles);
@@ -1138,7 +1138,7 @@ rt_band_get_quantiles_stream(
 			qll->tail = NULL;
 
 			/* initialize index */
-			qll->index = rtalloc(sizeof(struct quantile_llist_index) * j);
+			qll->index = (quantile_llist_index*)rtalloc(sizeof(struct quantile_llist_index) * j);
 			if (NULL == qll->index) {
 				rterror("rt_band_get_quantiles_stream: Could not allocate memory for quantile output");
 				if (init_quantiles) rtdealloc(quantiles);
@@ -1538,7 +1538,7 @@ rt_band_get_quantiles_stream(
 
 	/* process quantiles */
 	*rtn_count = *qlls_count / 2;
-	rtn = rtalloc(sizeof(struct rt_quantile_t) * *rtn_count);
+	rtn = (rt_quantile)rtalloc(sizeof(struct rt_quantile_t) * *rtn_count);
 	if (NULL == rtn) return NULL;
 
 	RASTER_DEBUGF(3, "returning %d quantiles", *rtn_count);
@@ -1673,7 +1673,7 @@ rt_band_get_value_count(
 		rterror("rt_band_get_value_count: rtn_count cannot be NULL");
 	}
 
-	data = rt_band_get_data(band);
+	data = (uint8_t*)rt_band_get_data(band);
 	if (data == NULL) {
 		rterror("rt_band_get_summary_stats: Cannot get band data");
 		return NULL;
@@ -1848,7 +1848,7 @@ rt_band_get_value_count(
 				if (!new_valuecount || search_values_count > 0) continue;
 
 				/* add new valuecount */
-				vcnts = rtrealloc(vcnts, sizeof(struct rt_valuecount_t) * (vcnts_count + 1));
+				vcnts = (rt_valuecount)rtrealloc(vcnts, sizeof(struct rt_valuecount_t) * (vcnts_count + 1));
 				if (NULL == vcnts) {
 					rterror("rt_band_get_count_of_values: Could not allocate memory for value counts");
 					*rtn_count = 0;

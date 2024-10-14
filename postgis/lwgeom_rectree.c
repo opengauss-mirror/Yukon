@@ -92,7 +92,7 @@ RectTreeFreer(GeomCache *cache)
 static GeomCache *
 RectTreeAllocator(void)
 {
-	RectTreeGeomCache *cache = palloc(sizeof(RectTreeGeomCache));
+	RectTreeGeomCache *cache = (RectTreeGeomCache*)palloc(sizeof(RectTreeGeomCache));
 	memset(cache, 0, sizeof(RectTreeGeomCache));
 	return (GeomCache*)cache;
 }
@@ -173,7 +173,7 @@ Datum ST_DistanceRectTreeCached(PG_FUNCTION_ARGS)
 
 	if (tree_cache && tree_cache->gcache.argnum)
 	{
-		RECT_NODE *n;
+		RECT_NODE *n = NULL;
 		RECT_NODE *n_cached = tree_cache->index;;
 		if (tree_cache->gcache.argnum == 1)
 		{

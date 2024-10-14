@@ -467,17 +467,34 @@ if test "x$LIBLWGEOM_ONLY" = "xno"; then
   fi
 
   POSTGIS_PGSQL_VERSION="92"
-  POSTGIS_PGSQL_HR_VERSION="$PGSQL_MAJOR_VERSION.$PGSQL_MINOR_VERSION"
+  POSTGIS_PGSQL_HR_VERSION="92"
 
   POSTGIS_GSSQL_MAJOR_VERSION=`$PG_CONFIG --version | sed -n '/openGauss/p' | sed 's/[[^0-9]]*openGauss[[^0-9]]*\([[0-9]]\)\.\([[0-9]]\).\([[0-9]]\).*/\1/'`
   POSTGIS_GSSQL_MINOR_VERSION=`$PG_CONFIG --version | sed -n '/openGauss/p' | sed 's/[[^0-9]]*openGauss[[^0-9]]*\([[0-9]]\)\.\([[0-9]]\).\([[0-9]]\).*/\2/'`
   POSTGIS_GSSQL_PATCH_VERSION=`$PG_CONFIG --version | sed -n '/openGauss/p' | sed 's/[[^0-9]]*openGauss[[^0-9]]*\([[0-9]]\)\.\([[0-9]]\).\([[0-9]]\).*/\3/'`
 
   POSTGIS_GSSQL_VERSION="$POSTGIS_GSSQL_MAJOR_VERSION$POSTGIS_GSSQL_MINOR_VERSION$POSTGIS_GSSQL_PATCH_VERSION"
-
+  POSTGIS_VDSQL_VERSION="0"
   PGSQL_PKGLIBDIR=`"$PG_CONFIG" --pkglibdir`
   PGSQL_LIBDIR=`"$PG_CONFIG" --libdir`
   PGSQL_SHAREDIR=`"$PG_CONFIG" --sharedir`
+
+  AS_IF([test -z "$POSTGIS_GSSQL_VERSION"],
+  [
+		POSTGIS_GSSQL_VERSION="0"
+        # 如果为空，则检查程序是否存在
+        AC_CHECK_PROGS([GSQL], [gsql], [no])
+        # 检查程序是否找到
+        AS_IF([test "$GSQL" = "no"],
+              [AC_MSG_ERROR([gsql is required but not found])])
+		AC_MSG_RESULT([checking gsql path... $GSQL])
+		dnl vastbase
+		POSTGIS_VDSQL_MAJOR_VERSION=`$GSQL --version | sed -n '/Vastbase/p' | sed 's/.*Vastbase G\([[0-9]]\+\) V.*/\1/'`
+        POSTGIS_VDSQL_MINOR_VERSION=`$GSQL --version | sed -n '/Vastbase/p' | sed 's/.*Vastbase G.* V\([[0-9]]\+\)\.\([[0-9]]\+\).*/\2/'`
+        POSTGIS_VDSQL_PATCH_VERSION=`$GSQL --version | sed -n '/Vastbase/p' | sed 's/.*Vastbase G.* V[[0-9]]\+\.\([[0-9]]\+\).*/\1/'`
+		POSTGIS_VDSQL_VERSION="$POSTGIS_VDSQL_MAJOR_VERSION$POSTGIS_VDSQL_MINOR_VERSION$POSTGIS_VDSQL_PATCH_VERSION"
+
+  ])
 
   AC_MSG_RESULT([checking PostgreSQL version... $PGSQL_FULL_VERSION])
   dnl Ensure that we are using PostgreSQL >= 9.6
@@ -563,6 +580,8 @@ if test "x$LIBLWGEOM_ONLY" = "xno"; then
   AC_SUBST([HAVE_SPGIST])
   AC_DEFINE_UNQUOTED([POSTGIS_GSSQL_VERSION], [$POSTGIS_GSSQL_VERSION], [openGauss server version])
   AC_SUBST([POSTGIS_GSSQL_VERSION])
+  AC_DEFINE_UNQUOTED([POSTGIS_VDSQL_VERSION], [$POSTGIS_VDSQL_VERSION], [vastbase server version])
+  AC_SUBST([POSTGIS_VDSQL_VERSION])
 
 fi dnl LIBLWGEOM_ONLY != no
 
@@ -1349,7 +1368,7 @@ fi
 
 AC_SUBST([ADDRESS_STANDARDIZER])
 
-CPPFLAGS="$PGSQL_CPPFLAGS $GEOS_CPPFLAGS $PROJ_CPPFLAGS $PROTOBUF_CPPFLAGS $XML2_CPPFLAGS $SFCGAL_CPPFLAGS $JSON_CPPFLAGS $PCRE_CPPFLAGS $PGSQL_FE_CPPFLAGS/postgresql/server/libpq $PGSQL_FE_CPPFLAGS/postgresql/server -fpermissive -DPGXC -g -O2 -fno-math-errno -fno-signed-zeros -Wall"
+CPPFLAGS="$PGSQL_CPPFLAGS $GEOS_CPPFLAGS $PROJ_CPPFLAGS $PROTOBUF_CPPFLAGS $XML2_CPPFLAGS $SFCGAL_CPPFLAGS $JSON_CPPFLAGS $PCRE_CPPFLAGS $PGSQL_FE_CPPFLAGS/postgresql/server/libpq $PGSQL_FE_CPPFLAGS/postgresql/server -DPGXC -g -O2 -fno-math-errno -fno-signed-zeros -Wall -Werror -Wno-write-strings -Wno-unused-variable -Wno-unused-function $CPPFLAGS" 
 dnl AC_MSG_RESULT([CPPFLAGS: $CPPFLAGS])
 
 SHLIB_LINK="$PGSQL_LDFLAGS $GEOS_LDFLAGS $PROJ_LDFLAGS $JSON_LDFLAGS $PROTOBUF_LDFLAGS $XML2_LDFLAGS $SFCGAL_LDFLAGS $EXCLUDELIBS_LDFLAGS $LDFLAGS"

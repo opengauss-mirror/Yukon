@@ -27,17 +27,16 @@
  *
  */
 
-// #include <postgres.h>
-// #include <fmgr.h>
-// #include <funcapi.h> /* for SRF */
-// #include <utils/builtins.h> /* for text_to_cstring() */
-// #include <access/htup_details.h> /* for heap_form_tuple() */
-// #include <utils/lsyscache.h> /* for get_typlenbyvalalign */
-// #include <utils/array.h> /* for ArrayType */
-// #include <utils/guc.h> /* for ArrayType */
-// #include <catalog/pg_type.h> /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
-// #include <utils/memutils.h> /* For TopMemoryContext */
-#include "../../include/extension_dependency.h"
+#include <postgres.h>
+#include <fmgr.h>
+#include <funcapi.h> /* for SRF */
+#include <utils/builtins.h> /* for text_to_cstring() */
+#include <utils/lsyscache.h> /* for get_typlenbyvalalign */
+#include <utils/array.h> /* for ArrayType */
+#include <utils/guc.h> /* for ArrayType */
+#include <catalog/pg_type.h> /* for INT2OID, INT4OID, FLOAT4OID, FLOAT8OID and TEXTOID */
+#include <utils/memutils.h> /* For TopMemoryContext */
+//#include "../../include/extension_dependency.h"
 #include "../../postgis_config.h"
 
 #include "rtpostgis.h"
@@ -143,7 +142,7 @@ Datum RASTER_fromGDALRaster(PG_FUNCTION_ARGS)
 	if (srid != -1)
 		rt_raster_set_srid(raster, srid);
 
-	pgraster = rt_raster_serialize(raster);
+	pgraster = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	if (!pgraster)
 		PG_RETURN_NULL();
@@ -272,7 +271,7 @@ Datum RASTER_asGDALRaster(PG_FUNCTION_ARGS)
 
 			if (j > 0) {
 				/* trim allocation */
-				options = repalloc(options, (j + 1) * sizeof(char *));
+				options = (char**)repalloc(options, (j + 1) * sizeof(char *));
 
 				/* add NULL to end */
 				options[j] = NULL;
@@ -413,7 +412,7 @@ Datum RASTER_getGDALDrivers(PG_FUNCTION_ARGS)
 	call_cntr = funcctx->call_cntr;
 	max_calls = funcctx->max_calls;
 	tupdesc = funcctx->tuple_desc;
-	drv_set2 = funcctx->user_fctx;
+	drv_set2 = (rt_gdaldriver)(funcctx->user_fctx);
 
 	/* do when there is more left to send */
 	if (call_cntr < max_calls) {
@@ -518,7 +517,7 @@ Datum RASTER_Contour(PG_FUNCTION_ARGS)
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
 		/* To carry the output from rt_raster_gdal_contour */
-		result = palloc0(sizeof(gdal_contour_result_t));
+		result = (gdal_contour_result_t*)palloc0(sizeof(gdal_contour_result_t));
 
 		/* Build a tuple descriptor for our return result */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) != TYPEFUNC_COMPOSITE) {
@@ -567,7 +566,7 @@ Datum RASTER_Contour(PG_FUNCTION_ARGS)
 			Datum value;
 			bool isnull;
 			ArrayIterator iterator = array_create_iterator(array, 0);
-			fixed_levels = palloc0(array_size * sizeof(double));
+			fixed_levels = (double*)palloc0(array_size * sizeof(double));
 			while (array_iterate(iterator, &value, &isnull))
 			{
 				/* Skip nulls */
@@ -621,7 +620,7 @@ Datum RASTER_Contour(PG_FUNCTION_ARGS)
 		Datum values[3] = {0, 0, 0};
 		bool nulls[3] = {0, 0, 0};
 
-		gdal_contour_result_t *result = funcctx->user_fctx;
+		gdal_contour_result_t *result = (gdal_contour_result_t*)(funcctx->user_fctx);
 		struct rt_contour_t c = result->contours[funcctx->call_cntr];
 
 		if (c.geom) {
@@ -773,12 +772,12 @@ Datum RASTER_InterpolateRaster(PG_FUNCTION_ARGS)
 	// }
 
 	/* Prepare destination grid buffer for output */
-	out_data = palloc(in_band_gdaltype_size * in_band_width * in_band_height);
+	out_data = (uint8_t*)palloc(in_band_gdaltype_size * in_band_width * in_band_height);
 
 	/* Prepare input points for processing */
-	xcoords = palloc(sizeof(double) * npoints);
-	ycoords = palloc(sizeof(double) * npoints);
-	zcoords = palloc(sizeof(double) * npoints);
+	xcoords = (double*)palloc(sizeof(double) * npoints);
+	ycoords = (double*)palloc(sizeof(double) * npoints);
+	zcoords = (double*)palloc(sizeof(double) * npoints);
 
 	/* Populate input points */
 	iterator = lwpointiterator_create(lwgeom);
@@ -834,7 +833,7 @@ Datum RASTER_InterpolateRaster(PG_FUNCTION_ARGS)
 		rterr = rt_band_set_pixel_line(out_band, 0, y, out_data + offset, in_band_width);
 	}
 
-	out_pgrast = rt_raster_serialize(out_rast);
+	out_pgrast = (rt_pgraster*)rt_raster_serialize(out_rast);
 	rt_raster_destroy(out_rast);
 	rt_raster_destroy(in_rast);
 
@@ -1088,7 +1087,7 @@ Datum RASTER_GDALWarp(PG_FUNCTION_ARGS)
 	/* add target SRID */
 	rt_raster_set_srid(rast, dst_srid);
 
-	pgrast = rt_raster_serialize(rast);
+	pgrast = (rt_pgraster*)rt_raster_serialize(rast);
 	rt_raster_destroy(rast);
 
 	if (NULL == pgrast) PG_RETURN_NULL();

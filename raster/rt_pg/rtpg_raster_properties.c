@@ -27,10 +27,10 @@
  *
  */
 
-// #include <postgres.h>
-// #include <fmgr.h>
-// #include <funcapi.h>
-#include "../../include/extension_dependency.h"
+#include <postgres.h>
+#include <fmgr.h>
+#include <funcapi.h>
+//#include "../../include/extension_dependency.h"
 #include "../../postgis_config.h"
 
 
@@ -907,7 +907,7 @@ Datum RASTER_setSRID(PG_FUNCTION_ARGS)
 
 	rt_raster_set_srid(raster, newSRID);
 
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 	if (!pgrtn) PG_RETURN_NULL();
@@ -940,7 +940,7 @@ Datum RASTER_setScale(PG_FUNCTION_ARGS)
 
 	rt_raster_set_scale(raster, size, size);
 
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 	if (!pgrtn)
@@ -973,7 +973,7 @@ Datum RASTER_setScaleXY(PG_FUNCTION_ARGS)
 	}
 
 	rt_raster_set_scale(raster, xscale, yscale);
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 	if (!pgrtn)
@@ -1006,7 +1006,7 @@ Datum RASTER_setSkew(PG_FUNCTION_ARGS)
 
 	rt_raster_set_skews(raster, skew, skew);
 
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 	if (!pgrtn)
@@ -1040,7 +1040,7 @@ Datum RASTER_setSkewXY(PG_FUNCTION_ARGS)
 
 	rt_raster_set_skews(raster, xskew, yskew);
 
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 	if (!pgrtn)
@@ -1074,7 +1074,7 @@ Datum RASTER_setUpperLeftXY(PG_FUNCTION_ARGS)
 
 	rt_raster_set_offsets(raster, xoffset, yoffset);
 
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 	if (!pgrtn)
@@ -1124,7 +1124,7 @@ Datum RASTER_setGeotransform(PG_FUNCTION_ARGS)
 	rt_raster_set_offsets(raster, xoffset, yoffset);
 
 	/* prep the return value */
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 	if (!pgrtn)
@@ -1169,7 +1169,7 @@ Datum RASTER_setRotation(PG_FUNCTION_ARGS)
 	rt_raster_get_phys_params(raster, &imag, &jmag, &theta_i, &theta_ij);
 	rt_raster_set_phys_params(raster, imag, jmag, rotation, theta_ij);
 
-	pgrtn = rt_raster_serialize(raster);
+	pgrtn = (rt_pgraster*)rt_raster_serialize(raster);
 	rt_raster_destroy(raster);
 	PG_FREE_IF_COPY(pgraster, 0);
 	if (!pgrtn)

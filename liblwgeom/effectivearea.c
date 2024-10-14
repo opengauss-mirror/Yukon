@@ -31,9 +31,9 @@ initiate_effectivearea(const POINTARRAY *inpts)
 {
 	LWDEBUG(2, "Entered  initiate_effectivearea");
 	EFFECTIVE_AREAS *ea;
-	ea=lwalloc(sizeof(EFFECTIVE_AREAS));
-	ea->initial_arealist = lwalloc(inpts->npoints*sizeof(areanode));
-	ea->res_arealist = lwalloc(inpts->npoints*sizeof(double));
+	ea=(EFFECTIVE_AREAS*)lwalloc(sizeof(EFFECTIVE_AREAS));
+	ea->initial_arealist = (areanode*)lwalloc(inpts->npoints*sizeof(areanode));
+	ea->res_arealist = (double*)lwalloc(inpts->npoints*sizeof(double));
 	ea->inpts=inpts;
 	return ea;
 }
@@ -51,7 +51,7 @@ static MINHEAP
 initiate_minheap(int npoints)
 {
 	MINHEAP tree;
-	tree.key_array = lwalloc(npoints*sizeof(void*));
+	tree.key_array = (areanode**)lwalloc(npoints*sizeof(void*));
 	tree.maxSize=npoints;
 	tree.usedSize=0;
 	return tree;
@@ -152,7 +152,7 @@ static void down(MINHEAP *tree,areanode *arealist,int parent)
 		treearray[parent]=treearray[swap];
 		/*Update reference*/
 		((areanode*) treearray[parent])->treeindex=parent;
-		treearray[swap]=tmp;
+		treearray[swap]=(areanode*)tmp;
 		/*Update reference*/
 		((areanode*) treearray[swap])->treeindex=swap;
 		if(swap<tree->usedSize)
@@ -182,7 +182,7 @@ static void up(MINHEAP *tree, __attribute__((__unused__)) areanode *e,int c)
 		treearray[parent]=treearray[c];
 		/*Update reference*/
 		((areanode*) treearray[parent])->treeindex=parent;
-		treearray[c]=tmp;
+		treearray[c]=(areanode*)tmp;
 		/*Update reference*/
 		((areanode*) treearray[c])->treeindex=c;
 		c=parent;

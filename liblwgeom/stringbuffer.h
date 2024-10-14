@@ -77,7 +77,7 @@ stringbuffer_makeroom(stringbuffer_t *s, size_t size_to_add)
 
 	if (capacity > s->capacity)
 	{
-		s->str_start = lwrealloc(s->str_start, capacity);
+		s->str_start = (char*)lwrealloc(s->str_start, capacity);
 		s->capacity = capacity;
 		s->str_end = s->str_start + current_size;
 	}

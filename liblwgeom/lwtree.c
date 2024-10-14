@@ -538,7 +538,7 @@ rect_node_leaf_new(const POINTARRAY *pa, int seg_num, int geom_type)
 		}
 	}
 
-	node = lwalloc(sizeof(RECT_NODE));
+	node = (RECT_NODE*)lwalloc(sizeof(RECT_NODE));
 	node->type = RECT_NODE_LEAF_TYPE;
 	node->geom_type = geom_type;
 	node->xmin = gbox.xmin;
@@ -569,7 +569,7 @@ rect_node_internal_add_node(RECT_NODE *node, RECT_NODE *add)
 static RECT_NODE *
 rect_node_internal_new(const RECT_NODE *seed)
 {
-	RECT_NODE *node = lwalloc(sizeof(RECT_NODE));
+	RECT_NODE *node = (RECT_NODE*)lwalloc(sizeof(RECT_NODE));
 	node->xmin = seed->xmin;
 	node->xmax = seed->xmax;
 	node->ymin = seed->ymin;
@@ -657,7 +657,7 @@ rect_tree_from_ptarray(const POINTARRAY *pa, int geom_type)
 	}
 
 	/* First create a flat list of nodes, one per edge. */
-	nodes = lwalloc(sizeof(RECT_NODE*) * num_edges);
+	nodes = (RECT_NODE**)lwalloc(sizeof(RECT_NODE*) * num_edges);
 	for (i = 0; i < num_edges; i++)
 	{
 		RECT_NODE *node = rect_node_leaf_new(pa, i, geom_type);
@@ -752,7 +752,7 @@ rect_tree_from_lwpoly(const LWGEOM *lwgeom)
 	if (lwpoly->nrings < 1)
 		return NULL;
 
-	nodes = lwalloc(sizeof(RECT_NODE*) * lwpoly->nrings);
+	nodes = (RECT_NODE**)lwalloc(sizeof(RECT_NODE*) * lwpoly->nrings);
 	for (i = 0; i < lwpoly->nrings; i++)
 	{
 		RECT_NODE *node = rect_tree_from_ptarray(lwpoly->rings[i], lwgeom->type);
@@ -779,7 +779,7 @@ rect_tree_from_lwcurvepoly(const LWGEOM *lwgeom)
 	if (lwcol->nrings < 1)
 		return NULL;
 
-	nodes = lwalloc(sizeof(RECT_NODE*) * lwcol->nrings);
+	nodes = (RECT_NODE**)lwalloc(sizeof(RECT_NODE*) * lwcol->nrings);
 	for (i = 0; i < lwcol->nrings; i++)
 	{
 		RECT_NODE *node = rect_tree_from_lwgeom(lwcol->rings[i]);
@@ -828,7 +828,7 @@ rect_tree_from_lwcollection(const LWGEOM *lwgeom)
 	/* Build one tree for each sub-geometry, then below */
 	/* we merge the root notes of those trees to get a single */
 	/* top node for the collection */
-	nodes = lwalloc(sizeof(RECT_NODE*) * lwcol->ngeoms);
+	nodes = (RECT_NODE**)lwalloc(sizeof(RECT_NODE*) * lwcol->ngeoms);
 	for (i = 0; i < lwcol->ngeoms; i++)
 	{
 		RECT_NODE *node = rect_tree_from_lwgeom(lwcol->geoms[i]);

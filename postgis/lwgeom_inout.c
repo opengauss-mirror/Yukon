@@ -22,7 +22,7 @@
  *
  **********************************************************************/
 
-// #include "postgres.h"
+#include "postgres.h"
 
 #include "../postgis_config.h"
 
@@ -37,10 +37,10 @@
 
 // #include "fmgr.h"
 // #include "utils/elog.h"
-// #include "mb/pg_wchar.h"
+#include "mb/pg_wchar.h"
 // #include "lib/stringinfo.h" /* for binary input */
-// #include "utils/array.h"
-// #include "utils/builtins.h"
+#include "utils/array.h"
+#include "utils/builtins.h"
 // #include "utils/lsyscache.h"
 // #include "funcapi.h"
 
@@ -547,7 +547,7 @@ Datum TWKBFromLWGEOMArray(PG_FUNCTION_ARGS)
 			col = lwcollection_construct_empty(COLLECTIONTYPE, lwgeom_get_srid(geom), has_z, has_m);
 		}
 		if ( ! idlist )
-			idlist = palloc0(num_geoms * sizeof(int64_t));
+			idlist = (int64_t*)palloc0(num_geoms * sizeof(int64_t));
 
 
 		/* Check if there is differences in dimensionality*/

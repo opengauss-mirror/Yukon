@@ -18,10 +18,10 @@
 #ifdef ENABLE_NLS
 #include <libintl.h>
 #include <locale.h>
-#define _(String) gettext(String)
+#define _NLS(String) gettext(String)
 #define PACKAGE "shp2pgsql"
 #else
-#define _(String) String
+#define _NLS(String) String
 #endif
 
 

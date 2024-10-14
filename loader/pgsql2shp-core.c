@@ -87,10 +87,10 @@ create_point(SHPDUMPERSTATE *state, LWPOINT *lwpoint)
 	double *xpts, *ypts, *zpts, *mpts;
 
 	/* Allocate storage for points */
-	xpts = malloc(sizeof(double));
-	ypts = malloc(sizeof(double));
-	zpts = malloc(sizeof(double));
-	mpts = malloc(sizeof(double));
+	xpts = (double*)malloc(sizeof(double));
+	ypts = (double*)malloc(sizeof(double));
+	zpts = (double*)malloc(sizeof(double));
+	mpts = (double*)malloc(sizeof(double));
 
 	/* Grab the point: note getPoint4d will correctly handle
 	the case where the POINTs don't contain Z or M coordinates */
@@ -123,10 +123,10 @@ create_multipoint(SHPDUMPERSTATE *state, LWMPOINT *lwmultipoint)
 	double *xpts, *ypts, *zpts, *mpts;
 
 	/* Allocate storage for points */
-	xpts = malloc(sizeof(double) * lwmultipoint->ngeoms);
-	ypts = malloc(sizeof(double) * lwmultipoint->ngeoms);
-	zpts = malloc(sizeof(double) * lwmultipoint->ngeoms);
-	mpts = malloc(sizeof(double) * lwmultipoint->ngeoms);
+	xpts = (double*)malloc(sizeof(double) * lwmultipoint->ngeoms);
+	ypts = (double*)malloc(sizeof(double) * lwmultipoint->ngeoms);
+	zpts = (double*)malloc(sizeof(double) * lwmultipoint->ngeoms);
+	mpts = (double*)malloc(sizeof(double) * lwmultipoint->ngeoms);
 
 	/* Grab the points: note getPoint4d will correctly handle
 	the case where the POINTs don't contain Z or M coordinates */
@@ -164,17 +164,17 @@ create_polygon(SHPDUMPERSTATE *state, LWPOLY *lwpolygon)
 	int *shpparts, shppointtotal = 0, shppoint = 0;
 
 	/* Allocate storage for ring pointers */
-	shpparts = malloc(sizeof(int) * lwpolygon->nrings);
+	shpparts = (int*)malloc(sizeof(int) * lwpolygon->nrings);
 
 	/* First count through all the points in each ring so we now how much memory is required */
 	for (i = 0; i < lwpolygon->nrings; i++)
 		shppointtotal += lwpolygon->rings[i]->npoints;
 
 	/* Allocate storage for points */
-	xpts = malloc(sizeof(double) * shppointtotal);
-	ypts = malloc(sizeof(double) * shppointtotal);
-	zpts = malloc(sizeof(double) * shppointtotal);
-	mpts = malloc(sizeof(double) * shppointtotal);
+	xpts = (double*)malloc(sizeof(double) * shppointtotal);
+	ypts = (double*)malloc(sizeof(double) * shppointtotal);
+	zpts = (double*)malloc(sizeof(double) * shppointtotal);
+	mpts = (double*)malloc(sizeof(double) * shppointtotal);
 
 	LWDEBUGF(4, "Total number of points: %d", shppointtotal);
 
@@ -264,13 +264,13 @@ create_multipolygon(SHPDUMPERSTATE *state, LWMPOLY *lwmultipolygon)
 	}
 
 	/* Allocate storage for ring pointers */
-	shpparts = malloc(sizeof(int) * shpringtotal);
+	shpparts = (int*)malloc(sizeof(int) * shpringtotal);
 
 	/* Allocate storage for points */
-	xpts = malloc(sizeof(double) * shppointtotal);
-	ypts = malloc(sizeof(double) * shppointtotal);
-	zpts = malloc(sizeof(double) * shppointtotal);
-	mpts = malloc(sizeof(double) * shppointtotal);
+	xpts = (double*)malloc(sizeof(double) * shppointtotal);
+	ypts = (double*)malloc(sizeof(double) * shppointtotal);
+	zpts = (double*)malloc(sizeof(double) * shppointtotal);
+	mpts = (double*)malloc(sizeof(double) * shppointtotal);
 
 	LWDEBUGF(4, "Total number of rings: %d   Total number of points: %d", shpringtotal, shppointtotal);
 
@@ -354,10 +354,10 @@ create_linestring(SHPDUMPERSTATE *state, LWLINE *lwlinestring)
 	double *xpts, *ypts, *zpts, *mpts;
 
 	/* Allocate storage for points */
-	xpts = malloc(sizeof(double) * lwlinestring->points->npoints);
-	ypts = malloc(sizeof(double) * lwlinestring->points->npoints);
-	zpts = malloc(sizeof(double) * lwlinestring->points->npoints);
-	mpts = malloc(sizeof(double) * lwlinestring->points->npoints);
+	xpts = (double*)malloc(sizeof(double) * lwlinestring->points->npoints);
+	ypts = (double*)malloc(sizeof(double) * lwlinestring->points->npoints);
+	zpts = (double*)malloc(sizeof(double) * lwlinestring->points->npoints);
+	mpts = (double*)malloc(sizeof(double) * lwlinestring->points->npoints);
 
 	/* Grab the points: note getPoint4d will correctly handle
 	the case where the POINTs don't contain Z or M coordinates */
@@ -395,7 +395,7 @@ create_multilinestring(SHPDUMPERSTATE *state, LWMLINE *lwmultilinestring)
 	int *shpparts, shppointtotal = 0, shppoint = 0;
 
 	/* Allocate storage for ring pointers */
-	shpparts = malloc(sizeof(int) * lwmultilinestring->ngeoms);
+	shpparts = (int*)malloc(sizeof(int) * lwmultilinestring->ngeoms);
 
 	/* First count through all the points in each linestring so we now how much memory is required */
 	for (i = 0; i < lwmultilinestring->ngeoms; i++)
@@ -404,10 +404,10 @@ create_multilinestring(SHPDUMPERSTATE *state, LWMLINE *lwmultilinestring)
 	LWDEBUGF(3, "Total number of points: %d", shppointtotal);
 
 	/* Allocate storage for points */
-	xpts = malloc(sizeof(double) * shppointtotal);
-	ypts = malloc(sizeof(double) * shppointtotal);
-	zpts = malloc(sizeof(double) * shppointtotal);
-	mpts = malloc(sizeof(double) * shppointtotal);
+	xpts = (double*)malloc(sizeof(double) * shppointtotal);
+	ypts = (double*)malloc(sizeof(double) * shppointtotal);
+	zpts = (double*)malloc(sizeof(double) * shppointtotal);
+	mpts = (double*)malloc(sizeof(double) * shppointtotal);
 
 	/* Iterate through each linestring setting up shpparts to point to the beginning of each line */
 	for (i = 0; i < lwmultilinestring->ngeoms; i++)
@@ -561,7 +561,7 @@ getMaxFieldSize(PGconn *conn, char *schema, char *table, char *fname)
 	free(query);
 	if ( ! res || PQresultStatus(res) != PGRES_TUPLES_OK )
 	{
-		printf( _("Querying for maximum field length: %s"),
+		printf( _NLS("Querying for maximum field length: %s"),
 		        PQerrorMessage(conn));
 		return -1;
 	}
@@ -684,7 +684,7 @@ char *convert_bytes_to_hex(uint8_t *ewkb, size_t size)
 	char *hexewkb;
 
 	/* Convert the byte stream to a hex string using liblwgeom's deparse_hex function */
-	hexewkb = malloc(size * 2 + 1);
+	hexewkb = (char*)malloc(size * 2 + 1);
 	for (i=0; i<size; ++i) deparse_hex(ewkb[i], &hexewkb[i * 2]);
 	hexewkb[size * 2] = '\0';
 
@@ -774,7 +774,7 @@ projFileCreate(SHPDUMPERSTATE *state)
 
 	if ( ! res || PQresultStatus(res) != PGRES_TUPLES_OK )
 	{
-		snprintf(state->message, SHPDUMPERMSGLEN, _("WARNING: Could not execute prj query: %s"), PQresultErrorMessage(res));
+		snprintf(state->message, SHPDUMPERMSGLEN, _NLS("WARNING: Could not execute prj query: %s"), PQresultErrorMessage(res));
 		PQclear(res);
 		free(query);
 		return SHPDUMPERWARN;
@@ -785,7 +785,7 @@ projFileCreate(SHPDUMPERSTATE *state)
 		srtext = PQgetvalue(res, i, 0);
 		if (strcmp(srtext,"m") == 0)
 		{
-			snprintf(state->message, SHPDUMPERMSGLEN, _("WARNING: Mixed set of spatial references. No prj file will be generated"));
+			snprintf(state->message, SHPDUMPERMSGLEN, _NLS("WARNING: Mixed set of spatial references. No prj file will be generated"));
 			PQclear(res);
 			free(query);
 			return SHPDUMPERWARN;
@@ -794,7 +794,7 @@ projFileCreate(SHPDUMPERSTATE *state)
 		{
 			if (srtext[0] == ' ')
 			{
-				snprintf(state->message, SHPDUMPERMSGLEN, _("WARNING: Cannot determine spatial reference (empty table or unknown spatial ref). No prj file will be generated."));
+				snprintf(state->message, SHPDUMPERMSGLEN, _NLS("WARNING: Cannot determine spatial reference (empty table or unknown spatial ref). No prj file will be generated."));
 				PQclear(res);
 				free(query);
 				return SHPDUMPERWARN;
@@ -880,14 +880,14 @@ getTableInfo(SHPDUMPERSTATE *state)
 		/* Include geometry information */
 		if (state->schema)
 		{
-			query = malloc(150 + 4 * strlen(state->geo_col_name) + strlen(state->schema) + strlen(state->table));
+			query = (char*)malloc(150 + 4 * strlen(state->geo_col_name) + strlen(state->schema) + strlen(state->table));
 
 			sprintf(query, "SELECT count(1), max(ST_zmflag(\"%s\"::geometry)), geometrytype(\"%s\"::geometry) FROM \"%s\".\"%s\" GROUP BY 3",
 			        state->geo_col_name, state->geo_col_name, state->schema, state->table);
 		}
 		else
 		{
-			query = malloc(150 + 4 * strlen(state->geo_col_name) + strlen(state->table));
+			query = (char*)malloc(150 + 4 * strlen(state->geo_col_name) + strlen(state->table));
 
 			sprintf(query, "SELECT count(1), max(ST_zmflag(\"%s\"::geometry)), geometrytype(\"%s\"::geometry) FROM \"%s\" GROUP BY 3",
 			        state->geo_col_name, state->geo_col_name, state->table);
@@ -898,13 +898,13 @@ getTableInfo(SHPDUMPERSTATE *state)
 		/* Otherwise... just a row count will do */
 		if (state->schema)
 		{
-			query = malloc(40 + strlen(state->schema) + strlen(state->table));
+			query = (char*)malloc(40 + strlen(state->schema) + strlen(state->table));
 
 			sprintf(query, "SELECT count(1) FROM \"%s\".\"%s\"", state->schema, state->table);
 		}
 		else
 		{
-			query = malloc(40 + strlen(state->table));
+			query = (char*)malloc(40 + strlen(state->table));
 
 			sprintf(query, "SELECT count(1) FROM \"%s\"", state->table);
 		}
@@ -917,7 +917,7 @@ getTableInfo(SHPDUMPERSTATE *state)
 
 	if (PQresultStatus(res) != PGRES_TUPLES_OK)
 	{
-		snprintf(state->message, SHPDUMPERMSGLEN, _("ERROR: Could not execute table metadata query: %s"), PQresultErrorMessage(res));
+		snprintf(state->message, SHPDUMPERMSGLEN, _NLS("ERROR: Could not execute table metadata query: %s"), PQresultErrorMessage(res));
 		PQclear(res);
 		return SHPDUMPERERR;
 	}
@@ -925,7 +925,7 @@ getTableInfo(SHPDUMPERSTATE *state)
 	/* Make sure we error if the table is empty */
 	if (PQntuples(res) == 0)
 	{
-		snprintf(state->message, SHPDUMPERMSGLEN, _("ERROR: Could not determine table metadata (empty table)"));
+		snprintf(state->message, SHPDUMPERMSGLEN, _NLS("ERROR: Could not determine table metadata (empty table)"));
 		PQclear(res);
 		return SHPDUMPERERR;
 	}
@@ -1033,7 +1033,7 @@ getTableInfo(SHPDUMPERSTATE *state)
 		/* Flag an error if the table contains incompatible geometry combinations */
 		if (typemismatch)
 		{
-			snprintf(state->message, SHPDUMPERMSGLEN, _("ERROR: Incompatible mixed geometry types in table"));
+			snprintf(state->message, SHPDUMPERMSGLEN, _NLS("ERROR: Incompatible mixed geometry types in table"));
 			PQclear(res);
 			return SHPDUMPERERR;
 		}
@@ -1125,7 +1125,7 @@ getTableInfo(SHPDUMPERSTATE *state)
 void
 set_dumper_config_defaults(SHPDUMPERCONFIG *config)
 {
-	config->conn = malloc(sizeof(SHPCONNECTIONCONFIG));
+	config->conn = (SHPCONNECTIONCONFIG*)malloc(sizeof(SHPCONNECTIONCONFIG));
 	config->conn->host = NULL;
 	config->conn->port = NULL;
 	config->conn->database = NULL;
@@ -1154,7 +1154,7 @@ ShpDumperCreate(SHPDUMPERCONFIG *config)
 	SHPDUMPERSTATE *state;
 
 	/* Create a new state object and assign the config to it */
-	state = malloc(sizeof(SHPDUMPERSTATE));
+	state = (SHPDUMPERSTATE*)malloc(sizeof(SHPDUMPERSTATE));
 	state->config = config;
 
 	/* Set any state defaults */
@@ -1189,7 +1189,7 @@ ShpDumperGetConnectionStringFromConn(SHPCONNECTIONCONFIG *conn)
 		(conn->username ? strlen(conn->username) : 0) + (conn->password ? strlen(conn->password) : 0) +
 		(conn->database ? strlen(conn->database) : 0);
 
-	connstring = malloc(connlen);
+	connstring = (char*)malloc(connlen);
 	memset(connstring, 0, connlen);
 
 	if (conn->host)
@@ -1283,7 +1283,7 @@ ShpDumperConnectDatabase(SHPDUMPERSTATE *state)
 	res = PQexec(state->conn, "SELECT oid FROM pg_type WHERE typname = 'geometry'");
 	if (PQresultStatus(res) != PGRES_TUPLES_OK)
 	{
-		snprintf(state->message, SHPDUMPERMSGLEN, _("Error looking up geometry oid: %s"), PQresultErrorMessage(res));
+		snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Error looking up geometry oid: %s"), PQresultErrorMessage(res));
 		PQclear(res);
 		free(connstring);
 		return SHPDUMPERERR;
@@ -1296,7 +1296,7 @@ ShpDumperConnectDatabase(SHPDUMPERSTATE *state)
 	}
 	else
 	{
-		snprintf(state->message, SHPDUMPERMSGLEN, _("Geometry type unknown (have you enabled postgis?)"));
+		snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Geometry type unknown (have you enabled postgis?)"));
 		PQclear(res);
 		free(connstring);
 		return SHPDUMPERERR;
@@ -1308,7 +1308,7 @@ ShpDumperConnectDatabase(SHPDUMPERSTATE *state)
 	res = PQexec(state->conn, "SELECT oid FROM pg_type WHERE typname = 'geography'");
 	if (PQresultStatus(res) != PGRES_TUPLES_OK)
 	{
-		snprintf(state->message, SHPDUMPERMSGLEN, _("Error looking up geography oid: %s"), PQresultErrorMessage(res));
+		snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Error looking up geography oid: %s"), PQresultErrorMessage(res));
 		PQclear(res);
 		free(connstring);
 		return SHPDUMPERERR;
@@ -1351,10 +1351,10 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 	/* If a user-defined query has been specified, create and point the state to our new table */
 	if (state->config->usrquery)
 	{
-		state->table = malloc(20 + 20);		/* string + max long precision */
+		state->table = (char*)malloc(20 + 20);		/* string + max long precision */
 		sprintf(state->table, "__pgsql2shp%lu_tmp_table", (long)getpid());
 
-		query = malloc(32 + strlen(state->table) + strlen(state->config->usrquery));
+		query = (char*)malloc(32 + strlen(state->table) + strlen(state->config->usrquery));
 
 		sprintf(query, "CREATE TEMP TABLE \"%s\" AS %s", state->table, state->config->usrquery);
 		res = PQexec(state->conn, query);
@@ -1363,7 +1363,7 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 		/* Execute the code to create the table */
 		if (PQresultStatus(res) != PGRES_COMMAND_OK)
 		{
-			snprintf(state->message, SHPDUMPERMSGLEN, _("Error executing user query: %s"), PQresultErrorMessage(res));
+			snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Error executing user query: %s"), PQresultErrorMessage(res));
 			PQclear(res);
 			return SHPDUMPERERR;
 		}
@@ -1380,7 +1380,7 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 	/* Get the list of columns and their types for the selected table */
 	if (state->schema)
 	{
-		query = malloc(250 + strlen(state->schema) + strlen(state->table));
+		query = (char*)malloc(250 + strlen(state->schema) + strlen(state->table));
 
 		sprintf(query, "SELECT a.attname, a.atttypid, "
 		        "a.atttypmod, a.attlen FROM "
@@ -1392,7 +1392,7 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 	}
 	else
 	{
-		query = malloc(250 + strlen(state->table));
+		query = (char*)malloc(250 + strlen(state->table));
 
 		sprintf(query, "SELECT a.attname, a.atttypid, "
 		        "a.atttypmod, a.attlen FROM "
@@ -1410,14 +1410,14 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 
 	if (PQresultStatus(res) != PGRES_TUPLES_OK)
 	{
-		snprintf(state->message, SHPDUMPERMSGLEN, _("Error querying for attributes: %s"), PQresultErrorMessage(res));
+		snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Error querying for attributes: %s"), PQresultErrorMessage(res));
 		PQclear(res);
 		return SHPDUMPERERR;
 	}
 
 	if (!PQntuples(res))
 	{
-		snprintf(state->message, SHPDUMPERMSGLEN, _("Table %s does not exist"), state->table);
+		snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Table %s does not exist"), state->table);
 		PQclear(res);
 		return SHPDUMPERERR;
 	}
@@ -1443,7 +1443,7 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 
 	if (!state->dbf)
 	{
-		snprintf(state->message, SHPDUMPERMSGLEN, _("Could not create dbf file %s"), state->shp_file);
+		snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Could not create dbf file %s"), state->shp_file);
 		return SHPDUMPERERR;
 	}
 
@@ -1454,11 +1454,11 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 	 * Scan the result setting fields to be returned in mainscan
 	 * query, filling the type_ary, and creating .dbf and .shp files.
 	 */
-	state->dbffieldnames = malloc(sizeof(char *) * PQntuples(res));
-	state->dbffieldtypes = malloc(sizeof(int) * PQntuples(res));
-	state->pgfieldnames = malloc(sizeof(char *) * PQntuples(res));
-	state->pgfieldlens = malloc(sizeof(int) * PQntuples(res));
-	state->pgfieldtypmods = malloc(sizeof(int) * PQntuples(res));
+	state->dbffieldnames = (char**)malloc(sizeof(char *) * PQntuples(res));
+	state->dbffieldtypes = (int*)malloc(sizeof(int) * PQntuples(res));
+	state->pgfieldnames = (char**)malloc(sizeof(char *) * PQntuples(res));
+	state->pgfieldlens = (int*)malloc(sizeof(int) * PQntuples(res));
+	state->pgfieldtypmods = (int*)malloc(sizeof(int) * PQntuples(res));
 	state->fieldcount = 0;
 	int tmpint = 1;
 
@@ -1528,7 +1528,7 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 		 */
 
 		/* Limit dbf field name to 10-digits */
-		dbffieldname = malloc(11);
+		dbffieldname = (char*)malloc(11);
 		strncpy(dbffieldname, ptr, 10);
 		dbffieldname[10] = '\0';
 
@@ -1569,7 +1569,7 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 		/* Issue warning if column has been renamed */
 		if (strcasecmp(dbffieldname, pgfieldname))
 		{
-			if ( snprintf(buf, 256, _("Warning, field %s renamed to %s\n"),
+			if ( snprintf(buf, 256, _NLS("Warning, field %s renamed to %s\n"),
 			              pgfieldname, dbffieldname) >= 256 )
 			{
 				buf[255] = '\0';
@@ -1765,7 +1765,7 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 			if (dbffieldsize > MAX_DBF_FIELD_SIZE)
 			{
 				/* Note: we concatenate all warnings from the main loop as this is useful information */
-				snprintf(buf, 256, _("Warning: values of field '%s' exceeding maximum dbf field width (%d) "
+				snprintf(buf, 256, _NLS("Warning: values of field '%s' exceeding maximum dbf field width (%d) "
 					"will be truncated.\n"), dbffieldname, MAX_DBF_FIELD_SIZE);
 				strncat(state->message, buf, SHPDUMPERMSGLEN - strlen(state->message));
 				dbffieldsize = MAX_DBF_FIELD_SIZE;
@@ -1779,9 +1779,9 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 		if (dbffieldtype != 9)
 		{
 			/* Add the field to the DBF file */
-			if (DBFAddField(state->dbf, dbffieldname, dbffieldtype, dbffieldsize, dbffielddecs) == -1)
+			if (DBFAddField(state->dbf, dbffieldname, (DBFFieldType)dbffieldtype, dbffieldsize, dbffielddecs) == -1)
 			{
-				snprintf(state->message, SHPDUMPERMSGLEN, _("Error: field %s of type %d could not be created."), dbffieldname, dbffieldtype);
+				snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Error: field %s of type %d could not be created."), dbffieldname, dbffieldtype);
 
 				return SHPDUMPERERR;
 			}
@@ -1812,7 +1812,7 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 		if (state->config->geo_col_name)
 		{
 			/* A geo* column was specified, but not found */
-			snprintf(state->message, SHPDUMPERMSGLEN, _("%s: no such attribute in table %s"), state->config->geo_col_name, state->table);
+			snprintf(state->message, SHPDUMPERMSGLEN, _NLS("%s: no such attribute in table %s"), state->config->geo_col_name, state->table);
 
 			return SHPDUMPERERR;
 		}
@@ -1820,7 +1820,7 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 		{
 			/* No geo* column specified so we can only create the DBF section -
 			   but let's issue a warning... */
-			snprintf(buf, 256, _("No geometry column found.\nThe DBF file will be created but not the shx or shp files.\n"));
+			snprintf(buf, 256, _NLS("No geometry column found.\nThe DBF file will be created but not the shx or shp files.\n"));
 			strncat(state->message, buf, SHPDUMPERMSGLEN - strlen(state->message));
 
 			state->shp = NULL;
@@ -1834,7 +1834,7 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 		state->shp = SHPCreate(state->shp_file, state->outshptype);
 		if (!state->shp)
 		{
-			snprintf(state->message, SHPDUMPERMSGLEN, _("Could not open shapefile %s!"), state->shp_file);
+			snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Could not open shapefile %s!"), state->shp_file);
 
 			return SHPDUMPERERR;
 		}
@@ -1848,7 +1848,7 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 	for (i = 0; i < state->fieldcount; i++)
 		j += strlen( state->pgfieldnames[i]) + 10;	/*add extra space for the quotes to quote identify and any embedded quotes that may need escaping */
 
-	state->main_scan_query = malloc(1024 + j);
+	state->main_scan_query = (char*)malloc(1024 + j);
 
 	sprintf(state->main_scan_query, "DECLARE cur ");
 	if (state->config->binary)
@@ -1932,7 +1932,7 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 	res = PQexec(state->conn, "BEGIN");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK)
 	{
-		snprintf(state->message, SHPDUMPERMSGLEN, _("Error starting transaction: %s"), PQresultErrorMessage(res));
+		snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Error starting transaction: %s"), PQresultErrorMessage(res));
 		PQclear(res);
 		return SHPDUMPERERR;
 	}
@@ -1943,7 +1943,7 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 	res = PQexec(state->conn, state->main_scan_query);
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK)
 	{
-		snprintf(state->message, SHPDUMPERMSGLEN, _("Error executing main scan query: %s"), PQresultErrorMessage(res));
+		snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Error executing main scan query: %s"), PQresultErrorMessage(res));
 		PQclear(res);
 		return SHPDUMPERERR;
 	}
@@ -1957,7 +1957,7 @@ ShpDumperOpenTable(SHPDUMPERSTATE *state)
 	state->fetchres = NULL;
 
 	/* Generate the fetch query */
-	state->fetch_query = malloc(256);
+	state->fetch_query = (char*)malloc(256);
 	sprintf(state->fetch_query, "FETCH %d FROM cur", state->config->fetchsize);
 
 	return SHPDUMPEROK;
@@ -1979,7 +1979,7 @@ int ShpLoaderGenerateShapeRow(SHPDUMPERSTATE *state)
 	/* If we try to go pass the end of the table, fail immediately */
 	if (state->currow > state->rowcount)
 	{
-		snprintf(state->message, SHPDUMPERMSGLEN, _("Tried to read past end of table!"));
+		snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Tried to read past end of table!"));
 		PQclear(state->fetchres);
 		return SHPDUMPERERR;
 	}
@@ -1994,7 +1994,7 @@ int ShpLoaderGenerateShapeRow(SHPDUMPERSTATE *state)
 		state->fetchres = PQexec(state->conn, state->fetch_query);
 		if (PQresultStatus(state->fetchres) != PGRES_TUPLES_OK)
 		{
-			snprintf(state->message, SHPDUMPERMSGLEN, _("Error executing fetch query: %s"), PQresultErrorMessage(state->fetchres));
+			snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Error executing fetch query: %s"), PQresultErrorMessage(state->fetchres));
 			PQclear(state->fetchres);
 			return SHPDUMPERERR;
 		}
@@ -2031,7 +2031,7 @@ int ShpLoaderGenerateShapeRow(SHPDUMPERSTATE *state)
 		/* Write it to the DBF file */
 		if (!DBFWriteAttributeDirectly(state->dbf, state->currow, i, val))
 		{
-			snprintf(state->message, SHPDUMPERMSGLEN, _("Error: record %d could not be created"), state->currow);
+			snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Error: record %d could not be created"), state->currow);
 			PQclear(state->fetchres);
 			return SHPDUMPERERR;
 		}
@@ -2046,7 +2046,7 @@ int ShpLoaderGenerateShapeRow(SHPDUMPERSTATE *state)
 			obj = SHPCreateSimpleObject(SHPT_NULL, 0, NULL, NULL, NULL);
 			if (SHPWriteObject(state->shp, -1, obj) == -1)
 			{
-				snprintf(state->message, SHPDUMPERMSGLEN, _("Error writing NULL shape for record %d"), state->currow);
+				snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Error writing NULL shape for record %d"), state->currow);
 				PQclear(state->fetchres);
 				SHPDestroyObject(obj);
 				return SHPDUMPERERR;
@@ -2076,7 +2076,7 @@ int ShpLoaderGenerateShapeRow(SHPDUMPERSTATE *state)
 					/* Input is already hexewkb string, so we can just
 					copy directly to hexewkb */
 					hexewkb_len = PQgetlength(state->fetchres, state->curresrow, geocolnum);
-					hexewkb = malloc(hexewkb_len + 1);
+					hexewkb = (char*)malloc(hexewkb_len + 1);
 					strncpy(hexewkb, val, hexewkb_len + 1);
 				}
 			}
@@ -2095,7 +2095,7 @@ int ShpLoaderGenerateShapeRow(SHPDUMPERSTATE *state)
 			lwgeom = lwgeom_from_hexwkb(hexewkb, LW_PARSER_CHECK_NONE);
 			if (!lwgeom)
 			{
-				snprintf(state->message, SHPDUMPERMSGLEN, _("Error parsing HEXEWKB for record %d"), state->currow);
+				snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Error parsing HEXEWKB for record %d"), state->currow);
 				PQclear(state->fetchres);
 				free(hexewkb);
 				return SHPDUMPERERR;
@@ -2138,7 +2138,7 @@ int ShpLoaderGenerateShapeRow(SHPDUMPERSTATE *state)
 				break;
 
 			default:
-				snprintf(state->message, SHPDUMPERMSGLEN, _("Unknown WKB type (%d) for record %d"), lwgeom->type, state->currow);
+				snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Unknown WKB type (%d) for record %d"), lwgeom->type, state->currow);
 				PQclear(state->fetchres);
 				SHPDestroyObject(obj);
 				return SHPDUMPERERR;
@@ -2150,7 +2150,7 @@ int ShpLoaderGenerateShapeRow(SHPDUMPERSTATE *state)
 			/* Write the shape out to the file */
 			if (SHPWriteObject(state->shp, -1, obj) == -1)
 			{
-				snprintf(state->message, SHPDUMPERMSGLEN, _("Error writing shape %d"), state->currow);
+				snprintf(state->message, SHPDUMPERMSGLEN, _NLS("Error writing shape %d"), state->currow);
 				PQclear(state->fetchres);
 				SHPDestroyObject(obj);
 				return SHPDUMPERERR;
@@ -2259,7 +2259,7 @@ ShpDumperDestroy(SHPDUMPERSTATE *state)
 char *
 quote_identifier(const char *s)
 {
-	char	   *result = malloc(strlen(s) * 2 + 3);
+	char	   *result = (char*)malloc(strlen(s) * 2 + 3);
 	char	   *r = result;
 
 	*r++ = '"';

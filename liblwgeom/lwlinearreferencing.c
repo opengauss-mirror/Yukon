@@ -321,7 +321,7 @@ point_interpolate(const POINT4D *p1,
 		  char ordinate,
 		  double interpolation_value)
 {
-	static char *dims = "XYZM";
+	static const char *dims = "XYZM";
 	double p1_value = lwpoint_get_ordinate(p1, ordinate);
 	double p2_value = lwpoint_get_ordinate(p2, ordinate);
 	double proportion;
@@ -451,7 +451,7 @@ ptarray_clamp_to_ordinate_range(const POINTARRAY *ipa, char ordinate, double fro
 
 	assert(from <= to);
 
-	t = lwalloc(sizeof(POINT4D));
+	t = (POINT4D*)lwalloc(sizeof(POINT4D));
 
 	/* Initial storage */
 	opa = ptarray_construct_empty(hasz, hasm, ipa->npoints);
@@ -563,9 +563,9 @@ lwline_clip_to_ordinate_range(const LWLINE *line, char ordinate, double from, do
 	}
 
 	/* Prepare our working point objects. */
-	p = lwalloc(sizeof(POINT4D));
-	q = lwalloc(sizeof(POINT4D));
-	r = lwalloc(sizeof(POINT4D));
+	p = (POINT4D*)lwalloc(sizeof(POINT4D));
+	q = (POINT4D*)lwalloc(sizeof(POINT4D));
+	r = (POINT4D*)lwalloc(sizeof(POINT4D));
 
 	/* Construct a collection to hold our outputs. */
 	lwgeom_out = lwcollection_construct_empty(MULTILINETYPE, line->srid, hasz, hasm);
@@ -1205,7 +1205,7 @@ lwgeom_tcpa(const LWGEOM *g1, const LWGEOM *g2, double *mindist)
 	 * Collect M values in common time range from inputs
 	 */
 
-	mvals = lwalloc(sizeof(double) * (l1->points->npoints + l2->points->npoints));
+	mvals = (double*)lwalloc(sizeof(double) * (l1->points->npoints + l2->points->npoints));
 
 	/* TODO: also clip the lines ? */
 	nmvals = ptarray_collect_mvals(l1->points, tmin, tmax, mvals);
@@ -1371,7 +1371,7 @@ lwgeom_cpa_within(const LWGEOM *g1, const LWGEOM *g2, double maxdist)
 	 * Collect M values in common time range from inputs
 	 */
 
-	mvals = lwalloc(sizeof(double) * (l1->points->npoints + l2->points->npoints));
+	mvals = (double*)lwalloc(sizeof(double) * (l1->points->npoints + l2->points->npoints));
 
 	/* TODO: also clip the lines ? */
 	nmvals = ptarray_collect_mvals(l1->points, tmin, tmax, mvals);

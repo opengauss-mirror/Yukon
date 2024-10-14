@@ -73,7 +73,7 @@ rt_band_new_inline(
 		rterror("rt_band_new_inline: data cannot be NULL.");
 	}
 
-	band = rtalloc(sizeof(struct rt_band_t));
+	band = (rt_band)rtalloc(sizeof(struct rt_band_t));
 	if (band == NULL) {
 		rterror("rt_band_new_inline: Out of memory allocating rt_band");
 		return NULL;
@@ -138,7 +138,7 @@ rt_band_new_offline(
 		rterror("rt_band_new_offline: path cannot be NULL.");
 	}
 
-	band = rtalloc(sizeof(struct rt_band_t));
+	band = (rt_band)rtalloc(sizeof(struct rt_band_t));
 	if (band == NULL) {
 		rterror("rt_band_new_offline: Out of memory allocating rt_band");
 		return NULL;
@@ -169,7 +169,7 @@ rt_band_new_offline(
 
 	/* memory for data.offline.path is managed internally */
 	pathlen = strlen(path);
-	band->data.offline.path = rtalloc(sizeof(char) * (pathlen + 1));
+	band->data.offline.path = (char*)rtalloc(sizeof(char) * (pathlen + 1));
 	if (band->data.offline.path == NULL) {
 		rterror("rt_band_new_offline: Out of memory allocating offline path");
 		rt_band_destroy(band);
@@ -310,7 +310,7 @@ rt_band_duplicate(rt_band band) {
 	/* online */
 	else {
 		uint8_t *data = NULL;
-		data = rtalloc(rt_pixtype_size(band->pixtype) * band->width * band->height);
+		data = (uint8_t*)rtalloc(rt_pixtype_size(band->pixtype) * band->width * band->height);
 		if (data == NULL) {
 			rterror("rt_band_duplicate: Out of memory allocating online band data");
 			return NULL;
@@ -953,7 +953,7 @@ rt_band_set_pixel_line(
 		return ES_ERROR;
 	}
 
-	data = rt_band_get_data(band);
+	data = (uint8_t*)rt_band_get_data(band);
 	offset = x + (y * band->width);
 	RASTER_DEBUGF(4, "offset = %d", offset);
 
@@ -1099,7 +1099,7 @@ rt_band_set_pixel(
 		}
 	}
 
-	data = rt_band_get_data(band);
+	data = (uint8_t*)rt_band_get_data(band);
 	offset = x + (y * band->width);
 
 	switch (pixtype) {
@@ -1248,7 +1248,7 @@ rt_errorstate rt_band_get_pixel_line(
 	if (len < 1)
 		return ES_NONE;
 
-	data = rt_band_get_data(band);
+	data = (uint8_t*)rt_band_get_data(band);
 	if (data == NULL) {
 		rterror("rt_band_get_pixel_line: Cannot get band data");
 		return ES_ERROR;
@@ -1273,7 +1273,7 @@ rt_errorstate rt_band_get_pixel_line(
 
 	ptr = data + (offset * pixsize);
 
-	_vals = rtalloc(_nvals * pixsize);
+	_vals = (uint8_t*)rtalloc(_nvals * pixsize);
 	if (_vals == NULL) {
 		rterror("rt_band_get_pixel_line: Could not allocate memory for pixel values");
 		return ES_ERROR;
@@ -1496,7 +1496,7 @@ rt_band_get_pixel(
 		return ES_NONE;
 	}
 
-	data = rt_band_get_data(band);
+	data = (uint8_t*)rt_band_get_data(band);
 	if (data == NULL) {
 		rterror("rt_band_get_pixel: Cannot get band data");
 		return ES_ERROR;

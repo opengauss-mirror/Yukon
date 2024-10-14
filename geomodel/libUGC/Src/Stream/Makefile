@@ -12,7 +12,7 @@ CFLAGS.aarch64 =
 
 
 CFLAGS = -I../../Include -Wall -DSYSTEM_WCHAR_SIZE=4 -D_UGUNICODE -D_UGQSTRING -D_UGLICENSE -fshort-wchar \
-		 -DSTATIC_LIBMONGOCLIENT -fstack-protector-all -fPIE -pie -fPIC -c  -fopenmp -std=c++11  \
+		 -DSTATIC_LIBMONGOCLIENT -fstack-protector-all -fPIE -pie -fPIC -c  -fopenmp -std=c++11 -fpermissive \
 		 -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -DNDEBUG -D_FORTIFY_SOURCE=2  $(CFLAGS.$(uname_m))
 
 LD_FLAGS += $(LD_FLAGS.$(uname_m)) 

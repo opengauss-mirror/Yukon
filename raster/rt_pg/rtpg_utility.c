@@ -63,7 +63,7 @@ Datum RASTER_lib_build_date(PG_FUNCTION_ARGS)
 {
     char *ver = POSTGIS_BUILD_DATE;
     text *result;
-    result = palloc(VARHDRSZ  + strlen(ver));
+    result = (text*)palloc(VARHDRSZ  + strlen(ver));
     SET_VARSIZE(result, VARHDRSZ + strlen(ver));
     memcpy(VARDATA(result), ver, strlen(ver));
     PG_RETURN_POINTER(result);
@@ -78,7 +78,7 @@ Datum RASTER_gdal_version(PG_FUNCTION_ARGS)
 	/* add indicator if GDAL isn't configured right */
 	if (!rt_util_gdal_configured()) {
 		char *rtn = NULL;
-		rtn = palloc(strlen(ver) + strlen(" GDAL_DATA not found") + 1);
+		rtn = (char*)palloc(strlen(ver) + strlen(" GDAL_DATA not found") + 1);
 		if (!rtn)
 			result = cstring_to_text(ver);
 		else {

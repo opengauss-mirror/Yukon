@@ -179,7 +179,7 @@ int rt_raster_gdal_contour(
 	if (nfeatures < 0)
 		return _rti_contour_arg_destroy(&arg);
 
-	*contours = rtalloc(sizeof(struct rt_contour_t) * nfeatures);
+	*contours = (rt_contour_t*)rtalloc(sizeof(struct rt_contour_t) * nfeatures);
 	OGR_L_ResetReading(arg.dst.lyr);
 	while ((hFeat = OGR_L_GetNextFeature(arg.dst.lyr))) {
 		size_t szWkb;
@@ -197,7 +197,7 @@ int rt_raster_gdal_contour(
 		/* Convert OGR geometry to LWGEOM via WKB */
 		if (!(hGeom = OGR_F_GetGeometryRef(hFeat))) continue;
 		szWkb = OGR_G_WkbSize(hGeom);
-		bufWkb = rtalloc(szWkb);
+		bufWkb = (unsigned char*)rtalloc(szWkb);
 		if (OGR_G_ExportToWkb(hGeom, wkbNDR, bufWkb) != OGRERR_NONE) continue;
 		/* Reclaim feature and associated geometry memory */
 		OGR_F_Destroy(hFeat);

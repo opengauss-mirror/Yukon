@@ -54,7 +54,7 @@ rt_band_from_wkb(
 		rterror("rt_band_from_wkb: end cannot be NULL.");
 	}
 
-	band = rtalloc(sizeof (struct rt_band_t));
+	band = (rt_band)rtalloc(sizeof (struct rt_band_t));
 	if (!band) {
 		rterror("rt_band_from_wkb: Out of memory allocating rt_band during WKB parsing");
 		return NULL;
@@ -75,7 +75,7 @@ rt_band_from_wkb(
 		return NULL;
 	}
 
-	band->pixtype = type & BANDTYPE_PIXTYPE_MASK;
+	band->pixtype = (rt_pixtype)(type & BANDTYPE_PIXTYPE_MASK);
 	band->offline = BANDTYPE_IS_OFFDB(type) ? 1 : 0;
 	band->hasnodata = BANDTYPE_HAS_NODATA(type) ? 1 : 0;
 	band->isnodata = band->hasnodata ? (BANDTYPE_IS_NODATA(type) ? 1 : 0) : 0;
@@ -178,7 +178,7 @@ rt_band_from_wkb(
 			/* we never own offline band data */
 			band->ownsdata = 0;
 
-			band->data.offline.path = rtalloc(sz + 1);
+			band->data.offline.path = (char*)rtalloc(sz + 1);
 			if (band->data.offline.path == NULL) {
 				rterror("rt_band_from_wkb: Out of memory allocating for offline path of band");
 				rt_band_destroy(band);
@@ -240,7 +240,7 @@ rt_band_from_wkb(
 				return NULL;
 			}
 
-			flipme = band->data.mem;
+			flipme = (uint8_t*)(band->data.mem);
 			sz = width * height;
 			for (v = 0; v < sz; ++v) {
 				flipper(flipme);
@@ -433,7 +433,7 @@ rt_raster_from_hexwkb(const char* hexwkb, uint32_t hexwkbsize) {
 	}
 	wkbsize = hexwkbsize / 2;
 
-	wkb = rtalloc(wkbsize);
+	wkb = (uint8_t*)rtalloc(wkbsize);
 	if (!wkb) {
 		rterror("rt_raster_from_hexwkb: Out of memory allocating memory for decoding HEXWKB");
 		return NULL;

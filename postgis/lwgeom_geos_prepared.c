@@ -204,7 +204,7 @@ mcxt_ptr_hasha(const void *key, Size keysize)
 {
 	uint32 hashval;
 
-	hashval = DatumGetUInt32(hash_any(key, keysize));
+	hashval = DatumGetUInt32(hash_any((const unsigned char*)key, keysize));
 
 	return hashval;
 }
@@ -229,7 +229,7 @@ AddPrepGeomHashEntry(PrepGeomHashEntry pghe)
 	PrepGeomHashEntry *he;
 
 	/* The hash key is the MemoryContext pointer */
-	key = (void *)&(pghe.context);
+	key = (void **)&(pghe.context);
 
 	he = (PrepGeomHashEntry *) hash_search(PrepGeomHash, key, HASH_ENTER, &found);
 	if (!found)
@@ -252,7 +252,7 @@ GetPrepGeomHashEntry(MemoryContext mcxt)
 	PrepGeomHashEntry *he;
 
 	/* The hash key is the MemoryContext pointer */
-	key = (void *)&mcxt;
+	key = (void **)&mcxt;
 
 	/* Return the projection object from the hash */
 	he = (PrepGeomHashEntry *) hash_search(PrepGeomHash, key, HASH_FIND, NULL);
@@ -268,7 +268,7 @@ DeletePrepGeomHashEntry(MemoryContext mcxt)
 	PrepGeomHashEntry *he;
 
 	/* The hash key is the MemoryContext pointer */
-	key = (void *)&mcxt;
+	key = (void **)&mcxt;
 
 	/* Delete the projection object from the hash */
 	he = (PrepGeomHashEntry *) hash_search(PrepGeomHash, key, HASH_REMOVE, NULL);
@@ -421,7 +421,7 @@ PrepGeomCacheCleaner(GeomCache *cache)
 static GeomCache*
 PrepGeomCacheAllocator()
 {
-	PrepGeomCache* prepcache = palloc(sizeof(PrepGeomCache));
+	PrepGeomCache* prepcache = (PrepGeomCache*)palloc(sizeof(PrepGeomCache));
 	memset(prepcache, 0, sizeof(PrepGeomCache));
 	prepcache->context_statement = CurrentMemoryContext;
 	prepcache->gcache.type = PREP_CACHE_ENTRY;

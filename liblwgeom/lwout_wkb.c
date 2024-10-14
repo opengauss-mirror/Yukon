@@ -35,7 +35,7 @@ static size_t lwgeom_to_wkb_size(const LWGEOM *geom, uint8_t variant);
 /*
 * Look-up table for hex writer
 */
-static char *hexchr = "0123456789ABCDEF";
+static const char *hexchr = "0123456789ABCDEF";
 
 char* hexbytes_from_bytes(const uint8_t *bytes, size_t size)
 {
@@ -46,7 +46,7 @@ char* hexbytes_from_bytes(const uint8_t *bytes, size_t size)
 		lwerror("hexbutes_from_bytes: invalid input");
 		return NULL;
 	}
-	hex = lwalloc(size * 2 + 1);
+	hex = (char*)lwalloc(size * 2 + 1);
 	hex[2*size] = '\0';
 	for( i = 0; i < size; i++ )
 	{

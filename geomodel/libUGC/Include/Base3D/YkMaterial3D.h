@@ -60,7 +60,7 @@ public:
 	YkTechnique* createTechnique(void);
 	/** Gets the indexed technique. */
 	YkTechnique* getTechnique(YkUshort index);
-	/** searches for the named technique.
+	/** searches for the named technique.**/
 	/** Retrieves the number of techniques. */
 	YkUint getNumTechniques(void) const;
 	/** Removes all the techniques in this Material. */

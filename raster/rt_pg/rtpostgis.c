@@ -129,11 +129,11 @@
  *   datum is copied for use.
  *****************************************************************************/
 
-// #include <postgres.h> /* for palloc */
-// #include <fmgr.h> /* for PG_MODULE_MAGIC */
-// #include "utils/guc.h"
-// #include "utils/memutils.h"
-#include "../../include/extension_dependency.h"
+#include <postgres.h> /* for palloc */
+#include <fmgr.h> /* for PG_MODULE_MAGIC */
+#include "utils/guc.h"
+#include "utils/memutils.h"
+//#include "../../include/extension_dependency.h"
 #include "../../postgis_config.h"
 #include "lwgeom_pg.h"
 
@@ -526,7 +526,7 @@ rtpg_assignHookGDALEnabledDrivers(const char *enabled_drivers, void *extra) {
 	rt_util_gdal_register_all(1);
 
 	enabled_drivers_array = rtpg_strsplit(enabled_drivers, " ", &enabled_drivers_count);
-	enabled_drivers_found = palloc(sizeof(bool) * enabled_drivers_count);
+	enabled_drivers_found = (bool*)palloc(sizeof(bool) * enabled_drivers_count);
 	memset(enabled_drivers_found, FALSE, sizeof(bool) * enabled_drivers_count);
 
 	/* scan for keywords DISABLE_ALL and ENABLE_ALL */
@@ -588,11 +588,11 @@ rtpg_assignHookGDALEnabledDrivers(const char *enabled_drivers, void *extra) {
 
 			/* driver not found, add to gdal_skip */
 			if (gdal_skip == NULL) {
-				gdal_skip = palloc(sizeof(char) * (strlen(drv_set[i].short_name) + 1));
+				gdal_skip = (char*)palloc(sizeof(char) * (strlen(drv_set[i].short_name) + 1));
 				gdal_skip[0] = '\0';
 			}
 			else {
-				gdal_skip = repalloc(
+				gdal_skip = (char*)repalloc(
 					gdal_skip,
 					sizeof(char) * (
 						strlen(gdal_skip) + 1 + strlen(drv_set[i].short_name) + 1
@@ -671,7 +671,7 @@ _PG_init_gdal(void) {
 	
 	env_postgis_gdal_enabled_drivers = getenv("POSTGIS_GDAL_ENABLED_DRIVERS");
 	if (env_postgis_gdal_enabled_drivers == NULL) {
-		boot_postgis_gdal_enabled_drivers = palloc(
+		boot_postgis_gdal_enabled_drivers = (char*)palloc(
 			sizeof(char) * (strlen(GDAL_DISABLE_ALL) + 1)
 		);
 		sprintf(boot_postgis_gdal_enabled_drivers, "%s", GDAL_ENABLE_ALL);
@@ -816,7 +816,7 @@ _PG_init_gdal(void) {
 	}
 
 	/* postgis.gdal_enabled_drivers is alway GDAL_ENABLE_ALL  */
-	gdal_enabled_drivers = palloc(sizeof(char) * (strlen(GDAL_ENABLE_ALL) + 1));
+	gdal_enabled_drivers = (char*)palloc(sizeof(char) * (strlen(GDAL_ENABLE_ALL) + 1));
 	sprintf(gdal_enabled_drivers, "%s", GDAL_ENABLE_ALL);
 	rtpg_assignHookGDALEnabledDrivers(gdal_enabled_drivers, extra);
 

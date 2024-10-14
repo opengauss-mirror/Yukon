@@ -12,11 +12,11 @@
 
 
 /* PostgreSQL headers */
-//#include "postgres.h"
+#include "postgres.h"
 //#include "fmgr.h"
 //#include "miscadmin.h"
 //#include "utils/memutils.h"
-//#include "executor/spi.h"
+#include "executor/spi.h"
 //#include "access/hash.h"
 //#include "utils/hsearch.h"
 
@@ -45,7 +45,8 @@
 #define PROJ_BACKEND_HASH_SIZE 256
 
 /* Global to hold the Proj object cache */
-PROJSRSCache *PROJ_CACHE = NULL;
+__thread PROJSRSCache *PROJ_CACHE = NULL;
+__thread MemoryContext PROJ_CONTEXT = NULL;
 
 
 /**
@@ -104,6 +105,9 @@ PROJSRSDestroyPortalCache(void *portalCache)
 	}
 }
 
+extern __thread PJ_CONTEXT *pj_ctx;
+
+
 static void
 #if POSTGIS_PGSQL_VERSION < 96
 PROJSRSCacheDelete(MemoryContext context)
@@ -117,8 +121,13 @@ PROJSRSCacheDelete(void *ptr)
 		PROJSRSDestroyPortalCache(PROJ_CACHE);
 		PROJ_CACHE = NULL;
 	}	
-}
+	if (pj_ctx)
+	{
+		proj_context_destroy(pj_ctx);
+		pj_ctx = NULL;
+	}	
 
+}
 
 static void
 PROJSRSCacheInit(MemoryContext context)
@@ -169,7 +178,7 @@ PROJSRSCacheCheck(MemoryContext context)
 	 */
 }
 #endif /* MEMORY_CONTEXT_CHECKING */
-
+#if 0
 /* Memory context definition must match the current version of PostgreSQL */
 static MemoryContextMethods PROJSRSCacheContextMethods =
 {
@@ -187,6 +196,8 @@ static MemoryContextMethods PROJSRSCacheContextMethods =
 #endif
 };
 
+#endif
+
 /**
 * Get the Proj cache entry from the global variable if one exists.
 * If it doesn't exist, make a new blank one and return it.
@@ -198,15 +209,20 @@ GetPROJSRSCache()
 	if (!cache)
 	{
 		/* Put proj cache in a child of the CacheContext */
-		MemoryContext context = AllocSetContextCreate(
-		    CacheMemoryContext,
-		    "Proj Context",
-		    ALLOCSET_SMALL_MINSIZE,
-        	ALLOCSET_SMALL_INITSIZE,
-        	ALLOCSET_SMALL_MAXSIZE);
+		MemoryContext context = PROJ_CONTEXT;
+		if(!context)
+		{
+			PROJ_CONTEXT = AllocSetContextCreate(
+				g_instance.instance_context,
+				"Proj Context",
+				ALLOCSET_SMALL_MINSIZE,
+				ALLOCSET_SMALL_INITSIZE,
+				ALLOCSET_SMALL_MAXSIZE);
+			context = PROJ_CONTEXT;
+		}
 
 		/* Allocate in the upper context */
-		cache = MemoryContextAllocZero(context, sizeof(PROJSRSCache));
+		cache = (PROJSRSCache*)MemoryContextAllocZero(context, sizeof(PROJSRSCache));
 		context->methods->delete_context = PROJSRSCacheDelete;
 
 		if (!cache)
@@ -256,7 +272,7 @@ SPI_pstrdup(const char* str)
 	char* ostr = NULL;
 	if (str)
 	{
-		ostr = SPI_palloc(strlen(str)+1);
+		ostr = (char*)SPI_palloc(strlen(str)+1);
 		strcpy(ostr, str);
 	}
 	return ostr;
@@ -277,7 +293,7 @@ GetProjStringsSPI(int32_t srid)
 		elog(ERROR, "Could not connect to database using SPI");
 	}
 
-	static char *proj_str_tmpl =
+	static const char *proj_str_tmpl =
 	    "SELECT proj4text, auth_name, auth_srid, srtext "
 	    "FROM %s "
 	    "WHERE srid = %d "
@@ -352,7 +368,7 @@ GetProjStrings(int32_t srid)
 	/* Automagic SRIDs */
 	else
 	{
-		strs.proj4text = palloc(maxprojlen);
+		strs.proj4text = (char*)palloc(maxprojlen);
 		int id = srid;
 		/* UTM North */
 		if ( id >= SRID_NORTH_UTM_START && id <= SRID_NORTH_UTM_END )
@@ -507,7 +523,7 @@ AddToPROJSRSCache(PROJSRSCache *PROJCache, int32_t srid_from, int32_t srid_to)
 	if (!pjstrs_has_entry(&to_strs))
 		elog(ERROR, "got NULL for SRID (%d)", srid_to);
 
-	oldContext = MemoryContextSwitchTo(CacheMemoryContext);
+	oldContext = MemoryContextSwitchTo(PROJ_CONTEXT);
 
 #if POSTGIS_PROJ_VERSION < 61
 	PJ *projection = palloc(sizeof(PJ));

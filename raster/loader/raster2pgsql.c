@@ -99,7 +99,7 @@ array_range(int min, int max, int step, int **range, uint32_t *len) {
 
 	step = abs(step);
 	*len = (uint32_t) ((abs(max - min) + 1 + (step / 2)) / step);
-	*range = rtalloc(sizeof(int) * *len);
+	*range = (int*)rtalloc(sizeof(int) * *len);
 
 	if (min < max) {
 		for (i = min, j = 0; i <= max; i += step, j++)
@@ -207,7 +207,7 @@ strsplit(const char *str, const char *delimiter, uint32_t *n) {
 		return NULL;
 
 	/* copy str to tmp as strtok will mangle the string */
-	tmp = rtalloc(sizeof(char) * (strlen(str) + 1));
+	tmp = (char*)rtalloc(sizeof(char) * (strlen(str) + 1));
 	if (NULL == tmp) {
 		rterror(_("strsplit: Not enough memory"));
 		return NULL;
@@ -283,7 +283,7 @@ trim(const char *input) {
 		offset++;
 
 	len = strlen(input) - offset + 1;
-	rtn = rtalloc(sizeof(char) * len);
+	rtn = (char*)rtalloc(sizeof(char) * len);
 	if (NULL == rtn) {
 		rterror(_("trim: Not enough memory"));
 		return NULL;
@@ -315,7 +315,7 @@ chartrim(const char *input, char *remove) {
 		offset++;
 
 	len = strlen(input) - offset + 1;
-	rtn = rtalloc(sizeof(char) * len);
+	rtn = (char*)rtalloc(sizeof(char) * len);
 	if (NULL == rtn) {
 		rterror(_("chartrim: Not enough memory"));
 		return NULL;
@@ -519,7 +519,7 @@ rtdealloc_rastinfo(RASTERINFO *info) {
 static int
 copy_rastinfo(RASTERINFO *dst, RASTERINFO *src) {
 	if (src->srs != NULL) {
-		dst->srs = rtalloc(sizeof(char) * (strlen(src->srs) + 1));
+		dst->srs = (char*)rtalloc(sizeof(char) * (strlen(src->srs) + 1));
 		if (dst->srs == NULL) {
 			rterror(_("copy_rastinfo: Not enough memory"));
 			return 0;
@@ -529,7 +529,7 @@ copy_rastinfo(RASTERINFO *dst, RASTERINFO *src) {
 	memcpy(dst->dim, src->dim, sizeof(uint32_t) * 2);
 	dst->nband_count = src->nband_count;
 	if (src->nband_count && src->nband != NULL) {
-		dst->nband = rtalloc(sizeof(int) * src->nband_count);
+		dst->nband = (int*)rtalloc(sizeof(int) * src->nband_count);
 		if (dst->nband == NULL) {
 			rterror(_("copy_rastinfo: Not enough memory"));
 			return 0;
@@ -537,7 +537,7 @@ copy_rastinfo(RASTERINFO *dst, RASTERINFO *src) {
 		memcpy(dst->nband, src->nband, sizeof(int) * src->nband_count);
 	}
 	if (src->gdalbandtype != NULL) {
-		dst->gdalbandtype = rtalloc(sizeof(GDALDataType) * src->nband_count);
+		dst->gdalbandtype = (GDALDataType*)rtalloc(sizeof(GDALDataType) * src->nband_count);
 		if (dst->gdalbandtype == NULL) {
 			rterror(_("copy_rastinfo: Not enough memory"));
 			return 0;
@@ -545,7 +545,7 @@ copy_rastinfo(RASTERINFO *dst, RASTERINFO *src) {
 		memcpy(dst->gdalbandtype, src->gdalbandtype, sizeof(GDALDataType) * src->nband_count);
 	}
 	if (src->bandtype != NULL) {
-		dst->bandtype = rtalloc(sizeof(rt_pixtype) * src->nband_count);
+		dst->bandtype = (rt_pixtype*)rtalloc(sizeof(rt_pixtype) * src->nband_count);
 		if (dst->bandtype == NULL) {
 			rterror(_("copy_rastinfo: Not enough memory"));
 			return 0;
@@ -553,7 +553,7 @@ copy_rastinfo(RASTERINFO *dst, RASTERINFO *src) {
 		memcpy(dst->bandtype, src->bandtype, sizeof(rt_pixtype) * src->nband_count);
 	}
 	if (src->hasnodata != NULL) {
-		dst->hasnodata = rtalloc(sizeof(int) * src->nband_count);
+		dst->hasnodata = (int*)rtalloc(sizeof(int) * src->nband_count);
 		if (dst->hasnodata == NULL) {
 			rterror(_("copy_rastinfo: Not enough memory"));
 			return 0;
@@ -561,7 +561,7 @@ copy_rastinfo(RASTERINFO *dst, RASTERINFO *src) {
 		memcpy(dst->hasnodata, src->hasnodata, sizeof(int) * src->nband_count);
 	}
 	if (src->nodataval != NULL) {
-		dst->nodataval = rtalloc(sizeof(double) * src->nband_count);
+		dst->nodataval = (double*)rtalloc(sizeof(double) * src->nband_count);
 		if (dst->nodataval == NULL) {
 			rterror(_("copy_rastinfo: Not enough memory"));
 			return 0;
@@ -785,7 +785,7 @@ static int
 append_stringbuffer(STRINGBUFFER *buffer, const char *str) {
 	buffer->length++;
 
-	buffer->line = rtrealloc(buffer->line, sizeof(char *) * buffer->length);
+	buffer->line = (char**)rtrealloc(buffer->line, sizeof(char *) * buffer->length);
 	if (buffer->line == NULL) {
 		rterror(_("append_stringbuffer: Could not allocate memory for appending string to buffer"));
 		return 0;
@@ -823,7 +823,7 @@ copy_from(const char *schema, const char *table, const char *column,
 	if (filename != NULL)
 		len += strlen(",") + strlen(file_column_name);
 
-	sql = rtalloc(sizeof(char) * len);
+	sql = (char*)rtalloc(sizeof(char) * len);
 	if (sql == NULL) {
 		rterror(_("copy_from: Could not allocate memory for COPY statement"));
 		return 0;
@@ -890,7 +890,7 @@ insert_records(
 			if (filename != NULL)
 				len += strlen(fn) + 1;
 
-			sql = rtalloc(sizeof(char) * len);
+			sql = (char*)rtalloc(sizeof(char) * len);
 			if (sql == NULL) {
 				rterror(_("insert_records: Could not allocate memory for COPY statement"));
 				return 0;
@@ -933,7 +933,7 @@ insert_records(
 			if (filename != NULL)
 				sqllen += strlen(",''") + strlen(fn);
 
-			sql = rtalloc(sizeof(char) * sqllen);
+			sql = (char*)rtalloc(sizeof(char) * sqllen);
 			if (sql == NULL) {
 				rterror(_("insert_records: Could not allocate memory for INSERT statement"));
 				return 0;
@@ -979,7 +979,7 @@ drop_table(const char *schema, const char *table, STRINGBUFFER *buffer) {
 		len += strlen(schema);
 	len += strlen(table);
 
-	sql = rtalloc(sizeof(char) * len);
+	sql = (char*)rtalloc(sizeof(char) * len);
 	if (sql == NULL) {
 		rterror(_("drop_table: Could not allocate memory for DROP TABLE statement"));
 		return 0;
@@ -1019,7 +1019,7 @@ create_table(
 	if (idx_tablespace != NULL)
 		len += strlen(" USING INDEX TABLESPACE ") + strlen(idx_tablespace);
 
-	sql = rtalloc(sizeof(char) * len);
+	sql = (char*)rtalloc(sizeof(char) * len);
 	if (sql == NULL) {
 		rterror(_("create_table: Could not allocate memory for CREATE TABLE statement"));
 		return 0;
@@ -1070,7 +1070,7 @@ create_index(
 	if (tablespace != NULL)
 		len += strlen(" TABLESPACE ") + strlen(tablespace);
 
-	sql = rtalloc(sizeof(char) * len);
+	sql = (char*)rtalloc(sizeof(char) * len);
 	if (sql == NULL) {
 		rterror(_("create_index: Could not allocate memory for CREATE INDEX statement"));
 		rtdealloc(_table);
@@ -1107,7 +1107,7 @@ analyze_table(
 		len += strlen(schema);
 	len += strlen(table);
 
-	sql = rtalloc(sizeof(char) * len);
+	sql = (char*)rtalloc(sizeof(char) * len);
 	if (sql == NULL) {
 		rterror(_("analyze_table: Could not allocate memory for ANALYZE TABLE statement"));
 		return 0;
@@ -1137,7 +1137,7 @@ vacuum_table(
 		len += strlen(schema);
 	len += strlen(table);
 
-	sql = rtalloc(sizeof(char) * len);
+	sql = (char*)rtalloc(sizeof(char) * len);
 	if (sql == NULL) {
 		rterror(_("vacuum_table: Could not allocate memory for VACUUM statement"));
 		return 0;
@@ -1195,7 +1195,7 @@ add_raster_constraints(
 	len += strlen(_table);
 	len += strlen(_column);
 
-	sql = rtalloc(sizeof(char) * len);
+	sql = (char*)rtalloc(sizeof(char) * len);
 	if (sql == NULL) {
 		rterror(_("add_raster_constraints: Could not allocate memory for AddRasterConstraints statement"));
 		return 0;
@@ -1282,7 +1282,7 @@ add_overview_constraints(
 	/* column */
 	_tmp = chartrim(column, "\"");
 	_column = strreplace(_tmp, "'", "''", NULL);
-	rtdealloc(_tmp);
+	rtdealloc((void*)_tmp);
 
 	len = strlen("SELECT AddOverviewConstraints('','','','','','',);") + 5;
 	if (_ovschema != NULL)
@@ -1294,7 +1294,7 @@ add_overview_constraints(
 	len += strlen(_table);
 	len += strlen(_column);
 
-	sql = rtalloc(sizeof(char) * len);
+	sql = (char*)rtalloc(sizeof(char) * len);
 	if (sql == NULL) {
 		rterror(_("add_overview_constraints: Could not allocate memory for AddOverviewConstraints statement"));
 		return 0;
@@ -1586,7 +1586,7 @@ convert_raster(int idx, RTLOADERCFG *config, RASTERINFO *info, STRINGBUFFER *til
 	/* record srs */
 	pszProjectionRef = GDALGetProjectionRef(hdsSrc);
 	if (pszProjectionRef != NULL && pszProjectionRef[0] != '\0') {
-		info->srs = rtalloc(sizeof(char) * (strlen(pszProjectionRef) + 1));
+		info->srs = (char*)rtalloc(sizeof(char) * (strlen(pszProjectionRef) + 1));
 		if (info->srs == NULL) {
 			rterror(_("convert_raster: Could not allocate memory for storing SRS"));
 			GDALClose(hdsSrc);
@@ -1633,7 +1633,7 @@ convert_raster(int idx, RTLOADERCFG *config, RASTERINFO *info, STRINGBUFFER *til
 	/* user-specified bands */
 	if (config->nband_count > 0) {
 		info->nband_count = config->nband_count;
-		info->nband = rtalloc(sizeof(int) * info->nband_count);
+		info->nband = (int*)rtalloc(sizeof(int) * info->nband_count);
 		if (info->nband == NULL) {
 			rterror(_("convert_raster: Could not allocate memory for storing band indices"));
 			GDALClose(hdsSrc);
@@ -1644,7 +1644,7 @@ convert_raster(int idx, RTLOADERCFG *config, RASTERINFO *info, STRINGBUFFER *til
 	/* all bands */
 	else {
 		info->nband_count = nband;
-		info->nband = rtalloc(sizeof(int) * info->nband_count);
+		info->nband = (int*)rtalloc(sizeof(int) * info->nband_count);
 		if (info->nband == NULL) {
 			rterror(_("convert_raster: Could not allocate memory for storing band indices"));
 			GDALClose(hdsSrc);
@@ -1655,25 +1655,25 @@ convert_raster(int idx, RTLOADERCFG *config, RASTERINFO *info, STRINGBUFFER *til
 	}
 
 	/* initialize parameters dependent on nband */
-	info->gdalbandtype = rtalloc(sizeof(GDALDataType) * info->nband_count);
+	info->gdalbandtype = (GDALDataType*)rtalloc(sizeof(GDALDataType) * info->nband_count);
 	if (info->gdalbandtype == NULL) {
 		rterror(_("convert_raster: Could not allocate memory for storing GDAL data type"));
 		GDALClose(hdsSrc);
 		return 0;
 	}
-	info->bandtype = rtalloc(sizeof(rt_pixtype) * info->nband_count);
+	info->bandtype = (rt_pixtype*)rtalloc(sizeof(rt_pixtype) * info->nband_count);
 	if (info->bandtype == NULL) {
 		rterror(_("convert_raster: Could not allocate memory for storing pixel type"));
 		GDALClose(hdsSrc);
 		return 0;
 	}
-	info->hasnodata = rtalloc(sizeof(int) * info->nband_count);
+	info->hasnodata = (int*)rtalloc(sizeof(int) * info->nband_count);
 	if (info->hasnodata == NULL) {
 		rterror(_("convert_raster: Could not allocate memory for storing hasnodata flag"));
 		GDALClose(hdsSrc);
 		return 0;
 	}
-	info->nodataval = rtalloc(sizeof(double) * info->nband_count);
+	info->nodataval = (double*)rtalloc(sizeof(double) * info->nband_count);
 	if (info->nodataval == NULL) {
 		rterror(_("convert_raster: Could not allocate memory for storing nodata value"));
 		GDALClose(hdsSrc);
@@ -2285,7 +2285,7 @@ main(int argc, char **argv) {
 	}
 
 	/* initialize config */
-	config = rtalloc(sizeof(RTLOADERCFG));
+	config = (RTLOADERCFG*)rtalloc(sizeof(RTLOADERCFG));
 	if (config == NULL) {
 		rterror(_("Could not allocate memory for loader configuration"));
 		exit(1);
@@ -2348,7 +2348,7 @@ main(int argc, char **argv) {
 				}
 				else {
 					p = 1;
-					range = rtalloc(sizeof(int));
+					range = (int*)rtalloc(sizeof(int));
 					if (range == NULL) {
 						rterror(_("Could not allocate memory for storing band indices"));
 						for (l = 0; l < o; l++)
@@ -2366,7 +2366,7 @@ main(int argc, char **argv) {
 
 				m = config->nband_count;
 				config->nband_count += p;
-				config->nband = rtrealloc(config->nband, sizeof(int) * config->nband_count);
+				config->nband = (int*)rtrealloc(config->nband, sizeof(int) * config->nband_count);
 				if (config->nband == NULL) {
 					rterror(_("Could not allocate memory for storing band indices"));
 					rtdealloc(range);
@@ -2465,7 +2465,7 @@ main(int argc, char **argv) {
 		/* raster column name */
 		else if (CSEQUAL(argv[argit], "-f") && argit < argc - 1) {
 			const size_t len = (strlen(argv[++argit]) + 1);
-			config->raster_column = rtalloc(sizeof(char) * len);
+			config->raster_column = (char*)rtalloc(sizeof(char) * len);
 			if (config->raster_column == NULL) {
 				rterror(_("Could not allocate memory for storing raster column name"));
 				rtdealloc_config(config);
@@ -2480,7 +2480,7 @@ main(int argc, char **argv) {
 		/* filename column name */
 		else if (CSEQUAL(argv[argit], "-n") && argit < argc - 1) {
 			const size_t len = (strlen(argv[++argit]) + 1);
-			config->file_column_name = rtalloc(sizeof(char) * len);
+			config->file_column_name = (char*)rtalloc(sizeof(char) * len);
 			if (config->file_column_name == NULL) {
 				rterror(_("Could not allocate memory for storing filename column name"));
 				rtdealloc_config(config);
@@ -2499,7 +2499,7 @@ main(int argc, char **argv) {
 			}
 
 			config->overview_count = n;
-			config->overview = rtalloc(sizeof(int) * n);
+			config->overview = (int*)rtalloc(sizeof(int) * n);
 			if (config->overview == NULL) {
 				rterror(_("Could not allocate memory for storing overview factors"));
 				rtdealloc_config(config);
@@ -2550,7 +2550,7 @@ main(int argc, char **argv) {
 		/* tablespace of new table */
 		else if (CSEQUAL(argv[argit], "-T") && argit < argc - 1) {
 			const size_t len = (strlen(argv[++argit]) + 1);
-			config->tablespace = rtalloc(len);
+			config->tablespace = (char*)rtalloc(len);
 			if (config->tablespace == NULL) {
 				rterror(_("Could not allocate memory for storing tablespace of new table"));
 				rtdealloc_config(config);
@@ -2561,7 +2561,7 @@ main(int argc, char **argv) {
 		/* tablespace of new index */
 		else if (CSEQUAL(argv[argit], "-X") && argit < argc - 1) {
 			const size_t len = (strlen(argv[++argit]) + 1);
-			config->idx_tablespace = rtalloc(len);
+			config->idx_tablespace = (char*)rtalloc(len);
 			if (config->idx_tablespace == NULL) {
 				rterror(_("Could not allocate memory for storing tablespace of new indices"));
 				rtdealloc_config(config);
@@ -2635,7 +2635,7 @@ main(int argc, char **argv) {
 			}
 
 			len = strlen(argv[argit]) + 1;
-			config->rt_file[config->rt_file_count - 1] = rtalloc(sizeof(char) * len);
+			config->rt_file[config->rt_file_count - 1] = (char*)rtalloc(sizeof(char) * len);
 			if (config->rt_file[config->rt_file_count - 1] == NULL) {
 				rterror(_("Could not allocate memory for storing raster filename"));
 				rtdealloc_config(config);
@@ -2674,7 +2674,7 @@ main(int argc, char **argv) {
 
 			/* schema.table */
 			if (ptr) {
-				config->schema = rtalloc(sizeof(char) * (ptr - config->rt_file[config->rt_file_count - 1] + 1));
+				config->schema = (char*)rtalloc(sizeof(char) * (ptr - config->rt_file[config->rt_file_count - 1] + 1));
 				if (config->schema == NULL) {
 					rterror(_("Could not allocate memory for storing schema name"));
 					rtdealloc_config(config);
@@ -2683,7 +2683,7 @@ main(int argc, char **argv) {
 				snprintf(config->schema, ptr - config->rt_file[config->rt_file_count - 1] + 1, "%s", config->rt_file[config->rt_file_count - 1]);
 				config->schema[ptr - config->rt_file[config->rt_file_count - 1]] = '\0';
 
-				config->table = rtalloc(sizeof(char) * (strlen(config->rt_file[config->rt_file_count - 1]) - strlen(config->schema) + 1));
+				config->table = (char*)rtalloc(sizeof(char) * (strlen(config->rt_file[config->rt_file_count - 1]) - strlen(config->schema) + 1));
 				if (config->table == NULL) {
 					rterror(_("Could not allocate memory for storing table name"));
 					rtdealloc_config(config);
@@ -2695,7 +2695,7 @@ main(int argc, char **argv) {
 			/* table */
 			else {
 				const size_t len = strlen(config->rt_file[config->rt_file_count - 1]) + 1;
-				config->table = rtalloc(sizeof(char) * len);
+				config->table = (char*)rtalloc(sizeof(char) * len);
 				if (config->table == NULL) {
 					rterror(_("Could not allocate memory for storing table name"));
 					rtdealloc_config(config);
@@ -2740,7 +2740,7 @@ main(int argc, char **argv) {
 		char *file;
 		char *ptr;
 
-		file = rtalloc(sizeof(char) * (strlen(config->rt_file[i]) + 1));
+		file = (char*)rtalloc(sizeof(char) * (strlen(config->rt_file[i]) + 1));
 		if (file == NULL) {
 			rterror(_("Could not allocate memory for cleaned raster filename"));
 			rtdealloc_config(config);
@@ -2755,7 +2755,7 @@ main(int argc, char **argv) {
 			}
 		}
 
-		config->rt_filename[i] = rtalloc(sizeof(char) * (strlen(ptr) + 1));
+		config->rt_filename[i] = (char*)rtalloc(sizeof(char) * (strlen(ptr) + 1));
 		if (config->rt_filename[i] == NULL) {
 			rterror(_("Could not allocate memory for cleaned raster filename"));
 			rtdealloc_config(config);
@@ -2774,7 +2774,7 @@ main(int argc, char **argv) {
 		char *file;
 		char *ptr;
 
-		file = rtalloc(sizeof(char) * (strlen(config->rt_filename[0]) + 1));
+		file = (char*)rtalloc(sizeof(char) * (strlen(config->rt_filename[0]) + 1));
 		if (file == NULL) {
 			rterror(_("Could not allocate memory for proxy table name"));
 			rtdealloc_config(config);
@@ -2789,7 +2789,7 @@ main(int argc, char **argv) {
 			}
 		}
 
-		config->table = rtalloc(sizeof(char) * (strlen(file) + 1));
+		config->table = (char*)rtalloc(sizeof(char) * (strlen(file) + 1));
 		if (config->table == NULL) {
 			rterror(_("Could not allocate memory for proxy table name"));
 			rtdealloc_config(config);
@@ -2801,7 +2801,7 @@ main(int argc, char **argv) {
 
 	/* raster_column not specified, default to "rast" */
 	if (config->raster_column == NULL) {
-		config->raster_column = rtalloc(sizeof(char) * (strlen("rast") + 1));
+		config->raster_column = (char*)rtalloc(sizeof(char) * (strlen("rast") + 1));
 		if (config->raster_column == NULL) {
 			rterror(_("Could not allocate memory for default raster column name"));
 			rtdealloc_config(config);
@@ -2812,7 +2812,7 @@ main(int argc, char **argv) {
 
 	/* file_column_name not specified, default to "filename" */
 	if (config->file_column_name == NULL) {
-		config->file_column_name = rtalloc(sizeof(char) * (strlen("filename") + 1));
+		config->file_column_name = (char*)rtalloc(sizeof(char) * (strlen("filename") + 1));
 		if (config->file_column_name == NULL) {
 			rterror(_("Could not allocate memory for default filename column name"));
 			rtdealloc_config(config);
@@ -2847,7 +2847,7 @@ main(int argc, char **argv) {
 
 	if (config->overview_count) {
 		char factor[4];
-		config->overview_table = rtalloc(sizeof(char *) * config->overview_count);
+		config->overview_table = (char**)rtalloc(sizeof(char *) * config->overview_count);
 		if (config->overview_table == NULL) {
 			rterror(_("Could not allocate memory for overview table names"));
 			rtdealloc_config(config);
@@ -2857,7 +2857,7 @@ main(int argc, char **argv) {
 		for (i = 0; i < config->overview_count; i++) {
 			sprintf(factor, "%d", config->overview[i]);
 
-			config->overview_table[i] = rtalloc(sizeof(char) * (strlen("o__") + strlen(factor) + strlen(config->table) + 1));
+			config->overview_table[i] = (char*)rtalloc(sizeof(char) * (strlen("o__") + strlen(factor) + strlen(config->table) + 1));
 			if (config->overview_table[i] == NULL) {
 				rterror(_("Could not allocate memory for overview table name"));
 				rtdealloc_config(config);
@@ -2923,7 +2923,7 @@ main(int argc, char **argv) {
 	****************************************************************************/
 
 	if (config->schema != NULL) {
-		tmp = rtalloc(sizeof(char) * (strlen(config->schema) + 4));
+		tmp = (char*)rtalloc(sizeof(char) * (strlen(config->schema) + 4));
 		if (tmp == NULL) {
 			rterror(_("Could not allocate memory for quoting schema name"));
 			rtdealloc_config(config);
@@ -2935,7 +2935,7 @@ main(int argc, char **argv) {
 		config->schema = tmp;
 	}
 	if (config->table != NULL) {
-		tmp = rtalloc(sizeof(char) * (strlen(config->table) + 3));
+		tmp = (char*)rtalloc(sizeof(char) * (strlen(config->table) + 3));
 		if (tmp == NULL) {
 			rterror(_("Could not allocate memory for quoting table name"));
 			rtdealloc_config(config);
@@ -2947,7 +2947,7 @@ main(int argc, char **argv) {
 		config->table = tmp;
 	}
 	if (config->raster_column != NULL) {
-		tmp = rtalloc(sizeof(char) * (strlen(config->raster_column) + 3));
+		tmp = (char*)rtalloc(sizeof(char) * (strlen(config->raster_column) + 3));
 		if (tmp == NULL) {
 			rterror(_("Could not allocate memory for quoting raster column name"));
 			rtdealloc_config(config);
@@ -2959,7 +2959,7 @@ main(int argc, char **argv) {
 		config->raster_column = tmp;
 	}
 	if (config->file_column_name != NULL) {
-		tmp = rtalloc(sizeof(char) * (strlen(config->file_column_name) + 3));
+		tmp = (char*)rtalloc(sizeof(char) * (strlen(config->file_column_name) + 3));
 		if (tmp == NULL) {
 			rterror(_("Could not allocate memory for quoting raster column name"));
 			rtdealloc_config(config);
@@ -2971,7 +2971,7 @@ main(int argc, char **argv) {
 		config->file_column_name = tmp;
 	}
 	if (config->tablespace != NULL) {
-		tmp = rtalloc(sizeof(char) * (strlen(config->tablespace) + 3));
+		tmp = (char*)rtalloc(sizeof(char) * (strlen(config->tablespace) + 3));
 		if (tmp == NULL) {
 			rterror(_("Could not allocate memory for quoting tablespace name"));
 			rtdealloc_config(config);
@@ -2983,7 +2983,7 @@ main(int argc, char **argv) {
 		config->tablespace = tmp;
 	}
 	if (config->idx_tablespace != NULL) {
-		tmp = rtalloc(sizeof(char) * (strlen(config->idx_tablespace) + 3));
+		tmp = (char*)rtalloc(sizeof(char) * (strlen(config->idx_tablespace) + 3));
 		if (tmp == NULL) {
 			rterror(_("Could not allocate memory for quoting index tablespace name"));
 			rtdealloc_config(config);
@@ -2996,7 +2996,7 @@ main(int argc, char **argv) {
 	}
 	if (config->overview_count) {
 		for (i = 0; i < config->overview_count; i++) {
-			tmp = rtalloc(sizeof(char) * (strlen(config->overview_table[i]) + 3));
+			tmp = (char*)rtalloc(sizeof(char) * (strlen(config->overview_table[i]) + 3));
 			if (tmp == NULL) {
 				rterror(_("Could not allocate memory for quoting overview table name"));
 				rtdealloc_config(config);
@@ -3014,7 +3014,7 @@ main(int argc, char **argv) {
 	****************************************************************************/
 
 	/* initialize string buffer */
-	buffer = rtalloc(sizeof(STRINGBUFFER));
+	buffer = (STRINGBUFFER*)rtalloc(sizeof(STRINGBUFFER));
 	if (buffer == NULL) {
 		rterror(_("Could not allocate memory for output string buffer"));
 		rtdealloc_config(config);

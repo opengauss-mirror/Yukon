@@ -90,17 +90,17 @@ make_strtree(void** geoms, uint32_t num_geoms, char is_lwgeom)
 	{
 		return tree;
 	}
-	tree.geom_ids  = lwalloc(num_geoms * sizeof(uint32_t));
+	tree.geom_ids  = (uint32_t*)lwalloc(num_geoms * sizeof(uint32_t));
 	tree.num_geoms = num_geoms;
 
 	if (is_lwgeom)
 	{
 		uint32_t i;
-		tree.envelopes = lwalloc(num_geoms * sizeof(GEOSGeometry*));
+		tree.envelopes = (GEOSGeometry**)lwalloc(num_geoms * sizeof(GEOSGeometry*));
 		for (i = 0; i < num_geoms; i++)
 		{
 			tree.geom_ids[i] = i;
-			tree.envelopes[i] = geos_envelope_surrogate(geoms[i]);
+			tree.envelopes[i] = geos_envelope_surrogate((LWGEOM*)geoms[i]);
 			GEOSSTRtree_insert(tree.tree, tree.envelopes[i], &(tree.geom_ids[i]));
 		}
 	}
@@ -111,7 +111,7 @@ make_strtree(void** geoms, uint32_t num_geoms, char is_lwgeom)
 		for (i = 0; i < num_geoms; i++)
 		{
 			tree.geom_ids[i] = i;
-			GEOSSTRtree_insert(tree.tree, geoms[i], &(tree.geom_ids[i]));
+			GEOSSTRtree_insert(tree.tree, (GEOSGeometry*)geoms[i], &(tree.geom_ids[i]));
 		}
 	}
 
@@ -139,17 +139,17 @@ destroy_strtree(struct STRTree * tree)
 static void
 query_accumulate(void* item, void* userdata)
 {
-	struct QueryContext *cxt = userdata;
+	struct QueryContext *cxt = (QueryContext*)userdata;
 	if (!cxt->items_found)
 	{
 		cxt->items_found_size = 8;
-		cxt->items_found = lwalloc(cxt->items_found_size * sizeof(void*));
+		cxt->items_found = (void**)lwalloc(cxt->items_found_size * sizeof(void*));
 	}
 
 	if (cxt->num_items_found >= cxt->items_found_size)
 	{
 		cxt->items_found_size = 2 * cxt->items_found_size;
-		cxt->items_found = lwrealloc(cxt->items_found, cxt->items_found_size * sizeof(void*));
+		cxt->items_found = (void**)lwrealloc(cxt->items_found, cxt->items_found_size * sizeof(void*));
 	}
 	cxt->items_found[cxt->num_items_found++] = item;
 }
@@ -329,7 +329,7 @@ union_dbscan_minpoints_1(LWGEOM** geoms, uint32_t num_geoms, UNIONFIND* uf, doub
 
 	if (in_a_cluster_ret)
 	{
-		char* in_a_cluster = lwalloc(num_geoms * sizeof(char));
+		char* in_a_cluster = (char*)lwalloc(num_geoms * sizeof(char));
 		for (i = 0; i < num_geoms; i++)
 			in_a_cluster[i] = LW_TRUE;
 		*in_a_cluster_ret = in_a_cluster;
@@ -394,7 +394,7 @@ union_dbscan_general(LWGEOM** geoms, uint32_t num_geoms, UNIONFIND* uf, double e
 	char* in_a_cluster;
 	char* is_in_core;
 
-	in_a_cluster = lwalloc(num_geoms * sizeof(char));
+	in_a_cluster = (char*)lwalloc(num_geoms * sizeof(char));
 	memset(in_a_cluster, 0, num_geoms * sizeof(char));
 
 	if (in_a_cluster_ret)
@@ -415,9 +415,9 @@ union_dbscan_general(LWGEOM** geoms, uint32_t num_geoms, UNIONFIND* uf, double e
 		return LW_FAILURE;
 	}
 
-	is_in_core = lwalloc(num_geoms * sizeof(char));
+	is_in_core = (char*)lwalloc(num_geoms * sizeof(char));
 	memset(is_in_core, 0, num_geoms * sizeof(char));
-	neighbors = lwalloc(min_points * sizeof(uint32_t));
+	neighbors = (uint32_t*)lwalloc(min_points * sizeof(uint32_t));
 
 	for (p = 0; p < num_geoms; p++)
 	{
@@ -549,9 +549,9 @@ combine_geometries(UNIONFIND* uf, void** geoms, uint32_t num_geoms, void*** clus
 
 	/* Combine components of each cluster into their own GeometryCollection */
 	*num_clusters = uf->num_clusters;
-	*clusterGeoms = lwalloc(*num_clusters * sizeof(void*));
+	*clusterGeoms = (void**)lwalloc(*num_clusters * sizeof(void*));
 
-	void** geoms_in_cluster = lwalloc(num_geoms * sizeof(void*));
+	void** geoms_in_cluster = (void**)lwalloc(num_geoms * sizeof(void*));
 	uint32_t* ordered_components = UF_ordered_by_cluster(uf);
 	for (i = 0, j = 0, k = 0; i < num_geoms; i++)
 	{
@@ -568,7 +568,7 @@ combine_geometries(UNIONFIND* uf, void** geoms, uint32_t num_geoms, void*** clus
 
 			if (is_lwgeom)
 			{
-				LWGEOM** components = lwalloc(j * sizeof(LWGEOM*));
+				LWGEOM** components = (LWGEOM**)lwalloc(j * sizeof(LWGEOM*));
 				memcpy(components, geoms_in_cluster, j * sizeof(LWGEOM*));
 				(*clusterGeoms)[k++] = lwcollection_construct(COLLECTIONTYPE, components[0]->srid, NULL, j, (LWGEOM**) components);
 			}

@@ -169,7 +169,7 @@ public:
 	//! \brief 得到当前执行程序所在的路径
 	//! \remarks 当前执行程序的路径有可能不和Yk动态库目录一致, 
 	//!			 例如c:\tmp\a.exe 调用 d:\ugc\bin\ 中的 ugc动态库, 
-	//!			 GetAppPath() 返回c:\tmp\, GetModulePath("SuBase")返回d:\ugc\bin\
+	//!			 GetAppPath() 
 	//! \return 返回当前执行程序所在的路径
 	static YkString GetAppPath();
 

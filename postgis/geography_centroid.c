@@ -105,7 +105,7 @@ Datum geography_centroid(PG_FUNCTION_ARGS)
 
         /* average between all points */
         uint32_t size = mpoints->ngeoms;
-        POINT3DM* points = palloc(size*sizeof(POINT3DM));
+        POINT3DM* points = (POINT3DM*)palloc(size*sizeof(POINT3DM));
 
 		uint32_t i;
 		for (i = 0; i < size; i++) {
@@ -210,7 +210,7 @@ POINT3D* lonlat_to_cart(const double_t raw_lon, const double_t raw_lat)
     double_t lat, lon;
     double_t sin_lat;
 
-    POINT3D* point = lwalloc(sizeof(POINT3D));;
+    POINT3D* point = (POINT3D*)lwalloc(sizeof(POINT3D));;
 
     // prepare coordinate for trigonometric functions from [-90, 90] -> [0, pi]
     lat = (raw_lat + 90) / 180 * M_PI;
@@ -266,7 +266,7 @@ LWPOINT* geography_centroid_from_mline(const LWMLINE* mline, SPHEROID* s)
         size += (mline->geoms[i]->points->npoints - 1) * 2;
     }
 
-    points = palloc(size*sizeof(POINT3DM));
+    points = (POINT3DM*)palloc(size*sizeof(POINT3DM));
 
     for (i = 0; i < mline->ngeoms; i++) {
         LWLINE* line = mline->geoms[i];
@@ -327,7 +327,7 @@ LWPOINT* geography_centroid_from_mpoly(const LWMPOLY* mpoly, bool use_spheroid, 
 		}
     }
 
-    points = palloc(size*sizeof(POINT3DM));
+    points = (POINT3DM*)palloc(size*sizeof(POINT3DM));
 
 
     /* use first point as reference to create triangles */

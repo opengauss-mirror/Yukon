@@ -29,7 +29,7 @@
 // #include "access/itup.h"
 // #include "fmgr.h"
 // #include "utils/elog.h"
-// #include "utils/geo_decls.h"
+#include "utils/geo_decls.h"
 
 #include "../postgis_config.h"
 #include "lwgeom_pg.h"
@@ -116,7 +116,7 @@ Datum BOX2D_out(PG_FUNCTION_ARGS)
 	tmp[size++] = ')';
 	size += 1;
 
-	result = palloc(size + 1); /* +1= null term */
+	result = (char*)palloc(size + 1); /* +1= null term */
 	memcpy(result, tmp, size + 1);
 	result[size] = '\0';
 

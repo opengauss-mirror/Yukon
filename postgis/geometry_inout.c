@@ -270,7 +270,7 @@ Datum polygon_to_geometry(PG_FUNCTION_ARGS)
 		ptarray_append_point(pa, &pt, LW_FALSE);
 	}
 
-	ppa = palloc(sizeof(POINTARRAY*));
+	ppa = (POINTARRAY**)palloc(sizeof(POINTARRAY*));
 	ppa[0] = pa;
 	lwpoly = lwpoly_construct(SRID_UNKNOWN, NULL, 1, ppa);
 	geom = geometry_serialize(lwpoly_as_lwgeom(lwpoly));

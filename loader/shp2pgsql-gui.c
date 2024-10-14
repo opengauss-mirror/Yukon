@@ -282,7 +282,7 @@ pgui_raise_error_dialogue(void)
 	GtkWidget *dialog, *label;
 
 	label = gtk_label_new(pgui_errmsg);
-	dialog = gtk_dialog_new_with_buttons(_("Error"), GTK_WINDOW(window_main),
+	dialog = gtk_dialog_new_with_buttons(_NLS("Error"), GTK_WINDOW(window_main),
 	                                     GTK_DIALOG_MODAL & GTK_DIALOG_NO_SEPARATOR & GTK_DIALOG_DESTROY_WITH_PARENT,
 	                                     GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
 	gtk_dialog_set_has_separator(GTK_DIALOG(dialog), FALSE );
@@ -478,7 +478,7 @@ connection_test(void)
 	pg_connection = PQconnectdb(connection_string);
 	if (PQstatus(pg_connection) == CONNECTION_BAD)
 	{
-		pgui_logf( _("Database connection failed: %s"), PQerrorMessage(pg_connection));
+		pgui_logf( _NLS("Database connection failed: %s"), PQerrorMessage(pg_connection));
 		free(connection_string);
 		PQfinish(pg_connection);
 		pg_connection = NULL;
@@ -731,7 +731,7 @@ update_table_chooser_from_database()
 
 			gtk_list_store_insert_before(dumper_geocol_combo_list, &geocol_iter, (GtkTreeIter *)TABLECHOOSER_GEOCOL_COMBO_TEXT);
 			gtk_list_store_set(dumper_geocol_combo_list, &geocol_iter,
-						TABLECHOOSER_GEOCOL_COMBO_TEXT, _("(None)"),
+						TABLECHOOSER_GEOCOL_COMBO_TEXT, _NLS("(None)"),
 						-1);
 		}
 
@@ -974,7 +974,7 @@ add_loader_file_config_to_list(SHPLOADERCONFIG *loader_file_config)
 	                   IMPORT_TABLE_COLUMN, loader_file_config->table,
 	                   IMPORT_GEOMETRY_COLUMN, loader_file_config->geo_col,
 	                   IMPORT_SRID_COLUMN, srid,
-	                   IMPORT_MODE_COLUMN, _("Create"),
+	                   IMPORT_MODE_COLUMN, _NLS("Create"),
 	                   -1);
 
 	/* Update the filename field width */
@@ -1168,7 +1168,7 @@ validate_remote_loader_columns(SHPLOADERCONFIG *config, PGresult *result)
 				/* If we have a row matching the table given in the config, then it already exists */
 				if (ntuples > 0)
 				{
-					pgui_seterr(_("ERROR: Create mode selected for existing table: %s.%s"), config->schema, config->table);
+					pgui_seterr(_NLS("ERROR: Create mode selected for existing table: %s.%s"), config->schema, config->table);
 					response = SHPLOADERERR;
 				}
 				break;
@@ -1177,7 +1177,7 @@ validate_remote_loader_columns(SHPLOADERCONFIG *config, PGresult *result)
 				/* If we have a row matching the table given in the config, then it already exists */
 				if (ntuples > 0)
 				{
-					pgui_seterr(_("ERROR: Prepare mode selected for existing table: %s.%s"), config->schema, config->table);
+					pgui_seterr(_NLS("ERROR: Prepare mode selected for existing table: %s.%s"), config->schema, config->table);
 					response = SHPLOADERERR;
 				}
 				break;
@@ -1186,7 +1186,7 @@ validate_remote_loader_columns(SHPLOADERCONFIG *config, PGresult *result)
 				/* If we are trying to append to a table but it doesn't exist, emit a warning */
 				if (ntuples == 0)
 				{
-					pgui_seterr(_("ERROR: Destination table %s.%s could not be found for appending"), config->schema, config->table);
+					pgui_seterr(_NLS("ERROR: Destination table %s.%s could not be found for appending"), config->schema, config->table);
 					response = SHPLOADERERR;
 				}
 				else
@@ -1196,7 +1196,7 @@ validate_remote_loader_columns(SHPLOADERCONFIG *config, PGresult *result)
 					ret = ShpLoaderOpenShape(state);
 					if (ret != SHPLOADEROK)
 					{
-						pgui_logf(_("Warning: Could not load shapefile %s"), config->shp_file);
+						pgui_logf(_NLS("Warning: Could not load shapefile %s"), config->shp_file);
 						ShpLoaderDestroy(state);
 					}
 
@@ -1217,7 +1217,7 @@ validate_remote_loader_columns(SHPLOADERCONFIG *config, PGresult *result)
 								ret = validate_shape_column_against_pg_column(state->types[i], pg_fieldtype);
 								if (!ret)
 								{
-									pgui_logf(_("Warning: DBF Field '%s' is not compatible with PostgreSQL column '%s' in %s.%s"), state->field_names[i], pg_fieldname, config->schema, config->table);
+									pgui_logf(_NLS("Warning: DBF Field '%s' is not compatible with PostgreSQL column '%s' in %s.%s"), state->field_names[i], pg_fieldname, config->schema, config->table);
 									response = SHPLOADERWARN;
 								}
 							}
@@ -1226,7 +1226,7 @@ validate_remote_loader_columns(SHPLOADERCONFIG *config, PGresult *result)
 						/* Flag a warning if we can't find a match */
 						if (!found)
 						{
-							pgui_logf(_("Warning: DBF Field '%s' within file %s could not be matched to a column within table %s.%s"),
+							pgui_logf(_NLS("Warning: DBF Field '%s' within file %s could not be matched to a column within table %s.%s"),
 								  state->field_names[i], config->shp_file, config->schema, config->table);
 							response = SHPLOADERWARN;
 						}
@@ -1240,7 +1240,7 @@ validate_remote_loader_columns(SHPLOADERCONFIG *config, PGresult *result)
 	}
 	else
 	{
-		pgui_seterr(_("ERROR: unable to process validation response from remote server"));
+		pgui_seterr(_NLS("ERROR: unable to process validation response from remote server"));
 		response = SHPLOADERERR;
 	}
 
@@ -1341,7 +1341,7 @@ pgui_action_open_table_dialog(GtkWidget *widget, gpointer data)
 	/* Make sure we can connect to the database first */
 	if (!connection_test())
 	{
-		pgui_seterr(_("Unable to connect to the database - please check your connection settings"));
+		pgui_seterr(_NLS("Unable to connect to the database - please check your connection settings"));
 		pgui_raise_error_dialogue();
 
 		/* Open the connections UI for the user */
@@ -1430,7 +1430,7 @@ pgui_action_import(GtkWidget *widget, gpointer data)
 	is_valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(import_file_list_store), &iter);
 	if (!is_valid)
 	{
-		pgui_seterr(_("ERROR: You haven't specified any files to import"));
+		pgui_seterr(_NLS("ERROR: You haven't specified any files to import"));
 		pgui_raise_error_dialogue();
 
 		return;
@@ -1440,7 +1440,7 @@ pgui_action_import(GtkWidget *widget, gpointer data)
 	   point doing anything else... */
 	if (!connection_test())
 	{
-		pgui_seterr(_("Unable to connect to the database - please check your connection settings"));
+		pgui_seterr(_NLS("Unable to connect to the database - please check your connection settings"));
 		pgui_raise_error_dialogue();
 
 		/* Open the connections UI for the user */
@@ -1543,7 +1543,7 @@ pgui_action_import(GtkWidget *widget, gpointer data)
 		strcpy(progress_shapefile, &loader_file_config->shp_file[i]);
 
 		/* Display the progress dialog */
-		snprintf(progress_text, GUIMSG_LINE_MAXLEN, _("Importing shapefile %s (%d records)..."), progress_shapefile, ShpLoaderGetRecordCount(state));
+		snprintf(progress_text, GUIMSG_LINE_MAXLEN, _NLS("Importing shapefile %s (%d records)..."), progress_shapefile, ShpLoaderGetRecordCount(state));
 		progress_text[GUIMSG_LINE_MAXLEN] = '\0';
 		gtk_label_set_text(GTK_LABEL(label_progress), progress_text);
 		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(progress), 0.0);
@@ -1620,7 +1620,7 @@ pgui_action_import(GtkWidget *widget, gpointer data)
 
 					/* Display a record number if we failed */
 					if (!ret)
-						pgui_logf(_("Import failed on record number %d"), i);
+						pgui_logf(_NLS("Import failed on record number %d"), i);
 
 					free(record);
 					break;
@@ -1642,7 +1642,7 @@ pgui_action_import(GtkWidget *widget, gpointer data)
 
 					/* Display a record number if we failed */
 					if (!ret)
-						pgui_logf(_("Import failed on record number %d"), i);
+						pgui_logf(_NLS("Import failed on record number %d"), i);
 
 					free(record);
 					break;
@@ -1674,7 +1674,7 @@ pgui_action_import(GtkWidget *widget, gpointer data)
 				result = PQgetResult(pg_connection);
 				if (PQresultStatus(result) != PGRES_COMMAND_OK)
 				{
-					pgui_logf(_("COPY failed with the following error: %s"), PQerrorMessage(pg_connection));
+					pgui_logf(_NLS("COPY failed with the following error: %s"), PQerrorMessage(pg_connection));
 					ret = SHPLOADERERR;
 					goto import_cleanup;
 				}
@@ -1697,7 +1697,7 @@ pgui_action_import(GtkWidget *widget, gpointer data)
 			/* Just in case index creation takes a long time, update the progress text */
 			if (state->config->createindex)
 			{
-				gtk_label_set_text(GTK_LABEL(label_progress), _("Creating spatial index..."));
+				gtk_label_set_text(GTK_LABEL(label_progress), _NLS("Creating spatial index..."));
 
 				/* Allow GTK events to get a look in */
 				while (gtk_events_pending())
@@ -1722,9 +1722,9 @@ import_cleanup:
 
 		/* If we didn't finish inserting all of the items (and we expected to), an error occurred */
 		if ((state->config->opt != 'p' && i != ShpLoaderGetRecordCount(state)) || !ret)
-			pgui_logf(_("Shapefile import failed."));
+			pgui_logf(_NLS("Shapefile import failed."));
 		else
-			pgui_logf(_("Shapefile import completed."));
+			pgui_logf(_NLS("Shapefile import completed."));
 
 		/* Free the state object */
 		ShpLoaderDestroy(state);
@@ -1778,7 +1778,7 @@ pgui_action_export(GtkWidget *widget, gpointer data)
 	is_valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(export_table_list_store), &iter);
 	if (!is_valid)
 	{
-		pgui_seterr(_("ERROR: You haven't specified any tables to export"));
+		pgui_seterr(_NLS("ERROR: You haven't specified any tables to export"));
 		pgui_raise_error_dialogue();
 
 		return;
@@ -1788,7 +1788,7 @@ pgui_action_export(GtkWidget *widget, gpointer data)
 	   point doing anything else... */
 	if (!connection_test())
 	{
-		pgui_seterr(_("Unable to connect to the database - please check your connection settings"));
+		pgui_seterr(_NLS("Unable to connect to the database - please check your connection settings"));
 		pgui_raise_error_dialogue();
 
 		/* Open the connections UI for the user */
@@ -1856,7 +1856,7 @@ pgui_action_export(GtkWidget *widget, gpointer data)
 		}
 
 		/* Display the progress dialog */
-		gtk_label_set_text(GTK_LABEL(label_progress), _("Initialising..."));
+		gtk_label_set_text(GTK_LABEL(label_progress), _NLS("Initialising..."));
 		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(progress), 0.0);
 		gtk_widget_show_all(dialog_progress);
 
@@ -1877,7 +1877,7 @@ pgui_action_export(GtkWidget *widget, gpointer data)
 		}
 
 		/* Update the text */
-		snprintf(progress_text, GUIMSG_LINE_MAXLEN, _("Exporting table %s (%d records)..."), dumper_table_config->table, ShpDumperGetRecordCount(state));
+		snprintf(progress_text, GUIMSG_LINE_MAXLEN, _NLS("Exporting table %s (%d records)..."), dumper_table_config->table, ShpDumperGetRecordCount(state));
 		progress_text[GUIMSG_LINE_MAXLEN] = '\0';
 		gtk_label_set_text(GTK_LABEL(label_progress), progress_text);
 
@@ -1885,8 +1885,8 @@ pgui_action_export(GtkWidget *widget, gpointer data)
 		while (gtk_events_pending())
 			gtk_main_iteration();
 
-		pgui_logf(_("Done (postgis major version: %d)"), state->pgis_major_version);
-		pgui_logf(_("Output shape: %s"), shapetypename(state->outshptype));
+		pgui_logf(_NLS("Done (postgis major version: %d)"), state->pgis_major_version);
+		pgui_logf(_NLS("Output shape: %s"), shapetypename(state->outshptype));
 
 		for (i = 0; i < ShpDumperGetRecordCount(state) && is_running == TRUE; i++)
 		{
@@ -1948,9 +1948,9 @@ export_cleanup:
 	/* Export has definitely finished */
 	is_running = FALSE;
 	if (!success)
-		pgui_logf(_("Table export failed."));
+		pgui_logf(_NLS("Table export failed."));
 	else
-		pgui_logf(_("Table export completed."));
+		pgui_logf(_NLS("Table export completed."));
 
 	/* Enable the button once again */
 	gtk_widget_set_sensitive(widget, TRUE);
@@ -1983,7 +1983,7 @@ process_single_uri(char *uri)
 
 	if (uri == NULL)
 	{
-		pgui_logf(_("Unable to process drag URI."));
+		pgui_logf(_NLS("Unable to process drag URI."));
 		return;
 	}
 
@@ -1992,7 +1992,7 @@ process_single_uri(char *uri)
 
 	if (filename == NULL)
 	{
-		pgui_logf(_("Unable to process filename: %s\n"), error->message);
+		pgui_logf(_NLS("Unable to process filename: %s\n"), error->message);
 		g_error_free(error);
 		return;
 	}
@@ -2062,7 +2062,7 @@ pgui_action_handle_file_drop(GtkWidget *widget,
 
 	if (selection_data->data == NULL)
 	{
-		pgui_logf(_("Unable to process drag data."));
+		pgui_logf(_NLS("Unable to process drag data."));
 		return;
 	}
 
@@ -2478,7 +2478,7 @@ pgui_validate_connection()
 		{
 			if (!isdigit(conn->port[i]))
 			{
-				pgui_seterr(_("The connection port must be numeric!"));
+				pgui_seterr(_NLS("The connection port must be numeric!"));
 				return 0;
 			}
 		}
@@ -2525,15 +2525,15 @@ pgui_action_connection_okay(GtkWidget *widget, gpointer data)
 
 	if (!connection_test())
 	{
-		pgui_logf(_("Connection failed."));
+		pgui_logf(_NLS("Connection failed."));
 
 		/* If the connection failed, display a warning before closing */
-		pgui_seterr(_("Unable to connect to the database - please check your connection settings"));
+		pgui_seterr(_NLS("Unable to connect to the database - please check your connection settings"));
 		pgui_raise_error_dialogue();
 	}
 	else
 	{
-		pgui_logf(_("Connection succeeded."));
+		pgui_logf(_NLS("Connection succeeded."));
 	}
 
 
@@ -2558,7 +2558,7 @@ pgui_create_about_dialog(void)
 
 
 	dialog_about = gtk_about_dialog_new();
-	gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(dialog_about), _("PostGIS Shapefile Import/Export Manager"));
+	gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(dialog_about), _NLS("PostGIS Shapefile Import/Export Manager"));
 	gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(dialog_about), POSTGIS_LIB_VERSION);
 	gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(dialog_about), "http://postgis.net/");
 	gtk_about_dialog_set_authors(GTK_ABOUT_DIALOG(dialog_about), authors);
@@ -2570,19 +2570,19 @@ pgui_create_filechooser_dialog(void)
 	GtkFileFilter *file_filter_shape;
 
 	/* Create the dialog */
-	dialog_filechooser = gtk_file_chooser_dialog_new( _("Select a Shape File"), GTK_WINDOW (window_main),
+	dialog_filechooser = gtk_file_chooser_dialog_new( _NLS("Select a Shape File"), GTK_WINDOW (window_main),
 		GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CLOSE, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
 
 	/* Filter for .shp files */
 	file_filter_shape = gtk_file_filter_new();
 	gtk_file_filter_add_pattern(GTK_FILE_FILTER(file_filter_shape), "*.shp");
-	gtk_file_filter_set_name(GTK_FILE_FILTER(file_filter_shape), _("Shape Files (*.shp)"));
+	gtk_file_filter_set_name(GTK_FILE_FILTER(file_filter_shape), _NLS("Shape Files (*.shp)"));
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog_filechooser), file_filter_shape);
 
 	/* Filter for .dbf files */
 	file_filter_shape = gtk_file_filter_new();
 	gtk_file_filter_add_pattern(GTK_FILE_FILTER(file_filter_shape), "*.dbf");
-	gtk_file_filter_set_name(GTK_FILE_FILTER(file_filter_shape), _("DBF Files (*.dbf)"));
+	gtk_file_filter_set_name(GTK_FILE_FILTER(file_filter_shape), _NLS("DBF Files (*.dbf)"));
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog_filechooser), file_filter_shape);
 
 	/* Allow multiple files to be selected */
@@ -2597,19 +2597,19 @@ pgui_create_folderchooser_dialog(void)
 	GtkFileFilter *file_filter_shape;
 
 	/* Create the dialog */
-	dialog_folderchooser = gtk_file_chooser_dialog_new( _("Select an output folder"), GTK_WINDOW (window_main),
+	dialog_folderchooser = gtk_file_chooser_dialog_new( _NLS("Select an output folder"), GTK_WINDOW (window_main),
 		GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER, GTK_STOCK_CANCEL, GTK_RESPONSE_CLOSE, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
 
 	/* Filter for .shp files */
 	file_filter_shape = gtk_file_filter_new();
 	gtk_file_filter_add_pattern(GTK_FILE_FILTER(file_filter_shape), "*.shp");
-	gtk_file_filter_set_name(GTK_FILE_FILTER(file_filter_shape), _("Shape Files (*.shp)"));
+	gtk_file_filter_set_name(GTK_FILE_FILTER(file_filter_shape), _NLS("Shape Files (*.shp)"));
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog_folderchooser), file_filter_shape);
 
 	/* Filter for .dbf files */
 	file_filter_shape = gtk_file_filter_new();
 	gtk_file_filter_add_pattern(GTK_FILE_FILTER(file_filter_shape), "*.dbf");
-	gtk_file_filter_set_name(GTK_FILE_FILTER(file_filter_shape), _("DBF Files (*.dbf)"));
+	gtk_file_filter_set_name(GTK_FILE_FILTER(file_filter_shape), _NLS("DBF Files (*.dbf)"));
 	gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog_folderchooser), file_filter_shape);
 
 	return;
@@ -2620,7 +2620,7 @@ pgui_create_progress_dialog()
 {
 	GtkWidget *vbox_progress, *table_progress;
 
-	dialog_progress = gtk_dialog_new_with_buttons(_("Working..."), GTK_WINDOW(window_main), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, NULL);
+	dialog_progress = gtk_dialog_new_with_buttons(_NLS("Working..."), GTK_WINDOW(window_main), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, NULL);
 
 	gtk_window_set_modal(GTK_WINDOW(dialog_progress), TRUE);
 	gtk_window_set_keep_above(GTK_WINDOW(dialog_progress), TRUE);
@@ -2674,7 +2674,7 @@ pgui_create_loader_options_dialog()
 	GtkWidget *align_options_center;
 	static int text_width = 12;
 
-	dialog_loader_options = gtk_dialog_new_with_buttons(_("Import Options"), GTK_WINDOW(window_main), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+	dialog_loader_options = gtk_dialog_new_with_buttons(_NLS("Import Options"), GTK_WINDOW(window_main), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
 
 	gtk_window_set_modal (GTK_WINDOW(dialog_loader_options), TRUE);
 	gtk_window_set_keep_above (GTK_WINDOW(dialog_loader_options), TRUE);
@@ -2685,48 +2685,48 @@ pgui_create_loader_options_dialog()
 	gtk_table_set_row_spacings(GTK_TABLE(table_options), 5);
 	gtk_table_set_col_spacings(GTK_TABLE(table_options), 10);
 
-	pgui_create_options_dialog_add_label(table_options, _("DBF file character encoding"), 0.0, 0);
+	pgui_create_options_dialog_add_label(table_options, _NLS("DBF file character encoding"), 0.0, 0);
 	entry_options_encoding = gtk_entry_new();
 	gtk_entry_set_width_chars(GTK_ENTRY(entry_options_encoding), text_width);
 	gtk_table_attach_defaults(GTK_TABLE(table_options), entry_options_encoding, 0, 1, 0, 1 );
 
-	pgui_create_options_dialog_add_label(table_options, _("Preserve case of column names"), 0.0, 1);
+	pgui_create_options_dialog_add_label(table_options, _NLS("Preserve case of column names"), 0.0, 1);
 	checkbutton_loader_options_preservecase = gtk_check_button_new();
 	align_options_center = gtk_alignment_new( 0.5, 0.5, 0.0, 1.0 );
 	gtk_table_attach_defaults(GTK_TABLE(table_options), align_options_center, 0, 1, 1, 2 );
 	gtk_container_add (GTK_CONTAINER (align_options_center), checkbutton_loader_options_preservecase);
 
-	pgui_create_options_dialog_add_label(table_options, _("Do not create 'bigint' columns"), 0.0, 2);
+	pgui_create_options_dialog_add_label(table_options, _NLS("Do not create 'bigint' columns"), 0.0, 2);
 	checkbutton_loader_options_forceint = gtk_check_button_new();
 	align_options_center = gtk_alignment_new( 0.5, 0.5, 0.0, 1.0 );
 	gtk_table_attach_defaults(GTK_TABLE(table_options), align_options_center, 0, 1, 2, 3 );
 	gtk_container_add (GTK_CONTAINER (align_options_center), checkbutton_loader_options_forceint);
 
-	pgui_create_options_dialog_add_label(table_options, _("Create spatial index automatically after load"), 0.0, 3);
+	pgui_create_options_dialog_add_label(table_options, _NLS("Create spatial index automatically after load"), 0.0, 3);
 	checkbutton_loader_options_autoindex = gtk_check_button_new();
 	align_options_center = gtk_alignment_new( 0.5, 0.5, 0.0, 1.0 );
 	gtk_table_attach_defaults(GTK_TABLE(table_options), align_options_center, 0, 1, 3, 4 );
 	gtk_container_add (GTK_CONTAINER (align_options_center), checkbutton_loader_options_autoindex);
 
-	pgui_create_options_dialog_add_label(table_options, _("Load only attribute (dbf) data"), 0.0, 4);
+	pgui_create_options_dialog_add_label(table_options, _NLS("Load only attribute (dbf) data"), 0.0, 4);
 	checkbutton_loader_options_dbfonly = gtk_check_button_new();
 	align_options_center = gtk_alignment_new( 0.5, 0.5, 0.0, 1.0 );
 	gtk_table_attach_defaults(GTK_TABLE(table_options), align_options_center, 0, 1, 4, 5 );
 	gtk_container_add (GTK_CONTAINER (align_options_center), checkbutton_loader_options_dbfonly);
 
-	pgui_create_options_dialog_add_label(table_options, _("Load data using COPY rather than INSERT"), 0.0, 5);
+	pgui_create_options_dialog_add_label(table_options, _NLS("Load data using COPY rather than INSERT"), 0.0, 5);
 	checkbutton_loader_options_dumpformat = gtk_check_button_new();
 	align_options_center = gtk_alignment_new( 0.5, 0.5, 0.0, 0.0 );
 	gtk_table_attach_defaults(GTK_TABLE(table_options), align_options_center, 0, 1, 5, 6 );
 	gtk_container_add (GTK_CONTAINER (align_options_center), checkbutton_loader_options_dumpformat);
 
-	pgui_create_options_dialog_add_label(table_options, _("Load into GEOGRAPHY column"), 0.0, 6);
+	pgui_create_options_dialog_add_label(table_options, _NLS("Load into GEOGRAPHY column"), 0.0, 6);
 	checkbutton_loader_options_geography = gtk_check_button_new();
 	align_options_center = gtk_alignment_new( 0.5, 0.5, 0.0, 1.0 );
 	gtk_table_attach_defaults(GTK_TABLE(table_options), align_options_center, 0, 1, 6, 7 );
 	gtk_container_add (GTK_CONTAINER (align_options_center), checkbutton_loader_options_geography);
 
-	pgui_create_options_dialog_add_label(table_options, _("Generate simple geometries instead of MULTI geometries"), 0.0, 7);
+	pgui_create_options_dialog_add_label(table_options, _NLS("Generate simple geometries instead of MULTI geometries"), 0.0, 7);
 	checkbutton_loader_options_simplegeoms = gtk_check_button_new();
 	align_options_center = gtk_alignment_new( 0.5, 0.5, 0.0, 1.0 );
 	gtk_table_attach_defaults(GTK_TABLE(table_options), align_options_center, 0, 1, 7, 8 );
@@ -2746,7 +2746,7 @@ pgui_create_dumper_options_dialog()
 	GtkWidget *table_options;
 	GtkWidget *align_options_center;
 
-	dialog_dumper_options = gtk_dialog_new_with_buttons(_("Export Options"), GTK_WINDOW(window_main), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+	dialog_dumper_options = gtk_dialog_new_with_buttons(_NLS("Export Options"), GTK_WINDOW(window_main), GTK_DIALOG_DESTROY_WITH_PARENT, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
 
 	gtk_window_set_modal (GTK_WINDOW(dialog_dumper_options), TRUE);
 	gtk_window_set_keep_above (GTK_WINDOW(dialog_dumper_options), TRUE);
@@ -2757,19 +2757,19 @@ pgui_create_dumper_options_dialog()
 	gtk_table_set_row_spacings(GTK_TABLE(table_options), 5);
 	gtk_table_set_col_spacings(GTK_TABLE(table_options), 10);
 
-	pgui_create_options_dialog_add_label(table_options, _("Include gid column in the exported table"), 0.0, 0);
+	pgui_create_options_dialog_add_label(table_options, _NLS("Include gid column in the exported table"), 0.0, 0);
 	checkbutton_dumper_options_includegid = gtk_check_button_new();
 	align_options_center = gtk_alignment_new( 0.5, 0.5, 0.0, 1.0 );
 	gtk_table_attach_defaults(GTK_TABLE(table_options), align_options_center, 0, 1, 0, 1 );
 	gtk_container_add (GTK_CONTAINER (align_options_center), checkbutton_dumper_options_includegid);
 
-	pgui_create_options_dialog_add_label(table_options, _("Preserve case of column names"), 0.0, 1);
+	pgui_create_options_dialog_add_label(table_options, _NLS("Preserve case of column names"), 0.0, 1);
 	checkbutton_dumper_options_keep_fieldname_case = gtk_check_button_new();
 	align_options_center = gtk_alignment_new( 0.5, 0.5, 0.0, 1.0 );
 	gtk_table_attach_defaults(GTK_TABLE(table_options), align_options_center, 0, 1, 1, 2 );
 	gtk_container_add (GTK_CONTAINER (align_options_center), checkbutton_dumper_options_keep_fieldname_case);
 
-	pgui_create_options_dialog_add_label(table_options, _("Escape column names"), 0.0, 2);
+	pgui_create_options_dialog_add_label(table_options, _NLS("Escape column names"), 0.0, 2);
 	checkbutton_dumper_options_unescapedattrs = gtk_check_button_new();
 	align_options_center = gtk_alignment_new( 0.5, 0.5, 0.0, 1.0 );
 	gtk_table_attach_defaults(GTK_TABLE(table_options), align_options_center, 0, 1, 2, 3 );
@@ -2795,7 +2795,7 @@ pgui_create_tablechooser_dialog()
 	GtkTreeSelection *chooser_selection;
 
 	/* Create the main top level window with a 10px border */
-	dialog_tablechooser = gtk_dialog_new_with_buttons(_("Table selection"), GTK_WINDOW(window_main),
+	dialog_tablechooser = gtk_dialog_new_with_buttons(_NLS("Table selection"), GTK_WINDOW(window_main),
 				GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
 
 	gtk_container_set_border_width(GTK_CONTAINER(dialog_tablechooser), 10);
@@ -2835,7 +2835,7 @@ pgui_create_tablechooser_dialog()
 	chooser_schema_renderer = gtk_cell_renderer_text_new();
 	g_object_set(chooser_schema_renderer, "editable", TRUE, NULL);
 	g_signal_connect(G_OBJECT(chooser_schema_renderer), "edited", G_CALLBACK(pgui_action_handle_loader_edit), NULL);
-	chooser_schema_column = gtk_tree_view_column_new_with_attributes(_("Schema"),
+	chooser_schema_column = gtk_tree_view_column_new_with_attributes(_NLS("Schema"),
 	                chooser_schema_renderer,
 	                "text",
 	                TABLECHOOSER_SCHEMA_COLUMN,
@@ -2847,7 +2847,7 @@ pgui_create_tablechooser_dialog()
 	chooser_table_renderer = gtk_cell_renderer_text_new();
 	g_object_set(chooser_table_renderer, "editable", FALSE, NULL);
 	g_signal_connect(G_OBJECT(chooser_table_renderer), "edited", G_CALLBACK(pgui_action_handle_loader_edit), NULL);
-	chooser_table_column = gtk_tree_view_column_new_with_attributes(_("Table"),
+	chooser_table_column = gtk_tree_view_column_new_with_attributes(_NLS("Table"),
 	               chooser_table_renderer,
 	               "text",
 	               TABLECHOOSER_TABLE_COLUMN,
@@ -2863,7 +2863,7 @@ pgui_create_tablechooser_dialog()
 
 	checkbutton_chooser_geoonly = gtk_check_button_new();
 	gtk_table_attach(GTK_TABLE(table_progress), checkbutton_chooser_geoonly, 0, 1, 0, 1, GTK_SHRINK, GTK_FILL, 0, 0);
-	label = gtk_label_new(_("Only show tables with geo columns"));
+	label = gtk_label_new(_NLS("Only show tables with geo columns"));
 	gtk_table_attach(GTK_TABLE(table_progress), label, 1, 2, 0, 1, GTK_FILL, GTK_FILL, 5, 0);
 	g_signal_connect(G_OBJECT(checkbutton_chooser_geoonly), "toggled", G_CALLBACK(pgui_action_chooser_toggle_show_geocolumn), NULL);
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbutton_chooser_geoonly), TRUE);
@@ -2924,7 +2924,7 @@ pgui_create_import_file_table(GtkWidget *import_list_frame)
 	gtk_container_add(GTK_CONTAINER (sw), import_tree);
 
 	/* Place the "Add File" button below the list view */
-	add_file_button = gtk_button_new_with_label(_("Add File"));
+	add_file_button = gtk_button_new_with_label(_NLS("Add File"));
 	gtk_container_add (GTK_CONTAINER (vbox_tree), add_file_button);
 
 	/* Filename Field */
@@ -2932,7 +2932,7 @@ pgui_create_import_file_table(GtkWidget *import_list_frame)
 	g_object_set(import_filename_renderer, "editable", FALSE, NULL);
 	column_indexes[IMPORT_FILENAME_COLUMN] = IMPORT_FILENAME_COLUMN;
 	g_signal_connect(G_OBJECT(import_filename_renderer), "edited", G_CALLBACK(pgui_action_handle_loader_edit), &column_indexes[IMPORT_FILENAME_COLUMN]);
-	import_filename_column = gtk_tree_view_column_new_with_attributes(_("Shapefile"),
+	import_filename_column = gtk_tree_view_column_new_with_attributes(_NLS("Shapefile"),
 	                  import_filename_renderer,
 	                  "text",
 	                  IMPORT_FILENAME_COLUMN,
@@ -2945,7 +2945,7 @@ pgui_create_import_file_table(GtkWidget *import_list_frame)
 	g_object_set(import_schema_renderer, "editable", TRUE, NULL);
 	column_indexes[IMPORT_SCHEMA_COLUMN] = IMPORT_SCHEMA_COLUMN;
 	g_signal_connect(G_OBJECT(import_schema_renderer), "edited", G_CALLBACK(pgui_action_handle_loader_edit), &column_indexes[IMPORT_SCHEMA_COLUMN]);
-	import_schema_column = gtk_tree_view_column_new_with_attributes(_("Schema"),
+	import_schema_column = gtk_tree_view_column_new_with_attributes(_NLS("Schema"),
 	                import_schema_renderer,
 	                "text",
 	                IMPORT_SCHEMA_COLUMN,
@@ -2958,7 +2958,7 @@ pgui_create_import_file_table(GtkWidget *import_list_frame)
 	g_object_set(import_table_renderer, "editable", TRUE, NULL);
 	column_indexes[IMPORT_TABLE_COLUMN] = IMPORT_TABLE_COLUMN;
 	g_signal_connect(G_OBJECT(import_table_renderer), "edited", G_CALLBACK(pgui_action_handle_loader_edit), &column_indexes[IMPORT_TABLE_COLUMN]);
-	import_table_column = gtk_tree_view_column_new_with_attributes(_("Table"),
+	import_table_column = gtk_tree_view_column_new_with_attributes(_NLS("Table"),
 	               import_table_renderer,
 	               "text",
 	               IMPORT_TABLE_COLUMN,
@@ -2971,7 +2971,7 @@ pgui_create_import_file_table(GtkWidget *import_list_frame)
 	g_object_set(import_geom_column_renderer, "editable", TRUE, NULL);
 	column_indexes[IMPORT_GEOMETRY_COLUMN] = IMPORT_GEOMETRY_COLUMN;
 	g_signal_connect(G_OBJECT(import_geom_column_renderer), "edited", G_CALLBACK(pgui_action_handle_loader_edit), &column_indexes[IMPORT_GEOMETRY_COLUMN]);
-	import_geom_column = gtk_tree_view_column_new_with_attributes(_("Geo Column"),
+	import_geom_column = gtk_tree_view_column_new_with_attributes(_NLS("Geo Column"),
 	              import_geom_column_renderer,
 	              "text",
 	              IMPORT_GEOMETRY_COLUMN,
@@ -2999,22 +2999,22 @@ pgui_create_import_file_table(GtkWidget *import_list_frame)
 
 	gtk_list_store_insert(loader_mode_combo_list, &iter, CREATE_MODE);
 	gtk_list_store_set(loader_mode_combo_list, &iter,
-	                   LOADER_MODE_COMBO_TEXT, _("Create"),
+	                   LOADER_MODE_COMBO_TEXT, _NLS("Create"),
 			   LOADER_MODE_COMBO_OPTION_CHAR, 'c',
 			   -1);
 	gtk_list_store_insert(loader_mode_combo_list, &iter, APPEND_MODE);
 	gtk_list_store_set(loader_mode_combo_list, &iter,
-	                   LOADER_MODE_COMBO_TEXT, _("Append"),
+	                   LOADER_MODE_COMBO_TEXT, _NLS("Append"),
 			   LOADER_MODE_COMBO_OPTION_CHAR, 'a',
 			   -1);
 	gtk_list_store_insert(loader_mode_combo_list, &iter, DELETE_MODE);
 	gtk_list_store_set(loader_mode_combo_list, &iter,
-	                   LOADER_MODE_COMBO_TEXT, _("Delete"),
+	                   LOADER_MODE_COMBO_TEXT, _NLS("Delete"),
 			   LOADER_MODE_COMBO_OPTION_CHAR, 'd',
 			   -1);
 	gtk_list_store_insert(loader_mode_combo_list, &iter, PREPARE_MODE);
 	gtk_list_store_set(loader_mode_combo_list, &iter,
-	                   LOADER_MODE_COMBO_TEXT, _("Prepare"),
+	                   LOADER_MODE_COMBO_TEXT, _NLS("Prepare"),
 			   LOADER_MODE_COMBO_OPTION_CHAR, 'p',
 			   -1);
 	loader_mode_combo = gtk_combo_box_new_with_model(GTK_TREE_MODEL(loader_mode_combo_list));
@@ -3029,7 +3029,7 @@ pgui_create_import_file_table(GtkWidget *import_list_frame)
 	             "has-entry", FALSE,
 	             "text-column", LOADER_MODE_COMBO_TEXT,
 	             NULL);
-	import_mode_column = gtk_tree_view_column_new_with_attributes(_("Mode"),
+	import_mode_column = gtk_tree_view_column_new_with_attributes(_NLS("Mode"),
 	              import_mode_renderer,
 	              "text",
 	              IMPORT_MODE_COLUMN,
@@ -3113,7 +3113,7 @@ pgui_create_export_table_table(GtkWidget *export_list_frame)
 	gtk_container_add(GTK_CONTAINER (sw), export_tree);
 
 	/* Place the "Add Table" button below the list view */
-	add_table_button = gtk_button_new_with_label(_("Add Table"));
+	add_table_button = gtk_button_new_with_label(_NLS("Add Table"));
 	gtk_container_add (GTK_CONTAINER (vbox_tree), add_table_button);
 
 	/* Schema Field */
@@ -3121,7 +3121,7 @@ pgui_create_export_table_table(GtkWidget *export_list_frame)
 	g_object_set(export_schema_renderer, "editable", FALSE, NULL);
 	column_indexes[EXPORT_SCHEMA_COLUMN] = EXPORT_SCHEMA_COLUMN;
 	g_signal_connect(G_OBJECT(export_schema_renderer), "edited", G_CALLBACK(pgui_action_handle_loader_edit), &column_indexes[EXPORT_SCHEMA_COLUMN]);
-	export_schema_column = gtk_tree_view_column_new_with_attributes(_("Schema"),
+	export_schema_column = gtk_tree_view_column_new_with_attributes(_NLS("Schema"),
 	                export_schema_renderer,
 	                "text",
 	                EXPORT_SCHEMA_COLUMN,
@@ -3134,7 +3134,7 @@ pgui_create_export_table_table(GtkWidget *export_list_frame)
 	g_object_set(export_table_renderer, "editable", FALSE, NULL);
 	column_indexes[EXPORT_TABLE_COLUMN] = EXPORT_TABLE_COLUMN;
 	g_signal_connect(G_OBJECT(export_table_renderer), "edited", G_CALLBACK(pgui_action_handle_loader_edit), &column_indexes[EXPORT_TABLE_COLUMN]);
-	export_table_column = gtk_tree_view_column_new_with_attributes(_("Table"),
+	export_table_column = gtk_tree_view_column_new_with_attributes(_NLS("Table"),
 	               export_table_renderer,
 	               "text",
 	               EXPORT_TABLE_COLUMN,
@@ -3152,7 +3152,7 @@ pgui_create_export_table_table(GtkWidget *export_list_frame)
 		     "has-entry", FALSE,
 	             "text-column", TABLECHOOSER_GEOCOL_COMBO_TEXT,
 		     NULL);
-	export_geom_column = gtk_tree_view_column_new_with_attributes(_("Geo Column"),
+	export_geom_column = gtk_tree_view_column_new_with_attributes(_NLS("Geo Column"),
 	               export_geom_column_renderer,
 		       "model",
 		       EXPORT_GEOMETRY_LISTSTORE_COLUMN,
@@ -3168,7 +3168,7 @@ pgui_create_export_table_table(GtkWidget *export_list_frame)
 	g_object_set(export_filename_renderer, "editable", TRUE, NULL);
 	column_indexes[EXPORT_FILENAME_COLUMN] = EXPORT_FILENAME_COLUMN;
 	g_signal_connect(G_OBJECT(export_filename_renderer), "edited", G_CALLBACK(pgui_action_handle_dumper_edit), &column_indexes[EXPORT_FILENAME_COLUMN]);
-	export_filename_column = gtk_tree_view_column_new_with_attributes(_("Filename"),
+	export_filename_column = gtk_tree_view_column_new_with_attributes(_NLS("Filename"),
 	               export_filename_renderer,
 	               "text",
 	               EXPORT_FILENAME_COLUMN,
@@ -3209,7 +3209,7 @@ pgui_create_connection_window()
 	/* Create the main top level window with a 10px border */
 	window_conn = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_container_set_border_width(GTK_CONTAINER(window_conn), 10);
-	gtk_window_set_title(GTK_WINDOW(window_conn), _("PostGIS connection"));
+	gtk_window_set_title(GTK_WINDOW(window_conn), _NLS("PostGIS connection"));
 	gtk_window_set_position(GTK_WINDOW(window_conn), GTK_WIN_POS_CENTER);
 	gtk_window_set_modal(GTK_WINDOW(window_conn), TRUE);
 
@@ -3219,27 +3219,27 @@ pgui_create_connection_window()
 	/*
 	** PostGIS info in a table
 	*/
-	frame_pg = gtk_frame_new(_("PostGIS Connection"));
+	frame_pg = gtk_frame_new(_NLS("PostGIS Connection"));
 	table_pg = gtk_table_new(5, 3, TRUE);
 	gtk_container_set_border_width (GTK_CONTAINER (table_pg), 8);
 	gtk_table_set_col_spacings(GTK_TABLE(table_pg), 7);
 	gtk_table_set_row_spacings(GTK_TABLE(table_pg), 3);
 
 	/* User name row */
-	label = gtk_label_new(_("Username:"));
+	label = gtk_label_new(_NLS("Username:"));
 	entry_pg_user = gtk_entry_new();
 	gtk_table_attach_defaults(GTK_TABLE(table_pg), label, 0, 1, 0, 1 );
 	gtk_table_attach_defaults(GTK_TABLE(table_pg), entry_pg_user, 1, 3, 0, 1 );
 
 	/* Password row */
-	label = gtk_label_new(_("Password:"));
+	label = gtk_label_new(_NLS("Password:"));
 	entry_pg_pass = gtk_entry_new();
 	gtk_entry_set_visibility( GTK_ENTRY(entry_pg_pass), FALSE);
 	gtk_table_attach_defaults(GTK_TABLE(table_pg), label, 0, 1, 1, 2 );
 	gtk_table_attach_defaults(GTK_TABLE(table_pg), entry_pg_pass, 1, 3, 1, 2 );
 
 	/* Host and port row */
-	label = gtk_label_new(_("Server Host:"));
+	label = gtk_label_new(_NLS("Server Host:"));
 	entry_pg_host = gtk_entry_new();
 	gtk_entry_set_width_chars(GTK_ENTRY(entry_pg_host), text_width);
 	gtk_table_attach_defaults(GTK_TABLE(table_pg), label, 0, 1, 2, 3 );
@@ -3250,7 +3250,7 @@ pgui_create_connection_window()
 	gtk_table_attach_defaults(GTK_TABLE(table_pg), entry_pg_port, 2, 3, 2, 3 );
 
 	/* Database row */
-	label = gtk_label_new(_("Database:"));
+	label = gtk_label_new(_NLS("Database:"));
 	entry_pg_db   = gtk_entry_new();
 	gtk_table_attach_defaults(GTK_TABLE(table_pg), label, 0, 1, 3, 4 );
 	gtk_table_attach_defaults(GTK_TABLE(table_pg), entry_pg_db, 1, 3, 3, 4 );
@@ -3265,7 +3265,7 @@ pgui_create_connection_window()
 	gtk_container_add(GTK_CONTAINER(vbox), frame_pg);
 
 	/* Create a simple "OK" button for the dialog */
-	button_okay = gtk_button_new_with_label(_("OK"));
+	button_okay = gtk_button_new_with_label(_NLS("OK"));
 	gtk_container_add(GTK_CONTAINER(vbox), button_okay);
 	g_signal_connect(G_OBJECT(button_okay), "clicked", G_CALLBACK(pgui_action_connection_okay), NULL);
 
@@ -3298,7 +3298,7 @@ pgui_create_main_window(const SHPCONNECTIONCONFIG *conn)
 	/* Create the main top level window with a 10px border */
 	window_main = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_container_set_border_width(GTK_CONTAINER(window_main), 10);
-	gtk_window_set_title(GTK_WINDOW(window_main), _("PostGIS Shapefile Import/Export Manager"));
+	gtk_window_set_title(GTK_WINDOW(window_main), _NLS("PostGIS Shapefile Import/Export Manager"));
 	gtk_window_set_position(GTK_WINDOW(window_main), GTK_WIN_POS_CENTER_ALWAYS);
 	gtk_window_set_resizable(GTK_WINDOW(window_main), FALSE);
 
@@ -3312,10 +3312,10 @@ pgui_create_main_window(const SHPCONNECTIONCONFIG *conn)
 	g_signal_connect(G_OBJECT(window_main), "destroy", G_CALLBACK(pgui_quit), NULL);
 
 	/* Connection row */
-	frame_pg = gtk_frame_new(_("PostGIS Connection"));
+	frame_pg = gtk_frame_new(_NLS("PostGIS Connection"));
 
 	/* Test button row */
-	button_pg_conn = gtk_button_new_with_label(_("View connection details..."));
+	button_pg_conn = gtk_button_new_with_label(_NLS("View connection details..."));
 	g_signal_connect(G_OBJECT(button_pg_conn), "clicked", G_CALLBACK(pgui_action_connection_details), NULL);
 	gtk_container_set_border_width(GTK_CONTAINER(button_pg_conn), 10);
 	gtk_container_add(GTK_CONTAINER(frame_pg), button_pg_conn);
@@ -3328,7 +3328,7 @@ pgui_create_main_window(const SHPCONNECTIONCONFIG *conn)
 	/*
 	** Shape file selector
 	*/
-	import_list_frame = gtk_frame_new(_("Import List"));
+	import_list_frame = gtk_frame_new(_NLS("Import List"));
 	pgui_create_import_file_table(import_list_frame);
 
 	/*
@@ -3338,10 +3338,10 @@ pgui_create_main_window(const SHPCONNECTIONCONFIG *conn)
 	gtk_container_set_border_width (GTK_CONTAINER (loader_hbox_buttons), 0);
 
 	/* Create the buttons themselves */
-	loader_button_options = gtk_button_new_with_label(_("Options..."));
-	loader_button_import = gtk_button_new_with_label(_("Import"));
-	loader_button_cancel = gtk_button_new_with_label(_("Cancel"));
-	loader_button_about = gtk_button_new_with_label(_("About"));
+	loader_button_options = gtk_button_new_with_label(_NLS("Options..."));
+	loader_button_import = gtk_button_new_with_label(_NLS("Import"));
+	loader_button_cancel = gtk_button_new_with_label(_NLS("Cancel"));
+	loader_button_about = gtk_button_new_with_label(_NLS("About"));
 
 	/* Add actions to the buttons */
 	g_signal_connect (G_OBJECT (loader_button_import), "clicked", G_CALLBACK (pgui_action_import), NULL);
@@ -3358,7 +3358,7 @@ pgui_create_main_window(const SHPCONNECTIONCONFIG *conn)
 	/*
 	** Table selector
 	*/
-	export_list_frame = gtk_frame_new(_("Export List"));
+	export_list_frame = gtk_frame_new(_NLS("Export List"));
 	pgui_create_export_table_table(export_list_frame);
 
 	/*
@@ -3368,10 +3368,10 @@ pgui_create_main_window(const SHPCONNECTIONCONFIG *conn)
 	gtk_container_set_border_width (GTK_CONTAINER (dumper_hbox_buttons), 0);
 
 	/* Create the buttons themselves */
-	dumper_button_options = gtk_button_new_with_label(_("Options..."));
-	dumper_button_export = gtk_button_new_with_label(_("Export"));
-	dumper_button_cancel = gtk_button_new_with_label(_("Cancel"));
-	dumper_button_about = gtk_button_new_with_label(_("About"));
+	dumper_button_options = gtk_button_new_with_label(_NLS("Options..."));
+	dumper_button_export = gtk_button_new_with_label(_NLS("Export"));
+	dumper_button_cancel = gtk_button_new_with_label(_NLS("Cancel"));
+	dumper_button_about = gtk_button_new_with_label(_NLS("About"));
 
 	/* Add actions to the buttons */
 	g_signal_connect (G_OBJECT (dumper_button_export), "clicked", G_CALLBACK (pgui_action_export), NULL);
@@ -3388,7 +3388,7 @@ pgui_create_main_window(const SHPCONNECTIONCONFIG *conn)
 	/*
 	** Log window
 	*/
-	frame_log = gtk_frame_new(_("Log Window"));
+	frame_log = gtk_frame_new(_NLS("Log Window"));
 	gtk_container_set_border_width (GTK_CONTAINER (frame_log), 0);
 	gtk_widget_set_size_request(frame_log, -1, 200);
 	textview_log = gtk_text_view_new();
@@ -3415,7 +3415,7 @@ pgui_create_main_window(const SHPCONNECTIONCONFIG *conn)
 
 	gtk_box_pack_start(GTK_BOX(vbox_loader), import_list_frame, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox_loader), loader_hbox_buttons, FALSE, FALSE, 0);
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox_loader, gtk_label_new(_("Import")));
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox_loader, gtk_label_new(_NLS("Import")));
 
 	/* Add the dumper frames into the notebook page */
 	vbox_dumper = gtk_vbox_new(FALSE, 10);
@@ -3423,7 +3423,7 @@ pgui_create_main_window(const SHPCONNECTIONCONFIG *conn)
 
 	gtk_box_pack_start(GTK_BOX(vbox_dumper), export_list_frame, FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox_dumper), dumper_hbox_buttons, FALSE, FALSE, 0);
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox_dumper, gtk_label_new(_("Export")));
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox_dumper, gtk_label_new(_NLS("Export")));
 
 	/* Add the frames into the main vbox */
 	gtk_box_pack_start(GTK_BOX(vbox_main), frame_pg, FALSE, TRUE, 0);

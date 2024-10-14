@@ -222,7 +222,7 @@ ifeq ($(HAVE_SPGIST),yes)
 	$(topsrcdir)/regress/core/regress_spgist_index_nd
 endif
 
-ifeq (no,yes)
+ifeq (@HAVE_PROTOBUF@,yes)
 	# protobuf-c adds:
 	# ST_AsMVT, ST_AsGeobuf
 	TESTS += \

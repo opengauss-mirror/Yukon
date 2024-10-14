@@ -138,7 +138,7 @@ escape_connection_string(char *str)
 		return str;
 
 	size = ptr - str + toescape + 1;
-	result = calloc(1, size);
+	result = (char*)calloc(1, size);
 	optr = result;
 	ptr = str;
 
@@ -223,7 +223,7 @@ colmap_read(const char *filename, colmap *map, char *errbuf, size_t errbuflen)
   if (!fptr)
   {
     /* Return an error */
-    snprintf(errbuf, errbuflen, _("ERROR: Unable to open column map file %s"),
+    snprintf(errbuf, errbuflen, _NLS("ERROR: Unable to open column map file %s"),
                      filename);
     return 0;
   }
@@ -246,7 +246,7 @@ colmap_read(const char *filename, colmap *map, char *errbuf, size_t errbuflen)
     tmpstr = linebuffer;
 
     /* Allocate memory and copy the string ensuring it is terminated */
-    map->pgfieldnames[curmapsize] = malloc(fieldnamesize + 1);
+    map->pgfieldnames[curmapsize] = (char*)malloc(fieldnamesize + 1);
     strncpy(map->pgfieldnames[curmapsize], tmpstr, fieldnamesize);
     map->pgfieldnames[curmapsize][fieldnamesize] = '\0';
 
@@ -258,14 +258,14 @@ colmap_read(const char *filename, colmap *map, char *errbuf, size_t errbuflen)
     fieldnamesize = strcspn(tmpstr, "\t\n ");
 
     /* Allocate memory and copy the string ensuring it is terminated */
-    map->dbffieldnames[curmapsize] = malloc(fieldnamesize + 1);
+    map->dbffieldnames[curmapsize] = (char*)malloc(fieldnamesize + 1);
     strncpy(map->dbffieldnames[curmapsize], tmpstr, fieldnamesize);
     map->dbffieldnames[curmapsize][fieldnamesize] = '\0';
 
     /* Error out if the dbffieldname is > 10 chars */
     if (strlen(map->dbffieldnames[curmapsize]) > 10)
     {
-      snprintf(errbuf, errbuflen, _("ERROR: column map file specifies a DBF field name \"%s\" which is longer than 10 characters"), map->dbffieldnames[curmapsize]);
+      snprintf(errbuf, errbuflen, _NLS("ERROR: column map file specifies a DBF field name \"%s\" which is longer than 10 characters"), map->dbffieldnames[curmapsize]);
       return 0;
     }
 

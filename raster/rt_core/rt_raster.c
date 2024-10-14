@@ -588,7 +588,7 @@ rt_raster_generate_new_band(
         {
             case PT_1BB:
             {
-                uint8_t *ptr = mem;
+                uint8_t *ptr = (uint8_t*)mem;
                 uint8_t clamped_initval = rt_util_clamp_to_1BB(initialvalue);
                 for (i = 0; i < numval; i++)
                     ptr[i] = clamped_initval;
@@ -597,7 +597,7 @@ rt_raster_generate_new_band(
             }
             case PT_2BUI:
             {
-                uint8_t *ptr = mem;
+                uint8_t *ptr = (uint8_t*)mem;
                 uint8_t clamped_initval = rt_util_clamp_to_2BUI(initialvalue);
                 for (i = 0; i < numval; i++)
                     ptr[i] = clamped_initval;
@@ -606,7 +606,7 @@ rt_raster_generate_new_band(
             }
             case PT_4BUI:
             {
-                uint8_t *ptr = mem;
+                uint8_t *ptr = (uint8_t*)mem;
                 uint8_t clamped_initval = rt_util_clamp_to_4BUI(initialvalue);
                 for (i = 0; i < numval; i++)
                     ptr[i] = clamped_initval;
@@ -615,7 +615,7 @@ rt_raster_generate_new_band(
             }
             case PT_8BSI:
             {
-                int8_t *ptr = mem;
+                int8_t *ptr = (int8_t*)mem;
                 int8_t clamped_initval = rt_util_clamp_to_8BSI(initialvalue);
                 for (i = 0; i < numval; i++)
                     ptr[i] = clamped_initval;
@@ -624,7 +624,7 @@ rt_raster_generate_new_band(
             }
             case PT_8BUI:
             {
-                uint8_t *ptr = mem;
+                uint8_t *ptr = (uint8_t*)mem;
                 uint8_t clamped_initval = rt_util_clamp_to_8BUI(initialvalue);
                 for (i = 0; i < numval; i++)
                     ptr[i] = clamped_initval;
@@ -633,7 +633,7 @@ rt_raster_generate_new_band(
             }
             case PT_16BSI:
             {
-                int16_t *ptr = mem;
+                int16_t *ptr = (int16_t *)mem;
                 int16_t clamped_initval = rt_util_clamp_to_16BSI(initialvalue);
                 for (i = 0; i < numval; i++)
                     ptr[i] = clamped_initval;
@@ -642,7 +642,7 @@ rt_raster_generate_new_band(
             }
             case PT_16BUI:
             {
-                uint16_t *ptr = mem;
+                uint16_t *ptr = (uint16_t *)mem;
                 uint16_t clamped_initval = rt_util_clamp_to_16BUI(initialvalue);
                 for (i = 0; i < numval; i++)
                     ptr[i] = clamped_initval;
@@ -651,7 +651,7 @@ rt_raster_generate_new_band(
             }
             case PT_32BSI:
             {
-                int32_t *ptr = mem;
+                int32_t *ptr = (int32_t *)mem;
                 int32_t clamped_initval = rt_util_clamp_to_32BSI(initialvalue);
                 for (i = 0; i < numval; i++)
                     ptr[i] = clamped_initval;
@@ -660,7 +660,7 @@ rt_raster_generate_new_band(
             }
             case PT_32BUI:
             {
-                uint32_t *ptr = mem;
+                uint32_t *ptr = (uint32_t *)mem;
                 uint32_t clamped_initval = rt_util_clamp_to_32BUI(initialvalue);
                 for (i = 0; i < numval; i++)
                     ptr[i] = clamped_initval;
@@ -669,7 +669,7 @@ rt_raster_generate_new_band(
             }
             case PT_32BF:
             {
-                float *ptr = mem;
+                float *ptr = (float*)mem;
                 float clamped_initval = rt_util_clamp_to_32F(initialvalue);
                 for (i = 0; i < numval; i++)
                     ptr[i] = clamped_initval;
@@ -678,7 +678,7 @@ rt_raster_generate_new_band(
             }
             case PT_64BF:
             {
-                double *ptr = mem;
+                double *ptr = (double*)mem;
                 for (i = 0; i < numval; i++)
                     ptr[i] = initialvalue;
                 checkvaldouble = ptr[0];
@@ -701,7 +701,7 @@ rt_raster_generate_new_band(
 			pixtype
 		);
 
-    band = rt_band_new_inline(width, height, pixtype, hasnodata, nodatavalue, mem);
+    band = rt_band_new_inline(width, height, pixtype, hasnodata, nodatavalue, (uint8_t*)mem);
     if (! band) {
         rterror("rt_raster_generate_new_band: Could not add band to raster. Aborting");
         rtdealloc(mem);
@@ -1697,7 +1697,7 @@ rt_raster_clone(rt_raster raster, uint8_t deep) {
 		uint32_t *nband = NULL;
 		int i = 0;
 
-		nband = rtalloc(sizeof(uint32_t) * numband);
+		nband = (uint32_t*)rtalloc(sizeof(uint32_t) * numband);
 		if (nband == NULL) {
 			rterror("rt_raster_clone: Could not allocate memory for deep clone");
 			return NULL;
@@ -1981,7 +1981,7 @@ rt_raster_gdal_drivers(uint32_t *drv_count, uint8_t can_write)
 
 	for (uint32_t i = 0; i < count; i++)
 	{
-		GDALDriverH *drv = GDALGetDriver(i);
+		GDALDriverH *drv = (void**)GDALGetDriver(i);
 
 #ifdef GDAL_DCAP_RASTER
 		/* Starting with GDAL 2.0, vector drivers can also be returned */
@@ -2035,7 +2035,7 @@ rt_raster_gdal_drivers(uint32_t *drv_count, uint8_t can_write)
 	}
 
 	/* free unused memory */
-	rtn = rtrealloc(rtn, output_driver * sizeof(struct rt_gdaldriver_t));
+	rtn = (rt_gdaldriver)rtrealloc(rtn, output_driver * sizeof(struct rt_gdaldriver_t));
 	*drv_count = output_driver;
 
 	return rtn;
@@ -2311,7 +2311,7 @@ rt_raster_to_gdal_mem(
 
 			/* length is for the desired pixel type */
 			valueslen = rt_pixtype_size(PT_16BSI) * nXBlockSize * nYBlockSize;
-			values = rtalloc(valueslen);
+			values = (int16_t*)rtalloc(valueslen);
 			if (NULL == values) {
 				rterror("rt_raster_to_gdal_mem: Could not allocate memory for GDAL band pixel values");
 				if (allocBandNums) rtdealloc(bandNums);
@@ -2588,7 +2588,7 @@ rt_raster_from_gdal_dataset(GDALDatasetH ds) {
 
 		/* allocate memory for values */
 		valueslen = ptlen * nXBlockSize * nYBlockSize;
-		values = rtalloc(valueslen);
+		values = (uint8_t*)rtalloc(valueslen);
 		if (values == NULL) {
 			rterror("rt_raster_from_gdal_dataset: Could not allocate memory for GDAL band pixel values");
 			rt_raster_destroy(rast);
@@ -2687,7 +2687,7 @@ static _rti_rasterize_arg
 _rti_rasterize_arg_init() {
 	_rti_rasterize_arg arg = NULL;
 
-	arg = rtalloc(sizeof(struct _rti_rasterize_arg_t));
+	arg = (_rti_rasterize_arg)rtalloc(sizeof(struct _rti_rasterize_arg_t));
 	if (arg == NULL) {
 		rterror("_rti_rasterize_arg_init: Could not allocate memory for _rti_rasterize_arg");
 		return NULL;
@@ -3621,7 +3621,7 @@ rt_raster_gdal_rasterize(
 			rt_band_get_nodata(oldband, &nodataval);
 
 		/* allocate data */
-		data = rtalloc(rt_pixtype_size(arg->pixtype[i]) * _width * _height);
+		data = (uint8_t*)rtalloc(rt_pixtype_size(arg->pixtype[i]) * _width * _height);
 		if (data == NULL) {
 			rterror("rt_raster_gdal_rasterize: Could not allocate memory for band data");
 			_rti_rasterize_arg_destroy(arg);

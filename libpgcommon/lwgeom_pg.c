@@ -13,24 +13,30 @@
  * the terms of the GNU General Public Licence. See the COPYING file.
  *
  **********************************************************************/
-// #include <postgres.h>
+#include <postgres.h>
 // #include <fmgr.h>
-// #include <miscadmin.h>
+#include <miscadmin.h>
 // #include <access/heapam.h>
 // #include <access/htup.h>
 // #include <access/htup_details.h>
 // #include <access/skey.h>
 // #include <access/genam.h>
-// #include <access/sysattr.h>
-// #include <catalog/indexing.h>
+#include <access/sysattr.h>
+#include <catalog/indexing.h>
 // #include <executor/spi.h>
-// #include <utils/builtins.h>
-// #include <utils/guc.h>
-// #include <utils/guc_tables.h>
-// #include <utils/fmgroids.h>
-// #include <catalog/namespace.h>
-// #include <catalog/pg_extension.h>
-// #include <commands/extension.h>
+#include <utils/builtins.h>
+#include <utils/guc.h>
+#include <utils/guc_tables.h>
+#include <utils/fmgroids.h>
+#include <catalog/namespace.h>
+#include <catalog/pg_extension.h>
+#include <commands/extension.h>
+#include <utils/syscache.h>
+#include <utils/lsyscache.h>
+
+#ifndef CacheMemoryContext
+#define CacheMemoryContext (u_sess->cache_mem_cxt)
+#endif
 
 #include "../postgis_config.h"
 
@@ -174,7 +180,7 @@ getPostgisConstants()
     context->methods->delete_context = PostgisConstantsDelete;
 
 	/* Allocate in the CacheContext so we don't lose this at the end of the statement */
-	postgisConstants* constants = MemoryContextAlloc(context, sizeof(postgisConstants));
+	postgisConstants* constants = (postgisConstants*)MemoryContextAlloc(context, sizeof(postgisConstants));
 
 	/* Calculate fully qualified name of 'spatial_ref_sys' */
 	char *nsp_name = get_namespace_name(nsp_oid);

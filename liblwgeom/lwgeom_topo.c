@@ -51,7 +51,7 @@
 
 LWT_BE_IFACE* lwt_CreateBackendIface(const LWT_BE_DATA *data)
 {
-  LWT_BE_IFACE *iface = lwalloc(sizeof(LWT_BE_IFACE));
+  LWT_BE_IFACE *iface = (LWT_BE_IFACE_T*)lwalloc(sizeof(LWT_BE_IFACE));
   iface->data = data;
   iface->cb = NULL;
   return iface;
@@ -493,7 +493,7 @@ lwt_LoadTopology( LWT_BE_IFACE *iface, const char *name )
     lwerror("%s", lwt_be_lastErrorMessage(iface));
     return NULL;
   }
-  topo = lwalloc(sizeof(LWT_TOPOLOGY));
+  topo = (LWT_TOPOLOGY*)lwalloc(sizeof(LWT_TOPOLOGY));
   topo->be_iface = iface;
   topo->be_topo = be_topo;
   topo->srid = lwt_be_topoGetSRID(topo);
@@ -1754,7 +1754,7 @@ _lwt_MakeRingShell(LWT_TOPOLOGY *topo, LWT_ELEMID *signed_edge_ids, uint64_t num
 
   /* Construct a polygon using edges of the ring */
   numedges = 0;
-  edge_ids = lwalloc(sizeof(LWT_ELEMID)*num_signed_edge_ids);
+  edge_ids = (LWT_ELEMID*)lwalloc(sizeof(LWT_ELEMID)*num_signed_edge_ids);
   for (i=0; i<num_signed_edge_ids; ++i) {
     int absid = llabs(signed_edge_ids[i]);
     int found = 0;
@@ -1831,7 +1831,7 @@ _lwt_MakeRingShell(LWT_TOPOLOGY *topo, LWT_ELEMID *signed_edge_ids, uint64_t num
     }
   }
   _lwt_release_edges(ring_edges, numedges);
-  POINTARRAY **points = lwalloc(sizeof(POINTARRAY*));
+  POINTARRAY **points = (POINTARRAY**)lwalloc(sizeof(POINTARRAY*));
   points[0] = pa;
 
   /* NOTE: the ring may very well have collapsed components,
@@ -2047,9 +2047,9 @@ _lwt_AddFaceSplit( LWT_TOPOLOGY* topo,
 
   if ( numfaceedges )
   {
-    forward_edges = lwalloc(sizeof(LWT_ISO_EDGE)*numfaceedges);
+    forward_edges = (LWT_ISO_EDGE*)lwalloc(sizeof(LWT_ISO_EDGE)*numfaceedges);
     forward_edges_count = 0;
-    backward_edges = lwalloc(sizeof(LWT_ISO_EDGE)*numfaceedges);
+    backward_edges = (LWT_ISO_EDGE*)lwalloc(sizeof(LWT_ISO_EDGE)*numfaceedges);
     backward_edges_count = 0;
 
     /* (2) loop over the results and: */
@@ -2207,7 +2207,7 @@ _lwt_AddFaceSplit( LWT_TOPOLOGY* topo,
 	  return -2;
   }
   if ( numisonodes ) {
-    LWT_ISO_NODE *updated_nodes = lwalloc(sizeof(LWT_ISO_NODE)*numisonodes);
+    LWT_ISO_NODE *updated_nodes = (LWT_ISO_NODE*)lwalloc(sizeof(LWT_ISO_NODE)*numisonodes);
     int nodes_to_update = 0;
     for (i=0; i<numisonodes; ++i)
     {
@@ -2759,7 +2759,7 @@ _lwt_FaceByEdges(LWT_TOPOLOGY *topo, LWT_ISO_EDGE *edges, int numfaceedges)
 {
   LWGEOM *outg;
   LWCOLLECTION *bounds;
-  LWGEOM **geoms = lwalloc( sizeof(LWGEOM*) * numfaceedges );
+  LWGEOM **geoms = (LWGEOM**)lwalloc( sizeof(LWGEOM*) * numfaceedges );
   int i, validedges = 0;
 
   for ( i=0; i<numfaceedges; ++i )
@@ -2931,7 +2931,7 @@ _lwt_FindNextRingEdge(const POINTARRAY *ring, int from,
     if (epa->npoints < 2)
     {
       LWDEBUGF(3, "_lwt_FindNextRingEdge: edge %" LWTFMT_ELEMID
-                  " has only %"PRIu32" points",
+                  " has only %" PRIu32 " points",
                   isoe->edge_id, epa->npoints);
       continue;
     }
@@ -3122,7 +3122,7 @@ lwt_GetFaceEdges(LWT_TOPOLOGY* topo, LWT_ELEMID face_id, LWT_ELEMID **out )
   }
 
   nseid = prevseid = 0;
-  seid = lwalloc( sizeof(LWT_ELEMID) * numfaceedges );
+  seid = (LWT_ELEMID*)lwalloc( sizeof(LWT_ELEMID) * numfaceedges );
 
   /* for each ring of the face polygon... */
   for ( i=0; i<facepoly->nrings; ++i )
@@ -5007,7 +5007,7 @@ _lwt_AddPoint(LWT_TOPOLOGY* topo, LWPOINT* point, double tol, int
     /* Order by distance if there are more than a single return */
     if ( num > 1 )
     {{
-      sorted= lwalloc(sizeof(scored_pointer)*num);
+      sorted= (scored_pointer*)lwalloc(sizeof(scored_pointer)*num);
       for (i=0; i<num; ++i)
       {
         sorted[i].ptr = nodes+i;
@@ -5016,7 +5016,7 @@ _lwt_AddPoint(LWT_TOPOLOGY* topo, LWPOINT* point, double tol, int
           ((LWT_ISO_NODE*)(sorted[i].ptr))->node_id, sorted[i].score);
       }
       qsort(sorted, num, sizeof(scored_pointer), compare_scored_pointer);
-      nodes2 = lwalloc(sizeof(LWT_ISO_NODE)*num);
+      nodes2 = (LWT_ISO_NODE*)lwalloc(sizeof(LWT_ISO_NODE)*num);
       for (i=0; i<num; ++i)
       {
         nodes2[i] = *((LWT_ISO_NODE*)sorted[i].ptr);
@@ -5071,7 +5071,7 @@ _lwt_AddPoint(LWT_TOPOLOGY* topo, LWPOINT* point, double tol, int
   if ( num > 1 )
   {{
     int j;
-    sorted = lwalloc(sizeof(scored_pointer)*num);
+    sorted = (scored_pointer*)lwalloc(sizeof(scored_pointer)*num);
     for (i=0; i<num; ++i)
     {
       sorted[i].ptr = edges+i;
@@ -5080,7 +5080,7 @@ _lwt_AddPoint(LWT_TOPOLOGY* topo, LWPOINT* point, double tol, int
         ((LWT_ISO_EDGE*)(sorted[i].ptr))->edge_id, sorted[i].score);
     }
     qsort(sorted, num, sizeof(scored_pointer), compare_scored_pointer);
-    edges2 = lwalloc(sizeof(LWT_ISO_EDGE)*num);
+    edges2 = (LWT_ISO_EDGE*)lwalloc(sizeof(LWT_ISO_EDGE)*num);
     for (j=0, i=0; i<num; ++i)
     {
       if ( sorted[i].score == sorted[0].score )
@@ -5699,7 +5699,7 @@ _lwt_AddLine(LWT_TOPOLOGY* topo, LWLINE* line, double tol, int* nedges,
   {{
     /* collect those whose distance from us is < tol */
     nearbycount += numedges;
-    nearby = lwalloc(numedges * sizeof(LWGEOM *));
+    nearby = (LWGEOM**)lwalloc(numedges * sizeof(LWGEOM *));
     for (i=0; i<numedges; ++i)
     {
       LW_ON_INTERRUPT(return NULL);
@@ -5732,9 +5732,9 @@ _lwt_AddLine(LWT_TOPOLOGY* topo, LWLINE* line, double tol, int* nedges,
     /* collect those whose distance from us is < tol */
     nearbycount = nearbyedgecount + numnodes;
     nearby = nearby ?
-        lwrealloc(nearby, nearbycount * sizeof(LWGEOM *))
+        (LWGEOM**)lwrealloc(nearby, nearbycount * sizeof(LWGEOM *))
         :
-        lwalloc(nearbycount * sizeof(LWGEOM *))
+        (LWGEOM**)lwalloc(nearbycount * sizeof(LWGEOM *))
         ;
     int nn = 0;
     for (i=0; i<numnodes; ++i)
@@ -5887,7 +5887,7 @@ _lwt_AddLine(LWT_TOPOLOGY* topo, LWLINE* line, double tol, int* nedges,
   if ( nearbyedgecount )
   {
     nearbycount += nearbyedgecount * 2; /* make space for endpoints */
-    nearby = lwrealloc(nearby, nearbycount * sizeof(LWGEOM *));
+    nearby = (LWGEOM**)lwrealloc(nearby, nearbycount * sizeof(LWGEOM *));
     for (int i=0; i<nearbyedgecount; i++)
     {
       LWLINE *edge = lwgeom_as_lwline(nearby[i]);
@@ -5947,7 +5947,7 @@ _lwt_AddLine(LWT_TOPOLOGY* topo, LWLINE* line, double tol, int* nedges,
    * needed) and then check all edges for existing already
    * ( so to save a DB scan for each edge to be added )
    */
-  ids = lwalloc(sizeof(LWT_ELEMID)*ngeoms);
+  ids = (LWT_ELEMID*)lwalloc(sizeof(LWT_ELEMID)*ngeoms);
   num = 0;
   for ( i=0; i<ngeoms; ++i )
   {
@@ -6069,7 +6069,7 @@ lwt_AddPolygon(LWT_TOPOLOGY* topo, LWPOLY* poly, double tol, int* nfaces)
       return NULL;
     }
     ppoly = GEOSPrepare(polyg);
-    ids = lwalloc(sizeof(LWT_ELEMID)*nfacesinbox);
+    ids = (LWT_ELEMID*)lwalloc(sizeof(LWT_ELEMID)*nfacesinbox);
     for ( j=0; j<nfacesinbox; ++j )
     {
       LWT_ISO_FACE *f = &(faces[j]);
@@ -6172,7 +6172,7 @@ _lwt_getIsoEdgeById(LWT_ISO_EDGE_TABLE *tab, LWT_ELEMID id)
   void *match = bsearch( &key, tab->edges, tab->size,
                      sizeof(LWT_ISO_EDGE),
                      compare_iso_edges_by_id);
-  return match;
+  return (LWT_ISO_EDGE*)match;
 }
 
 typedef struct LWT_EDGERING_ELEM_T {
@@ -6200,7 +6200,7 @@ typedef struct LWT_EDGERING_T {
 #define LWT_EDGERING_INIT(a) { \
   (a)->size = 0; \
   (a)->capacity = 1; \
-  (a)->elems = lwalloc(sizeof(LWT_EDGERING_ELEM *) * (a)->capacity); \
+  (a)->elems = (LWT_EDGERING_ELEM_T**)lwalloc(sizeof(LWT_EDGERING_ELEM *) * (a)->capacity); \
   (a)->env = NULL; \
   (a)->genv = NULL; \
 }
@@ -6208,7 +6208,7 @@ typedef struct LWT_EDGERING_T {
 #define LWT_EDGERING_PUSH(a, r) { \
   if ( (a)->size + 1 > (a)->capacity ) { \
     (a)->capacity *= 2; \
-    (a)->elems = lwrealloc((a)->elems, sizeof(LWT_EDGERING_ELEM *) * (a)->capacity); \
+    (a)->elems = (LWT_EDGERING_ELEM**)lwrealloc((a)->elems, sizeof(LWT_EDGERING_ELEM *) * (a)->capacity); \
   } \
   /* lwdebug(1, "adding elem %d (%p) of edgering %p", (a)->size, (r), (a)); */ \
   (a)->elems[(a)->size++] = (r); \
@@ -6239,7 +6239,7 @@ typedef struct LWT_EDGERING_ARRAY_T {
 #define LWT_EDGERING_ARRAY_INIT(a) { \
   (a)->size = 0; \
   (a)->capacity = 1; \
-  (a)->rings = lwalloc(sizeof(LWT_EDGERING *) * (a)->capacity); \
+  (a)->rings = (LWT_EDGERING**)lwalloc(sizeof(LWT_EDGERING *) * (a)->capacity); \
   (a)->tree = NULL; \
 }
 
@@ -6259,7 +6259,7 @@ typedef struct LWT_EDGERING_ARRAY_T {
 #define LWT_EDGERING_ARRAY_PUSH(a, r) { \
   if ( (a)->size + 1 > (a)->capacity ) { \
     (a)->capacity *= 2; \
-    (a)->rings = lwrealloc((a)->rings, sizeof(LWT_EDGERING *) * (a)->capacity); \
+    (a)->rings = (LWT_EDGERING**)lwrealloc((a)->rings, sizeof(LWT_EDGERING *) * (a)->capacity); \
   } \
   (a)->rings[(a)->size++] = (r); \
 }
@@ -6314,7 +6314,7 @@ _lwt_EdgeRingIterator_next(LWT_EDGERING_POINT_ITERATOR *it, POINT2D *pt)
 static LWT_EDGERING_POINT_ITERATOR *
 _lwt_EdgeRingIterator_begin(LWT_EDGERING *er)
 {
-  LWT_EDGERING_POINT_ITERATOR *ret = lwalloc(sizeof(LWT_EDGERING_POINT_ITERATOR));
+  LWT_EDGERING_POINT_ITERATOR *ret = (LWT_EDGERING_POINT_ITERATOR*)lwalloc(sizeof(LWT_EDGERING_POINT_ITERATOR));
   ret->ring = er;
   if ( er->size ) ret->curelem = er->elems[0];
   else ret->curelem = NULL;
@@ -6376,9 +6376,9 @@ _lwt_UpdateEdgeRingSideFace(LWT_TOPOLOGY *topo, LWT_EDGERING *ring,
 
   /* Make a list of forward_edges and backward_edges */
 
-  forward_edges = lwalloc(sizeof(LWT_ISO_EDGE) * ring->size);
+  forward_edges = (LWT_ISO_EDGE*)lwalloc(sizeof(LWT_ISO_EDGE) * ring->size);
   forward_edges_count = 0;
-  backward_edges = lwalloc(sizeof(LWT_ISO_EDGE) * ring->size);
+  backward_edges = (LWT_ISO_EDGE*)lwalloc(sizeof(LWT_ISO_EDGE) * ring->size);
   backward_edges_count = 0;
 
   for ( i=0; i<ring->size; ++i )
@@ -6466,7 +6466,7 @@ _lwt_BuildEdgeRing(__attribute__((__unused__)) LWT_TOPOLOGY *topo, LWT_ISO_EDGE_
   LWT_ISO_EDGE *cur;
   int curside;
 
-  ring = lwalloc(sizeof(LWT_EDGERING));
+  ring = (LWT_EDGERING*)lwalloc(sizeof(LWT_EDGERING));
   LWT_EDGERING_INIT(ring);
 
   cur = edge;
@@ -6477,7 +6477,7 @@ _lwt_BuildEdgeRing(__attribute__((__unused__)) LWT_TOPOLOGY *topo, LWT_ISO_EDGE_
   do {
     LWT_ELEMID next;
 
-    elem = lwalloc(sizeof(LWT_EDGERING_ELEM));
+    elem = (LWT_EDGERING_ELEM*)lwalloc(sizeof(LWT_EDGERING_ELEM));
     elem->edge = cur;
     elem->left = ( curside == 1 );
 
@@ -6738,8 +6738,8 @@ _lwt_RegisterFaceOnEdgeSide(LWT_TOPOLOGY *topo, LWT_ISO_EDGE *edge,
 static void
 _lwt_AccumulateCanditates(void* item, void* userdata)
 {
-  LWT_EDGERING_ARRAY *candidates = userdata;
-  LWT_EDGERING *sring = item;
+  LWT_EDGERING_ARRAY *candidates = (LWT_EDGERING_ARRAY*)userdata;
+  LWT_EDGERING *sring = (LWT_EDGERING*)item;
   LWT_EDGERING_ARRAY_PUSH(candidates, sring);
 }
 

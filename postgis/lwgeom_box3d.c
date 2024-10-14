@@ -127,7 +127,7 @@ Datum BOX3D_out(PG_FUNCTION_ARGS)
 
 	if (bbox == NULL)
 	{
-		result = palloc(5);
+		result = (char*)palloc(5);
 		strcat(result, "NULL");
 		PG_RETURN_CSTRING(result);
 	}
@@ -181,7 +181,7 @@ PG_FUNCTION_INFO_V1(BOX3D_to_BOX);
 Datum BOX3D_to_BOX(PG_FUNCTION_ARGS)
 {
 	BOX3D *in = (BOX3D *)PG_GETARG_POINTER(0);
-	BOX *box = palloc(sizeof(BOX));
+	BOX *box = (BOX*)palloc(sizeof(BOX));
 
 	box3d_to_box_p(in, box);
 	PG_RETURN_POINTER(box);
@@ -479,7 +479,7 @@ Datum BOX3D_combine(PG_FUNCTION_ARGS)
 	/* Null geometry but non-null box, return the box */
 	else if (!geom)
 	{
-		result = palloc(sizeof(BOX3D));
+		result = (BOX3D*)palloc(sizeof(BOX3D));
 		memcpy(result, box, sizeof(BOX3D));
 		PG_RETURN_POINTER(result);
 	}
@@ -500,7 +500,7 @@ Datum BOX3D_combine(PG_FUNCTION_ARGS)
 		/* No geom box, no input box, so null return */
 		if (!box)
 			PG_RETURN_NULL();
-		result = palloc(sizeof(BOX3D));
+		result = (BOX3D*)palloc(sizeof(BOX3D));
 		memcpy(result, box, sizeof(BOX3D));
 		PG_RETURN_POINTER(result);
 	}
@@ -514,7 +514,7 @@ Datum BOX3D_combine(PG_FUNCTION_ARGS)
 		PG_RETURN_POINTER(result);
 	}
 
-	result = palloc(sizeof(BOX3D));
+	result = (BOX3D*)palloc(sizeof(BOX3D));
 	result->xmax = Max(box->xmax, gbox.xmax);
 	result->ymax = Max(box->ymax, gbox.ymax);
 	result->zmax = Max(box->zmax, gbox.zmax);
@@ -543,7 +543,7 @@ Datum BOX3D_combine_BOX3D(PG_FUNCTION_ARGS)
 	if (!box1 && !box0)
 		PG_RETURN_NULL();
 
-	result = palloc(sizeof(BOX3D));
+	result = (BOX3D*)palloc(sizeof(BOX3D));
 	result->xmax = Max(box0->xmax, box1->xmax);
 	result->ymax = Max(box0->ymax, box1->ymax);
 	result->zmax = Max(box0->zmax, box1->zmax);
@@ -560,7 +560,7 @@ Datum BOX3D_construct(PG_FUNCTION_ARGS)
 {
 	GSERIALIZED *min = PG_GETARG_GSERIALIZED_P(0);
 	GSERIALIZED *max = PG_GETARG_GSERIALIZED_P(1);
-	BOX3D *result = palloc(sizeof(BOX3D));
+	BOX3D *result = (BOX3D*)palloc(sizeof(BOX3D));
 	LWGEOM *minpoint, *maxpoint;
 	POINT3DZ minp, maxp;
 

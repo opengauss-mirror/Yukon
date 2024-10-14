@@ -35,11 +35,11 @@ UNIONFIND*
 UF_create(uint32_t N)
 {
 	size_t i;
-	UNIONFIND* uf = lwalloc(sizeof(UNIONFIND));
+	UNIONFIND* uf = (UNIONFIND*)lwalloc(sizeof(UNIONFIND));
 	uf->N = N;
 	uf->num_clusters = N;
-	uf->clusters = lwalloc(N * sizeof(uint32_t));
-	uf->cluster_sizes = lwalloc(N * sizeof(uint32_t));
+	uf->clusters = (uint32_t*)lwalloc(N * sizeof(uint32_t));
+	uf->cluster_sizes = (uint32_t*)lwalloc(N * sizeof(uint32_t));
 
 	for (i = 0; i < N; i++)
 	{
@@ -113,8 +113,8 @@ uint32_t*
 UF_ordered_by_cluster(UNIONFIND* uf)
 {
 	size_t i;
-	uint32_t** cluster_id_ptr_by_elem_id = lwalloc(uf->N * sizeof (uint32_t*));
-	uint32_t* ordered_ids = lwalloc(uf->N * sizeof (uint32_t));
+	uint32_t** cluster_id_ptr_by_elem_id = (uint32_t**)lwalloc(uf->N * sizeof (uint32_t*));
+	uint32_t* ordered_ids = (uint32_t*)lwalloc(uf->N * sizeof (uint32_t));
 
 	for (i = 0; i < uf->N; i++)
 	{
@@ -146,7 +146,7 @@ uint32_t*
 UF_get_collapsed_cluster_ids(UNIONFIND* uf, const char* is_in_cluster)
 {
 	uint32_t* ordered_components = UF_ordered_by_cluster(uf);
-	uint32_t* new_ids = lwalloc(uf->N * sizeof(uint32_t));
+	uint32_t* new_ids = (uint32_t*)lwalloc(uf->N * sizeof(uint32_t));
 	uint32_t last_old_id, current_new_id, i;
 	char encountered_cluster = LW_FALSE;
 

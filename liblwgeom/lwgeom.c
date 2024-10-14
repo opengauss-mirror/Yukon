@@ -382,7 +382,7 @@ lwgeom_as_multi(const LWGEOM *lwgeom)
 	}
 	else
 	{
-		ogeoms = lwalloc(sizeof(LWGEOM*));
+		ogeoms = (LWGEOM**)lwalloc(sizeof(LWGEOM*));
 		ogeoms[0] = lwgeom_clone(lwgeom);
 
 		/* Sub-geometries are not allowed to have bboxes or SRIDs, move the bbox to the collection */
@@ -2601,7 +2601,7 @@ lwgeom_boundary(LWGEOM *lwgeom)
 	case MULTILINETYPE:
 	case MULTICURVETYPE: {
 		LWMLINE *lwmline = (LWMLINE *)lwgeom;
-		POINT4D *out = lwalloc(sizeof(POINT4D) * lwmline->ngeoms * 2);
+		POINT4D *out = (POINT4D*)lwalloc(sizeof(POINT4D) * lwmline->ngeoms * 2);
 		uint32_t n = 0;
 
 		for (uint32_t i = 0; i < lwmline->ngeoms; i++)

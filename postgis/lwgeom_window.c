@@ -28,7 +28,7 @@
 /* PostgreSQL */
 #include "postgres.h"
 #include "funcapi.h"
-//#include "windowapi.h"
+#include "windowapi.h"
 
 /* PostGIS */
 #include "liblwgeom.h"
@@ -85,7 +85,7 @@ Datum ST_ClusterDBSCAN(PG_FUNCTION_ARGS)
 	WindowObject win_obj = PG_WINDOW_OBJECT();
 	uint32_t row = WinGetCurrentPosition(win_obj);
 	uint32_t ngeoms = WinGetPartitionRowCount(win_obj);
-	dbscan_context* context = WinGetPartitionLocalMemory(win_obj, sizeof(dbscan_context) + ngeoms * sizeof(dbscan_cluster_result));
+	dbscan_context* context = (dbscan_context*)WinGetPartitionLocalMemory(win_obj, sizeof(dbscan_context) + ngeoms * sizeof(dbscan_cluster_result));
 
 	if (row == 0) /* beginning of the partition; do all of the work now */
 	{
@@ -115,7 +115,7 @@ Datum ST_ClusterDBSCAN(PG_FUNCTION_ARGS)
 		}
 
 		initGEOS(lwnotice, lwgeom_geos_error);
-		geoms = lwalloc(ngeoms * sizeof(LWGEOM*));
+		geoms = (LWGEOM**)lwalloc(ngeoms * sizeof(LWGEOM*));
 		uf = UF_create(ngeoms);
 		for (i = 0; i < ngeoms; i++)
 		{
@@ -223,7 +223,7 @@ Datum ST_ClusterKMeans(PG_FUNCTION_ARGS)
 			lwpgerror("K (%d) must be smaller than the number of rows in the group (%d)", k, N);
 
 		/* Read all the geometries from the partition window into a list */
-		geoms = palloc(sizeof(LWGEOM*) * N);
+		geoms = (LWGEOM**)palloc(sizeof(LWGEOM*) * N);
 		for (i = 0; i < N; i++)
 		{
 			GSERIALIZED *g;

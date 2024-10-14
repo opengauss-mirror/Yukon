@@ -36,6 +36,7 @@
 #include "lwgeom_log.h"
 #include "liblwgeom.h"
 #include "flatgeobuf.h"
+#include "utils/lsyscache.h"
 
 extern "C" Datum pgis_asflatgeobuf_transfn(PG_FUNCTION_ARGS);
 extern "C" Datum pgis_asflatgeobuf_finalfn(PG_FUNCTION_ARGS);

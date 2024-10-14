@@ -2,14 +2,14 @@
 \echo Use "CREATE EXTENSION yukon_vector_pyramid" to load this file. \quit
 
 
-CREATE TABLE pyramid_columns (
-	 id bigserial primary key,
-     f_schema_name varchar(256),
-	 f_table_name varchar(256),
-	 f_geometry_column varchar(256),
-	 f_pyramid_table_name varchar(256),
-     resolution float8,
-	 config text
+CREATE TABLE IF NOT EXISTS  SmPyramidColumns (
+	 SmID bigserial primary key,
+     SmSchemaName varchar(256),
+	 SmTableName varchar(256),
+	 SmGeometryColumn varchar(256),
+	 SmPyramidTableName varchar(256),
+     SmResolution float8,
+	 SmConfigs text
 );
 
 
@@ -34,8 +34,8 @@ DECLARE
     sql_statment text;
     item         text;
 BEGIN
-    sql_statment = 'SELECT config FROM pyramid_columns WHERE f_table_name = ' || QUOTE_LITERAL(tablename) ||
-                   ' and f_geometry_column=' || QUOTE_LITERAL(columnname) || ' and f_schema_name =' || QUOTE_LITERAL(schemaname) ;
+    sql_statment = 'SELECT SmConfigs FROM SmPyramidColumns WHERE SmTableName = ' || QUOTE_LITERAL(tablename) ||
+                   ' and SmGeometryColumn=' || QUOTE_LITERAL(columnname) || ' and SmSchemaName =' || QUOTE_LITERAL(schemaname) ;
     FOR item IN EXECUTE sql_statment
         LOOP
             RETURN NEXT item;
@@ -54,8 +54,8 @@ DECLARE
     ret integer;
     tmp VARCHAR(512);
 BEGIN
-    tmp = 'SELECT count(*) FROM pyramid_columns WHERE f_table_name = ' || QUOTE_LITERAL(tablename) ||
-                   ' and f_geometry_column=' || QUOTE_LITERAL(columnname) || ' and f_schema_name =' || QUOTE_LITERAL(schemaname) ;
+    tmp = 'SELECT count(*) FROM SmPyramidColumns WHERE SmTableName = ' || QUOTE_LITERAL(tablename) ||
+                   ' and SmGeometryColumn=' || QUOTE_LITERAL(columnname) || ' and SmSchemaName =' || QUOTE_LITERAL(schemaname) ;
     execute tmp into ret;
     return ret != 0;
 END;
@@ -70,15 +70,15 @@ CREATE OR REPLACE FUNCTION ST_DeletePyramid(schemaname text, tablename text, col
     tmp VARCHAR(512);
     rec record;
 BEGIN
-	tmp:= 'select * from pyramid_columns where f_table_name = ' || QUOTE_LITERAL(tablename) ||
-          ' and f_geometry_column =' || QUOTE_LITERAL(columnname) || ' and f_schema_name =' || QUOTE_LITERAL(schemaname);
+	tmp:= 'select * from SmPyramidColumns where SmTableName = ' || QUOTE_LITERAL(tablename) ||
+          ' and SmGeometryColumn =' || QUOTE_LITERAL(columnname) || ' and SmSchemaName =' || QUOTE_LITERAL(schemaname);
 
   FOR rec IN EXECUTE tmp LOOP
-    -- tmp := 'DROP TABLE '|| quote_ident(rec.f_pyramid_table_name) || ' CASCADE;';
+    -- tmp := 'DROP TABLE '|| quote_ident(rec.SmPyramidTableName) || ' CASCADE;';
     -- 删除数据表
-    EXECUTE 'DROP TABLE '|| quote_ident(rec.f_schema_name) || '.' ||quote_ident(rec.f_pyramid_table_name) || ' CASCADE;';
+    EXECUTE 'DROP TABLE IF EXISTS '|| quote_ident(rec.SmSchemaName) || '.' ||quote_ident(rec.SmPyramidTableName) || ' CASCADE;';
     -- 删除元信息表中的记录
-    EXECUTE 'DELETE from pyramid_columns where f_schema_name='|| quote_literal(rec.f_schema_name) || ' and f_pyramid_table_name=' ||quote_literal(rec.f_pyramid_table_name);
+    EXECUTE 'DELETE from SmPyramidColumns where SmSchemaName='|| quote_literal(rec.SmSchemaName) || ' and SmPyramidTableName=' ||quote_literal(rec.SmPyramidTableName);
 
   END LOOP;
 END;
@@ -89,7 +89,7 @@ LANGUAGE 'plpgsql' VOLATILE STRICT;
 
 -- /*
 --  * 创建触发器函数，用于当删除数据表时，同时删除 pyramid 表
---  * 当手动删除 pyramid 表时,删除 pyramid_columns 中的记录
+--  * 当手动删除 pyramid 表时,删除 SmPyramidColumns 中的记录
 -- */
 
 -- CREATE OR REPLACE FUNCTION drop_pyramid_table_trigger_function()
@@ -106,21 +106,21 @@ LANGUAGE 'plpgsql' VOLATILE STRICT;
 --             -- 如果当前删除的是一个表
 --             IF obj.object_type = 'table' then
 --                 -- 在元信息表中查找当前表是否有 pyramid 的表
---                 FOR tablename in SELECT f_pyramid_table_name FROM pyramid_columns WHERE f_table_name = obj.object_name
+--                 FOR tablename in SELECT SmPyramidTableName FROM SmPyramidColumns WHERE SmTableName = obj.object_name
 --                     LOOP
 --                         -- 删除表
---                         sql_text = 'DROP TABLE IF EXISTS ' || quote_ident(tablename.f_pyramid_table_name) || ' CASCADE';
+--                         sql_text = 'DROP TABLE IF EXISTS ' || quote_ident(tablename.SmPyramidTableName) || ' CASCADE';
 --                         EXECUTE sql_text;
---                         -- 删除 pyramid_columns 中的记录
---                         sql_text = 'DELETE FROM pyramid_columns WHERE f_table_name = ' ||
+--                         -- 删除 SmPyramidColumns 中的记录
+--                         sql_text = 'DELETE FROM SmPyramidColumns WHERE SmTableName = ' ||
 --                                    quote_literal(obj.object_name);
 --                         EXECUTE sql_text;
 --                     END LOOP;
 --                 -- 查找当前的表是否是 pyramid 的表
---                 FOR tablename in SELECT f_pyramid_table_name FROM pyramid_columns WHERE f_pyramid_table_name = obj.object_name
+--                 FOR tablename in SELECT SmPyramidTableName FROM SmPyramidColumns WHERE SmPyramidTableName = obj.object_name
 --                     LOOP
---                         -- 删除 pyramid_columns 中的记录
---                         sql_text = 'DELETE FROM pyramid_columns WHERE f_pyramid_table_name = ' ||
+--                         -- 删除 SmPyramidColumns 中的记录
+--                         sql_text = 'DELETE FROM SmPyramidColumns WHERE SmPyramidTableName = ' ||
 --                                    quote_literal(obj.object_name);
 --                         EXECUTE sql_text;
 --                     END LOOP;
@@ -141,7 +141,7 @@ LANGUAGE 'plpgsql' VOLATILE STRICT;
 
 
 
-CREATE OR REPLACE FUNCTION ST_BuildTile(schemaname text, tablename text, columnname text, maxlevel int)
+CREATE OR REPLACE FUNCTION ST_BuildTile(schemaname text, tablename text, columnname text, maxlevel int, srid int default 0)
 RETURNS boolean
 	AS '$libdir/yukon_vector_pyramid-1.0','buildTile'
 LANGUAGE 'c' VOLATILE ;
@@ -207,7 +207,7 @@ BEGIN
                        || ', ST_TileEnvelope( ' || z || ',' || x || ',' || y || ')) AS geom  FROM '
                        || quote_ident(schemaname) || '.' || quote_ident(tablename) ||
                    ' WHERE ' || quote_ident(columnname) || ' && ST_TileEnvelope(' || z || ',' || x || ',' || y || ')
-                   ) SELECT ST_AsMVT(mvtgeom.*) FROM mvtgeom;';
+                    ) SELECT ST_AsMVT(mvtgeom.*,' || quote_literal(tablename) || ') FROM mvtgeom;';
             raise notice 'generate:z:%,x:%,y:%',z,x,y;
             execute sql into res;
             return res;
@@ -218,7 +218,7 @@ BEGIN
                    ',ST_MakeEnvelope(-180, -270, 180, 90, 4326))) AS geom  FROM '
                        || quote_ident(schemaname) || '.' || quote_ident(tablename) ||
                    ' WHERE ' || quote_ident(columnname) || ' && ST_TileEnvelope(' || z || ',' || x || ',' || y || ',ST_MakeEnvelope(-180, -270, 180, 90, 4326))
-                   ) SELECT ST_AsMVT(mvtgeom.*) FROM mvtgeom;';
+                    ) SELECT ST_AsMVT(mvtgeom.*,' || quote_literal(tablename) || ') FROM mvtgeom;';
             raise notice 'generate:z:%,x:%,y:%',z,x,y;
             execute sql into res;
             return res;

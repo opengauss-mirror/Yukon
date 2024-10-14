@@ -2,6 +2,14 @@
 074EACB34D80000020200000
 {00B21A4984C0000000000120000F0001}
 455
+524
+980
+271
+t
+242950
+54460350
+49050
+27576
 6
 11045.4733218793
 074EACB0000000000F0F0000
@@ -22,7 +30,11 @@ f
 t
 15
 15
+{20,21}
 {19,21}
+{19,21}
+{19,21}
+{18,18}
 074E80000000000000090000
 00B21A40000000000000000000090001
 t
@@ -36,3 +48,9 @@ t
 t
 f
 f
+64
+4
+NOTICE:  CREATE TABLE will create implicit sequence "testidx_grids_15_id_seq" for serial column "testidx_grids_15.id"
+NOTICE:  CREATE TABLE will create implicit sequence "testidx_select_id_seq" for serial column "testidx_select.id"
+t
+3

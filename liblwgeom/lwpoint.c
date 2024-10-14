@@ -134,7 +134,7 @@ lwpoint_construct(int32_t srid, GBOX *bbox, POINTARRAY *point)
 	if (point == NULL)
 		return NULL; /* error */
 
-	result = lwalloc(sizeof(LWPOINT));
+	result = (LWPOINT*)lwalloc(sizeof(LWPOINT));
 	result->type = POINTTYPE;
 	FLAGS_SET_Z(flags, FLAGS_GET_Z(point->flags));
 	FLAGS_SET_M(flags, FLAGS_GET_M(point->flags));
@@ -150,7 +150,7 @@ lwpoint_construct(int32_t srid, GBOX *bbox, POINTARRAY *point)
 LWPOINT *
 lwpoint_construct_empty(int32_t srid, char hasz, char hasm)
 {
-	LWPOINT *result = lwalloc(sizeof(LWPOINT));
+	LWPOINT *result = (LWPOINT*)lwalloc(sizeof(LWPOINT));
 	result->type = POINTTYPE;
 	result->flags = lwflags(hasz, hasm, 0);
 	result->srid = srid;
@@ -238,7 +238,7 @@ void printLWPOINT(LWPOINT *point)
 LWPOINT *
 lwpoint_clone(const LWPOINT *g)
 {
-	LWPOINT *ret = lwalloc(sizeof(LWPOINT));
+	LWPOINT *ret = (LWPOINT*)lwalloc(sizeof(LWPOINT));
 
 	LWDEBUG(2, "lwpoint_clone called");
 

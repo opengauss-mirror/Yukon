@@ -61,10 +61,10 @@ improve_structure(POINT4D *objs,
 	if (first_cluster_to_split == k)
 		return k;
 
-	POINT4D *temp_objs = lwalloc(sizeof(POINT4D) * n);
-	uint32_t *temp_clusters = lwalloc(sizeof(uint32_t) * n);
-	double *temp_radii = lwalloc(sizeof(double) * n);
-	POINT4D *temp_centers = lwalloc(sizeof(POINT4D) * n);
+	POINT4D *temp_objs = (POINT4D*)lwalloc(sizeof(POINT4D) * n);
+	uint32_t *temp_clusters = (uint32_t*)lwalloc(sizeof(uint32_t) * n);
+	double *temp_radii = (double*)lwalloc(sizeof(double) * n);
+	POINT4D *temp_centers = (POINT4D*)lwalloc(sizeof(POINT4D) * n);
 
 	uint32_t new_k = k;
 
@@ -225,7 +225,7 @@ kmeans_init(POINT4D *objs, uint32_t n, POINT4D *centers, uint32_t k)
 	if (k > 2)
 	{
 		/* array of minimum distance to a point from accepted cluster centers */
-		distances = lwalloc(sizeof(double) * n);
+		distances = (double*)lwalloc(sizeof(double) * n);
 
 		/* initialize array with distance to first object */
 		for (uint32_t j = 0; j < n; j++)
@@ -336,23 +336,23 @@ lwgeom_cluster_kmeans(const LWGEOM **geoms, uint32_t n, uint32_t k, double max_r
 	}
 
 	/* An array of objects to be analyzed. */
-	POINT4D *objs_dense = lwalloc(sizeof(POINT4D) * n);
+	POINT4D *objs_dense = (POINT4D*)lwalloc(sizeof(POINT4D) * n);
 
 	/* Array to mark unclusterable objects. Will be returned as KMEANS_NULL_CLUSTER. */
-	uint8_t *geom_valid = lwalloc(sizeof(uint8_t) * n);
+	uint8_t *geom_valid = (uint8_t*)lwalloc(sizeof(uint8_t) * n);
 	memset(geom_valid, 0, sizeof(uint8_t) * n);
 
 	/* Array to fill in with cluster numbers. */
-	int *clusters = lwalloc(sizeof(int) * n);
+	int *clusters = (int*)lwalloc(sizeof(int) * n);
 	for (uint32_t i = 0; i < n; i++)
 		clusters[i] = KMEANS_NULL_CLUSTER;
 
 	/* An array of clusters centers for the algorithm. */
-	POINT4D *centers = lwalloc(sizeof(POINT4D) * n);
+	POINT4D *centers = (POINT4D*)lwalloc(sizeof(POINT4D) * n);
 	memset(centers, 0, sizeof(POINT4D) * n);
 
 	/* An array of clusters radii for the algorithm. */
-	double *radii = lwalloc(sizeof(double) * n);
+	double *radii = (double*)lwalloc(sizeof(double) * n);
 	memset(radii, 0, sizeof(double) * n);
 
 	/* Prepare the list of object pointers for K-means */
@@ -424,7 +424,7 @@ lwgeom_cluster_kmeans(const LWGEOM **geoms, uint32_t n, uint32_t k, double max_r
 
 	if (num_non_empty > 0)
 	{
-		uint32_t *clusters_dense = lwalloc(sizeof(uint32_t) * num_non_empty);
+		uint32_t *clusters_dense = (uint32_t*)lwalloc(sizeof(uint32_t) * num_non_empty);
 		memset(clusters_dense, 0, sizeof(uint32_t) * num_non_empty);
 		uint32_t output_cluster_count = kmeans(objs_dense, clusters_dense, num_non_empty, centers, radii, k, max_radius);
 

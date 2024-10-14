@@ -582,7 +582,7 @@ int lwline_crossing_direction(const LWLINE *l1, const LWLINE *l2)
 
 
 
-static char *base32 = "0123456789bcdefghjkmnpqrstuvwxyz";
+static const char *base32 = "0123456789bcdefghjkmnpqrstuvwxyz";
 
 /*
 ** Calculate the geohash, iterating downwards and gaining precision.
@@ -596,7 +596,7 @@ geohash_point(double longitude, double latitude, int precision)
 	double lat[2], lon[2], mid;
 	char bits[] = {16,8,4,2,1};
 	int bit=0, ch=0;
-	lwvarlena_t *v = lwalloc(precision + LWVARHDRSZ);
+	lwvarlena_t *v = (lwvarlena_t*)lwalloc(precision + LWVARHDRSZ);
 	LWSIZE_SET(v->size, precision + LWVARHDRSZ);
 	char *geohash = v->data;
 
@@ -733,7 +733,7 @@ void decode_geohash_bbox(char *geohash, double *lat, double *lon, int precision)
 		char c = tolower(geohash[i]);
 
 		/* Valid characters are all digits in base32 */
-		char *base32_pos = strchr(base32, c);
+		char *base32_pos = (char*)strchr(base32, c);
 		if (!base32_pos)
 		{
 			lwerror("%s: Invalid character '%c'", __func__, geohash[i]);

@@ -589,7 +589,7 @@ Datum LWGEOM_line_substring(PG_FUNCTION_ARGS)
 				length += ptarray_length_2d(subline->points);
 		}
 
-		geoms = lwalloc(sizeof(LWGEOM*) * iline->ngeoms);
+		geoms = (LWGEOM**)lwalloc(sizeof(LWGEOM*) * iline->ngeoms);
 
 		/* Slice each sub-geometry of the multiline */
 		for ( i = 0; i < iline->ngeoms; i++ )

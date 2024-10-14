@@ -61,13 +61,14 @@ dimensionality cases. (2D geometry) &&& (3D column), etc.
 
 // #include "postgres.h"
 
-// #include "access/genam.h"
+#include "access/genam.h"
 // #include "access/gin.h"
 // #include "access/gist.h"
-// #include "access/gist_private.h"
+#include "access/gist_private.h"
 // #include "access/gistscan.h"
+#include "access/itup.h"
 // #if PG_VERSION_NUM < 130000
-// #include "access/tuptoaster.h" /* For toast_raw_datum_size */
+#include "access/tuptoaster.h" /* For toast_raw_datum_size */
 // #else
 // #include "access/detoast.h" /* For toast_raw_datum_size */
 // #endif
@@ -83,7 +84,7 @@ dimensionality cases. (2D geometry) &&& (3D column), etc.
 // #include "utils/regproc.h"
 // #include "utils/varlena.h"
 // #endif
-// #include "utils/builtins.h"
+#include "utils/builtins.h"
 // #include "utils/datum.h"
 // #include "utils/snapmgr.h"
 // #include "utils/fmgroids.h"
@@ -94,20 +95,20 @@ dimensionality cases. (2D geometry) &&& (3D column), etc.
 
 // #include "executor/spi.h"
 // #include "fmgr.h"
-// #include "commands/vacuum.h"
-// #if PG_VERSION_NUM < 120000
-// #include "nodes/relation.h"
-// #else
-// #include "nodes/pathnodes.h"
-// #endif
-// #include "parser/parsetree.h"
+#include "commands/vacuum.h"
+#if PG_VERSION_NUM < 120000
+#include "nodes/relation.h"
+#else
+#include "nodes/pathnodes.h"
+#endif
+#include "parser/parsetree.h"
 // #include "utils/array.h"
-// #include "utils/lsyscache.h"
+#include "utils/lsyscache.h"
 // #include "utils/builtins.h"
-// #include "utils/syscache.h"
+#include "utils/syscache.h"
 // #include "utils/rel.h"
-// #include "utils/selfuncs.h"
-#include "../include/extension_dependency.h"
+#include "utils/selfuncs.h"
+//#include "../include/extension_dependency.h"
 #include "../postgis_config.h"
 
 // #include "access/htup_details.h"
@@ -925,7 +926,7 @@ pg_nd_stats_from_tuple(HeapTuple stats_tuple, int mode)
 		}
 
 		/* Clone the stats here so we can release the attstatsslot immediately */
-		nd_stats = palloc(sizeof(float) * nvalues);
+		nd_stats = (ND_STATS*)palloc(sizeof(float) * nvalues);
 		memcpy(nd_stats, floatptr, sizeof(float) * nvalues);
 
 		/* Clean up */
@@ -1434,7 +1435,7 @@ compute_gserialized_stats_mode(VacAttrStats *stats, AnalyzeAttrFetchFunc fetchfu
 	 * We might need less space, but don't think
 	 * its worth saving...
 	 */
-	sample_boxes = palloc(sizeof(ND_BOX*) * sample_rows);
+	sample_boxes = (const ND_BOX**)palloc(sizeof(ND_BOX*) * sample_rows);
 
 	/*
 	 * First scan:
@@ -1490,7 +1491,7 @@ compute_gserialized_stats_mode(VacAttrStats *stats, AnalyzeAttrFetchFunc fetchfu
 			ndims = Max(gbox_ndims(&gbox), ndims);
 
 		/* Convert gbox to n-d box */
-		nd_box = palloc(sizeof(ND_BOX));
+		nd_box = (ND_BOX*)palloc(sizeof(ND_BOX));
 		nd_box_from_gbox(&gbox, nd_box);
 
 		/* Cache n-d bounding box */
@@ -1700,7 +1701,7 @@ compute_gserialized_stats_mode(VacAttrStats *stats, AnalyzeAttrFetchFunc fetchfu
 	 */
 	old_context = MemoryContextSwitchTo(stats->anl_context);
 	nd_stats_size = sizeof(ND_STATS) + ((histo_cells - 1) * sizeof(float4));
-	nd_stats = palloc(nd_stats_size);
+	nd_stats = (ND_STATS*)palloc(nd_stats_size);
 	memset(nd_stats, 0, nd_stats_size); /* Initialize all values to 0 */
 	MemoryContextSwitchTo(old_context);
 
@@ -2331,7 +2332,7 @@ Datum gserialized_estimated_extent(PG_FUNCTION_ARGS)
 		tbl = text_to_cstring(PG_GETARG_TEXT_P(1));
 		col = PG_GETARG_TEXT_P(2);
 		only_parent = PG_GETARG_BOOL(3);
-		nsp_tbl = palloc(strlen(nsp) + strlen(tbl) + 6);
+		nsp_tbl = (char*)palloc(strlen(nsp) + strlen(tbl) + 6);
 		sprintf(nsp_tbl, "\"%s\".\"%s\"", nsp, tbl);
 		tbl_oid = DatumGetObjectId(DirectFunctionCall1(regclassin, CStringGetDatum(nsp_tbl)));
 		pfree(nsp_tbl);
@@ -2341,7 +2342,7 @@ Datum gserialized_estimated_extent(PG_FUNCTION_ARGS)
 		nsp = text_to_cstring(PG_GETARG_TEXT_P(0));
 		tbl = text_to_cstring(PG_GETARG_TEXT_P(1));
 		col = PG_GETARG_TEXT_P(2);
-		nsp_tbl = palloc(strlen(nsp) + strlen(tbl) + 6);
+		nsp_tbl = (char*)palloc(strlen(nsp) + strlen(tbl) + 6);
 		sprintf(nsp_tbl, "\"%s\".\"%s\"", nsp, tbl);
 		tbl_oid = DatumGetObjectId(DirectFunctionCall1(regclassin, CStringGetDatum(nsp_tbl)));
 		pfree(nsp_tbl);
@@ -2350,7 +2351,7 @@ Datum gserialized_estimated_extent(PG_FUNCTION_ARGS)
 	{
 		tbl = text_to_cstring(PG_GETARG_TEXT_P(0));
 		col = PG_GETARG_TEXT_P(1);
-		nsp_tbl = palloc(strlen(tbl) + 3);
+		nsp_tbl = (char*)palloc(strlen(tbl) + 3);
 		sprintf(nsp_tbl, "\"%s\"", tbl);
 		tbl_oid = DatumGetObjectId(DirectFunctionCall1(regclassin, CStringGetDatum(nsp_tbl)));
 		pfree(nsp_tbl);
@@ -2382,7 +2383,7 @@ Datum gserialized_estimated_extent(PG_FUNCTION_ARGS)
 		}
 
 		/* Construct the box */
-		gbox = palloc(sizeof(GBOX));
+		gbox = (GBOX*)palloc(sizeof(GBOX));
 		FLAGS_SET_GEODETIC(gbox->flags, 0);
 		FLAGS_SET_Z(gbox->flags, 0);
 		FLAGS_SET_M(gbox->flags, 0);

@@ -214,7 +214,7 @@ GEOS2LWGEOM(const GEOSGeometry* geom, uint8_t want3d)
 		LWDEBUG(4, "lwgeom_from_geometry: it's a Polygon");
 		if (GEOSisEmpty(geom)) return (LWGEOM*)lwpoly_construct_empty(SRID, want3d, 0);
 		ngeoms = GEOSGetNumInteriorRings(geom);
-		ppaa = lwalloc(sizeof(POINTARRAY*) * (ngeoms + 1));
+		ppaa = (POINTARRAY**)lwalloc(sizeof(POINTARRAY*) * (ngeoms + 1));
 		g = GEOSGetExteriorRing(geom);
 		cs = GEOSGeom_getCoordSeq(g);
 		ppaa[0] = ptarray_from_GEOSCoordSeq(cs, want3d);
@@ -236,7 +236,7 @@ GEOS2LWGEOM(const GEOSGeometry* geom, uint8_t want3d)
 		geoms = NULL;
 		if (ngeoms)
 		{
-			geoms = lwalloc(sizeof(LWGEOM*) * ngeoms);
+			geoms = (LWGEOM**)lwalloc(sizeof(LWGEOM*) * ngeoms);
 			for (i = 0; i < ngeoms; i++)
 			{
 				g = GEOSGetGeometryN(geom, i);
@@ -494,7 +494,7 @@ LWGEOM2GEOS(const LWGEOM* lwgeom, uint8_t autofix)
 			shell = ptarray_to_GEOSLinearRing(lwpoly->rings[0], autofix);
 			if (!shell) return NULL;
 			ngeoms = lwpoly->nrings - 1;
-			if (ngeoms > 0) geoms = lwalloc(sizeof(GEOSGeom) * ngeoms);
+			if (ngeoms > 0) geoms = (GEOSGeometry**)lwalloc(sizeof(GEOSGeom) * ngeoms);
 
 			for (i = 1; i < lwpoly->nrings; i++)
 			{
@@ -546,7 +546,7 @@ LWGEOM2GEOS(const LWGEOM* lwgeom, uint8_t autofix)
 		lwc = (LWCOLLECTION*)lwgeom;
 
 		ngeoms = lwc->ngeoms;
-		if (ngeoms > 0) geoms = lwalloc(sizeof(GEOSGeom) * ngeoms);
+		if (ngeoms > 0) geoms = (GEOSGeometry**)lwalloc(sizeof(GEOSGeom) * ngeoms);
 
 		j = 0;
 		for (i = 0; i < ngeoms; ++i)
@@ -1742,7 +1742,7 @@ lwpoly_to_points(const LWPOLY* lwpoly, uint32_t npoints, int32_t seed)
 	/* Now we fill in an array of cells, and then shuffle that array, */
 	/* so we can visit the cells in random order to avoid visual ugliness */
 	/* caused by visiting them sequentially */
-	cells = lwalloc(2 * sizeof(int) * sample_height * sample_width);
+	cells = (int*)lwalloc(2 * sizeof(int) * sample_height * sample_width);
 	for (i = 0; i < sample_width; i++)
 	{
 		for (j = 0; j < sample_height; j++)
@@ -1911,7 +1911,7 @@ lwtin_from_geos(const GEOSGeometry* geom, uint8_t want3d)
 		geoms = NULL;
 		if (ngeoms)
 		{
-			geoms = lwalloc(ngeoms * sizeof *geoms);
+			geoms = (LWTRIANGLE**)lwalloc(ngeoms * sizeof *geoms);
 			if (!geoms)
 			{
 				lwerror("lwtin_from_geos: can't allocate geoms");

@@ -111,7 +111,7 @@ Datum ST_CurveToLine(PG_FUNCTION_ARGS)
 	POSTGIS_DEBUGF(3, "tol = %g, typ = %d, flg = %d", tol, toltype, flags);
 
 	igeom = lwgeom_from_gserialized(geom);
-	ogeom = lwcurve_linearize(igeom, tol, toltype, flags);
+	ogeom = lwcurve_linearize(igeom, tol, (LW_LINEARIZE_TOLERANCE_TYPE)toltype, flags);
 	lwgeom_free(igeom);
 
 	if (ogeom == NULL)

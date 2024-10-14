@@ -43,7 +43,7 @@
 #define xstr(s) str(s)
 #define str(s) #s
 
-#define YUKON_VERSION "2.0"
+#define YUKON_VERSION "2.1"
 
 extern "C" Datum LWGEOM_mem_size(PG_FUNCTION_ARGS);
 extern "C" Datum LWGEOM_summary(PG_FUNCTION_ARGS);
@@ -159,12 +159,12 @@ Datum LWGEOM_summary(PG_FUNCTION_ARGS)
 	char *result;
 	if (gver == 0)
 	{
-		result = lwalloc(result_sz + 2);
+		result = (char*)lwalloc(result_sz + 2);
 		snprintf(result, result_sz, "0:%s", lwresult);
 	}
 	else
 	{
-		result = lwalloc(result_sz);
+		result = (char*)lwalloc(result_sz);
 		snprintf(result, result_sz, "%s", lwresult);
 	}
 	lwgeom_free(lwg);
@@ -389,7 +389,7 @@ Datum ST_AreaParam(PG_FUNCTION_ARGS)
 		else
 		{
 			lwerror("Invalid ring type found in CurvePoly.");
-			return NULL;
+			PG_RETURN_NULL();
 		}
 	}
 
@@ -604,7 +604,7 @@ Datum LWGEOM_force_collection(PG_FUNCTION_ARGS)
 		bbox = lwgeom->bbox;
 		lwgeom->srid = SRID_UNKNOWN;
 		lwgeom->bbox = NULL;
-		lwgeoms = palloc(sizeof(LWGEOM *));
+		lwgeoms = (LWGEOM**)palloc(sizeof(LWGEOM *));
 		lwgeoms[0] = lwgeom;
 		lwgeom = (LWGEOM *)lwcollection_construct(COLLECTIONTYPE, srid, bbox, 1, lwgeoms);
 	}
@@ -1429,7 +1429,7 @@ Datum LWGEOM_collect_garray(PG_FUNCTION_ARGS)
 	 * Deserialize all geometries in array into the lwgeoms pointers
 	 * array. Check input types to form output type.
 	 */
-	lwgeoms = palloc(sizeof(LWGEOM *) * nelems);
+	lwgeoms = (LWGEOM**)palloc(sizeof(LWGEOM *) * nelems);
 	count = 0;
 	outtype = 0;
 
@@ -1598,7 +1598,7 @@ Datum LWGEOM_makeline_garray(PG_FUNCTION_ARGS)
 	 */
 
 	/* possibly more then required */
-	geoms = palloc(sizeof(LWGEOM *) * nelems);
+	geoms = (LWGEOM**)palloc(sizeof(LWGEOM *) * nelems);
 	ngeoms = 0;
 
 	iterator = array_create_iterator(array, 0);
@@ -1725,7 +1725,7 @@ Datum LWGEOM_makepoly(PG_FUNCTION_ARGS)
 	{
 		array = PG_GETARG_ARRAYTYPE_P(1);
 		nholes = ArrayGetNItems(ARR_NDIM(array), ARR_DIMS(array));
-		holes = lwalloc(sizeof(LWLINE *) * nholes);
+		holes = (const LWLINE**)lwalloc(sizeof(LWLINE *) * nholes);
 		for (i = 0; i < nholes; i++)
 		{
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
@@ -1855,7 +1855,7 @@ Datum LWGEOM_to_BOX(PG_FUNCTION_ARGS)
 	if (!result)
 		PG_RETURN_NULL();
 
-	out = lwalloc(sizeof(BOX));
+	out = (BOX*)lwalloc(sizeof(BOX));
 	out->low.x = gbox.xmin;
 	out->low.y = gbox.ymin;
 	out->high.x = gbox.xmax;
@@ -1931,7 +1931,7 @@ Datum LWGEOM_envelope(PG_FUNCTION_ARGS)
 	else
 	{
 		LWPOLY *poly;
-		POINTARRAY **ppa = lwalloc(sizeof(POINTARRAY *));
+		POINTARRAY **ppa = (POINTARRAY**)lwalloc(sizeof(POINTARRAY *));
 		pa = ptarray_construct_empty(0, 0, 5);
 		ppa[0] = pa;
 

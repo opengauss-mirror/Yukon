@@ -326,8 +326,8 @@ rt_errorstate rt_pixel_set_to_array(
 	}
 
 	/* establish 2D arrays (Y axis) */
-	values = rtalloc(sizeof(double *) * dim[1]);
-	nodatas = rtalloc(sizeof(int *) * dim[1]);
+	values = (double**)rtalloc(sizeof(double *) * dim[1]);
+	nodatas = (int**)rtalloc(sizeof(int *) * dim[1]);
 
 	if (values == NULL || nodatas == NULL) {
 		rterror("rt_pixel_set_to_array: Could not allocate memory for 2D array");
@@ -336,8 +336,8 @@ rt_errorstate rt_pixel_set_to_array(
 
 	/* initialize X axis */
 	for (i = 0; i < dim[1]; i++) {
-		values[i] = rtalloc(sizeof(double) * dim[0]);
-		nodatas[i] = rtalloc(sizeof(int) * dim[0]);
+		values[i] = (double*)rtalloc(sizeof(double) * dim[0]);
+		nodatas[i] = (int*)rtalloc(sizeof(int) * dim[0]);
 
 		if (values[i] == NULL || nodatas[i] == NULL) {
 			rterror("rt_pixel_set_to_array: Could not allocate memory for dimension of 2D array");

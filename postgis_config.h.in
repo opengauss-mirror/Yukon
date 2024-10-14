@@ -116,6 +116,9 @@
 /* openGauss server version */
 #undef POSTGIS_GSSQL_VERSION
 
+/* vastbase server version */
+#undef POSTGIS_VDSQL_VERSION
+
 /* PROJ library version */
 #undef POSTGIS_PROJ_VERSION
 
