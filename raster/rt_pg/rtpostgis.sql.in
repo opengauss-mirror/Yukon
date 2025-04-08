@@ -6945,12 +6945,13 @@ CREATE OR REPLACE FUNCTION _raster_constraint_info_scale(rastschema name, rastta
 		AND s.connamespace = n.oid
 		AND s.conrelid = c.oid
 		AND a.attnum = ANY (s.conkey)
-		AND s.consrc LIKE '%st_scale' || $4 || '(% = %')
+		AND s.consrc LIKE '%st_scale' || $4 || '(% = %'),
+	dbcompt AS (SELECT datcompatibility = 'A' AS isA FROM pg_database WHERE datname = current_catalog)
 -- if it is a comma separated list of two numbers then need to use round
-   SELECT CASE WHEN split_part(c.val,',', 2) > 0
+   SELECT CASE WHEN split_part(c.val,',', 2) > CASE WHEN dbcompt.isA THEN '0' ELSE '' END
         THEN round( split_part(c.val, ',',1)::numeric, split_part(c.val,',',2)::integer )::float8
         ELSE c.val::float8 END
-        FROM c;
+        FROM c, dbcompt;
 	$$ LANGUAGE sql STABLE STRICT
   COST 100;
 
@@ -7823,6 +7824,8 @@ CREATE OR REPLACE FUNCTION AddRasterConstraints (
 		kw text;
 		rtn boolean;
 		schema_num int;
+		compat text;
+		condition bool;
 	BEGIN
 		cnt := 0;
 		max := array_length(constraints, 1);
@@ -7833,7 +7836,15 @@ CREATE OR REPLACE FUNCTION AddRasterConstraints (
 
 		-- validate schema
 		schema := NULL;
-		IF $1 != ' ' THEN
+
+		SELECT datcompatibility INTO compat FROM pg_database WHERE datname = current_catalog;
+		IF compat = 'A' THEN
+			condition := $1 != ' ';
+		ELSE
+			condition := $1 != ' ' AND $1 != '';
+		END IF;
+
+		IF condition THEN
 			sql := 'SELECT nspname FROM pg_namespace '
 				|| 'WHERE nspname = ' || quote_literal($1)
 				|| 'LIMIT 1';
@@ -8077,6 +8088,8 @@ CREATE OR REPLACE FUNCTION DropRasterConstraints (
 		rtn boolean;
 		cnt int;
 		schema_num int;
+		compat text;
+		condition boolean;
 	BEGIN
 		cnt := 0;
 		max := array_length(constraints, 1);
@@ -8087,7 +8100,15 @@ CREATE OR REPLACE FUNCTION DropRasterConstraints (
 
 		-- validate schema
 		schema := NULL;
-		IF $1 != ' ' THEN
+
+		SELECT datcompatibility INTO compat FROM pg_database WHERE datname = current_catalog;
+		IF compat = 'A' THEN
+			condition := $1 != ' ';
+		ELSE
+			condition := $1 != ' ' AND $1 != '';
+		END IF;
+
+		IF condition THEN
 			sql := 'SELECT nspname FROM pg_namespace '
 				|| 'WHERE nspname = ' || quote_literal($1)
 				|| 'LIMIT 1';
@@ -8485,6 +8506,8 @@ CREATE OR REPLACE FUNCTION AddOverviewConstraints (
 		sql text;
 		rtn boolean;
 		schema_num int;
+		compat text;
+		condition boolean;
 	BEGIN
 		FOR x IN 1..2 LOOP
 			s := ' ';
@@ -8499,7 +8522,14 @@ CREATE OR REPLACE FUNCTION AddOverviewConstraints (
 
 			-- validate user-provided schema
 			--IF length(s) > 0 THEN
-			IF s != ' ' THEN		
+			SELECT datcompatibility INTO compat FROM pg_database WHERE datname = current_catalog;
+			IF compat = 'A' THEN
+				condition := s != ' ';
+			ELSE
+				condition := s != ' ' AND s != '';
+			END IF;
+
+			IF condition THEN		
 				sql := 'SELECT nspname FROM pg_namespace '
 					|| 'WHERE nspname = ' || quote_literal(s)
 					|| 'LIMIT 1';
@@ -8513,7 +8543,7 @@ CREATE OR REPLACE FUNCTION AddOverviewConstraints (
 
 			-- no schema, determine what it could be using the table
 			--IF length(s) < 1 THEN
-			IF s = ' ' THEN
+			IF NOT condition THEN
 				sql := 'SELECT count(*) '
 							|| 'FROM pg_catalog.pg_class c '
 							|| 'JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace '
@@ -8589,10 +8619,20 @@ CREATE OR REPLACE FUNCTION DropOverviewConstraints (
 		sql text;
 		rtn boolean;
 		schema_num int;
+		compat text;
+		condition boolean;
 	BEGIN
 		-- validate schema
 		schema := NULL;
-		IF $1 != ' ' THEN
+
+		SELECT datcompatibility INTO compat FROM pg_database WHERE datname = current_catalog;
+		IF compat = 'A' THEN
+			condition := $1 != ' ';
+		ELSE
+			condition := $1 != ' ' AND $1 != '';
+		END IF;
+
+		IF condition THEN
 			sql := 'SELECT nspname FROM pg_namespace '
 				|| 'WHERE nspname = ' || quote_literal($1)
 				|| 'LIMIT 1';
@@ -8671,10 +8711,20 @@ CREATE OR REPLACE FUNCTION _UpdateRasterSRID(
 		srid integer;
 		ct boolean;
 		schema_num int;
+		compat text;
+		condition boolean;
 	BEGIN
 		-- validate schema
 		schema := NULL;
-		IF $1 != ' ' THEN
+
+		SELECT datcompatibility INTO compat FROM pg_database WHERE datname = current_catalog;
+		IF compat = 'A' THEN
+			condition := $1 != ' ';
+		ELSE
+			condition := $1 != ' ' AND $1 != '';
+		END IF;
+
+		IF condition THEN
 			sql := 'SELECT nspname FROM pg_namespace '
 				|| 'WHERE nspname = ' || quote_literal($1)
 				|| 'LIMIT 1';
@@ -8736,7 +8786,7 @@ CREATE OR REPLACE FUNCTION _UpdateRasterSRID(
 		PERFORM  @extschema@.DropRasterConstraints(schema, $2, $3, 'extent', 'alignment', 'srid');
 
 		fqtn := '';
-		IF $1 != ' '  THEN
+		IF condition THEN
 			fqtn := quote_ident($1) || '.';
 		END IF;
 		fqtn := fqtn || quote_ident($2);
