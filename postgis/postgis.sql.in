@@ -2287,7 +2287,8 @@ DECLARE
 	sql text;
 	new_srid integer;
 	count integer;
-
+	compat text;
+	condition bool;
 BEGIN
 
 	-- Verify geometry type
@@ -2342,7 +2343,14 @@ BEGIN
 	END IF;
 
 	-- Verify schema
-	IF ( schema_name IS NOT NULL) THEN
+	SELECT datcompatibility INTO compat FROM pg_database WHERE datname = current_catalog;
+	IF compat = 'A' THEN
+		condition := schema_name IS NOT NULL;
+	ELSE
+		condition := schema_name IS NOT NULL AND schema_name != '';
+	END IF;
+
+	IF (condition) THEN
 		sql := 'SELECT count(*) FROM pg_namespace ' ||
 			'WHERE text(nspname) = ' || quote_literal(schema_name) ||
 			'LIMIT 1';
@@ -2500,11 +2508,19 @@ DECLARE
 	myrec RECORD;
 	okay boolean;
 	real_schema name;
+	compat text;
+	condition bool;
 
 BEGIN
+	SELECT datcompatibility INTO compat FROM pg_database WHERE datname = current_catalog;
+	IF compat = 'A' THEN
+		condition := schema_name IS NOT NULL;
+	ELSE
+		condition := schema_name IS NOT NULL AND schema_name != '';
+	END IF;
 
 	-- Find, check or fix schema_name
-	IF ( schema_name IS NOT NULL ) THEN
+	IF ( condition ) THEN
 		okay = false;
 
 		FOR myrec IN SELECT nspname FROM pg_namespace WHERE text(nspname) = schema_name LOOP
@@ -2601,10 +2617,18 @@ $$
 DECLARE
 	real_schema name;
 	sqlstr text;
+	compat text;
+	condition bool;
 
 BEGIN
+	SELECT datcompatibility INTO compat FROM pg_database WHERE datname = current_catalog;
+	IF compat = 'A' THEN
+		condition := schema_name IS NULL;
+	ELSE
+		condition := schema_name IS NULL OR schema_name = '';
+	END IF;
 
-	IF ( schema_name IS NULL ) THEN
+	IF ( condition ) THEN
 		SELECT current_schema() into real_schema;
 	ELSE
 		real_schema = schema_name;
@@ -2670,11 +2694,19 @@ DECLARE
 	gcoord_dimension  integer;
 	sql text;
 	count integer;
+	compat text;
+	condition bool;
 
 BEGIN
+	SELECT datcompatibility INTO compat FROM pg_database WHERE datname = current_catalog;
+	IF compat = 'A' THEN
+		condition := schema_name IS NOT NULL;
+	ELSE
+		condition := schema_name IS NOT NULL AND schema_name != '';
+	END IF;
 
 	-- Find, check or fix schema_name
-	IF ( schema_name IS NOT NULL ) THEN
+	IF ( condition ) THEN
 		okay = false;
 
 		FOR myrec IN SELECT nspname FROM pg_namespace WHERE text(nspname) = schema_name LOOP
@@ -2809,6 +2841,8 @@ DECLARE
 	schem varchar =  $1;
 	tabl varchar = $2;
 	sr int4;
+	compat text;
+	condition bool;
 BEGIN
 -- if the table contains a . and the schema is empty
 -- split the table into a schema and a table
@@ -2818,7 +2852,14 @@ BEGIN
 	 tabl = substr(tabl,length(schem)+2);
 	END IF;
 
-	select SRID into sr from @extschema@.geometry_columns where (f_table_schema = schem or schem IS NULL) and f_table_name = tabl and f_geometry_column = $3;
+	SELECT datcompatibility INTO compat FROM pg_database WHERE datname = current_catalog;
+	IF compat = 'A' THEN
+		condition := schem IS NULL;
+	ELSE
+		condition := schem IS NULL OR schem = '';
+	END IF;
+
+	select SRID into sr from @extschema@.geometry_columns where (f_table_schema = schem or condition) and f_table_name = tabl and f_geometry_column = $3;
 	IF NOT FOUND THEN
 	   RAISE EXCEPTION 'find_srid() - could not find the corresponding SRID - is the geometry registered in the GEOMETRY_COLUMNS table?  Is there an uppercase/lowercase mismatch?';
 	END IF;
@@ -4861,7 +4902,7 @@ CREATE OR REPLACE FUNCTION ST_AsGML(geom geometry, maxdecimaldigits int4 DEFAULT
 -- Changed: 2.0.0 to use default and named args
 -- ST_AsGML(version, geom, precision, option, prefix, id)
 -- Availability: 2.1.0
-CREATE OR REPLACE FUNCTION ST_AsGML(version int4, geom geometry, maxdecimaldigits int4 DEFAULT 15, options int4 DEFAULT 0, nprefix text DEFAULT 'gml', id text DEFAULT '')
+CREATE OR REPLACE FUNCTION ST_AsGML(version int4, geom geometry, maxdecimaldigits int4 DEFAULT 15, options int4 DEFAULT 0, nprefix text DEFAULT 'gml', id text DEFAULT null)
 	RETURNS TEXT
 	AS 'MODULE_PATHNAME','LWGEOM_asGML'
 	LANGUAGE 'c' IMMUTABLE _PARALLEL
