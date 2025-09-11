@@ -1137,8 +1137,8 @@ Datum gserialized_gist_distance_2d(PG_FUNCTION_ARGS)
 	BOX2DF *entry_box;
 	StrategyNumber strategy = (StrategyNumber) PG_GETARG_UINT16(2);
 	double distance;
-#if POSTGIS_PGSQL_VERSION >= 95
-	bool *recheck = (bool *)PG_GETARG_POINTER(4);
+#if POSTGIS_GSSQL_VERSION >= 700
+	bool *recheck = PG_NARGS() > 4 ? (bool *)PG_GETARG_POINTER(4) : NULL;
 #endif
 	POSTGIS_DEBUG(4, "[GIST] 'distance' function called");
 
@@ -1171,8 +1171,8 @@ Datum gserialized_gist_distance_2d(PG_FUNCTION_ARGS)
 		/* the minimum possible distance, which is the box2df_distance */
 		/* and let the recheck sort things out in the case of leaves */
 		distance = box2df_distance(entry_box, &query_box);
-#if POSTGIS_PGSQL_VERSION >= 95
-		if (GIST_LEAF(entry))
+#if POSTGIS_GSSQL_VERSION >= 700
+		if (GIST_LEAF(entry) && recheck != NULL)
 			*recheck = true;
 #endif
 	}
