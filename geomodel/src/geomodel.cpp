@@ -423,11 +423,11 @@ Datum make_skeleton_from_tin(PG_FUNCTION_ARGS)
     PG_RETURN_NULL();
   }
 
-  //数据填充
-  pVertexDataPack->SetVertexNum(item->ngeoms * 3);
-  pVertexDataPack->m_nVertexDimension = 3;
-  pIndexData->m_enIndexType = IT_16BIT;
-  pIndexData->SetIndexNum(pVertexDataPack->m_nVerticesCount);
+    //数据填充
+    pVertexDataPack->SetVertexNum(item->ngeoms * 3);
+    pVertexDataPack->m_nVertexDimension = 3;
+    pIndexData->m_enIndexType = IT_16BIT;
+    pIndexData->SetIndexNum(pVertexDataPack->m_nVerticesCount);
 
   for (size_t i = 0; i < item->ngeoms; i++)
   {
