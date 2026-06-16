@@ -541,7 +541,7 @@ Datum make_geomodelshell(PG_FUNCTION_ARGS)
   if(pElem == nullptr || pElem->GetType() != YkModelElement::etSkeleton)
   {
     // log...
-    //PG_RETURN_POINTER(0);
+    // PG_RETURN_POINTER(0);
     PG_RETURN_NULL();
   }
   YkModelSkeleton *pSkeleton = (YkModelSkeleton *)pElem;
