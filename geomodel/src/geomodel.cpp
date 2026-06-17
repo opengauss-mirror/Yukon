@@ -56,7 +56,7 @@ PG_FUNCTION_INFO_V1(model_elem_send);
 
 PG_FUNCTION_INFO_V1(yukon_lib_version);
 
-// {{ make from tin 
+// {{ make from tin
 PG_FUNCTION_INFO_V1(make_skeleton_from_tin);
 PG_FUNCTION_INFO_V1(make_hash_from_string);
 PG_FUNCTION_INFO_V1(make_default_material);
@@ -75,7 +75,7 @@ extern "C" Datum model_elem_recv(PG_FUNCTION_ARGS);
 
 extern "C" Datum yukon_lib_version(PG_FUNCTION_ARGS);
 
-// {{ make from tin 
+// {{ make from tin
 extern "C" Datum make_skeleton_from_tin(PG_FUNCTION_ARGS);
 extern "C" Datum make_hash_from_string(PG_FUNCTION_ARGS);
 extern "C" Datum make_default_material(PG_FUNCTION_ARGS);
@@ -153,7 +153,7 @@ GSERIALIZED *wrap_header_geomodeldata(char *pData, int nLen, YkBoundingBox& bbox
   memset(result, 0, size);
 
   // 设置大小
-  SET_VARSIZE(result, size);  
+  SET_VARSIZE(result, size);
   // 设置 flags
  // geomodel_reset_flags(result);
   FLAGS_SET_Z(result->gflags, true);
@@ -161,7 +161,7 @@ GSERIALIZED *wrap_header_geomodeldata(char *pData, int nLen, YkBoundingBox& bbox
   FLAGS_SET_BBOX(result->gflags, true);
   FLAGS_SET_GEODETIC(result->gflags, true);
 
-  gmserialized_set_bbox(result, bbox);  
+  gmserialized_set_bbox(result, bbox);
   // 复制数据
   memcpy(((char *)result) + 32, pData, nLen);
 
@@ -173,13 +173,13 @@ Datum geomodel_recv(PG_FUNCTION_ARGS)
   StringInfo buf = (StringInfo)PG_GETARG_POINTER(0);
   int len = buf->len;
   int size = 0;
-  int32 geom_typmod = -1; 
+  int32 geom_typmod = -1;
 
   if ((PG_NARGS() > 2) && (!PG_ARGISNULL(2)))
   {
     geom_typmod = PG_GETARG_INT32(2);
   }
-  
+
   // is buf->data valid ?
   YkGeoModel *pGeoModel = LoadShell(buf->data, len);
   if (pGeoModel == NULL)
@@ -199,8 +199,8 @@ Datum geomodel_recv(PG_FUNCTION_ARGS)
 
 /**
  * @brief geomodel 二进制输出函数
- * 
- * @return Datum 
+ *
+ * @return Datum
  */
 Datum geomodel_send(PG_FUNCTION_ARGS)
 {
@@ -222,8 +222,8 @@ Datum geomodel_send(PG_FUNCTION_ARGS)
 
 /**
  * @brief 字符串形式数据存入 ,未实现
- * 
- * @return Datum 
+ *
+ * @return Datum
  */
 Datum model_elem_in(PG_FUNCTION_ARGS)
 {
@@ -245,8 +245,8 @@ Datum model_elem_in(PG_FUNCTION_ARGS)
 
 /**
  * @brief 字符串形式数据输出，
- * 
- * @return Datum 
+ *
+ * @return Datum
  */
 Datum model_elem_out(PG_FUNCTION_ARGS)
 {
@@ -270,9 +270,9 @@ Datum model_elem_out(PG_FUNCTION_ARGS)
 
 /**
  * @brief 二进制数据存入，
- * 
+ *
  * @note StringInfo 类型是一个变长数据存储类型
- * @return Datum 
+ * @return Datum
  */
 Datum model_elem_recv(PG_FUNCTION_ARGS)
 {
@@ -286,9 +286,9 @@ Datum model_elem_recv(PG_FUNCTION_ARGS)
 
 /**
  * @brief 二进制数据取出，
- * 
+ *
  * @note varlena 类型是一个变长数据存储类型
- * @return Datum 
+ * @return Datum
  */
 Datum model_elem_send(PG_FUNCTION_ARGS)
 {
@@ -298,11 +298,11 @@ Datum model_elem_send(PG_FUNCTION_ARGS)
 
 /**
  * @brief 获取 geomodel 的包围盒
- * 
+ *
  * @param gms GSERIALIZED 数据
  * @param bbox 返回的包围盒
- * @return true 
- * @return false 
+ * @return true
+ * @return false
  * @note gms 的 data 开始是包围盒数据
  */
 bool gmserialized_get_bbox(GSERIALIZED *gms, BOX3D *bbox)
@@ -313,7 +313,7 @@ bool gmserialized_get_bbox(GSERIALIZED *gms, BOX3D *bbox)
   }
   /*
    * 由于 GSERIALIZED 中索引使用的  BOX 为 float 类型，
-   * 为了提高精度，这里我们直接从模型数据中读取 BOX 并返回 
+   * 为了提高精度，这里我们直接从模型数据中读取 BOX 并返回
    */
   uint32_t size = VARSIZE((varlena *)gms);
 
@@ -346,11 +346,11 @@ bool gmserialized_get_bbox(GSERIALIZED *gms, BOX3D *bbox)
 
 /**
  * @brief 用来计算 geomodel 的 boundary box
- * 
- * @param gms 这里需要在函数体内转换成 UGGeoModelPro 类型才可以计算 
+ *
+ * @param gms 这里需要在函数体内转换成 UGGeoModelPro 类型才可以计算
  * @param len 传入数据的长度
- * @return true 
- * @return false 
+ * @return true
+ * @return false
  */
 bool gmserialized_set_bbox(GSERIALIZED *gms, YkBoundingBox &bbox)
 {
@@ -430,7 +430,7 @@ Datum make_skeleton_from_tin(PG_FUNCTION_ARGS)
     YKASSERT(arr->npoints > 3 );
 
     POINT3DZ *pot = (POINT3DZ *)(arr->serialized_pointlist);
-    
+
     for (int j = 0; j <3; j++)
     {
       pVertexDataPack->m_pVertices[i*9+j*3] = pot[j].x;
@@ -446,7 +446,7 @@ Datum make_skeleton_from_tin(PG_FUNCTION_ARGS)
   }
 
   pSkeleton->SetDataPackRef(pVertexDataPack, pIndexData);
-  pSkeleton->SetMaterialName(strMaterialName);  
+  pSkeleton->SetMaterialName(strMaterialName);
   pSkeleton->m_strName = strSkeletonName;
 
   char *pData = 0;
@@ -514,13 +514,13 @@ Datum make_geomodelshell(PG_FUNCTION_ARGS)
   YkVector3d vMax(11644995.000000000, 4243208.0000000000, 100);
   YkBoundingBox bbox(vMin, vMax);
   pModelNode->Set
-  
+
   // 序列化
   char *pData = 0;
   int nSize = 0;
   SaveShell(pGeoModel, pData, nSize);
   delete pGeoModel;
-  
+
   GSERIALIZED *output = wrap_header_geomodeldata(pData, nSize, bbox);
 
   delete pData;
@@ -536,12 +536,12 @@ Datum make_geomodelshell(PG_FUNCTION_ARGS)
   uint32_t buf_size = VARSIZE(buf);
   // 这里的数据没有包含 size 字段
   char *buf_data = VARDATA(buf);
-  
-  YkModelElement* pElem = LoadElement(buf_data, buf_size);  
+
+  YkModelElement* pElem = LoadElement(buf_data, buf_size);
   if(pElem == nullptr || pElem->GetType() != YkModelElement::etSkeleton)
   {
     // log...
-    PG_RETURN_POINTER(0);
+    PG_RETURN_NULL();
   }
   YkModelSkeleton *pSkeleton = (YkModelSkeleton *)pElem;
 
@@ -556,13 +556,13 @@ Datum make_geomodelshell(PG_FUNCTION_ARGS)
   pGeode->AddElement(pSkeleton);
   pGeode->AddElementShell(YkModelElement::etMaterial, strMaterial);
   YkBoundingBox bbox = pGeoModel->GetBoundingBox();
-  
+
   // 序列化
   char *pData = 0;
   int nSize = 0;
   SaveShell(pGeoModel, pData, nSize);
   delete pGeoModel;
-  
+
   GSERIALIZED *output = wrap_header_geomodeldata(pData, nSize, bbox);
 
   delete pData;
