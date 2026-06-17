@@ -417,6 +417,12 @@ Datum make_skeleton_from_tin(PG_FUNCTION_ARGS)
 	}
   LWTIN *item = lwgeom_as_lwtin(g1->geoms[0]);
 
+  if (nullptr == item)
+  {
+    elog(ERROR, "TIN is not valid!");
+    PG_RETURN_NULL();
+  }
+
   //数据填充
   pVertexDataPack->SetVertexNum(item->ngeoms * 3);
   pVertexDataPack->m_nVertexDimension = 3;
